@@ -1,5 +1,5 @@
 {
-  "name": "ptokens-relayer",
+  "name": "ptokens-listener",
   "version": "0.1.0",
   "description": "Node.js implementation of the v3 pTokens Relayer.",
   "main": "index.js",
