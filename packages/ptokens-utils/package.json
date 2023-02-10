@@ -1,0 +1,48 @@
+{
+  "name": "ptokens-utils",
+  "description": "Node JS library for the pTokens' backend services",
+  "version": "3.2.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "mocha --recursive --bail test",
+    "lint": "eslint . ",
+    "coverage": "nyc npm run test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/provable-things/ptokens-utils.js.git"
+  },
+  "keywords": [
+    "utils",
+    "ptokens",
+    "pnetwork"
+  ],
+  "author": "gitmp01",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/provable-things/ptokens-utils.js/issues"
+  },
+  "homepage": "https://github.com/provable-things/ptokens-utils.js#readme",
+  "dependencies": {
+    "@log4js-node/log4js-api": "^1.0.2",
+    "ajv": "^8.11.0",
+    "inquirer": "^8.2.2",
+    "jsonrpc-lite": "^2.2.0",
+    "mongodb": "^4.3.1",
+    "node-fetch": "^2.6.7",
+    "ramda": "^0.28.0",
+    "rewire": "^6.0.0",
+    "ws": "^8.5.0"
+  },
+  "devDependencies": {
+    "eslint": "^7.32.0",
+    "eslint-config-standard": "^16.0.3",
+    "eslint-plugin-import": "^2.25.4",
+    "eslint-plugin-no-only-tests": "^2.6.0",
+    "eslint-plugin-node": "^11.1.0",
+    "eslint-plugin-promise": "^5.2.0",
+    "mocha": "^9.2.0",
+    "mongodb-memory-server": "^8.8.0",
+    "nyc": "^15.1.0"
+  }
+}
