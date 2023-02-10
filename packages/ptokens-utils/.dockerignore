@@ -1,0 +1,8 @@
+.git
+.github
+.nyc_output
+.eslintrc.js
+test
+node_modules
+REAME.md
+
