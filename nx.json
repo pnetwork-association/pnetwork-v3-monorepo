@@ -4,6 +4,9 @@
   "affected": {
     "defaultBase": "master"
   },
+  "build": {
+    "dependsOn": ["^build"]
+  },
   "tasksRunnerOptions": {
     "default": {
       "runner": "nx/tasks-runners/default",

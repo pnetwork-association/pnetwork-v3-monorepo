@@ -6,7 +6,7 @@ RUN apt-get update && \
 
 ARG VERSION_PTOKEN_UTILS
 
-FROM ptokens-utils:${VERSION_PTOKEN_UTILS:-latest} AS ptokens_utils
+FROM pnetwork/ptokens-utils:${VERSION_PTOKEN_UTILS:-latest} AS ptokens_utils
 FROM node:16.17.0-bullseye-slim
 
 ENV NODE_ENV production

@@ -6,6 +6,7 @@
   "scripts": {
     "lint": "eslint .",
     "test": "jest --config test/jest.config.js",
+    "clean": "docker images rm pnetwork/$npm_package_name:$npm_package_version",
     "build": "docker build --progress plain -t pnetwork/$npm_package_name:$npm_package_version ."
   },
   "author": "Alain Olivier",
