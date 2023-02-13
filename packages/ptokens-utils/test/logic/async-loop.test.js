@@ -8,24 +8,22 @@ describe('Async loop tests', () => {
       // Proposed recursive function to
       // show the stack limit exceeded
       const sumBelow = (number, sum = 0) =>
-        number === 0
-          ? Promise.resolve(sum)
-          : sumBelow(number - 1, sum + number)
+        number === 0 ? Promise.resolve(sum) : sumBelow(number - 1, sum + number)
 
       const optimizedSumBelow = _num => {
         const _sumBelow = (number, sum = 0) =>
           number === 0
             ? logic.stopLoop(sum)
-            : Promise.resolve([ number - 1, sum + number ]) // We return the new args here
+            : Promise.resolve([number - 1, sum + number]) // We return the new args here
 
-        return logic.asyncLoop(_sumBelow, [ _num ])
+        return logic.asyncLoop(_sumBelow, [_num])
       }
 
       const number = 10000
       try {
         await sumBelow(number)
         assert.fail('Should never reach here')
-      } catch(err) {
+      } catch (err) {
         assert(err.message.includes('Maximum call stack size exceeded'))
       }
 
@@ -37,16 +35,16 @@ describe('Async loop tests', () => {
       const optimizedRecursiveLoop = (_counter = 0) => {
         const _recursiveRejectingLoop = _iterations =>
           _iterations < 10
-            ? Promise.resolve([ _iterations + 1 ])
+            ? Promise.resolve([_iterations + 1])
             : Promise.reject(new Error('Failure!'))
 
-        return logic.asyncLoop(_recursiveRejectingLoop, [ _counter ])
+        return logic.asyncLoop(_recursiveRejectingLoop, [_counter])
       }
 
       try {
         await optimizedRecursiveLoop()
         assert.fail('Should never reach here!')
-      } catch(err) {
+      } catch (err) {
         assert.equal(err.message, 'Failure!')
       }
     })
@@ -55,10 +53,10 @@ describe('Async loop tests', () => {
       const optimizedRecursiveLoop = _object => {
         const _recursiveRejectingLoop = _param =>
           _param.counter < 10
-            ? Promise.resolve([ { counter: _param.counter + 1 } ])
+            ? Promise.resolve([{ counter: _param.counter + 1 }])
             : logic.stopLoop('yesssss!')
 
-        return logic.asyncLoop(_recursiveRejectingLoop, [ _object ])
+        return logic.asyncLoop(_recursiveRejectingLoop, [_object])
       }
 
       const result = await optimizedRecursiveLoop({ counter: 5 })
@@ -75,21 +73,18 @@ describe('Async loop tests', () => {
         const _inifiniteLoop = _stateArg =>
           counter === threshold
             ? logic.stopLoop(assoc('result', 'The End.', _stateArg))
-            : Promise.resolve([ assoc('hello', counter++, _stateArg) ])
+            : Promise.resolve([assoc('hello', counter++, _stateArg)])
 
-        return logic.asyncLoop(_inifiniteLoop, [ _state ])
+        return logic.asyncLoop(_inifiniteLoop, [_state])
       }
 
-      const finalState = await optimizedInfiniteLoop({ 'initial': 'field' })
+      const finalState = await optimizedInfiniteLoop({ initial: 'field' })
 
       assert.deepStrictEqual(finalState, {
-        'initial': 'field',
-        'hello': threshold - 1,
-        'result': 'The End.'
+        initial: 'field',
+        hello: threshold - 1,
+        result: 'The End.',
       })
-
     })
   })
-
-
 })

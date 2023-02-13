@@ -10,14 +10,18 @@ describe('Validation tests', () => {
       const val1 = validation.getValidationFunction(schema1)
       const val2 = validation.getValidationFunction(schema1)
       const val3 = validation.getValidationFunction(schema2)
-      
+
       assert(val1 === val2)
       assert(val2 !== val3)
 
-      const result1 = val1({foo: 1, bar: 'abc'})
-      const result2 = val2({foo: 1, bar: 'abc'})
-      const result3 = val3({foo: 1, bar: 'abc'})
-      const result4 = val3({sleepTime: 1000, maxAttempts: 20, successMessage: 'hello'})
+      const result1 = val1({ foo: 1, bar: 'abc' })
+      const result2 = val2({ foo: 1, bar: 'abc' })
+      const result3 = val3({ foo: 1, bar: 'abc' })
+      const result4 = val3({
+        sleepTime: 1000,
+        maxAttempts: 20,
+        successMessage: 'hello',
+      })
 
       assert.equal(result1, true)
       assert.equal(result2, true)

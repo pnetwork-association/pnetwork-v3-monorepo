@@ -13,6 +13,8 @@ module.exports = {
   ERROR_WEBSOCKET_CONNECTION_FAILURE: 'Failed to connect to Websocket!',
   ERROR_DB_CLIENT: 'Failed connecting to the db client, is it running?',
   ERROR_UNABLE_TO_FIND_PATHS: 'Unable to find the given paths in object',
-  ERROR_JSON_RESPONSE_EXTRACTION: 'Failed to extract the json from the response:',
-  ERROR_INVALID_SYMBOL_FOR_BRIDGE_TYPE: 'Invalid symbol for the given bridge type'
+  ERROR_JSON_RESPONSE_EXTRACTION:
+    'Failed to extract the json from the response:',
+  ERROR_INVALID_SYMBOL_FOR_BRIDGE_TYPE:
+    'Invalid symbol for the given bridge type',
 }

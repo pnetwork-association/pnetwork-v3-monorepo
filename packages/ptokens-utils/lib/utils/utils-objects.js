@@ -3,12 +3,19 @@ const { isNotNil } = require('./utils-ramda-ext')
 const { ERROR_KEY_NOT_FOUND, ERROR_UNABLE_TO_FIND_PATHS } = require('../errors')
 const { has, path, isNil, prop, curry } = require('ramda')
 
-const getKeyFromObj = curry((_key, _object) =>
-  new Promise((resolve, reject) =>
-    has(_key, _object)
-      ? resolve(prop(_key, _object))
-      : reject(new Error(`${ERROR_KEY_NOT_FOUND} ('${_key}' not found in ${JSON.stringify(_object)})`))
-  )
+const getKeyFromObj = curry(
+  (_key, _object) =>
+    new Promise((resolve, reject) =>
+      has(_key, _object)
+        ? resolve(prop(_key, _object))
+        : reject(
+            new Error(
+              `${ERROR_KEY_NOT_FOUND} ('${_key}' not found in ${JSON.stringify(
+                _object
+              )})`
+            )
+          )
+    )
 )
 
 const getKeyFromObjThroughPath = curry((_path, _object) =>
@@ -17,7 +24,13 @@ const getKeyFromObjThroughPath = curry((_path, _object) =>
     .then(_ => path(_path, _object))
     .then(_value =>
       isNil(_value)
-        ? Promise.reject(new Error(`${ERROR_KEY_NOT_FOUND} - Path '[${_path}]' not found in ${JSON.stringify(_object)}`))
+        ? Promise.reject(
+            new Error(
+              `${ERROR_KEY_NOT_FOUND} - Path '[${_path}]' not found in ${JSON.stringify(
+                _object
+              )}`
+            )
+          )
         : Promise.resolve(_value)
     )
 )
@@ -27,7 +40,11 @@ const getKeyFromObjThroughPossiblePaths = curry((_paths, _object) =>
     .then(_possibleValues => _possibleValues.filter(isNotNil))
     .then(_filteredValues =>
       _filteredValues.length === 0
-        ? Promise.reject(new Error(`${ERROR_UNABLE_TO_FIND_PATHS} ${JSON.stringify(_object)}`))
+        ? Promise.reject(
+            new Error(
+              `${ERROR_UNABLE_TO_FIND_PATHS} ${JSON.stringify(_object)}`
+            )
+          )
         : _filteredValues[0]
     )
 )
@@ -48,5 +65,5 @@ module.exports = {
   objectifySync,
   parseJsonAsync,
   getKeyFromObjThroughPath,
-  getKeyFromObjThroughPossiblePaths
+  getKeyFromObjThroughPossiblePaths,
 }

@@ -2,24 +2,22 @@ const assert = require('assert')
 const { WebSocketServer } = require('ws')
 const { http, errors } = require('../..')
 
-const createWebSocketServer = (_port = 10000) => 
-  Promise.resolve(new WebSocketServer({ port: _port }))
-    .then(_wss => {
-        _wss.on('connection', _ws => {
-          // console.log('Server: connected')
-          _ws.on('message', (_data) => {
-            // console.log('Server: sending', Buffer.from(_data).toString())
-            _ws.send(_data)
-          })
-          _ws.on('close', () => {
-            // console.log('Server: closed')
-          })
-        })
-        return _wss
+const createWebSocketServer = (_port = 10000) =>
+  Promise.resolve(new WebSocketServer({ port: _port })).then(_wss => {
+    _wss.on('connection', _ws => {
+      // console.log('Server: connected')
+      _ws.on('message', _data => {
+        // console.log('Server: sending', Buffer.from(_data).toString())
+        _ws.send(_data)
       })
-    
-const getWebSocketUrl = (_port = 10000) => `ws://localhost:${_port}`
+      _ws.on('close', () => {
+        // console.log('Server: closed')
+      })
+    })
+    return _wss
+  })
 
+const getWebSocketUrl = (_port = 10000) => `ws://localhost:${_port}`
 
 describe('WebSocket tests', () => {
   let server, connection
@@ -28,20 +26,16 @@ describe('WebSocket tests', () => {
   })
 
   after(async () => {
+    for (const client of server.clients) await client.close()
 
-    for(const client of server.clients) 
-      await client.close()
-    
     await server.close()
   })
 
   describe('getWebSocketConnection', () => {
     it('Should not reject getting the WebSocket connection', async () => {
-
       connection = await http.getWebSocketConnection(getWebSocketUrl())
-      
+
       assert(connection)
-      
     })
   })
 
@@ -49,7 +43,7 @@ describe('WebSocket tests', () => {
     it('Should not reject receiving WebSocket server responses', async () => {
       const data = ['blabla', 'hello', 'world']
 
-      for(let i = 0; i < data.length; ++i) {
+      for (let i = 0; i < data.length; ++i) {
         const result = await http.webSocketFetch(getWebSocketUrl(), data[i])
         assert.deepStrictEqual(result, data[i])
       }
@@ -84,7 +78,7 @@ describe('WebSocket tests', () => {
         assert.fail()
       } catch (err) {
         assert.deepStrictEqual(
-          err.message, 
+          err.message,
           errors.ERROR_WEBSOCKET_CONNECTION_FAILURE
         )
       }

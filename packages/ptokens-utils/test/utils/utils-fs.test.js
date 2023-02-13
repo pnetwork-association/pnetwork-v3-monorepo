@@ -10,10 +10,8 @@ describe('File system utilities', () => {
     try {
       fs.mkdirSync(tmpFolder)
     } catch (err) {
-      if (err.code !== 'EEXIST')
-        throw err
+      if (err.code !== 'EEXIST') throw err
     }
-
   })
 
   after(() => {
@@ -21,10 +19,12 @@ describe('File system utilities', () => {
   })
 
   describe('listFilesInFolder', () => {
-    it('Should successfully list all the files and folders into an array',  async () => {
+    it('Should successfully list all the files and folders into an array', async () => {
       const listOfFiles = ['hello.txt', 'world.txt']
 
-      listOfFiles.map(_file => fs.writeFileSync(path.join(tmpFolder, _file), ''))
+      listOfFiles.map(_file =>
+        fs.writeFileSync(path.join(tmpFolder, _file), '')
+      )
 
       const result = await utils.listFilesInFolder(tmpFolder)
 
@@ -35,7 +35,7 @@ describe('File system utilities', () => {
   describe('writeThingToDisk', () => {
     it('Should write the object to disk and the return the full path', async () => {
       const tmpFile = path.join(tmpFolder, 'afile.json')
-      const object = { 'hello': 'world' }
+      const object = { hello: 'world' }
 
       const result = await utils.writeThingToDisk(tmpFile, object)
       const content = JSON.parse(fs.readFileSync(tmpFile))
@@ -43,7 +43,6 @@ describe('File system utilities', () => {
       assert(fs.existsSync(tmpFile))
       assert.deepStrictEqual(result, tmpFile)
       assert.deepStrictEqual(content, object)
-
     })
 
     it('Should fail to write the object to disk since it is undefined', async () => {
@@ -60,7 +59,7 @@ describe('File system utilities', () => {
 
     it('Should fail to write the object to disk since because the path does not exist', async () => {
       const tmpFile = path.join(tmpFolder, 'hello/afile.json')
-      const object = { 'hello': 'world' }
+      const object = { hello: 'world' }
 
       try {
         await utils.writeThingToDisk(tmpFile, object)

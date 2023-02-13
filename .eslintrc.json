@@ -1,4 +1,17 @@
 {
   "extends": "./node_modules/gts/",
-  "env" : { "mocha" : true }
+  "env": {
+    "es2021": true,
+    "mocha": true,
+    "browser": true
+  },
+  "rules": {
+    "no-unused-vars": ["error", {"argsIgnorePattern": "^_"}],
+    "node/no-unpublished-require": [
+      "error",
+      {
+        "allowModules": ["mongodb-memory-server"]
+      }
+    ]
+  }
 }

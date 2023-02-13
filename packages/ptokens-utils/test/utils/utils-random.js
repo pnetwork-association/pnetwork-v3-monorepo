@@ -4,7 +4,7 @@ const { utils } = require('../..')
 
 describe('Overall utils random tests', () => {
   describe('pickRandomElementFromArray', () => {
-    it('Should pick an element randomly',  () => {
+    it('Should pick an element randomly', () => {
       const ROUNDS = 100000
       const frequencies = {}
       const array = ['a', 'b', 'c', 'd', 'e']
@@ -13,16 +13,15 @@ describe('Overall utils random tests', () => {
       for (let i = 0; i <= ROUNDS; i++) {
         const elem = utils.pickRandomElementFromArray(array)
 
-        frequencies[elem] = has(elem, frequencies)
-          ? frequencies[elem] + 1 
-          : 0
+        frequencies[elem] = has(elem, frequencies) ? frequencies[elem] + 1 : 0
       }
 
-      for (let elem in frequencies) {
+      for (const elem in frequencies) {
         const variance = 0.1
         const elemAverage = frequencies[elem] / ROUNDS
-        const isAverage = expectedAverage - variance < elemAverage 
-          && elemAverage < expectedAverage + variance
+        const isAverage =
+          expectedAverage - variance < elemAverage &&
+          elemAverage < expectedAverage + variance
 
         assert(isAverage)
       }

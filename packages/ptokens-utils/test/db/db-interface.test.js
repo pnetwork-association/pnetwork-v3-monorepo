@@ -8,21 +8,23 @@ describe('Database interface tests', () => {
   const COLLECTION_NAME = 'test'
 
   const DUMMY_REPORTS_SET_1 = [
-    { _id: 'report-1', data: 'fox'},
-    { _id: 'report-2', data: 'whale'},
-    { _id: 'report-3', data: 'dog'},
-    { _id: 'report-4', data: 'fox'},
-    { _id: 'report-5', data: 'santa'},
-    { _id: 'report-6', data: 'crazy'},
-    { _id: 'report-7', data: 'fog'},
-    { _id: 'report-8', data: 'fox'},
+    { _id: 'report-1', data: 'fox' },
+    { _id: 'report-2', data: 'whale' },
+    { _id: 'report-3', data: 'dog' },
+    { _id: 'report-4', data: 'fox' },
+    { _id: 'report-5', data: 'santa' },
+    { _id: 'report-6', data: 'crazy' },
+    { _id: 'report-7', data: 'fog' },
+    { _id: 'report-8', data: 'fox' },
   ]
 
   const insertReportsSet = (_lib, _collection, _reportsSet) =>
     Promise.all(_reportsSet.map(_lib.insertReport(_collection)))
 
   const deleteReportsSet = (_lib, _collection, _reportsSet) =>
-    Promise.all(_reportsSet.map(_report => _lib.deleteReport(_collection, _report._id)))
+    Promise.all(
+      _reportsSet.map(_report => _lib.deleteReport(_collection, _report._id))
+    )
 
   before(async () => {
     mongod = await MongoMemoryServer.create()
@@ -43,7 +45,7 @@ describe('Database interface tests', () => {
       try {
         await db.getClient(url)
         assert.fail('Should never reach here')
-      } catch(err) {
+      } catch (err) {
         assert(err.message.includes('ECONNREFUSED'))
       }
     })
@@ -60,10 +62,8 @@ describe('Database interface tests', () => {
     it('Should reject upon connection error', async () => {
       const db = rewire('../../lib/db/db-interface')
       const error = 'Connection failure'
-      
-      db.__set__('createConnection', () =>
-        Promise.reject(new Error(error))
-      )
+
+      db.__set__('createConnection', () => Promise.reject(new Error(error)))
 
       try {
         await db.getClient(mongod.getUri())
@@ -95,7 +95,7 @@ describe('Database interface tests', () => {
 
     it('Should reject upon report with the same id insertion', async () => {
       const dummyReport = { _id: 123, key1: 'Hello', key2: 'World' }
-      
+
       try {
         // Standalone not working, needs previous test
         await db.insertReport(collection, dummyReport)
@@ -120,8 +120,12 @@ describe('Database interface tests', () => {
 
     it('Should update a report successfully', async () => {
       const reportId = 123
-      
-      const result = await db.updateReport(collection, { $set: { key1: 'Ciao'} }, reportId)
+
+      const result = await db.updateReport(
+        collection,
+        { $set: { key1: 'Ciao' } },
+        reportId
+      )
 
       assert.equal(result, reportId)
     })
@@ -140,7 +144,7 @@ describe('Database interface tests', () => {
 
     it('Should delete a report successfully', async () => {
       const reportId = 123
-      
+
       const result = await db.deleteReport(collection, reportId)
 
       assert.equal(result, reportId)
@@ -158,10 +162,10 @@ describe('Database interface tests', () => {
         COLLECTION_NAME
       )
     })
-    
+
     it('Should return the report with the correct id', async () => {
       for (let i = 0; i < 20; i++) {
-        const report = {_id: i, data: `data ${i}`}
+        const report = { _id: i, data: `data ${i}` }
         await db.insertReport(collection, report)
       }
 
@@ -200,14 +204,16 @@ describe('Database interface tests', () => {
 
     it('Should return a subset of reports satisfying the condition', async () => {
       const expected = reports.filter(x => x.data === 'fox')
-      const query = { data: { $eq: 'fox' }}
+      const query = { data: { $eq: 'fox' } }
       const result = await db.findReports(collection, query)
 
       assert.deepEqual(result, expected)
     })
 
     it('Should return an empty array if no reports are found', async () => {
-      const result = await db.findReports(collection, { data: { $eq: 'something' }})
+      const result = await db.findReports(collection, {
+        data: { $eq: 'something' },
+      })
       const expected = []
 
       assert.deepEqual(result, expected)
@@ -239,7 +245,7 @@ describe('Database interface tests', () => {
       const field = 'data'
       const value = 'edited!'
       const id = reports[7]['_id']
-      const expected = { _id: id, data: 'edited!'}
+      const expected = { _id: id, data: 'edited!' }
 
       const result = await db.editReportField(collection, field, value, id)
       const report = await db.findReportById(collection, id)
@@ -254,7 +260,7 @@ describe('Database interface tests', () => {
       const id = reports[6]['_id']
       const expected = {
         ...reports[6],
-        notexist: value
+        notexist: value,
       }
 
       const result = await db.editReportField(collection, field, value, id)
@@ -294,7 +300,7 @@ describe('Database interface tests', () => {
       const newReport = await db.findReportById(collection, id)
       const expected = {
         _id: DUMMY_REPORTS_SET_1[0]['_id'],
-        newdata: DUMMY_REPORTS_SET_1[0]['data']
+        newdata: DUMMY_REPORTS_SET_1[0]['data'],
       }
 
       assert.deepStrictEqual(newReport, expected)
@@ -342,13 +348,13 @@ describe('Connection teardown test', () => {
   describe('closeConnection', () => {
     it('Should close the db connection successfully', async () => {
       const mongod = await MongoMemoryServer.create()
-      
+
       const { db } = require('../..')
 
       try {
         await db.closeConnection(mongod.getUri())
         await mongod.stop()
-      } catch(err) {
+      } catch (err) {
         assert.fail()
       }
     })

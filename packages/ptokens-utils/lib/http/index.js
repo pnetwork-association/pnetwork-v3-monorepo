@@ -3,5 +3,5 @@ const httpUtils = require('./http-utils')
 
 module.exports = {
   ...wsUtils,
-  ...httpUtils
+  ...httpUtils,
 }

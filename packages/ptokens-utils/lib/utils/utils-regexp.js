@@ -1,6 +1,6 @@
 const { any, map, curry, equals } = require('ramda')
 
-const applyRegExpToListOfStrings = curry((_regexp, _list) => 
+const applyRegExpToListOfStrings = curry((_regexp, _list) =>
   _list.filter(_str => _regexp.test(_str))
 )
 
@@ -13,5 +13,5 @@ const matchStringInsideListSync = curry((_listOfRegexp, _stringToMatch) => {
 
 module.exports = {
   matchStringInsideListSync,
-  applyRegExpToListOfStrings
+  applyRegExpToListOfStrings,
 }

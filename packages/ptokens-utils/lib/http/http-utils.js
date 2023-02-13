@@ -1,6 +1,6 @@
-const { 
-  ERROR_TIMEOUT, 
-  ERROR_SERVER_ERROR, 
+const {
+  ERROR_TIMEOUT,
+  ERROR_SERVER_ERROR,
   HTTPResponseError,
 } = require('../errors')
 const fetch = require('node-fetch')
@@ -8,21 +8,19 @@ const jsonrpc = require('jsonrpc-lite')
 const { has, curry } = require('ramda')
 const { logger } = require('../logger')
 
-const setControllerTimeout = curry((_millis, _controller) => 
+const setControllerTimeout = curry((_millis, _controller) =>
   Promise.resolve(
-    setTimeout(() => { 
+    setTimeout(() => {
       _controller.abort()
       logger.trace(`Timeout set to ${_millis}`)
-    } , 
-    _millis
-    )
-  )
-  .then(_timeoutID => [ _controller, _timeoutID ])
+    }, _millis)
+  ).then(_timeoutID => [_controller, _timeoutID])
 )
 
 const getAbortControllerAndTimeoutID = _timeoutMillis =>
-  Promise.resolve(new AbortController())
-    .then(setControllerTimeout(_timeoutMillis))
+  Promise.resolve(new AbortController()).then(
+    setControllerTimeout(_timeoutMillis)
+  )
 
 const fetchWithAbort = (_url, _opts, _controller, _timeoutID) =>
   fetch(_url, { ..._opts, signal: _controller.signal })
@@ -36,30 +34,30 @@ const fetchWithAbort = (_url, _opts, _controller, _timeoutID) =>
       logger.debug(`Controller timeout ${_timeoutID} cleared!`)
     })
 
-
 const postRequest = (_url, _body, _headers = {}, _timeout = 1000) =>
   Promise.all([
     JSON.stringify(_body),
-    getAbortControllerAndTimeoutID(_timeout)
-  ])
-  .then(([ _bodyStr, [ _controller, _timeoutID ] ]) =>
-    logger.info(`Outgoing POST ${_bodyStr} to ${_url}`) ||
-    fetchWithAbort(_url, {
-        method: 'post',
-        body: _bodyStr,
-        headers: _headers,
-      }, 
-      _controller,
-      _timeoutID
-    )
+    getAbortControllerAndTimeoutID(_timeout),
+  ]).then(
+    ([_bodyStr, [_controller, _timeoutID]]) =>
+      logger.info(`Outgoing POST ${_bodyStr} to ${_url}`) ||
+      fetchWithAbort(
+        _url,
+        {
+          method: 'post',
+          body: _bodyStr,
+          headers: _headers,
+        },
+        _controller,
+        _timeoutID
+      )
   )
-  
+
 const getRequest = (_url, _headers = {}, _timeout = 1000) =>
   logger.debug(`Outgoing GET ${_url}`) ||
-  getAbortControllerAndTimeoutID(_timeout)
-    .then(([ _controller, _timeoutID ]) => 
-      fetchWithAbort(_url, { headers: _headers }, _controller, _timeoutID)
-    )
+  getAbortControllerAndTimeoutID(_timeout).then(([_controller, _timeoutID]) =>
+    fetchWithAbort(_url, { headers: _headers }, _controller, _timeoutID)
+  )
 
 const getJsonBody = _resp => _resp.json()
 
@@ -68,17 +66,15 @@ const checkStatus = _resp =>
     ? Promise.resolve(_resp)
     : Promise.reject(new HTTPResponseError(_resp))
 
-const fetchJsonByGet = (_url, _headers = {}, _timeout = 1000) => 
-  getRequest(_url, _headers, _timeout)
-    .then(checkStatus)
-    .then(getJsonBody)
+const fetchJsonByGet = (_url, _headers = {}, _timeout = 1000) =>
+  getRequest(_url, _headers, _timeout).then(checkStatus).then(getJsonBody)
 
 const fetchJsonByPost = (_url, _body, _headers = {}, _timeout = 5000) =>
   postRequest(_url, _body, _headers, _timeout)
     .then(checkStatus)
     .then(getJsonBody)
 
-const plainJsonResponse = curry((_res, _result) => 
+const plainJsonResponse = curry((_res, _result) =>
   _res.status(200).send(_result)
 )
 
@@ -92,13 +88,17 @@ const jsonRpcError = curry((_req, _res, _err) => {
     _err instanceof jsonrpc.JsonRpcError
       ? jsonrpc.error(id, _err)
       : has('code', _err) && has('message', _err)
-        ? jsonrpc.error(id, new jsonrpc.JsonRpcError(_err.message, _err.code))
-        : jsonrpc.error(id, ERROR_SERVER_ERROR)
+      ? jsonrpc.error(id, new jsonrpc.JsonRpcError(_err.message, _err.code))
+      : jsonrpc.error(id, ERROR_SERVER_ERROR)
   )
-}
-)
+})
 
-const jsonRpcFetch = (_url, _jsonRpcRequest, _headers = {}, _timeout = 1000) => {
+const jsonRpcFetch = (
+  _url,
+  _jsonRpcRequest,
+  _headers = {},
+  _timeout = 1000
+) => {
   const headers = {
     'Content-Type': 'application/json',
     ..._headers,

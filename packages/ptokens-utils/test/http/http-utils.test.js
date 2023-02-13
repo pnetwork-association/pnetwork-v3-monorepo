@@ -1,9 +1,6 @@
 const assert = require('assert')
 const jsonrpc = require('jsonrpc-lite')
-const {
-  createServer,
-  MOCK_SERVER_REQUEST_FAILED
-} = require('./server')
+const { createServer, MOCK_SERVER_REQUEST_FAILED } = require('./server')
 const { http, errors } = require('../..')
 
 describe('Http general tests', () => {
@@ -26,7 +23,7 @@ describe('Http general tests', () => {
     it('Should not reject performing a GET request', async () => {
       const result = await http.fetchJsonByGet(`${serverUrl}/hello`, {}, 1000)
       const expected = { Hello: 'World' }
-      
+
       assert.deepStrictEqual(result, expected)
     })
 
@@ -60,7 +57,7 @@ describe('Http general tests', () => {
 
   describe('fetchJsonByPost', () => {
     it('Should not reject returning the correct response', async () => {
-      const body = { 'hello': 'world' }
+      const body = { hello: 'world' }
       const result = await http.fetchJsonByPost(`${serverUrl}/hello-post`, body)
 
       assert.deepStrictEqual(result, body)
@@ -68,7 +65,7 @@ describe('Http general tests', () => {
 
     it('Should abort the request after the specified timeout', async () => {
       try {
-        const body = { 'hello': 'world' }
+        const body = { hello: 'world' }
         await http.fetchJsonByPost(`${serverUrl}/hello-post`, body, {}, 100)
         assert.fail('Should never reach here')
       } catch (err) {
@@ -94,7 +91,7 @@ describe('Http general tests', () => {
       const method = 'method'
       const body = jsonrpc.request(id, method)
       const result = await http.jsonRpcFetch(`${serverUrl}/json-rpc`, body)
-      const expected = { jsonrpc: '2.0', id: id, result: 'Fine!'}
+      const expected = { jsonrpc: '2.0', id: id, result: 'Fine!' }
 
       assert.deepStrictEqual(result, expected)
     })

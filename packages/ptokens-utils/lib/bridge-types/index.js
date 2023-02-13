@@ -1,4 +1,4 @@
-// NOTE: tests may fail if the 
+// NOTE: tests may fail if the
 // order is changed
 module.exports = {
   PBTC_ON_ETH: 'pbtc-on-eth',
@@ -12,5 +12,5 @@ module.exports = {
   PEOS_ON_ETH: 'peos-on-eth',
   PEOS_ON_INT: 'peos-on-int',
   PALGO_ON_INT: 'palgo-on-int',
-  PINT_ON_ALGO: 'pint-on-algo'
+  PINT_ON_ALGO: 'pint-on-algo',
 }
