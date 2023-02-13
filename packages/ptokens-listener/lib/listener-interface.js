@@ -3,9 +3,9 @@ const { constants, utils } = require('ptokens-utils')
 const { listenForEvmEvent } = require('./evm/listener-evm')
 const { logger } = require('./get-logger')
 
-const listenForEosioEvent = (_eventName, _tokenContract, _abi) => new Error('To be implemented!')
-const listenForAlgorandEvent = (_eventName, _tokenContract, _abi) => new Error('To be implemented!')
-const listenForUtxoDeposit = (_eventName, _tokenContract, _abi) => new Error('To be implemented!')
+const listenForEosioEvent = (_eventName, _tokenContract, _abi) => Promise.reject(new Error('To be implemented!'))
+const listenForAlgorandEvent = (_eventName, _tokenContract, _abi) => Promise.reject(new Error('To be implemented!'))
+const listenForUtxoDeposit = (_eventName, _tokenContract, _abi) => Promise.reject(new Error('To be implemented!'))
 
 const getListenerForBlockchainType = _blockchainType => {
   switch (_blockchainType) {
