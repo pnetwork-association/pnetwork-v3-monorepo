@@ -6,7 +6,7 @@
     "browser": true
   },
   "rules": {
-    "no-unused-vars": ["error", {"argsIgnorePattern": "^_"}],
+    "no-unused-vars": ["error", { "argsIgnorePattern": "^_" }],
     "node/no-unpublished-require": [
       "error",
       {

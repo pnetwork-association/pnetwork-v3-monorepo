@@ -15,7 +15,6 @@
   - [Linting](#best-practices-linting)
   - [Commits](#best-practices-commits)
 
-
 ## <a name="basic-tutorial"></a> Basic tutorial
 
 ### <a name="basic-install"></a> Install `Nx`
@@ -54,7 +53,6 @@ npm install
 nx run-many --target=test
 ```
 
-
 ### <a name="basic-test-sigle"></a> Test a single project
 
 ```bash
@@ -71,7 +69,6 @@ nx lint ptokens-utils
 order to work properly, as module dependencies are installed in the
 monorepo's root, not in the project anymore.
 
-
 ## <a name="best-practices"></a> Best practices
 
 ### <a name="best-practices-linting"></a> Linting
@@ -87,7 +84,6 @@ Just add the following JSON to a new project:
 
 If you need a new rule to add, please ask the team's opinion about it first in order to
 select the best option for everyone.
-
 
 ### <a name="best-practices-commits"></a> Commits
 
