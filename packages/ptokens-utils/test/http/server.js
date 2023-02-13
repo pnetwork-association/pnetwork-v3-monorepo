@@ -22,7 +22,7 @@ const get = async (_req, _res) => {
       _res.statusCode = 404
       _res.end()
       break
-  }  
+  }
 }
 
 const post = (_req, _res) => {
@@ -30,18 +30,18 @@ const post = (_req, _res) => {
   switch (_req.url) {
     case '/hello-post':
       _req.on('data', chunk => {
-          body += chunk.toString()
+        body += chunk.toString()
       })
       _req.on('end', async () => {
         _res.statusCode = 200
         _res.setHeader('Content-Type', 'application/json')
         await logic.sleepForXMilliseconds(200)
-        _res.end(body)  
+        _res.end(body)
       })
       break
     case '/json-rpc':
       _req.on('data', chunk => {
-          body += chunk.toString()
+        body += chunk.toString()
       })
       _req.on('end', () => {
         _res.statusCode = 200
@@ -53,15 +53,17 @@ const post = (_req, _res) => {
       break
     case '/json-rpc-fail':
       _req.on('data', chunk => {
-          body += chunk.toString()
+        body += chunk.toString()
       })
       _req.on('end', () => {
         try {
           _res.statusCode = 500
           _res.setHeader('Content-Type', 'application/json')
-          const resp = JSON.stringify(jsonrpc.success(1, MOCK_SERVER_REQUEST_FAILED))
+          const resp = JSON.stringify(
+            jsonrpc.success(1, MOCK_SERVER_REQUEST_FAILED)
+          )
           _res.end(resp)
-        } catch(e) {
+        } catch (e) {
           console.error(e)
         }
       })
@@ -69,16 +71,14 @@ const post = (_req, _res) => {
   }
 }
 
-const createServer = () => 
+const createServer = () =>
   Promise.resolve(
-    http.createServer((_req, _res) => 
-      _req.method === 'POST'
-        ? post(_req, _res)
-        : get(_req, _res)
+    http.createServer((_req, _res) =>
+      _req.method === 'POST' ? post(_req, _res) : get(_req, _res)
     )
   )
 
 module.exports = {
   createServer,
-  MOCK_SERVER_REQUEST_FAILED
+  MOCK_SERVER_REQUEST_FAILED,
 }

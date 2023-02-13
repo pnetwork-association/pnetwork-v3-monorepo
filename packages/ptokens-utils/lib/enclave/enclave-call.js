@@ -19,11 +19,14 @@ const call = (_path, _executable, _args, _timeout = 0) =>
       if (_err.killed && _err.signal === 'SIGTERM')
         return Promise.reject(new Error(ERROR_ENCLAVE_CALL_TIMEOUT))
       else if (_err.code === 'ENOENT')
-        return Promise.reject(new Error(`${ERROR_ENCLAVE_CALL_FAILED} - Executable '${_executable}' not found @ ${_path}!`))
-      else
-        return Promise.reject(_err)
+        return Promise.reject(
+          new Error(
+            `${ERROR_ENCLAVE_CALL_FAILED} - Executable '${_executable}' not found @ ${_path}!`
+          )
+        )
+      else return Promise.reject(_err)
     })
 
 module.exports = {
-  call
+  call,
 }

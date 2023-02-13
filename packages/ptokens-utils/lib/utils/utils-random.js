@@ -5,5 +5,5 @@ const pickRandomElementFromArray = _array => {
 }
 
 module.exports = {
-  pickRandomElementFromArray
+  pickRandomElementFromArray,
 }

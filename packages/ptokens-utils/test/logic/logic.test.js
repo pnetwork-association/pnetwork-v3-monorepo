@@ -1,18 +1,15 @@
 const assert = require('assert')
 const jsonrpc = require('jsonrpc-lite')
-const {
-  createServer,
-  MOCK_SERVER_REQUEST_FAILED
-} = require('../http/server')
+const { createServer, MOCK_SERVER_REQUEST_FAILED } = require('../http/server')
 const { logic, errors, http, utils } = require('../..')
 
 describe('Logic tests', () => {
   describe('sleepForXMilliseconds', () => {
     it('Should sleep for x milliseconds', async () => {
-      let time = 200
-      let timeBefore = new Date().getTime()
+      const time = 200
+      const timeBefore = new Date().getTime()
       await logic.sleepForXMilliseconds(time)
-      let timeAfter = new Date().getTime()
+      const timeAfter = new Date().getTime()
       const delta = timeAfter - timeBefore
       assert(delta >= time)
     })
@@ -24,9 +21,9 @@ describe('Logic tests', () => {
       try {
         await Promise.race([
           logic.rejectAfterXMilliseconds(400),
-          logic.sleepForXMilliseconds(500).then(() => assert.fail())
+          logic.sleepForXMilliseconds(500).then(() => assert.fail()),
         ])
-      } catch(err) {
+      } catch (err) {
         assert(err.message === errors.ERROR_TIMEOUT)
       }
     })
@@ -36,13 +33,13 @@ describe('Logic tests', () => {
       const dummyRace = () =>
         Promise.race([
           logic.rejectAfterXMilliseconds(200),
-          logic.sleepForXMilliseconds(400).then(() => assert.fail('Inside'))
+          logic.sleepForXMilliseconds(400).then(() => assert.fail('Inside')),
         ])
 
       try {
         await dummyRace()
         assert.fail('Outside')
-      } catch(err) {
+      } catch (err) {
         assert(err.message === errors.ERROR_TIMEOUT)
       }
     })
@@ -50,16 +47,17 @@ describe('Logic tests', () => {
     it('Should reject after a throw', async function () {
       this.timeout(1500)
       const errorThrown = 'Error thrown'
-      const functionThatThrows = () => new Promise((resolve, reject) => {
-        return reject(new Error(errorThrown))
-      })
+      const functionThatThrows = () =>
+        new Promise((resolve, reject) => {
+          return reject(new Error(errorThrown))
+        })
       try {
         await Promise.race([
           functionThatThrows(),
           logic.rejectAfterXMilliseconds(1000),
         ])
         assert.fail()
-      } catch(err) {
+      } catch (err) {
         assert(err.message === errorThrown)
       }
     })
@@ -74,7 +72,7 @@ describe('Logic tests', () => {
           logic.rejectAfterXMilliseconds(1000),
         ])
         assert(result === expected)
-      } catch(err) {
+      } catch (err) {
         assert.fail(err)
       }
     })
@@ -108,18 +106,19 @@ describe('Logic tests', () => {
         successMessage: 'Succeed',
       }
 
-      const request = jsonrpc.request('123', 'sendrawtransaction', [ 'payload' ])
+      const request = jsonrpc.request('123', 'sendrawtransaction', ['payload'])
       const endpoint = `${serverUrl}/json-rpc-fail`
 
-      const promiseToRetry = () =>
-        http.jsonRpcFetch(endpoint, request)
+      const promiseToRetry = () => http.jsonRpcFetch(endpoint, request)
 
       try {
         await logic.executePromiseWithRetries(retryOpts, promiseToRetry)
         assert.fail('Should never reach here')
-      } catch(e) {
+      } catch (e) {
         const resp = await e.response.json()
-        const expected = utils.objectifySync(jsonrpc.success(1, MOCK_SERVER_REQUEST_FAILED))
+        const expected = utils.objectifySync(
+          jsonrpc.success(1, MOCK_SERVER_REQUEST_FAILED)
+        )
         assert(e.message.includes(errors.ERROR_UNEXPECTED_HTTP_STATUS))
         assert.deepStrictEqual(resp, expected)
       }
@@ -133,31 +132,31 @@ describe('Logic tests', () => {
       const promiseArg = 1337
       const promiseError = 'Failure'
 
-      let timeBefore, timeAfter, counter = 0
+      let timeBefore,
+        timeAfter,
+        counter = 0
 
       const promiseToRetry = _arg =>
         new Promise((_, reject) => {
           counter++
           assert(_arg === promiseArg)
           return reject(new Error(promiseError))
-      })
+        })
 
       try {
         const options = {
           successMessage: '',
           maxAttempts: retries,
           sleepTime: sleepTime,
-          errorMessage: 'promiseToRetry failed!'
+          errorMessage: 'promiseToRetry failed!',
         }
 
         timeBefore = new Date().getTime()
-        await logic.executePromiseWithRetries(
-          options,
-          promiseToRetry,
-          [ promiseArg ]
-        )
+        await logic.executePromiseWithRetries(options, promiseToRetry, [
+          promiseArg,
+        ])
         assert.fail('Should never reach here')
-      } catch(_err) {
+      } catch (_err) {
         timeAfter = new Date().getTime()
         const totalTime = timeAfter - timeBefore
         assert(counter === retries)
@@ -166,7 +165,7 @@ describe('Logic tests', () => {
       }
     })
 
-  it('Should not reject after retrying two times', async () => {
+    it('Should not reject after retrying two times', async () => {
       const retries = 1
       const maxRetries = 3
       const sleepTime = 200
@@ -181,26 +180,28 @@ describe('Logic tests', () => {
           return counter >= retries
             ? resolve(promiseSuccess)
             : reject(new Error(promiseError))
-      })
+        })
 
       try {
         const options = {
           errorMessage: '',
-          successMessage: '', 
+          successMessage: '',
           maxAttempts: maxRetries,
-          sleepTime: sleepTime
+          sleepTime: sleepTime,
         }
 
-        const result = await logic
-          .executePromiseWithRetries(options, promiseToRetry)
+        const result = await logic.executePromiseWithRetries(
+          options,
+          promiseToRetry
+        )
 
         assert(counter === retries)
         assert(result === promiseSuccess)
-      } catch(_err) {
+      } catch (_err) {
         assert.fail()
       }
     })
-    
+
     it('Should reject after the max cap for attempts is reached', async () => {
       const sleepTime = 1
       const promiseArg = 1337
@@ -213,36 +214,38 @@ describe('Logic tests', () => {
         new Promise((_, reject) => {
           counter++
           return reject(new Error(promiseError))
-      })
+        })
 
       try {
         const options = {
           errorMessage: '',
-          successMessage: '', 
+          successMessage: '',
           maxAttempts: retries,
-          sleepTime: sleepTime
+          sleepTime: sleepTime,
         }
 
-        await logic.executePromiseWithRetries(
-          options,
-          promiseToRetry,
-          [ promiseArg ]
-        )
+        await logic.executePromiseWithRetries(options, promiseToRetry, [
+          promiseArg,
+        ])
         assert.fail()
-      } catch(_err) {
+      } catch (_err) {
         assert.equal(counter, logic.MAX_ATTEMPTS_CAP)
         assert(_err.message.includes(promiseError))
       }
     })
-    
+
     it('Should reject because the options given are invalid', async () => {
       const invalidOptions = {}
       const promiseToRetry = () => Promise.resolve()
 
       try {
-        await logic.executePromiseWithRetries(invalidOptions, promiseToRetry, [ ])
+        await logic.executePromiseWithRetries(
+          invalidOptions,
+          promiseToRetry,
+          []
+        )
         assert.fail()
-      } catch(err) {
+      } catch (err) {
         assert(err.message.includes(errors.ERROR_SCHEMA_VALIDATION_FAILED))
       }
     })
@@ -259,7 +262,7 @@ describe('Logic tests', () => {
         new Promise((_, reject) => {
           counter++
           return reject(new Error(promiseError))
-      })
+        })
 
       try {
         const options = {
@@ -267,17 +270,15 @@ describe('Logic tests', () => {
           successMessage: '',
           maxAttempts: retries,
           sleepTime: sleepTime,
-          errorsToNotRetryOn: [ 'no parent error' ]
+          errorsToNotRetryOn: ['no parent error'],
         }
 
-        await logic.executePromiseWithRetries(
-          options,
-          promiseToRetry,
-          [ promiseArg ]
-        )
+        await logic.executePromiseWithRetries(options, promiseToRetry, [
+          promiseArg,
+        ])
 
         assert.fail('Should never reach here')
-      } catch(_err) {
+      } catch (_err) {
         assert.equal(counter, 1)
         assert(_err.message.includes(promiseError))
       }
@@ -295,24 +296,22 @@ describe('Logic tests', () => {
       const promiseToRetry = () =>
         new Promise((resolve, reject) => {
           counter++
-          if (counter < 3)
-            return reject(new Error(promiseError))
-          else
-            return resolve(promiseSuccess)
-      })
+          if (counter < 3) return reject(new Error(promiseError))
+          else return resolve(promiseSuccess)
+        })
 
       const options = {
         errorMessage: '',
         successMessage: '',
         maxAttempts: retries,
         sleepTime: sleepTime,
-        errorsToNotRetryOn: [ 'no parent error', 'another error' ]
+        errorsToNotRetryOn: ['no parent error', 'another error'],
       }
 
       const result = await logic.executePromiseWithRetries(
         options,
         promiseToRetry,
-        [ promiseArg ],
+        [promiseArg]
       )
 
       assert.equal(counter, 3)
@@ -334,13 +333,13 @@ describe('Logic tests', () => {
       const promiseToRetry = () =>
         Promise.any([
           Promise.reject(new Error(ERROR_1)),
-          Promise.reject(new Error(ERROR_2))
+          Promise.reject(new Error(ERROR_2)),
         ])
 
       try {
         await logic.executePromiseWithRetries(options, promiseToRetry, [])
         assert.fail('Should never reach here')
-      } catch(err) {
+      } catch (err) {
         assert(err.errors[0].message.includes(ERROR_1))
         assert(err.errors[1].message.includes(ERROR_2))
       }
@@ -382,7 +381,7 @@ describe('Logic tests', () => {
       try {
         await logic.executePromiseWithRetries(options, promiseToRetry, [])
         assert.fail('Should never reach here')
-      } catch(err) {
+      } catch (err) {
         assert(err.message.includes(ERROR_3))
         assert.equal(counter, 3)
       }
@@ -390,8 +389,13 @@ describe('Logic tests', () => {
   })
 
   describe('racePromise', () => {
-    const resolveAndReturnThingAfterXMilliseconds = (_milliseconds, _thingToReturn) =>
-      new Promise(resolve => setTimeout(() => resolve(_thingToReturn), _milliseconds))
+    const resolveAndReturnThingAfterXMilliseconds = (
+      _milliseconds,
+      _thingToReturn
+    ) =>
+      new Promise(resolve =>
+        setTimeout(() => resolve(_thingToReturn), _milliseconds)
+      )
 
     it('Should resolve and return thing if faster to resolve than passed in ms', async () => {
       const thingToReturn = 'woo!'
@@ -399,8 +403,12 @@ describe('Logic tests', () => {
       const timeToRacePromiseAgainst = promiseTimeToResolve * 2
       assert(timeToRacePromiseAgainst > promiseTimeToResolve)
       const promiseFxn = resolveAndReturnThingAfterXMilliseconds
-      const promiseArgs = [ promiseTimeToResolve, thingToReturn ]
-      const result = await logic.racePromise(timeToRacePromiseAgainst, promiseFxn, promiseArgs)
+      const promiseArgs = [promiseTimeToResolve, thingToReturn]
+      const result = await logic.racePromise(
+        timeToRacePromiseAgainst,
+        promiseFxn,
+        promiseArgs
+      )
       assert.strictEqual(result, thingToReturn)
     })
 
@@ -409,13 +417,17 @@ describe('Logic tests', () => {
       const timeToRacePromiseAgainst = promiseTimeToResolve / 2
       assert(timeToRacePromiseAgainst < promiseTimeToResolve)
       const promiseFxn = resolveAndReturnThingAfterXMilliseconds
-      const promiseArgs = [ promiseTimeToResolve ]
+      const promiseArgs = [promiseTimeToResolve]
       try {
-        await logic.racePromise(timeToRacePromiseAgainst, promiseFxn, promiseArgs)
+        await logic.racePromise(
+          timeToRacePromiseAgainst,
+          promiseFxn,
+          promiseArgs
+        )
         assert.fail('Should not have resolved!')
-       } catch (_err) {
-         assert(_err.message.includes(errors.ERROR_TIMEOUT))
-       }
+      } catch (_err) {
+        assert(_err.message.includes(errors.ERROR_TIMEOUT))
+      }
     })
 
     it('Should reject with correct error if promise passed to it errors', async () => {
@@ -423,11 +435,14 @@ describe('Logic tests', () => {
       const timeToRacePromiseAgainst = promiseTimeToResolve * 2
       assert(timeToRacePromiseAgainst > promiseTimeToResolve)
       const errorMsg = 'An error'
-      const promiseFxn = () =>
-        Promise.reject(new Error(errorMsg))
-      const promiseArgs = [ promiseTimeToResolve ]
+      const promiseFxn = () => Promise.reject(new Error(errorMsg))
+      const promiseArgs = [promiseTimeToResolve]
       try {
-        await logic.racePromise(timeToRacePromiseAgainst, promiseFxn, promiseArgs)
+        await logic.racePromise(
+          timeToRacePromiseAgainst,
+          promiseFxn,
+          promiseArgs
+        )
         assert.fail('Should not have resolved!')
       } catch (_err) {
         assert(_err.message.includes(errorMsg))

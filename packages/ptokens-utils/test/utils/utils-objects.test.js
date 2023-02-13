@@ -6,7 +6,7 @@ describe('Utils object testing', () => {
     it('Should revolve with the key value', async () => {
       const key = 'key'
       const value = 'value'
-      const obj = { [ key ]: value }
+      const obj = { [key]: value }
       const result = await utils.getKeyFromObj(key, obj)
 
       assert.deepStrictEqual(result, value)
@@ -30,7 +30,7 @@ describe('Utils object testing', () => {
       const value = 'value'
       const obj = { key1: { key2: { key3: value } } }
 
-      const path = [ 'key1', 'key2', 'key3' ]
+      const path = ['key1', 'key2', 'key3']
 
       const result = await utils.getKeyFromObjThroughPath(path, obj)
       assert.deepStrictEqual(result, value)
@@ -38,7 +38,7 @@ describe('Utils object testing', () => {
 
     it('Should reject if the value for key is not found', async () => {
       const obj = { key1: { key2: { key3: 'value' } } }
-      const nonExistingPath = [ 'key1', 'key2', 'key4' ]
+      const nonExistingPath = ['key1', 'key2', 'key4']
 
       try {
         await utils.getKeyFromObjThroughPath(nonExistingPath, obj)
@@ -55,13 +55,13 @@ describe('Utils object testing', () => {
       const obj = { key1: { key2: { key3: value } } }
 
       const paths = [
-        [ 'key1', 'key2', 'key1' ],
-        [ 'key1', 'key2', 'key5' ],
-        [ 'key1', 'key2', 'key3' ],
-        [ 'key1', 'key2', 'key3' ]
+        ['key1', 'key2', 'key1'],
+        ['key1', 'key2', 'key5'],
+        ['key1', 'key2', 'key3'],
+        ['key1', 'key2', 'key3'],
       ]
 
-      let result = await utils.getKeyFromObjThroughPossiblePaths(paths, obj)
+      const result = await utils.getKeyFromObjThroughPossiblePaths(paths, obj)
 
       assert.deepStrictEqual(result, value)
 
@@ -74,7 +74,7 @@ describe('Utils object testing', () => {
       try {
         await utils.getKeyFromObjThroughPossiblePaths(nonExistingPaths, obj)
         assert.fail('Should not reach here')
-      } catch(err) {
+      } catch (err) {
         assert(err.message.includes(errors.ERROR_UNABLE_TO_FIND_PATHS))
       }
     })
@@ -101,6 +101,4 @@ describe('Utils object testing', () => {
       assert.deepStrictEqual(result.error, expectedMessage)
     })
   })
-
-
 })

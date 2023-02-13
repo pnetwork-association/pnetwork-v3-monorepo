@@ -2,15 +2,15 @@ module.exports = {
   type: 'object',
   properties: {
     sleepTime: {
-      type: 'integer'
+      type: 'integer',
     },
     maxAttempts: {
-      type: 'integer'
+      type: 'integer',
     },
     successMessage: {
-      type: 'string'
-    }
+      type: 'string',
+    },
   },
   required: ['maxAttempts', 'sleepTime', 'successMessage'],
-  additionalProperties: false
+  additionalProperties: false,
 }

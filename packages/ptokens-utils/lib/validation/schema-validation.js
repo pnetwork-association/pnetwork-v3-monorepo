@@ -10,11 +10,18 @@ const getValidationFunction = memoizeWith(JSON.stringify, _schema =>
 const validateJson = curry((_schema, _json) =>
   Promise.resolve(getValidationFunction(_schema))
     .then(_validate => _validate(_json))
-    .then(_isValid => _isValid || Promise.reject(new Error(`${ERROR_SCHEMA_VALIDATION_FAILED}: ${JSON.stringify(_json)}`))
+    .then(
+      _isValid =>
+        _isValid ||
+        Promise.reject(
+          new Error(
+            `${ERROR_SCHEMA_VALIDATION_FAILED}: ${JSON.stringify(_json)}`
+          )
+        )
     )
 )
 
 module.exports = {
   getValidationFunction,
-  validateJson
+  validateJson,
 }
