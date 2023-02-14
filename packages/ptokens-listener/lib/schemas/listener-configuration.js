@@ -2,22 +2,20 @@ const dbSchema = {
   type: 'object',
   default: {},
   title: 'The db Schema',
-  required: [
-    'url'
-  ],
+  required: ['url'],
   properties: {
     url: {
       type: 'string',
       default: '',
       title: 'The url Schema',
-      examples: [
-        '127.0.0.1'
-      ]
-    }
+      examples: ['127.0.0.1'],
+    },
   },
-  examples: [{
-    url: '127.0.0.1'
-  }]
+  examples: [
+    {
+      url: '127.0.0.1',
+    },
+  ],
 }
 
 module.exports = {
@@ -38,33 +36,25 @@ module.exports = {
       type: 'string',
       default: '',
       title: 'The chain-name Schema',
-      examples: [
-        'telos'
-      ]
+      examples: ['telos'],
     },
     'provider-url': {
       type: 'string',
       default: '',
       title: 'The provider-url Schema',
-      examples: [
-        'http://127.0.0.1:8888'
-      ]
+      examples: ['http://127.0.0.1:8888'],
     },
     'chain-type': {
       type: 'string',
       default: '',
       title: 'The chain-type Schema',
-      examples: [
-        'eos'
-      ]
+      examples: ['eos'],
     },
     'chain-id': {
       type: 'string',
       default: '',
       title: 'The chain-id Schema',
-      examples: [
-        '0x0'
-      ]
+      examples: ['0x0'],
     },
     events: {
       type: 'array',
@@ -73,18 +63,12 @@ module.exports = {
       items: {
         type: 'object',
         title: 'A Schema',
-        required: [
-          'name',
-          'account-names',
-        ],
+        required: ['name', 'account-names'],
         properties: {
           name: {
             type: 'string',
             title: 'The name Schema',
-            examples: [
-              'redeem',
-              'pegin'
-            ]
+            examples: ['redeem', 'pegin'],
           },
           'account-names': {
             type: 'array',
@@ -93,64 +77,56 @@ module.exports = {
             items: {
               type: 'string',
               title: 'A Schema',
-              examples: [
-                'btc.ptokens',
-                'ltc.ptokens'
-              ]
+              examples: ['btc.ptokens', 'ltc.ptokens'],
             },
-            examples: [
-              ['btc.ptokens',
-                'ltc.ptokens'
-              ]
-            ]
-          }
+            examples: [['btc.ptokens', 'ltc.ptokens']],
+          },
         },
-        examples: [{
-          name: 'redeem',
-          'account-names': [
-            'btc.ptokens',
-            'ltc.ptokens'
-          ]
-        },
-        {
-          name: 'pegin',
-          'account-names': ['xbsc.ptokens']
-        }]
+        examples: [
+          {
+            name: 'redeem',
+            'account-names': ['btc.ptokens', 'ltc.ptokens'],
+          },
+          {
+            name: 'pegin',
+            'account-names': ['xbsc.ptokens'],
+          },
+        ],
       },
       examples: [
-        [{
+        [
+          {
+            name: 'redeem',
+            'account-names': ['btc.ptokens', 'ltc.ptokens'],
+          },
+          {
+            name: 'pegin',
+            'account-names': ['xbsc.ptokens'],
+          },
+        ],
+      ],
+    },
+    db: dbSchema,
+  },
+  examples: [
+    {
+      'chain-name': 'telos',
+      'provider-url': 'http://127.0.0.1:8888',
+      'chain-type': 'eos',
+      'chain-id': '0x0',
+      events: [
+        {
           name: 'redeem',
-          'account-names': [
-            'btc.ptokens',
-            'ltc.ptokens'
-          ]
+          'account-names': ['btc.ptokens', 'ltc.ptokens'],
         },
         {
           name: 'pegin',
-          'account-names': ['xbsc.ptokens']
-        }]
-      ]
+          'account-names': ['xbsc.ptokens'],
+        },
+      ],
+      db: {
+        url: '127.0.0.1',
+      },
     },
-    db: dbSchema
-  },
-  examples: [{
-    'chain-name': 'telos',
-    'provider-url': 'http://127.0.0.1:8888',
-    'chain-type': 'eos',
-    'chain-id': '0x0',
-    events: [{
-      name: 'redeem',
-      'account-names': [
-        'btc.ptokens',
-        'ltc.ptokens'
-      ]
-    },
-    {
-      name: 'pegin',
-      'account-names': ['xbsc.ptokens']
-    }],
-    db: {
-      url: '127.0.0.1'
-    }
-  }]
+  ],
 }

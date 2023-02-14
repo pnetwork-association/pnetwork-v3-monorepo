@@ -3,9 +3,12 @@ const { constants, utils } = require('ptokens-utils')
 const { listenForEvmEvent } = require('./evm/listener-evm')
 const { logger } = require('./get-logger')
 
-const listenForEosioEvent = (_eventName, _tokenContract, _abi) => Promise.reject(new Error('To be implemented!'))
-const listenForAlgorandEvent = (_eventName, _tokenContract, _abi) => Promise.reject(new Error('To be implemented!'))
-const listenForUtxoDeposit = (_eventName, _tokenContract, _abi) => Promise.reject(new Error('To be implemented!'))
+const listenForEosioEvent = (_eventName, _tokenContract, _abi) =>
+  Promise.reject(new Error('To be implemented!'))
+const listenForAlgorandEvent = (_eventName, _tokenContract, _abi) =>
+  Promise.reject(new Error('To be implemented!'))
+const listenForUtxoDeposit = (_eventName, _tokenContract, _abi) =>
+  Promise.reject(new Error('To be implemented!'))
 
 const getListenerForBlockchainType = _blockchainType => {
   switch (_blockchainType) {
@@ -24,12 +27,19 @@ const getListenerForBlockchainType = _blockchainType => {
 
 const listenForEvent = (_chainId, _eventName, _tokenContract, _callback) =>
   logger.info(`Listening to ${_eventName} at contract ${_tokenContract}`) ||
-    getListenerForBlockchainType(utils.getBlockchainTypeFromChainId(_chainId))(_eventName, _tokenContract, _callback)
+  getListenerForBlockchainType(utils.getBlockchainTypeFromChainId(_chainId))(
+    _eventName,
+    _tokenContract,
+    _callback
+  )
 
 const insertIntoDb = _obj => logger.info('Insert object into db', _obj)
 
 const startListenersFromEventObject = R.curry((_chainId, _event) =>
-  _event['account-names'].map(_tokenContract => listenForEvent(_chainId, _event.name, _tokenContract, insertIntoDb)))
+  _event['account-names'].map(_tokenContract =>
+    listenForEvent(_chainId, _event.name, _tokenContract, insertIntoDb)
+  )
+)
 
 const listenForEvents = _config =>
   _config.events.map(startListenersFromEventObject(_config['chain-id']))

@@ -2,11 +2,10 @@ const { logger, shutDownLogging } = require('./get-logger')
 
 const exitCleanly = _exitCode =>
   logger.info('Clean exit...') ||
-  shutDownLogging()
-    .then(_ => process.exit(_exitCode))
+  shutDownLogging().then(_ => process.exit(_exitCode))
 
 const setupExitEventListeners = () => {
-  ['SIGINT', 'SIGTERM'].map(_signal => {
+  ;['SIGINT', 'SIGTERM'].map(_signal => {
     process.on(_signal, () => {
       logger.info(`${_signal} caught! Exiting...`)
       return exitCleanly(0)
