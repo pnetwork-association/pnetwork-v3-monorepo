@@ -1,15 +1,18 @@
-const Ajv = require('ajv')
 const { getConfiguration } = require('./configuration')
-const schema = require('./schemas/listener-configuration')
-
+const configurationSchema = require('./schemas/listener-configuration')
+const { validation } = require('ptokens-utils')
 const { logger } = require('./get-logger')
 
-const validSchemas = [schema]
+const validSchemas = [configurationSchema]
 
-const validators = validSchemas.map(_el => new Ajv().compile(_el))
+const validateConfiguration = _config =>
+  Promise.any(
+    validSchemas.map(_schema => validation.validateJson(_schema, _config))
+  ).then(() => _config)
 
 module.exports.checkConfiguration = () =>
-  Promise.any(validators.map(_validator => _validator(getConfiguration())))
+  Promise.resolve(getConfiguration())
+    .then(validateConfiguration)
     .then(
       _config => logger.info('Valid configuration file detected') || _config
     )
