@@ -1,0 +1,23 @@
+{
+  "name": "ptokens-request-processor",
+  "version": "0.0.1",
+  "description": "A component for checking & broadcasting relayer's requests",
+  "main": "index.js",
+  "scripts": {
+    "lint": "eslint ."
+  },
+  "keywords": [
+    "ptokens",
+    "request-processor",
+    "relayer",
+    "guardian"
+  ],
+  "author": "gitmp01",
+  "license": "MIT",
+  "dependencies": {
+    "ptokens-utils": "*"
+  },
+  "devDependencies": {
+    "jest": "^29.4.2"
+  }
+}
