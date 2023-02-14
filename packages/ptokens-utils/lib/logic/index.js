@@ -1,7 +1,6 @@
 const logic = require('./logic')
-const asyncLoop = require('./async-loop')
-
+const loop = require('./loop')
 module.exports = {
   ...logic,
-  ...asyncLoop,
+  ...loop,
 }

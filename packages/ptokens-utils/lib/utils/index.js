@@ -1,4 +1,5 @@
 const fsUtils = require('./utils-fs')
+const ramdaExtUtils = require('./utils-ramda-ext')
 const regexpUtils = require('./utils-regexp')
 const randomUtils = require('./utils-random')
 const objectUtils = require('./utils-objects')
@@ -10,6 +11,7 @@ module.exports = {
   ...regexpUtils,
   ...randomUtils,
   ...objectUtils,
+  ...ramdaExtUtils,
   ...getChainSymbol,
   ...chainIdUtils,
 }
