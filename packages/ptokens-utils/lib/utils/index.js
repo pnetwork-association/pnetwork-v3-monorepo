@@ -3,6 +3,7 @@ const regexpUtils = require('./utils-regexp')
 const randomUtils = require('./utils-random')
 const objectUtils = require('./utils-objects')
 const getChainSymbol = require('./get-chain-symbol')
+const chainIdUtils = require('./utils-chain-id')
 
 module.exports = {
   ...fsUtils,
@@ -10,4 +11,5 @@ module.exports = {
   ...randomUtils,
   ...objectUtils,
   ...getChainSymbol,
+  ...chainIdUtils,
 }
