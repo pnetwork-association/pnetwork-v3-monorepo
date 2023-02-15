@@ -15,7 +15,10 @@
   "author": "gitmp01",
   "license": "MIT",
   "dependencies": {
-    "ptokens-utils": "*"
+    "log4js": "^6.7.1",
+    "ramda": "^0.28.0",
+    "ptokens-utils": "*",
+    "ptokens-schemas": "*"
   },
   "devDependencies": {
     "jest": "^29.4.2"
