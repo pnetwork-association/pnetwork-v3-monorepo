@@ -449,4 +449,18 @@ describe('Logic tests', () => {
       }
     })
   })
+
+  describe('sleepAndResolve', () => {
+    it('Should sleep and resolve with the specified value', async () => {
+      const time = 200
+      const expected = { value: 10 }
+      const timeBefore = new Date().getTime()
+      const result = await logic.sleepAndResolve(time, expected)
+      const timeAfter = new Date().getTime()
+      const delta = timeAfter - timeBefore
+
+      assert(delta >= time)
+      assert.deepStrictEqual(result, expected)
+    })
+  })
 })

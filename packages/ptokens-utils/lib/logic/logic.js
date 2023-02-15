@@ -14,6 +14,10 @@ const rejectAfterXMilliseconds = _milliseconds =>
 const sleepForXMilliseconds = _milliseconds =>
   new Promise(resolve => setTimeout(resolve, _milliseconds))
 
+const sleepAndResolve = curry((_milliseconds, _resolvedValue) =>
+  sleepForXMilliseconds(_milliseconds).then(_ => _resolvedValue)
+)
+
 const retryingMode = {
   NEVER_RETRY: 'neverRetry',
   ALWAYS_RETRY: 'alwaysRetry',
@@ -151,6 +155,7 @@ const racePromise = (_milliseconds, _promiseFxn, _promiseFxnArgs = []) => {
 module.exports = {
   racePromise,
   retryingMode,
+  sleepAndResolve,
   MAX_ATTEMPTS_CAP,
   sleepForXMilliseconds,
   rejectAfterXMilliseconds,
