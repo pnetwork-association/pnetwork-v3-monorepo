@@ -28,7 +28,7 @@ describe('Loop tests', () => {
     })
 
     it('Should run a infinite loop until the function rejects', async () => {
-      const loopParams = { rounds: -1 }
+      const loopParams = { rounds: logic.LOOP_MODE.INFINITE }
 
       let counter = 0
       const COUNTER_MAX = 400000
@@ -58,7 +58,7 @@ describe('Loop tests', () => {
     })
 
     it('Should run an infinite loop continuosly rejecting', async () => {
-      const loopParams = { rounds: -1 }
+      const loopParams = { rounds: logic.LOOP_MODE.INFINITE }
 
       let counter = 0
       const COUNTER_MAX = 4000

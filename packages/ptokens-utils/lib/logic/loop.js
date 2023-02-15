@@ -3,6 +3,10 @@ const { isNotNil } = require('../utils')
 const { LoopError } = require('../errors')
 const { validateJson } = require('../validation')
 
+const LOOP_MODE = {
+  INFINITE: -1,
+}
+
 const loopSchema = {
   type: 'object',
   required: ['rounds'],
@@ -23,7 +27,6 @@ const loopSchema = {
  *
  * {
  *   "rounds": <number-of-iterations>,
- *   "sleepTime": <time-in-ms>
  * }
  *
  * If rounds is negative, then an infinite loop is performed.
@@ -55,4 +58,5 @@ const loop = async (_loopParams, _promiseFn, _promiseFnArgs = []) => {
 
 module.exports = {
   loop,
+  LOOP_MODE,
 }
