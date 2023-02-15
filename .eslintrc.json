@@ -3,7 +3,8 @@
   "env": {
     "es2021": true,
     "mocha": true,
-    "browser": true
+    "browser": true,
+    "jest": true
   },
   "rules": {
     "no-console": ["error"],
@@ -19,6 +20,7 @@
       {
         "allowModules": ["mongodb-memory-server"]
       }
-    ]
+    ],
+    "no-process-exit": ["off"]
   }
 }
