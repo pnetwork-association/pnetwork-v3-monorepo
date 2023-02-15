@@ -39,8 +39,8 @@ const loop = async (_loopParams, _promiseFn, _promiseFnArgs = []) => {
   let index = 0
   const anotherRound = () =>
     _loopParams.rounds < 0
-      ? logger.trace('Perfoming another round... (infinite loop)') || true
-      : logger.trace(`Perfoming another round (index: ${index}`) ||
+      ? logger.info('Perfoming another round... (infinite loop)') || true
+      : logger.info(`Perfoming another round (index: ${index}`) ||
         ++index <= _loopParams.rounds
 
   let newArgs = _promiseFnArgs
