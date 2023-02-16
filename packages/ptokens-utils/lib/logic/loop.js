@@ -53,7 +53,11 @@ const loop = async (_loopParams, _promiseFn, _promiseFnArgs = []) => {
     }
   }
 
-  return isNotNil(newArgs) && newArgs.length > 0 ? newArgs[0] : undefined // void loop
+  if (isNotNil(newArgs) && newArgs.length > 0) {
+    return Promise.resolve(newArgs[0])
+  }
+
+  return Promise.resolve(newArgs)
 }
 
 module.exports = {
