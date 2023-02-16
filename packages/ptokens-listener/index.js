@@ -6,6 +6,7 @@ const {
   setupExitEventListeners,
 } = require('./lib/setup-exit-listeners')
 const { listenForEvents } = require('./lib/listener-interface')
+const { populateStateFromConfiguration } = require('./lib/configuration')
 
 const printErrorAndExit = _err =>
   logger.error('Halting the server due to \n', _err) ||
@@ -14,6 +15,7 @@ const printErrorAndExit = _err =>
 const main = () =>
   setupExitEventListeners()
     .then(checkConfiguration)
+    .then(populateStateFromConfiguration)
     .then(listenForEvents)
     .catch(printErrorAndExit)
 

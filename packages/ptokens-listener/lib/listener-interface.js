@@ -1,5 +1,5 @@
 const R = require('ramda')
-const { constants, utils } = require('ptokens-utils')
+const { constants, utils, db } = require('ptokens-utils')
 const { listenForEvmEvent } = require('./evm/listener-evm')
 const { logger } = require('./get-logger')
 
@@ -33,15 +33,23 @@ const listenForEvent = (_chainId, _eventName, _tokenContract, _callback) =>
     _callback
   )
 
-const insertIntoDb = _obj => logger.info('Insert object into db', _obj)
+const insertIntoDb = R.curry((_collection, _obj) =>
+  db.insertReport(_collection, _obj)
+)
 
-const startListenersFromEventObject = R.curry((_chainId, _event) =>
+const startListenersFromEventObject = R.curry((_chainId, _event, _callback) =>
   _event['account-names'].map(_tokenContract =>
-    listenForEvent(_chainId, _event.name, _tokenContract, insertIntoDb)
+    listenForEvent(_chainId, _event.name, _tokenContract, _callback)
   )
 )
 
-const listenForEvents = _config =>
-  _config.events.map(startListenersFromEventObject(_config['chain-id']))
+const listenForEvents = _state =>
+  _state.eventsToListen.map(_event =>
+    startListenersFromEventObject(
+      _state['chain-id'],
+      _event,
+      insertIntoDb(_state[constants.STATE_KEY_DB])
+    )
+  )
 
 module.exports = { listenForEvents }
