@@ -15,7 +15,7 @@ const sleepForXMilliseconds = _milliseconds =>
   logger.info(`Sleeping for ${_milliseconds}ms...`) ||
   new Promise(resolve => setTimeout(resolve, _milliseconds))
 
-const sleepAndResolve = curry((_milliseconds, _resolvedValue) =>
+const sleepThenReturnArg = curry((_milliseconds, _resolvedValue) =>
   sleepForXMilliseconds(_milliseconds).then(_ => _resolvedValue)
 )
 
@@ -156,7 +156,7 @@ const racePromise = (_milliseconds, _promiseFxn, _promiseFxnArgs = []) => {
 module.exports = {
   racePromise,
   retryingMode,
-  sleepAndResolve,
+  sleepThenReturnArg,
   MAX_ATTEMPTS_CAP,
   sleepForXMilliseconds,
   rejectAfterXMilliseconds,
