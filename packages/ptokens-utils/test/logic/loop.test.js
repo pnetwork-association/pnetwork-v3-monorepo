@@ -103,8 +103,7 @@ describe('Loop tests', () => {
       const loopParams = { rounds: rounds }
       const fn = _state =>
         Promise.resolve(assoc('iteration', _state.iteration + 1, _state)).then(
-          _newState =>
-            logic.sleepForXMilliseconds(sleepTime).then(_ => _newState)
+          logic.sleepThenReturnArg(sleepTime)
         )
 
       const timeBefore = new Date().getTime()
