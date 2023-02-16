@@ -64,6 +64,7 @@ const post = (_req, _res) => {
           )
           _res.end(resp)
         } catch (e) {
+          // eslint-disable-next-line no-console
           console.error(e)
         }
       })

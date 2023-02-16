@@ -144,5 +144,28 @@ describe('Loop tests', () => {
         }
       }
     })
+
+    it('Should fail when more than one arg is submitted', async () => {
+      const fn = (_arg1, _arg2, _arg3) => Promise.resolve(_arg1 + _arg2 + _arg3)
+      const loopParams = { rounds: 0 }
+
+      const args = [1, 2, 3]
+      try {
+        await logic.loop(loopParams, fn, args)
+      } catch (e) {
+        assert(e.message.includes(errors.ERROR_WRONG_NUMBER_OF_ARGS))
+      }
+    })
+
+    it('Should fail when the function is undefined', async () => {
+      const fn = undefined
+      const loopParams = { rounds: 10 }
+      const args = [{}]
+      try {
+        await logic.loop(loopParams, fn, args)
+      } catch (e) {
+        assert(e.message.includes(errors.ERROR_FUNCTION_UNDEFINED))
+      }
+    })
   })
 })
