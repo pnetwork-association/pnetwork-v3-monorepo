@@ -1,7 +1,7 @@
 {
   "name": "ptokens-utils",
   "description": "Node JS library for the pTokens' backend services",
-  "version": "3.3.0",
+  "version": "3.4.0",
   "main": "index.js",
   "engines": {
     "node": ">=16.15.0"
