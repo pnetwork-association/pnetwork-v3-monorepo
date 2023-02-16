@@ -1,11 +1,9 @@
-const { isNil } = require('ramda')
 const { logger } = require('../logger')
 const { isNotNil } = require('../utils')
 const { LoopError } = require('../errors')
 const { validateJson, checkType } = require('../validation')
 const {
   ERROR_UNKNOWN_RETURN,
-  ERROR_FUNCTION_UNDEFINED,
   ERROR_WRONG_NUMBER_OF_ARGS,
 } = require('../errors')
 
@@ -32,7 +30,7 @@ const loopSchema = {
  *
  * Since this logic is meant to be used when each call changes
  * the inner values of a state object, then _promiseFn must
- * accept one single argument (see example below).
+ * accept and return one single argument (see example below).
  *
  * @param  {Object} _loopParams              [Parameters object]
  * @param  {Function} _promiseFn             [Async function to loop]
@@ -55,15 +53,10 @@ const loopSchema = {
  */
 const loop = async (_loopParams, _promiseFn, _promiseFnArgs = []) => {
   await validateJson(loopSchema, _loopParams)
+  await checkType('Function', _promiseFn)
   await checkType('Array', _promiseFnArgs)
 
-  if (isNil(_promiseFn)) {
-    return Promise.reject(
-      new LoopError(ERROR_FUNCTION_UNDEFINED, _promiseFnArgs)
-    )
-  }
-
-  if (_promiseFnArgs.length > 1) {
+  if (_promiseFnArgs.length !== 1) {
     return Promise.reject(
       new LoopError(
         `${ERROR_WRONG_NUMBER_OF_ARGS} expected 1, given ${_promiseFnArgs.length}`,

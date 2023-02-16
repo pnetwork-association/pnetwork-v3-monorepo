@@ -164,7 +164,7 @@ describe('Loop tests', () => {
       try {
         await logic.loop(loopParams, fn, args)
       } catch (e) {
-        assert(e.message.includes(errors.ERROR_FUNCTION_UNDEFINED))
+        assert(e.message.includes(errors.ERROR_INVALID_TYPE))
       }
     })
   })

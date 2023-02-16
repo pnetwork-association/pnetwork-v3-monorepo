@@ -10,7 +10,6 @@ module.exports = {
   ERROR_ENCLAVE_CALL_TIMEOUT: 'Enclave call timeout',
   ERROR_INVALID_RETRYING_MODE: 'Invalid retrying mode',
   ERROR_UNEXPECTED_HTTP_STATUS: 'Unexpected HTTP status',
-  ERROR_FUNCTION_UNDEFINED: 'Function has undefined value',
   ERROR_SLEEP_UNDEFINED_ARG: "Can't sleep: argument is Nil",
   ERROR_SCHEMA_VALIDATION_FAILED: 'Schema validation failed',
   ERROR_WEBSOCKET_REQUEST_TIMEOUT: 'Websocket request expired!',
