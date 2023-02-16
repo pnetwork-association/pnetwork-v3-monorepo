@@ -12,6 +12,7 @@ const rejectAfterXMilliseconds = _milliseconds =>
   )
 
 const sleepForXMilliseconds = _milliseconds =>
+  logger.info(`Sleeping for ${_milliseconds}ms...`) ||
   new Promise(resolve => setTimeout(resolve, _milliseconds))
 
 const sleepAndResolve = curry((_milliseconds, _resolvedValue) =>
