@@ -37,9 +37,5 @@
     "rewire": "^6.0.0",
     "ws": "^8.5.0"
   },
-  "devDependencies": {
-    "mocha": "^9.2.0",
-    "mongodb-memory-server": "^8.11.4",
-    "nyc": "^15.1.0"
-  }
+  "devDependencies": {}
 }

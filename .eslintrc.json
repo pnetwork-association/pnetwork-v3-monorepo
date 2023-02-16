@@ -12,6 +12,12 @@
       {
         "allowModules": ["mongodb-memory-server"]
       }
+    ],
+    "node/no-extraneous-require": [
+      "error",
+      {
+        "allowModules": ["mongodb-memory-server"]
+      }
     ]
   }
 }
