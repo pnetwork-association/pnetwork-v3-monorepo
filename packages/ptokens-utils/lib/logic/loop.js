@@ -37,16 +37,23 @@ const loop = async (_loopParams, _promiseFn, _promiseFnArgs = []) => {
   // If rounds < 0 then "infinite loop"
   // otherwise "loop until rounds"
   let index = 0
-  const shouldContinue = () =>
-    _loopParams.rounds < 0
-      ? logger.info('Perfoming another round... (infinite loop)') || true
-      : logger.info(`Perfoming another round (index: ${index}`) ||
-        ++index <= _loopParams.rounds
+  const shouldContinue = () => {
+    if (_loopParams.rounds < 0) {
+      logger.info('Perfoming another round... (infinite loop)')
+      return true
+    } else {
+      index += 1
+      const condition = index <= _loopParams.rounds
+      const logPrefix = `${condition ? 'P' : 'Not p'}`
+      logger.info(`${logPrefix}erforming another round (index: ${index}`)
+      return condition
+    }
+  }
 
   let newArgs = _promiseFnArgs
   while (shouldContinue()) {
     try {
-      newArgs = [ await _promiseFn(...newArgs) ]
+      newArgs = [await _promiseFn(...newArgs)]
     } catch (e) {
       return Promise.reject(new LoopError(e, newArgs))
     }
