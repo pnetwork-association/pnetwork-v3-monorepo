@@ -6,6 +6,7 @@
     "node": ">=16.15.0"
   },
   "scripts": {
+    "doc": "jsdoc -r .",
     "test": "mocha --recursive --bail test",
     "lint": "eslint .",
     "coverage": "nyc npm run test"
