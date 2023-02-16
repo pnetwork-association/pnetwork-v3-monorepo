@@ -23,20 +23,20 @@ const loopSchema = {
 }
 
 /**
- * Call a promise iteratively giving as input args
- * ouput of the previous call until a fixed number of
- * rounds is reached.
+ * Call a promise iteratively giving as input arguments
+ * the ouput of the previous call until a fixed number
+ * of rounds is reached.
  *
  * If the specified number of rounds is negative, then the loop
  * is infinite.
  *
- * Then _promiseFn is a Promise accepting one single argument
- * as this logic is meant to be used when one single state
- * object is passed through every iteration step.
+ * Since this logic is meant to be used when each call changes
+ * the inner values of a state object, then _promiseFn must
+ * accept one single argument (see example below).
  *
  * @param  {Object} _loopParams              [Parameters object]
  * @param  {Function} _promiseFn             [Async function to loop]
- * @param  {Array}  _promiseFnArgs          [Async function arguments array]
+ * @param  {Array}  _promiseFnArgs           [Async function arguments array]
  * @return {Object}                          [The final object where the _promiseFn ]
  *
  * _loopParams follows the following schema:
@@ -48,7 +48,10 @@ const loopSchema = {
  *
  * Example:
  *
- * logic.(LOOP_MODE.INFINITE, main, [initialState])
+ * const fn = _state => Promise.resolve(_state)
+ *
+ * logic.loop(LOOP_MODE.INFINITE, fn, [initialState])
+ *
  */
 const loop = async (_loopParams, _promiseFn, _promiseFnArgs = []) => {
   await validateJson(loopSchema, _loopParams)
