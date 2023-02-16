@@ -1,8 +1,12 @@
 const { logger } = require('../logger')
-const { validateJson } = require('../validation')
 const { isNil, curry } = require('ramda')
+const { validateJson } = require('../validation')
 const { matchStringInsideListSync } = require('../utils')
-const { ERROR_TIMEOUT, ERROR_INVALID_RETRYING_MODE } = require('../errors')
+const {
+  ERROR_TIMEOUT,
+  ERROR_SLEEP_UNDEFINED_ARG,
+  ERROR_INVALID_RETRYING_MODE,
+} = require('../errors')
 
 const MAX_ATTEMPTS_CAP = 100
 
@@ -16,7 +20,13 @@ const sleepForXMilliseconds = _milliseconds =>
   new Promise(resolve => setTimeout(resolve, _milliseconds))
 
 const sleepThenReturnArg = curry((_milliseconds, _resolvedValue) =>
-  sleepForXMilliseconds(_milliseconds).then(_ => _resolvedValue)
+  isNil(_resolvedValue)
+    ? Promise.reject(
+        new Error(
+          `${ERROR_SLEEP_UNDEFINED_ARG}(${_resolvedValue}) - Check your logic or use sleepForXMilliseconds`
+        )
+      )
+    : sleepForXMilliseconds(_milliseconds).then(_ => _resolvedValue)
 )
 
 const retryingMode = {

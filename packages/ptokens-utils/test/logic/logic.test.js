@@ -462,5 +462,13 @@ describe('Logic tests', () => {
       assert(delta >= time)
       assert.deepStrictEqual(result, expected)
     })
+
+    it('Should reject when the given arg is Nil', async () => {
+      try {
+        await logic.sleepThenReturnArg(200, undefined)
+      } catch (e) {
+        assert(e.message.includes(errors.ERROR_SLEEP_UNDEFINED_ARG))
+      }
+    })
   })
 })
