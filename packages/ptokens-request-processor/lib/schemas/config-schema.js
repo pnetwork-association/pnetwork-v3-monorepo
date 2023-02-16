@@ -1,4 +1,4 @@
-const {configDbSchema} = require('ptokens-schemas')
+const { configDbSchema } = require('ptokens-schemas')
 
 module.exports = {
   type: 'object',

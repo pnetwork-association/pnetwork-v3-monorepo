@@ -2,9 +2,10 @@
   "name": "ptokens-request-processor",
   "version": "0.0.1",
   "description": "A component for checking & broadcasting relayer's requests",
-  "main": "index.js",
+  "bin": "./index.js",
   "scripts": {
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "test": "jest --config test/jest.config.js"
   },
   "keywords": [
     "ptokens",
@@ -16,11 +17,8 @@
   "license": "MIT",
   "dependencies": {
     "log4js": "^6.7.1",
-    "ramda": "^0.28.0",
+    "ptokens-schemas": "*",
     "ptokens-utils": "*",
-    "ptokens-schemas": "*"
-  },
-  "devDependencies": {
-    "jest": "^29.4.2"
+    "ramda": "^0.28.0"
   }
 }
