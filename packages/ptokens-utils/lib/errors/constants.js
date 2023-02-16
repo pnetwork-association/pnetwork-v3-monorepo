@@ -1,6 +1,7 @@
 module.exports = {
   ERROR_TIMEOUT: 'Timeout',
   ERROR_INVALID_TYPE: 'Invalid type',
+  ERROR_UNKNOWN_RETURN: 'Unknown return',
   ERROR_KEY_NOT_FOUND: 'Key not found in object!',
   ERROR_INVALID_OBJECT: 'Object given is invalid',
   ERROR_INVALID_BRIDGE_SIDE: 'Invalid bridge side',

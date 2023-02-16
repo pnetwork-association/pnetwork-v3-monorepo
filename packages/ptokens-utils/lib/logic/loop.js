@@ -1,7 +1,8 @@
 const { logger } = require('../logger')
 const { isNotNil } = require('../utils')
 const { LoopError } = require('../errors')
-const { validateJson } = require('../validation')
+const { ERROR_UNKNOWN_RETURN } = require('../errors')
+const { validateJson, checkType } = require('../validation')
 
 const LOOP_MODE = {
   INFINITE: -1,
@@ -33,6 +34,7 @@ const loopSchema = {
  */
 const loop = async (_loopParams, _promiseFn, _promiseFnArgs = []) => {
   await validateJson(loopSchema, _loopParams)
+  await checkType('Array', _promiseFnArgs)
 
   // If rounds < 0 then "infinite loop"
   // otherwise "loop until rounds"
@@ -45,7 +47,7 @@ const loop = async (_loopParams, _promiseFn, _promiseFnArgs = []) => {
       index += 1
       const condition = index <= _loopParams.rounds
       const logPrefix = `${condition ? 'P' : 'Not p'}`
-      logger.info(`${logPrefix}erforming another round (index: ${index}`)
+      logger.info(`${logPrefix}erforming another round (index: ${index})`)
       return condition
     }
   }
@@ -59,11 +61,16 @@ const loop = async (_loopParams, _promiseFn, _promiseFnArgs = []) => {
     }
   }
 
+  // It is expected the args have been
+  // wrapped into an array of one single
+  // element, either inside the loop (line 58)
+  // or upon function call (line 35)
   if (isNotNil(newArgs) && newArgs.length > 0) {
     return Promise.resolve(newArgs[0])
   }
 
-  return Promise.resolve(newArgs)
+  // Should never hit here
+  return Promise.reject(new LoopError(ERROR_UNKNOWN_RETURN, newArgs))
 }
 
 module.exports = {

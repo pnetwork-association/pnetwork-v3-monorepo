@@ -118,5 +118,31 @@ describe('Loop tests', () => {
       assert(diff >= rounds * sleepTime)
       assert.deepStrictEqual(result, expected)
     })
+
+    it('Should test few edge cases', async () => {
+      const initialArgs = [
+        1, // constant
+        [], // empty array
+        {}, // empty object
+        'hello', // literal
+        undefined,
+        null,
+      ]
+
+      const loopParams = [
+        { rounds: 0 }, // No loops
+        { rounds: 1 }, // single loop
+        { rounds: 10 }, // finite loop
+      ]
+
+      const fn = _state => Promise.resolve(_state)
+
+      for (let i = 0; i < initialArgs.length; ++i) {
+        for (let j = 0; j < loopParams.length; ++j) {
+          const result = await logic.loop(loopParams[j], fn, [initialArgs[i]])
+          assert.deepStrictEqual(result, initialArgs[i])
+        }
+      }
+    })
   })
 })
