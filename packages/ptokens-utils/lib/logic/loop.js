@@ -46,8 +46,7 @@ const loop = async (_loopParams, _promiseFn, _promiseFnArgs = []) => {
   let newArgs = _promiseFnArgs
   while (shouldContinue()) {
     try {
-      newArgs = await _promiseFn(...newArgs)
-      newArgs = [newArgs]
+      newArgs = [ await _promiseFn(...newArgs) ]
     } catch (e) {
       return Promise.reject(new LoopError(e, newArgs))
     }
