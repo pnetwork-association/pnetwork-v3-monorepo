@@ -1,0 +1,8 @@
+{
+  "targets": {
+    "build-docker": {
+      "executor": "@pnetwork/nx-executors:build-docker",
+      "options": {}
+    }
+  }
+}
