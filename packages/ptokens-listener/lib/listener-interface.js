@@ -21,7 +21,7 @@ const getListenerForBlockchainType = _blockchainType => {
     case constants.blockchainType.ALGORAND:
       return listenForAlgorandEvent
     default:
-      throw new Error('Invalid blockchain type')
+      return () => Promise.reject(new Error('Invalid blockchain type'))
   }
 }
 
@@ -38,17 +38,21 @@ const insertIntoDb = R.curry((_collection, _obj) =>
 )
 
 const startListenersFromEventObject = R.curry((_chainId, _event, _callback) =>
-  _event['account-names'].map(_tokenContract =>
-    listenForEvent(_chainId, _event.name, _tokenContract, _callback)
+  Promise.all(
+    _event['account-names'].map(_tokenContract =>
+      listenForEvent(_chainId, _event.name, _tokenContract, _callback)
+    )
   )
 )
 
 const listenForEvents = _state =>
-  _state.eventsToListen.map(_event =>
-    startListenersFromEventObject(
-      _state['chain-id'],
-      _event,
-      insertIntoDb(_state[constants.STATE_KEY_DB])
+  Promise.all(
+    _state.eventsToListen.map(_event =>
+      startListenersFromEventObject(
+        _state['chain-id'],
+        _event,
+        insertIntoDb(_state[constants.STATE_KEY_DB])
+      )
     )
   )
 
