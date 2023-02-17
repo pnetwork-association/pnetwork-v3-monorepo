@@ -13,7 +13,7 @@ const { maybeBuildProposalsTxsAndPutInState } = require('./build-proposals-txs')
 const { maybeBroadcastTxs } = require('./broadcast-txs')
 
 // TODO: configurable
-const SLEEP_TIME = 1
+const SLEEP_TIME = 1000
 
 const maybeProcessNewRequests = _state =>
   logger.info('Polling for new requests...') ||
@@ -21,7 +21,7 @@ const maybeProcessNewRequests = _state =>
     .then(getNewRequestsFromDbAndPutInState)
     .then(maybeBuildProposalsTxsAndPutInState)
     .then(maybeBroadcastTxs)
-    .then(logic.sleepAndResolve(SLEEP_TIME))
+    .then(logic.sleepThenReturnArg(SLEEP_TIME))
 
 const INFINITE_LOOP = {
   rounds: logic.LOOP_MODE.INFINITE,
