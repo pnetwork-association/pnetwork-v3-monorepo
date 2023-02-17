@@ -105,7 +105,6 @@ refactor(ptokens-listener): rename this into that
 **Note:** `[(<file|folder|context>)]` can be used when applicable,
 on a set of files it's better omitting it.
 
-
 ### <a name="best-practices-dev-process"></a> Development process
 
 Create a new branch having the pattern
@@ -116,6 +115,6 @@ Create a new branch having the pattern
 
 #### Examples
 
- - feat/ptokens-utils/add-superpowers
- - chore/ptokens-listener/rename-file
- - fix/ptokens-schemas/wrong-type
+- feat/ptokens-utils/add-superpowers
+- chore/ptokens-listener/rename-file
+- fix/ptokens-schemas/wrong-type
