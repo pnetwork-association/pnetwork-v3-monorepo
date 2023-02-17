@@ -6,8 +6,15 @@
     "browser": true
   },
   "rules": {
+    "no-console": ["error"],
     "no-unused-vars": ["error", { "argsIgnorePattern": "^_" }],
     "node/no-unpublished-require": [
+      "error",
+      {
+        "allowModules": ["mongodb-memory-server"]
+      }
+    ],
+    "node/no-extraneous-require": [
       "error",
       {
         "allowModules": ["mongodb-memory-server"]

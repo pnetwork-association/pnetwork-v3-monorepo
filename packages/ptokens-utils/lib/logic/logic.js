@@ -1,8 +1,12 @@
 const { logger } = require('../logger')
-const { validateJson } = require('../validation')
 const { isNil, curry } = require('ramda')
+const { validateJson } = require('../validation')
 const { matchStringInsideListSync } = require('../utils')
-const { ERROR_TIMEOUT, ERROR_INVALID_RETRYING_MODE } = require('../errors')
+const {
+  ERROR_TIMEOUT,
+  ERROR_SLEEP_UNDEFINED_ARG,
+  ERROR_INVALID_RETRYING_MODE,
+} = require('../errors')
 
 const MAX_ATTEMPTS_CAP = 100
 
@@ -12,7 +16,18 @@ const rejectAfterXMilliseconds = _milliseconds =>
   )
 
 const sleepForXMilliseconds = _milliseconds =>
+  logger.info(`Sleeping for ${_milliseconds}ms...`) ||
   new Promise(resolve => setTimeout(resolve, _milliseconds))
+
+const sleepThenReturnArg = curry((_milliseconds, _resolvedValue) =>
+  isNil(_resolvedValue)
+    ? Promise.reject(
+        new Error(
+          `${ERROR_SLEEP_UNDEFINED_ARG}(${_resolvedValue}) - Check your logic or use sleepForXMilliseconds`
+        )
+      )
+    : sleepForXMilliseconds(_milliseconds).then(_ => _resolvedValue)
+)
 
 const retryingMode = {
   NEVER_RETRY: 'neverRetry',
@@ -151,6 +166,7 @@ const racePromise = (_milliseconds, _promiseFxn, _promiseFxnArgs = []) => {
 module.exports = {
   racePromise,
   retryingMode,
+  sleepThenReturnArg,
   MAX_ATTEMPTS_CAP,
   sleepForXMilliseconds,
   rejectAfterXMilliseconds,
