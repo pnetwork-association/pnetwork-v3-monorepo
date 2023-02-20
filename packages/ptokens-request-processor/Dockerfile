@@ -11,6 +11,7 @@ RUN apt-get update && \
 ARG VERSION_PTOKEN_UTILS
 
 FROM pnetwork/ptokens-utils:${VERSION_PTOKEN_UTILS:-latest} AS ptokens-utils-stage
+FROM pnetwork/ptokens-schemas:${VERSION_PTOKEN_UTILS:-latest} AS ptokens-schemas-stage
 FROM node:16.17.0-bullseye-slim
 
 ENV NODE_ENV production
@@ -32,11 +33,16 @@ COPY --from=ptokens-utils-stage \
         /home/node/ptokens-utils \
         $FOLDER_SRC/ptokens-utils
 
+COPY --from=ptokens-schemas-stage \
+     --chown=node:node \
+        /home/node/ptokens-schemas \
+        $FOLDER_SRC/ptokens-schemas
+
 COPY package.json .
 
 ENV REPLACE_DEPENDENCY 's/"ptokens-utils": "\*"/"ptokens-utils":"..\/ptokens-utils"/g'
 # FIXME
-ENV REPLACE_DEPENDENCY 's/"ptokens-schemas": "\*"/"ptokens-schemas":"..\/ptokens-utils"/g'
+ENV REPLACE_DEPENDENCY 's/"ptokens-schemas": "\*"/"ptokens-schemas":"..\/ptokens-schemas"/g'
 
 RUN sed -i "$REPLACE_DEPENDENCY" package.json && \
     npm install --omit=dev && \
