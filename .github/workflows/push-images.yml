@@ -1,9 +1,0 @@
-name: Push Docker images
-
-on:
-  push:
-    branches: [master]
-
-jobs:
-  call-run-ci:
-    uses: $GITHUB_REPOSITORY/.github/workflows/run-ci.yml

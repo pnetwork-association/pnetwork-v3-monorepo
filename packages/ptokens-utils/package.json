@@ -3,7 +3,8 @@
   "description": "Node JS library for the pTokens' backend services",
   "version": "3.4.0",
   "engines": {
-    "node": ">=16.15.0"
+    "npm": ">=8.0.0 <10.0.0",
+    "node": ">=16.15.0 <17.0.0"
   },
   "scripts": {
     "doc": "jsdoc -r .",

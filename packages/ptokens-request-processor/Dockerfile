@@ -10,8 +10,8 @@ RUN apt-get update && \
 
 ARG VERSION_PTOKEN_UTILS
 
-FROM pnetwork/ptokens-utils:${VERSION_PTOKEN_UTILS:-latest} AS ptokens-utils-stage
-FROM pnetwork/ptokens-schemas:${VERSION_PTOKEN_UTILS:-latest} AS ptokens-schemas-stage
+FROM ghcr.io/pnetwork-association/ptokens-utils:${VERSION_PTOKEN_UTILS:-latest} AS ptokens-utils-stage
+FROM ghcr.io/pnetwork-association/ptokens-schemas:${VERSION_PTOKEN_UTILS:-latest} AS ptokens-schemas-stage
 FROM node:16.17.0-bullseye-slim
 
 ENV NODE_ENV production
