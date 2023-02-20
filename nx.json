@@ -11,5 +11,15 @@
         "cacheableOperations": ["build", "lint", "test", "e2e"]
       }
     }
+  },
+  "targetDefaults": {
+    "build": {
+      "inputs": [
+        "{workspaceRoot}/packages/scripts/build-docker-image.sh",
+        "{projectRoot}/**/*"
+      ],
+      "outputs": ["{projectRoot}/build"],
+      "dependsOn": ["^build"]
+    }
   }
 }

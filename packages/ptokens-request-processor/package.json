@@ -5,6 +5,8 @@
   "bin": "./index.js",
   "scripts": {
     "lint": "eslint .",
+    "clean": "rm -rf $(pwd)/build",
+    "build": "PROJECT_ROOT=$(pwd) ./build-image",
     "test": "jest --config test/jest.config.js"
   },
   "keywords": [

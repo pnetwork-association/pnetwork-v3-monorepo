@@ -15,6 +15,8 @@
   - [Linting](#best-practices-linting)
   - [Commits](#best-practices-commits)
   - [Development process](#best-practices-dev-process)
+- [Development](#development)
+  - [Build images](#dev-build-images)
 
 ## <a name="basic-tutorial"></a> Basic tutorial
 
@@ -118,3 +120,35 @@ Create a new branch having the pattern
 - feat/ptokens-utils/add-superpowers
 - chore/ptokens-listener/rename-file
 - fix/ptokens-schemas/wrong-type
+
+## <a name="development"></a> Development
+
+### <a name="dev-build-images"></a> Build Docker images
+
+An image can be built in the following ways:
+
+1. From the monorepo's root
+
+```bash
+nx run ptokens-utils:build
+```
+
+2. From the project's root
+
+```bash
+nx build
+```
+
+3. Or all the projects images together
+
+```bash
+nx run-many --target=build
+```
+
+If an image has already been built for a project Nx has cached by means of a file placed into a non-versioned folder in
+`{projectRoot}/build/docker-id`.
+
+If you want to change the files/folder making up the build task, please consider the relative `targetDefaults` defined into
+the `nx.json` in the monorepo's root.
+
+If you want to force the build you can run the `clean task` (just replace `build` w/ `clean` in the above commands).
