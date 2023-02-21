@@ -1,0 +1,18 @@
+# TODO: maybe dynamically generated from a custom YAML file?
+version: '3'
+services:
+  # listener-bsc:
+  #   image: pnetwork-association/ptokens-listener:${VERSION_LISTENER:-latest}
+  #   volumes:
+  #     - "locals:$LOCALS_DIRECTORY"
+  #     - "./bsc-listener.config.json:/usr/src/listener/config.json"
+  #   restart: unless-stopped
+  #   depends_on: [ "mongodb" ]
+
+  request-processor-bsc:
+    image: ghcr.io/pnetwork-association/ptokens-request-processor:${VERSION_PROCESSOR:-latest}
+    volumes:
+      - './bsc-processor.config.json:/usr/src/processor/config.json'
+      - './logs:/usr/src/processor/logs'
+    restart: unless-stopped
+    depends_on: ['mongodb']

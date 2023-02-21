@@ -16,7 +16,8 @@
     "build": {
       "inputs": [
         "{workspaceRoot}/packages/scripts/build-docker-image.sh",
-        "{projectRoot}/**/*"
+        "{projectRoot}/**/*",
+        "{projectRoot}/**/.dockerignore"
       ],
       "outputs": ["{projectRoot}/build"],
       "dependsOn": ["^build"]

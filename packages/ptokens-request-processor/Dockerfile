@@ -16,7 +16,7 @@ FROM node:16.17.0-bullseye-slim
 
 ENV NODE_ENV production
 ENV FOLDER_SRC /usr/src
-ENV FOLDER_APP $FOLDER_SRC/relayer
+ENV FOLDER_APP $FOLDER_SRC/processor
 ENV FOLDER_LOGS $FOLDER_APP/logs
 
 RUN mkdir -p $FOLDER_APP && \
@@ -40,15 +40,16 @@ COPY --from=ptokens-schemas-stage \
 
 COPY package.json .
 
-ENV REPLACE_DEPENDENCY 's/"ptokens-utils": "\*"/"ptokens-utils":"..\/ptokens-utils"/g'
-# FIXME
-ENV REPLACE_DEPENDENCY 's/"ptokens-schemas": "\*"/"ptokens-schemas":"..\/ptokens-schemas"/g'
+ENV REPLACE_DEPENDENCY_1 's/"ptokens-utils": "\*"/"ptokens-utils":"..\/ptokens-utils"/g'
+ENV REPLACE_DEPENDENCY_2 's/"ptokens-schemas": "\*"/"ptokens-schemas":"..\/ptokens-schemas"/g'
 
-RUN sed -i "$REPLACE_DEPENDENCY" package.json && \
+RUN sed -i "$REPLACE_DEPENDENCY_1" package.json && \
+    sed -i "$REPLACE_DEPENDENCY_2" package.json && \
     npm install --omit=dev && \
     chown -R node:node $FOLDER_APP
 
-COPY --chown=node:node . $FOLDER_APP
+COPY --chown=node:node lib $FOLDER_APP/lib
+COPY --chown=node:node index.js $FOLDER_APP/
 
 USER node
 

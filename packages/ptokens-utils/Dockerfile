@@ -1,16 +1,18 @@
-FROM node:16-alpine
+# This is only meant to be holding a folder
+# for copying in other images
+
+FROM node:16.17.0-bullseye-slim
 
 ENV HOME=/home/node
 ENV SRC=$HOME/ptokens-utils
 
 WORKDIR $SRC
 
-COPY --chown=node:node package* ./
+COPY --chown=node:node package.json .
 
-RUN npm install --only=production
+RUN npm install --omit=dev
 
-COPY --chown=node:node lib ./lib
-COPY --chown=node:node index.js .
+COPY --chown=node:node . .
 
 USER node
 

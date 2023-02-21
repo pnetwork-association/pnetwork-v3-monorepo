@@ -1,6 +1,6 @@
 {
   "name": "ptokens-request-processor",
-  "version": "0.0.1",
+  "version": "1.0.0",
   "description": "A component for checking & broadcasting relayer's requests",
   "bin": "./index.js",
   "scripts": {
