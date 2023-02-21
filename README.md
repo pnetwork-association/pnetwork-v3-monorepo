@@ -145,8 +145,10 @@ nx build
 nx run-many --target=build
 ```
 
-If an image has already been built for a project Nx has cached by means of a file placed into a non-versioned folder in
-`{projectRoot}/build/docker-id`.
+Nx builds tasks are cached by considering all the project's source files and the resulting image hash
+stored in `{projectRoot}/build/docker-id`, checkout more details in the `nx.json` under `targetDefaults`.
+Sometimes the caching may result in unexpected builds (since it caches also past versions of files) so to
+be sure you have the latest version, try adding the `--skip-nx-cache` flag when running the `build` task.
 
 If you want to change the files/folder making up the build task, please consider the relative `targetDefaults` defined into
 the `nx.json` in the monorepo's root.
