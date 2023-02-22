@@ -7,7 +7,7 @@ This project is aimed to group all the Docker stages needed for the all monorepo
 To build all the images just run
 
 ```bash
-./build.sh
+./docker-build.sh
 ```
 
 or
@@ -23,3 +23,14 @@ This will create two images:
 
 `<version>` is retrieved by the Dockerfile label, so be sure it's there
 before running the build.
+
+To make Nx build the stage before other dependant Dockerfiles, just add the
+following property to the project's `package.json`:
+
+```json
+{
+  "nx": {
+    "implicitDependencies": ["ptokens-docker-stages"]
+  }
+}
+```

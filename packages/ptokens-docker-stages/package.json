@@ -7,8 +7,5 @@
   },
   "author": "gitmp01",
   "license": "MIT",
-  "dependencies": {
-    "ptokens-utils": "*",
-    "ptokens-schemas": "*"
-  }
+  "dependencies": {}
 }
