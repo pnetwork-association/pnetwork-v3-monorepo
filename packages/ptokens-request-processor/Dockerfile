@@ -1,10 +1,12 @@
 ARG VERSION_PTOKENS_UTILS=latest
 ARG VERSION_PTOKENS_SCHEMAS=latest
+ARG VERSION_PTOKENS_DEBIAN_STAGE=latest
 
 ARG REGISTRY=ghcr.io/pnetwork-association
 
 FROM $REGISTRY/ptokens-utils:$VERSION_PTOKENS_UTILS as ptokens-utils
 FROM $REGISTRY/ptokens-schemas:$VERSION_PTOKENS_SCHEMAS as ptokens-schemas
+FROM $REGISTRY/ptokens-debian-stage:$VERSION_PTOKENS_DEBIAN_STAGE as ptokens-debian-stage
 FROM node:16.17.0-bullseye-slim
 
 ENV NODE_ENV production
@@ -15,7 +17,7 @@ ENV FOLDER_LOGS $FOLDER_APP/logs
 RUN mkdir -p $FOLDER_APP && \
     mkdir -p $FOLDER_LOGS
 
-COPY --from=ptokens-debian-stage:latest \
+COPY --from=ptokens-debian-stage \
     /usr/bin/dumb-init \
     /usr/bin/dumb-init
 
@@ -36,6 +38,7 @@ COPY package.json .
 RUN npm install ../ptokens-schemas && \
     npm install ../ptokens-utils && \
     npm install && \
+    echo '{}' > $FOLDER_APP/config.json && \
     chown -R node:node $FOLDER_APP
 
 COPY --chown=node:node lib $FOLDER_APP/lib
