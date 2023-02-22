@@ -9,7 +9,7 @@
   "scripts": {
     "doc": "jsdoc -r .",
     "clean": "rm -rf $(pwd)/build",
-    "build": "PROJECT_ROOT=$(pwd) ./build-image",
+    "docker-build": "PROJECT_ROOT=$(pwd) ./build-image",
     "test": "mocha --recursive --bail test",
     "lint": "eslint .",
     "coverage": "nyc npm run test"

@@ -130,19 +130,19 @@ An image can be built in the following ways:
 1. From the monorepo's root
 
 ```bash
-nx run ptokens-utils:build
+nx run ptokens-utils:docker-build
 ```
 
 2. From the project's root
 
 ```bash
-nx build
+nx docker-build
 ```
 
 3. Or all the projects images together
 
 ```bash
-nx run-many --target=build
+nx run-many --target=docker-build
 ```
 
 Nx builds tasks are cached by considering all the project's source files and the resulting image hash
