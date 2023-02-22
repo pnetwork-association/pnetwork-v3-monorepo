@@ -5,7 +5,7 @@
   "scripts": {
     "lint": "eslint .",
     "clean": "rm -rf $(pwd)/build",
-    "docker-build": "PROJECT_ROOT=$(pwd) ./build-image"
+    "docker-build": "PROJECT_ROOT=$(pwd) ./docker-build.sh"
   },
   "author": "gitmp01",
   "license": "MIT"

@@ -15,12 +15,12 @@
   "targetDefaults": {
     "docker-build": {
       "inputs": [
-        "{workspaceRoot}/packages/scripts/build-docker-image.sh",
         "{projectRoot}/**/*",
-        "{projectRoot}/**/.dockerignore"
+        "{projectRoot}/**/.dockerignore",
+        "{workspaceRoot}/packages/scripts/build-docker-image.sh"
       ],
       "outputs": ["{projectRoot}/build"],
-      "dependsOn": ["^build"]
+      "dependsOn": ["^docker-build"]
     }
   }
 }
