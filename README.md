@@ -145,12 +145,8 @@ nx docker-build
 nx run-many --target=docker-build
 ```
 
-Nx builds tasks are cached by considering all the project's source files and the resulting image hash
-stored in `{projectRoot}/build/docker-id`, checkout more details in the `nx.json` under `targetDefaults`.
-Sometimes the caching may result in unexpected builds (since it caches also past versions of files) so to
-be sure you have the latest version, try adding the `--skip-nx-cache` flag when running the `build` task.
+We avoid using Nx caching for the `docker-build` task since caching is already done by the Docker
+build itself.
 
-If you want to change the files/folder making up the build task, please consider the relative `targetDefaults` defined into
-the `nx.json` in the monorepo's root.
-
-If you want to force the build you can run the `clean task` (just replace `build` w/ `clean` in the above commands).
+If you want to change this, you can add the `docker-build` task to `cacheableOperations` list in the
+`nx.json` file.
