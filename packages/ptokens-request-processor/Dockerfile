@@ -1,17 +1,10 @@
-# TODO Factor out this stage into it's own package (ptokens-docker-stages)
-# this means we need logic on Nx to perform the build of the stage locally
-# and then build this Dockerfile
-# https://docs.docker.com/build/building/multi-stage/#use-an-external-image-as-a-stage
-FROM debian:bullseye-slim AS debian-stage
+ARG VERSION_PTOKENS_UTILS=latest
+ARG VERSION_PTOKENS_SCHEMAS=latest
 
-RUN apt-get update && \
-    apt-get install -y \
-        dumb-init=1.2.5-1
+ARG REGISTRY=ghcr.io/pnetwork-association
 
-ARG VERSION_PTOKEN_UTILS
-
-FROM ghcr.io/pnetwork-association/ptokens-utils:${VERSION_PTOKEN_UTILS:-latest} AS ptokens-utils-stage
-FROM ghcr.io/pnetwork-association/ptokens-schemas:${VERSION_PTOKEN_UTILS:-latest} AS ptokens-schemas-stage
+FROM $REGISTRY/ptokens-utils:$VERSION_PTOKENS_UTILS as ptokens-utils
+FROM $REGISTRY/ptokens-schemas:$VERSION_PTOKENS_SCHEMAS as ptokens-schemas
 FROM node:16.17.0-bullseye-slim
 
 ENV NODE_ENV production
@@ -22,21 +15,21 @@ ENV FOLDER_LOGS $FOLDER_APP/logs
 RUN mkdir -p $FOLDER_APP && \
     mkdir -p $FOLDER_LOGS
 
-COPY --from=debian-stage \
+COPY --from=ptokens-debian-stage:latest \
     /usr/bin/dumb-init \
     /usr/bin/dumb-init
 
-WORKDIR $FOLDER_APP
-
-COPY --from=ptokens-utils-stage \
+COPY --from=ptokens-utils \
      --chown=node:node \
         /home/node/ptokens-utils \
         $FOLDER_SRC/ptokens-utils
 
-COPY --from=ptokens-schemas-stage \
+COPY --from=ptokens-schemas \
      --chown=node:node \
         /home/node/ptokens-schemas \
         $FOLDER_SRC/ptokens-schemas
+
+WORKDIR $FOLDER_APP
 
 COPY package.json .
 

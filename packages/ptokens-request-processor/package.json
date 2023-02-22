@@ -22,5 +22,10 @@
     "ptokens-schemas": "*",
     "ptokens-utils": "*",
     "ramda": "^0.28.0"
+  },
+  "nx": {
+    "implicitDependencies": [
+      "ptokens-docker-stages"
+    ]
   }
 }
