@@ -40,12 +40,9 @@ COPY --from=ptokens-schemas-stage \
 
 COPY package.json .
 
-ENV REPLACE_DEPENDENCY_1 's/"ptokens-utils": "\*"/"ptokens-utils":"..\/ptokens-utils"/g'
-ENV REPLACE_DEPENDENCY_2 's/"ptokens-schemas": "\*"/"ptokens-schemas":"..\/ptokens-schemas"/g'
-
-RUN sed -i "$REPLACE_DEPENDENCY_1" package.json && \
-    sed -i "$REPLACE_DEPENDENCY_2" package.json && \
-    npm install --omit=dev && \
+RUN npm install ../ptokens-schemas && \
+    npm install ../ptokens-utils && \
+    npm install && \
     chown -R node:node $FOLDER_APP
 
 COPY --chown=node:node lib $FOLDER_APP/lib
