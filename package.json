@@ -20,8 +20,5 @@
   },
   "workspaces": [
     "packages/*"
-  ],
-  "dependencies": {
-    "@nrwl/nx-plugin": "^15.7.1"
-  }
+  ]
 }
