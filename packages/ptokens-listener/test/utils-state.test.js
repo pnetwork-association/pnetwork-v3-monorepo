@@ -10,8 +10,8 @@ describe('State utilities tests', () => {
       const config = {
         db: {
           url: 'a-url',
-          'database-name': 'a-database-name',
-          'collection-name': 'a-collection-name',
+          name: 'a-database-name',
+          'table-events': 'a-collection-name',
         },
         'chain-id': '0x00112233',
         events: [

@@ -12,6 +12,7 @@
   "dependencies": {
     "ethers": "^5.7.2",
     "log4js": "^6.7.1",
+    "ptokens-schemas": "*",
     "ptokens-utils": "*",
     "ramda": "^0.28.0"
   }
