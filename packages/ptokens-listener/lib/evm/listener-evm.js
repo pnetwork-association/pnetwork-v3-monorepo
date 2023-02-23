@@ -4,6 +4,7 @@ const {
   STATE_KEY_CHAIN_ID,
   STATE_KEY_PROVIDER_URL,
 } = require('../state/constants')
+const { logger } = require('../get-logger')
 
 const getEthersProvider = R.memoizeWith(R.identity, _url =>
   ethers.getDefaultProvider(_url)
@@ -78,11 +79,20 @@ const addLogInfo = R.curry((_log, _obj) =>
   Promise.resolve(_obj).then(R.assoc('originatingTxHash', _log.transactionHash))
 )
 
-const processEventLog = R.curry((_state, _interface, _callback, _log) =>
-  Promise.resolve(_interface.parseLog(_log))
-    .then(buildStandardizedEventFromEvmEvent(_state))
-    .then(addLogInfo(_log))
-    .then(_callback)
+const processEventLog = R.curry(
+  (_state, _interface, _callback, _log) =>
+    logger.info(`Received EVM event for transaction ${_log.transactionHash}`) ||
+    Promise.resolve(_interface.parseLog(_log))
+      .then(_parsedLog => logger.debug('Parsed EVM event log') || _parsedLog)
+      .then(_parsedLog => logger.debug('name:', _parsedLog.name) || _parsedLog)
+      .then(
+        _parsedLog =>
+          logger.debug('signature:', _parsedLog.signature) || _parsedLog
+      )
+      .then(_parsedLog => logger.debug('args:', _parsedLog.args) || _parsedLog)
+      .then(buildStandardizedEventFromEvmEvent(_state))
+      .then(addLogInfo(_log))
+      .then(_callback)
 )
 
 const listenFromFilter = (_state, _filter, _interface, _callback) =>

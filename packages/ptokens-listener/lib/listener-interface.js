@@ -12,6 +12,7 @@ const listenForUtxoDeposit = (_eventName, _tokenContract, _abi) =>
   Promise.reject(new Error('To be implemented!'))
 
 const getListenerForBlockchainType = _blockchainType => {
+  logger.info(`Listen to ${_blockchainType} events`)
   switch (_blockchainType) {
     case constants.blockchainType.EVM:
       return listenForEvmEvent
@@ -32,8 +33,13 @@ const listenForEvent = (_state, _eventName, _tokenContract, _callback) =>
     utils.getBlockchainTypeFromChainId(_state[STATE_KEY_CHAIN_ID])
   )(_state, _eventName, _tokenContract, _callback)
 
-const insertIntoDb = R.curry((_collection, _obj) =>
-  db.insertReport(_collection, _obj)
+const insertIntoDb = R.curry(
+  (_collection, _obj) =>
+    logger.info(
+      `Insert event object into db for transaction ${_obj.originatingTxHash}`
+    ) ||
+    logger.debug(`Object to be inserted ${JSON.stringify(_obj)}`) ||
+    db.insertReport(_collection, _obj)
 )
 
 const startListenersFromEventObject = R.curry((_state, _event, _callback) =>
