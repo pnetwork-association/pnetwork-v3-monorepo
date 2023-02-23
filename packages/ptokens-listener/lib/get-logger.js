@@ -1,9 +1,10 @@
 const log4js = require('log4js')
 const pTokensUtils = require('ptokens-utils')
+const config = require('../config')
 
 const loggingParams = {
   stdoutLevel: 'debug',
-  logFileRelativePath: './logs/server.log',
+  logFileRelativePath: `./logs/listener-${config['chain-id']}.log`,
 }
 
 // Important: ptokens-utils logs are not shown when the
