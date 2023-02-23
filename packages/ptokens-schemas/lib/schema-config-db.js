@@ -1,10 +1,16 @@
+const constants = require('./constants')
+
 module.exports = {
   type: 'object',
-  required: ['name', 'url', 'table-events'],
+  required: [
+    constants.SCHEMA_NAME_KEY,
+    constants.SCHEMA_URL_KEY,
+    constants.SCHEMA_TABLE_EVENTS_KEY,
+  ],
   properties: {
-    name: { type: 'string' },
-    url: { type: 'string' },
-    'table-events': { type: 'string' },
+    [constants.SCHEMA_NAME_KEY]: { type: 'string' },
+    [constants.SCHEMA_URL_KEY]: { type: 'string' },
+    [constants.SCHEMA_TABLE_EVENTS_KEY]: { type: 'string' },
   },
   additionalProperties: false,
 }
