@@ -1,0 +1,4 @@
+node_modules
+.nyc_output
+pnpm-lock.yaml
+test/coverage/
