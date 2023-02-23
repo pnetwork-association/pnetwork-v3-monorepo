@@ -38,7 +38,7 @@ const insertIntoDb = R.curry((_collection, _obj) =>
 
 const startListenersFromEventObject = R.curry((_state, _event, _callback) =>
   Promise.all(
-    _event['account-names'].map(_tokenContract =>
+    _event['token-contracts'].map(_tokenContract =>
       listenForEvent(_state, _event.name, _tokenContract, _callback)
     )
   )

@@ -40,11 +40,11 @@ describe('Tests for the listener interface', () => {
           eventsToListen: [
             {
               name: 'event1',
-              'account-names': ['address1', 'address2'],
+              'token-contracts': ['address1', 'address2'],
             },
             {
               name: 'event2',
-              'account-names': ['address3', 'address4'],
+              'token-contracts': ['address3', 'address4'],
             },
           ],
           database: 'database',
@@ -136,11 +136,11 @@ describe('Tests for the listener interface', () => {
           eventsToListen: [
             {
               name: 'event1',
-              'account-names': ['address1'],
+              'token-contracts': ['address1'],
             },
             {
               name: 'event2',
-              'account-names': ['address2'],
+              'token-contracts': ['address2'],
             },
           ],
           database: 'database',
@@ -160,11 +160,11 @@ describe('Tests for the listener interface', () => {
           eventsToListen: [
             {
               name: 'event1',
-              'account-names': ['address1'],
+              'token-contracts': ['address1'],
             },
             {
               name: 'event2',
-              'account-names': ['address2'],
+              'token-contracts': ['address2'],
             },
           ],
           database: 'database',
@@ -184,11 +184,11 @@ describe('Tests for the listener interface', () => {
           eventsToListen: [
             {
               name: 'event1',
-              'account-names': ['address1'],
+              'token-contracts': ['address1'],
             },
             {
               name: 'event2',
-              'account-names': ['address2'],
+              'token-contracts': ['address2'],
             },
           ],
           database: 'database',
@@ -208,11 +208,11 @@ describe('Tests for the listener interface', () => {
           eventsToListen: [
             {
               name: 'event1',
-              'account-names': ['address1'],
+              'token-contracts': ['address1'],
             },
             {
               name: 'event2',
-              'account-names': ['address2'],
+              'token-contracts': ['address2'],
             },
           ],
           database: 'database',

@@ -63,17 +63,17 @@ module.exports = {
       items: {
         type: 'object',
         title: 'A Schema',
-        required: ['name', 'account-names'],
+        required: ['name', 'token-contracts'],
         properties: {
           name: {
             type: 'string',
             title: 'The name Schema',
             examples: ['redeem', 'pegin'],
           },
-          'account-names': {
+          'token-contracts': {
             type: 'array',
             default: [],
-            title: 'The account-names Schema',
+            title: 'The token-contracts Schema',
             items: {
               type: 'string',
               title: 'A Schema',
@@ -85,11 +85,11 @@ module.exports = {
         examples: [
           {
             name: 'redeem',
-            'account-names': ['btc.ptokens', 'ltc.ptokens'],
+            'token-contracts': ['btc.ptokens', 'ltc.ptokens'],
           },
           {
             name: 'pegin',
-            'account-names': ['xbsc.ptokens'],
+            'token-contracts': ['xbsc.ptokens'],
           },
         ],
       },
@@ -97,11 +97,11 @@ module.exports = {
         [
           {
             name: 'redeem',
-            'account-names': ['btc.ptokens', 'ltc.ptokens'],
+            'token-contracts': ['btc.ptokens', 'ltc.ptokens'],
           },
           {
             name: 'pegin',
-            'account-names': ['xbsc.ptokens'],
+            'token-contracts': ['xbsc.ptokens'],
           },
         ],
       ],
@@ -117,11 +117,11 @@ module.exports = {
       events: [
         {
           name: 'redeem',
-          'account-names': ['btc.ptokens', 'ltc.ptokens'],
+          'token-contracts': ['btc.ptokens', 'ltc.ptokens'],
         },
         {
           name: 'pegin',
-          'account-names': ['xbsc.ptokens'],
+          'token-contracts': ['xbsc.ptokens'],
         },
       ],
       db: {

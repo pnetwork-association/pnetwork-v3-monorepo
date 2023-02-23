@@ -17,11 +17,11 @@ describe('State utilities tests', () => {
         events: [
           {
             name: 'redeem',
-            'account-names': ['btc.ptokens', 'ltc.ptokens'],
+            'token-contracts': ['btc.ptokens', 'ltc.ptokens'],
           },
           {
             name: 'pegin',
-            'account-names': ['xbsc.ptokens'],
+            'token-contracts': ['xbsc.ptokens'],
           },
         ],
         'provider-url': 'provider-url',
@@ -39,11 +39,11 @@ describe('State utilities tests', () => {
         eventsToListen: [
           {
             name: 'redeem',
-            'account-names': ['btc.ptokens', 'ltc.ptokens'],
+            'token-contracts': ['btc.ptokens', 'ltc.ptokens'],
           },
           {
             name: 'pegin',
-            'account-names': ['xbsc.ptokens'],
+            'token-contracts': ['xbsc.ptokens'],
           },
         ],
         'provider-url': 'provider-url',

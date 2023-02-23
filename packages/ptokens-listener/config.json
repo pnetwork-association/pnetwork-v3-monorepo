@@ -5,16 +5,11 @@
   "events": [
     {
       "name": "redeem",
-      "account-names": [
-        "btc.ptokens",
-        "ltc.ptokens"
-      ]
+      "token-contracts": ["btc.ptokens", "ltc.ptokens"]
     },
     {
       "name": "pegin",
-      "account-names": [
-        "xbsc.ptokens"
-      ]
+      "token-contracts": ["xbsc.ptokens"]
     }
   ],
   "db": {
