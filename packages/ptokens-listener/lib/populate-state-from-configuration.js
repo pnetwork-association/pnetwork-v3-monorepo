@@ -1,8 +1,10 @@
 const R = require('ramda')
 const { constants, db } = require('ptokens-utils')
-const config = require('../config')
-
-const getConfiguration = () => config
+const {
+  STATE_KEY_CHAIN_ID,
+  STATE_KEY_EVENTS,
+  STATE_KEY_PROVIDER_URL,
+} = require('./state/constants')
 
 const getDbAndPutInState = R.curry((_config, _state) =>
   db
@@ -15,20 +17,25 @@ const getDbAndPutInState = R.curry((_config, _state) =>
 )
 
 const getEventFromConfigurationAndPutInState = R.curry((_config, _state) =>
-  R.assoc('eventsToListen', _config.events, _state)
+  R.assoc(STATE_KEY_EVENTS, _config.events, _state)
 )
 
 const getChainIdFromConfigurationAndPutInState = R.curry((_config, _state) =>
-  R.assoc('chain-id', _config['chain-id'], _state)
+  R.assoc(STATE_KEY_CHAIN_ID, _config['chain-id'], _state)
 )
 
-const populateStateFromConfiguration = _config =>
+const getProviderUrlFromConfigurationAndPutInState = R.curry(
+  (_config, _state) =>
+    R.assoc(STATE_KEY_PROVIDER_URL, _config['provider-url'], _state)
+)
+
+const getInitialStateFromConfiguration = _config =>
   Promise.resolve({})
     .then(getDbAndPutInState(_config))
     .then(getEventFromConfigurationAndPutInState(_config))
     .then(getChainIdFromConfigurationAndPutInState(_config))
+    .then(getProviderUrlFromConfigurationAndPutInState(_config))
 
 module.exports = {
-  getConfiguration,
-  populateStateFromConfiguration,
+  getInitialStateFromConfiguration,
 }

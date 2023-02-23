@@ -28,7 +28,7 @@ describe('Tests for the listener interface', () => {
         const eventEmitter = new EventEmitter()
         const listenForEvmEventSpy = jest
           .spyOn(evmListener, 'listenForEvmEvent')
-          .mockImplementation((_event, _address, _callback) =>
+          .mockImplementation((_state, _event, _address, _callback) =>
             eventEmitter.on(`${_event}/${_address}`, _event =>
               _callback({ event: _event, address: _address })
             )
@@ -77,24 +77,28 @@ describe('Tests for the listener interface', () => {
         expect(listenForEvmEventSpy).toHaveBeenCalledTimes(4)
         expect(listenForEvmEventSpy).toHaveBeenNthCalledWith(
           1,
+          state,
           'event1',
           'address1',
           expect.any(Function)
         )
         expect(listenForEvmEventSpy).toHaveBeenNthCalledWith(
           2,
+          state,
           'event1',
           'address2',
           expect.any(Function)
         )
         expect(listenForEvmEventSpy).toHaveBeenNthCalledWith(
           3,
+          state,
           'event2',
           'address3',
           expect.any(Function)
         )
         expect(listenForEvmEventSpy).toHaveBeenNthCalledWith(
           4,
+          state,
           'event2',
           'address4',
           expect.any(Function)

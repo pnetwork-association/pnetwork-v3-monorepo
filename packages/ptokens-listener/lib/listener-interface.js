@@ -2,6 +2,7 @@ const R = require('ramda')
 const { constants, utils, db } = require('ptokens-utils')
 const { listenForEvmEvent } = require('./evm/listener-evm')
 const { logger } = require('./get-logger')
+const { STATE_KEY_CHAIN_ID, STATE_KEY_EVENTS } = require('./state/constants')
 
 const listenForEosioEvent = (_eventName, _tokenContract, _abi) =>
   Promise.reject(new Error('To be implemented!'))
@@ -25,31 +26,29 @@ const getListenerForBlockchainType = _blockchainType => {
   }
 }
 
-const listenForEvent = (_chainId, _eventName, _tokenContract, _callback) =>
+const listenForEvent = (_state, _eventName, _tokenContract, _callback) =>
   logger.info(`Listening to ${_eventName} at contract ${_tokenContract}`) ||
-  getListenerForBlockchainType(utils.getBlockchainTypeFromChainId(_chainId))(
-    _eventName,
-    _tokenContract,
-    _callback
-  )
+  getListenerForBlockchainType(
+    utils.getBlockchainTypeFromChainId(_state[STATE_KEY_CHAIN_ID])
+  )(_state, _eventName, _tokenContract, _callback)
 
 const insertIntoDb = R.curry((_collection, _obj) =>
   db.insertReport(_collection, _obj)
 )
 
-const startListenersFromEventObject = R.curry((_chainId, _event, _callback) =>
+const startListenersFromEventObject = R.curry((_state, _event, _callback) =>
   Promise.all(
     _event['account-names'].map(_tokenContract =>
-      listenForEvent(_chainId, _event.name, _tokenContract, _callback)
+      listenForEvent(_state, _event.name, _tokenContract, _callback)
     )
   )
 )
 
 const listenForEvents = _state =>
   Promise.all(
-    _state.eventsToListen.map(_event =>
+    _state[STATE_KEY_EVENTS].map(_event =>
       startListenersFromEventObject(
-        _state['chain-id'],
+        _state,
         _event,
         insertIntoDb(_state[constants.STATE_KEY_DB])
       )

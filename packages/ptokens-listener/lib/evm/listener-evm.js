@@ -1,6 +1,10 @@
 const R = require('ramda')
 const ethers = require('ethers')
-const { getConfiguration } = require('../configuration')
+const {
+  STATE_KEY_CHAIN_ID,
+  STATE_KEY_PROVIDER_URL,
+} = require('../state/constants')
+
 const getEthersProvider = R.memoizeWith(R.identity, _url =>
   ethers.getDefaultProvider(_url)
 )
@@ -13,12 +17,12 @@ const getInterfaceFromEvent = _eventName =>
     _fragment => new ethers.utils.Interface([_fragment])
   )
 
-const addOriginatingChainId = _eventArgs =>
+const addOriginatingChainId = (_eventArgs, _dafaultChainId) =>
   _eventArgs.originChainId
     ? R.assoc('originatingChainId', _eventArgs.originChainId)
     : _eventArgs._originChainId
     ? R.assoc('originatingChainId', _eventArgs._originChainId)
-    : R.assoc('originatingChainId', getConfiguration()['chain-id'])
+    : R.assoc('originatingChainId', _dafaultChainId)
 
 const maybeAddAmount = _eventArgs =>
   _eventArgs.value
@@ -51,17 +55,18 @@ const maybeAddTokenAddress = _eventArgs =>
     ? R.assoc('tokenAddress', _eventArgs._tokenAddress)
     : R.identity
 
-const buildStandardizedEventFromEvmEvent = _event =>
+const buildStandardizedEventFromEvmEvent = R.curry((_state, _event) =>
   Promise.resolve({
     eventName: R.prop('name', _event),
     status: 'detected',
   })
-    .then(addOriginatingChainId(_event.args))
+    .then(addOriginatingChainId(_event.args, _state[STATE_KEY_CHAIN_ID]))
     .then(maybeAddAmount(_event.args))
     .then(maybeAddDestinationAddress(_event.args))
     .then(maybeAddDestinationChainId(_event.args))
     .then(maybeAddUserData(_event.args))
     .then(maybeAddTokenAddress(_event.args))
+)
 
 const getFilterObject = (_eventName, _tokenContract) =>
   Promise.resolve(getEventFragment(_eventName)).then(_frag => ({
@@ -73,25 +78,25 @@ const addLogInfo = R.curry((_log, _obj) =>
   Promise.resolve(_obj).then(R.assoc('originatingTxHash', _log.transactionHash))
 )
 
-const processEventLog = R.curry((_interface, _callback, _log) =>
+const processEventLog = R.curry((_state, _interface, _callback, _log) =>
   Promise.resolve(_interface.parseLog(_log))
-    .then(buildStandardizedEventFromEvmEvent)
+    .then(buildStandardizedEventFromEvmEvent(_state))
     .then(addLogInfo(_log))
     .then(_callback)
 )
 
-const listenFromFilter = (_filter, _interface, _callback) =>
-  getEthersProvider(getConfiguration()['provider-url']).on(
+const listenFromFilter = (_state, _filter, _interface, _callback) =>
+  getEthersProvider(_state[STATE_KEY_PROVIDER_URL]).on(
     _filter,
-    processEventLog(_interface, _callback)
+    processEventLog(_state, _interface, _callback)
   )
 
-const listenForEvmEvent = (_eventName, _tokenContract, _callback) =>
+const listenForEvmEvent = (_state, _eventName, _tokenContract, _callback) =>
   Promise.all([
     getFilterObject(_eventName, _tokenContract),
     getInterfaceFromEvent(_eventName),
   ]).then(([_filter, _interface]) =>
-    listenFromFilter(_filter, _interface, _callback)
+    listenFromFilter(_state, _filter, _interface, _callback)
   )
 
 module.exports = { listenForEvmEvent }

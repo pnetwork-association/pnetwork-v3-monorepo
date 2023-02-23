@@ -5,17 +5,20 @@ const {
   setupExitEventListeners,
 } = require('./lib/setup-exit-listeners')
 const { listenForEvents } = require('./lib/listener-interface')
-const { populateStateFromConfiguration } = require('./lib/configuration')
+const {
+  getInitialStateFromConfiguration,
+} = require('./lib/populate-state-from-configuration')
+const config = require('./config')
 
 const printErrorAndExit = _err =>
   logger.error('Halting the server due to \n', _err) ||
   shutDownLogging().then(_ => exitCleanly(1))
 
-const main = () =>
+const main = _config =>
   setupExitEventListeners()
-    .then(checkConfiguration)
-    .then(populateStateFromConfiguration)
+    .then(_ => checkConfiguration(_config))
+    .then(getInitialStateFromConfiguration)
     .then(listenForEvents)
     .catch(printErrorAndExit)
 
-main()
+main(config)

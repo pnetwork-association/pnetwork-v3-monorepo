@@ -1,9 +1,11 @@
 const assert = require('assert')
 const { db } = require('ptokens-utils')
-const configurationUtils = require('../lib/configuration')
+const {
+  getInitialStateFromConfiguration,
+} = require('../lib/populate-state-from-configuration')
 
 describe('State utilities tests', () => {
-  describe('populateStateFromConfiguration', () => {
+  describe('getInitialStateFromConfiguration', () => {
     it('Should populate the state from the configuration', async () => {
       const config = {
         db: {
@@ -22,6 +24,7 @@ describe('State utilities tests', () => {
             'account-names': ['xbsc.ptokens'],
           },
         ],
+        'provider-url': 'provider-url',
       }
       jest
         .spyOn(db, 'getCollection')
@@ -29,10 +32,7 @@ describe('State utilities tests', () => {
           Promise.resolve(`${_url}/${_dbName}/${_collectionName}`)
         )
       const state = {}
-      const ret = await configurationUtils.populateStateFromConfiguration(
-        config,
-        state
-      )
+      const ret = await getInitialStateFromConfiguration(config, state)
       assert.deepStrictEqual(ret, {
         database: 'a-url/a-database-name/a-collection-name',
         'chain-id': '0x00112233',
@@ -46,6 +46,7 @@ describe('State utilities tests', () => {
             'account-names': ['xbsc.ptokens'],
           },
         ],
+        'provider-url': 'provider-url',
       })
     })
 
@@ -60,7 +61,7 @@ describe('State utilities tests', () => {
         .mockRejectedValue(new Error('getCollection error'))
       const state = {}
       try {
-        await configurationUtils.populateStateFromConfiguration(config, state)
+        await getInitialStateFromConfiguration(config, state)
         assert.fail()
       } catch (err) {
         assert.equal(err.message, 'getCollection error')

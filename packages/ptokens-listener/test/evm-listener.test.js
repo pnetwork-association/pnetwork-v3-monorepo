@@ -5,14 +5,10 @@ const { logs } = require('./mock/evm-logs')
 describe('EVM listener', () => {
   describe('listenForEvmEvent', () => {
     it('Should call callback with the standardized event', done => {
-      const configurationModule = require('../lib/configuration')
-      jest
-        .spyOn(configurationModule, 'getConfiguration')
-        .mockImplementation(_ => ({
-          'provider-url': 'provider-url',
-          'chain-id': '0x005fe7f9',
-        }))
-
+      const state = {
+        'chain-id': '0x005fe7f9',
+        'provider-url': 'provider-url',
+      }
       const fakeProvider = new EventEmitter()
       fakeProvider._on = fakeProvider.on
 
@@ -47,16 +43,19 @@ describe('EVM listener', () => {
       const callback = jest.fn()
 
       listenForEvmEvent(
+        state,
         'Transfer(address indexed from,address indexed to,uint256 value)',
         '0xdac17f958d2ee523a2206206994597c13d831ec7',
         callback
       )
       listenForEvmEvent(
+        state,
         'PegIn(address _tokenAddress, address _tokenSender, uint256 _tokenAmount, string _destinationAddress, bytes _userData, bytes4 _originChainId, bytes4 _destinationChainId)',
         '0xe396757ec7e6ac7c8e5abe7285dde47b98f22db8',
         callback
       )
       listenForEvmEvent(
+        state,
         'Redeem(address indexed redeemer, uint256 value, string underlyingAssetRecipient, bytes userData, bytes4 originChainId, bytes4 destinationChainId)',
         '0x62199b909fb8b8cf870f97bef2ce6783493c4908',
         callback
