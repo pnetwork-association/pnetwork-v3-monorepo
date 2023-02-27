@@ -1,0 +1,10 @@
+{
+  "name": "ptokens-relayer",
+  "version": "1.0.0",
+  "description": "Relayer project",
+  "keywords": [
+    "relayer"
+  ],
+  "author": "gitmp01",
+  "license": "MIT"
+}

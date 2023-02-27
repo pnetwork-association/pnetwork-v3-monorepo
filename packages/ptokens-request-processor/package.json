@@ -1,0 +1,31 @@
+{
+  "name": "ptokens-request-processor",
+  "version": "1.0.0",
+  "description": "A component for checking & broadcasting relayer's requests",
+  "bin": "./index.js",
+  "scripts": {
+    "lint": "eslint .",
+    "clean": "rm -rf $(pwd)/build",
+    "docker-build": "PROJECT_ROOT=$(pwd) ./docker-build.sh",
+    "test": "jest --config test/jest.config.js"
+  },
+  "keywords": [
+    "ptokens",
+    "request-processor",
+    "relayer",
+    "guardian"
+  ],
+  "author": "gitmp01",
+  "license": "MIT",
+  "dependencies": {
+    "log4js": "^6.7.1",
+    "ptokens-schemas": "*",
+    "ptokens-utils": "*",
+    "ramda": "^0.28.0"
+  },
+  "nx": {
+    "implicitDependencies": [
+      "ptokens-docker-stages"
+    ]
+  }
+}

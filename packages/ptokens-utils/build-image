@@ -1,8 +1,0 @@
-#!/bin/bash
-set -euo pipefail
-
-function main() {
-    docker build -t "provable/ptokens-utils.js:latest" "$@" .
-}
-
-main "$@"

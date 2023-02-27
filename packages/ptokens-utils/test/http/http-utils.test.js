@@ -6,13 +6,14 @@ const { http, errors } = require('../..')
 describe('Http general tests', () => {
   let server
   const port = 3000
-  const serverUrl = `http://localhost:${port}`
+  const host = '127.0.0.1'
+  const serverUrl = `http://${host}:${port}`
 
   before(async () => {
     server = await createServer()
 
     /* eslint-disable no-empty-function */
-    await server.listen(3000, '127.0.0.1', () => {})
+    await server.listen(3000, `${host}`, () => {})
   })
 
   after(() => {

@@ -14,6 +14,9 @@
 - [Best practices](#best-practices)
   - [Linting](#best-practices-linting)
   - [Commits](#best-practices-commits)
+  - [Development process](#best-practices-dev-process)
+- [Development](#development)
+  - [Build images](#dev-build-images)
 
 ## <a name="basic-tutorial"></a> Basic tutorial
 
@@ -103,3 +106,47 @@ refactor(ptokens-listener): rename this into that
 
 **Note:** `[(<file|folder|context>)]` can be used when applicable,
 on a set of files it's better omitting it.
+
+### <a name="best-practices-dev-process"></a> Development process
+
+Create a new branch having the pattern
+
+```
+<feat|chore|refactor|fix>/<component-name>/<branch-name>
+```
+
+#### Examples
+
+- feat/ptokens-utils/add-superpowers
+- chore/ptokens-listener/rename-file
+- fix/ptokens-schemas/wrong-type
+
+## <a name="development"></a> Development
+
+### <a name="dev-build-images"></a> Build Docker images
+
+An image can be built in the following ways:
+
+1. From the monorepo's root
+
+```bash
+nx run ptokens-utils:docker-build
+```
+
+2. From the project's root
+
+```bash
+nx docker-build
+```
+
+3. Or all the projects images together
+
+```bash
+nx run-many --target=docker-build
+```
+
+We avoid using Nx caching for the `docker-build` task since caching is already done by the Docker
+build itself.
+
+If you want to change this, you can add the `docker-build` task to `cacheableOperations` list in the
+`nx.json` file.

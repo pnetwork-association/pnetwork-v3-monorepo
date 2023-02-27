@@ -4,7 +4,7 @@
 FROM node:16.17.0-bullseye-slim
 
 ENV HOME=/home/node
-ENV SRC=$HOME/ptokens-utils
+ENV SRC=$HOME/ptokens-schemas
 
 WORKDIR $SRC
 
@@ -17,4 +17,3 @@ COPY --chown=node:node . .
 USER node
 
 CMD ["node"]
-

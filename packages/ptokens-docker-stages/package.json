@@ -1,0 +1,11 @@
+{
+  "name": "ptokens-docker-stages",
+  "version": "1.0.0",
+  "description": "A common place where to store shared Dockerfiles",
+  "scripts": {
+    "docker-build": "PROJECT_ROOT=$(pwd) ./docker-build.sh"
+  },
+  "author": "gitmp01",
+  "license": "MIT",
+  "dependencies": {}
+}
