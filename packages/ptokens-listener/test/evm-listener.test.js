@@ -3,11 +3,25 @@ const ethers = require('ethers')
 const { logs } = require('./mock/evm-logs')
 
 describe('EVM listener', () => {
-  describe('listenForEvmEvent', () => {
+  describe('listenForEvmEvents', () => {
     it('Should call callback with the standardized event', done => {
       const state = {
         'chain-id': '0x005fe7f9',
         'provider-url': 'provider-url',
+        eventsToListen: [
+          {
+            name: 'Transfer(address indexed from,address indexed to,uint256 value)',
+            'token-contracts': ['0xdac17f958d2ee523a2206206994597c13d831ec7'],
+          },
+          {
+            name: 'PegIn(address _tokenAddress, address _tokenSender, uint256 _tokenAmount, string _destinationAddress, bytes _userData, bytes4 _originChainId, bytes4 _destinationChainId)',
+            'token-contracts': ['0xe396757ec7e6ac7c8e5abe7285dde47b98f22db8'],
+          },
+          {
+            name: 'Redeem(address indexed redeemer, uint256 value, string underlyingAssetRecipient, bytes userData, bytes4 originChainId, bytes4 destinationChainId)',
+            'token-contracts': ['0x62199b909fb8b8cf870f97bef2ce6783493c4908'],
+          },
+        ],
       }
       const fakeProvider = new EventEmitter()
       fakeProvider._on = fakeProvider.on
@@ -39,27 +53,10 @@ describe('EVM listener', () => {
       const getDefaultProviderSpy = jest
         .spyOn(ethers, 'getDefaultProvider')
         .mockImplementation(_ => fakeProvider)
-      const { listenForEvmEvent } = require('../lib/evm/listener-evm')
+      const { listenForEvmEvents } = require('../lib/evm/listener-evm')
       const callback = jest.fn()
 
-      listenForEvmEvent(
-        state,
-        'Transfer(address indexed from,address indexed to,uint256 value)',
-        '0xdac17f958d2ee523a2206206994597c13d831ec7',
-        callback
-      )
-      listenForEvmEvent(
-        state,
-        'PegIn(address _tokenAddress, address _tokenSender, uint256 _tokenAmount, string _destinationAddress, bytes _userData, bytes4 _originChainId, bytes4 _destinationChainId)',
-        '0xe396757ec7e6ac7c8e5abe7285dde47b98f22db8',
-        callback
-      )
-      listenForEvmEvent(
-        state,
-        'Redeem(address indexed redeemer, uint256 value, string underlyingAssetRecipient, bytes userData, bytes4 originChainId, bytes4 destinationChainId)',
-        '0x62199b909fb8b8cf870f97bef2ce6783493c4908',
-        callback
-      )
+      listenForEvmEvents(state, callback)
 
       setTimeout(() => {
         expect(getDefaultProviderSpy).toHaveBeenNthCalledWith(1, 'provider-url')

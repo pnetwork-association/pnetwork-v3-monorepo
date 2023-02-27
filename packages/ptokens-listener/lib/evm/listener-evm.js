@@ -2,8 +2,10 @@ const R = require('ramda')
 const ethers = require('ethers')
 const {
   STATE_KEY_CHAIN_ID,
+  STATE_KEY_EVENTS,
   STATE_KEY_PROVIDER_URL,
 } = require('../state/constants')
+const { constants: schemasConstants } = require('ptokens-schemas')
 const { logger } = require('../get-logger')
 
 const getEthersProvider = R.memoizeWith(R.identity, _url =>
@@ -105,8 +107,24 @@ const listenForEvmEvent = (_state, _eventName, _tokenContract, _callback) =>
   Promise.all([
     getFilterObject(_eventName, _tokenContract),
     getInterfaceFromEvent(_eventName),
-  ]).then(([_filter, _interface]) =>
-    listenFromFilter(_state, _filter, _interface, _callback)
+  ]).then(
+    ([_filter, _interface]) =>
+      logger.info(`Listening to ${_eventName} at contract ${_tokenContract}`) ||
+      listenFromFilter(_state, _filter, _interface, _callback)
   )
 
-module.exports = { listenForEvmEvent }
+const startEvmListenerFromEventObject = (_state, _event, _callback) =>
+  Promise.all(
+    _event[schemasConstants.SCHEMA_TOKEN_CONTRACTS_KEY].map(_tokenContract =>
+      listenForEvmEvent(_state, _event.name, _tokenContract, _callback)
+    )
+  )
+
+const listenForEvmEvents = (_state, _callback) =>
+  Promise.all(
+    _state[STATE_KEY_EVENTS].map(_event =>
+      startEvmListenerFromEventObject(_state, _event, _callback)
+    )
+  )
+
+module.exports = { listenForEvmEvents }

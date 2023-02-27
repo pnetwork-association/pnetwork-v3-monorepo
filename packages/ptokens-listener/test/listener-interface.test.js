@@ -26,11 +26,15 @@ describe('Tests for the listener interface', () => {
           .mockImplementation(() => Promise.resolve())
 
         const eventEmitter = new EventEmitter()
-        const listenForEvmEventSpy = jest
-          .spyOn(evmListener, 'listenForEvmEvent')
-          .mockImplementation((_state, _event, _address, _callback) =>
-            eventEmitter.on(`${_event}/${_address}`, _event =>
-              _callback({ event: _event, address: _address })
+        const listenForEvmEventsSpy = jest
+          .spyOn(evmListener, 'listenForEvmEvents')
+          .mockImplementation((_state, _callback) =>
+            _state.eventsToListen.map(_event =>
+              _event['token-contracts'].map(_address =>
+                eventEmitter.on(`${_event.name}/${_address}`, _event =>
+                  _callback({ event: _event, address: _address })
+                )
+              )
             )
           )
 
@@ -74,33 +78,10 @@ describe('Tests for the listener interface', () => {
         )
 
         jest.advanceTimersByTime(1200)
-        expect(listenForEvmEventSpy).toHaveBeenCalledTimes(4)
-        expect(listenForEvmEventSpy).toHaveBeenNthCalledWith(
+        expect(listenForEvmEventsSpy).toHaveBeenCalledTimes(1)
+        expect(listenForEvmEventsSpy).toHaveBeenNthCalledWith(
           1,
           state,
-          'event1',
-          'address1',
-          expect.any(Function)
-        )
-        expect(listenForEvmEventSpy).toHaveBeenNthCalledWith(
-          2,
-          state,
-          'event1',
-          'address2',
-          expect.any(Function)
-        )
-        expect(listenForEvmEventSpy).toHaveBeenNthCalledWith(
-          3,
-          state,
-          'event2',
-          'address3',
-          expect.any(Function)
-        )
-        expect(listenForEvmEventSpy).toHaveBeenNthCalledWith(
-          4,
-          state,
-          'event2',
-          'address4',
           expect.any(Function)
         )
         expect(insertIntoDbSpy).toHaveBeenCalledTimes(5)
