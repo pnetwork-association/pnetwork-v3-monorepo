@@ -20,7 +20,6 @@
       {
         "allowModules": ["mongodb-memory-server"]
       }
-    ],
-    "no-process-exit": ["off"]
+    ]
   }
 }
