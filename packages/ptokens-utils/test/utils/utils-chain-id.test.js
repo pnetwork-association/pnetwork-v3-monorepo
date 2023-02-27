@@ -31,12 +31,20 @@ describe('Chain ID utils tests', () => {
         constants.blockchainType.EOSIO,
         constants.blockchainType.EOSIO,
       ]
-      values(constants.metadataChainIds).map((_chainId, _i) =>
-        assert.equal(
-          utils.getBlockchainTypeFromChainId(_chainId),
-          expectedResults[_i]
+      return Promise.all(
+        values(constants.metadataChainIds).map((_val, _i) =>
+          utils
+            .getBlockchainTypeFromChainId(_val)
+            .then(_ret => assert.equal(_ret, expectedResults[_i]))
         )
       )
+    })
+    it('Should get the correct blockchain type', async () => {
+      try {
+        await utils.getBlockchainTypeFromChainId('0x01234567')
+      } catch (err) {
+        assert.equal(err.message, 'Unknown chain ID 0x01234567')
+      }
     })
   })
 })
