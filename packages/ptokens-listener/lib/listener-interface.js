@@ -37,8 +37,11 @@ const insertIntoDb = R.curry(
 )
 
 const listenForEvents = _state =>
-  getListenerForBlockchainType(
-    utils.getBlockchainTypeFromChainId(_state[STATE_KEY_CHAIN_ID])
-  )(_state, insertIntoDb(_state[constants.STATE_KEY_DB]))
+  utils
+    .getBlockchainTypeFromChainId(_state[STATE_KEY_CHAIN_ID])
+    .then(getListenerForBlockchainType)
+    .then(_listener =>
+      _listener(_state, insertIntoDb(_state[constants.STATE_KEY_DB]))
+    )
 
 module.exports = { listenForEvents }

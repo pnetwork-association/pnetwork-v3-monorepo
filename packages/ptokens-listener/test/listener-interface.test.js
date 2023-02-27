@@ -1,18 +1,8 @@
-const EventEmitter = require('events')
-
 describe('Tests for the listener interface', () => {
   describe('listenForEvents', () => {
-    beforeAll(() => {
-      jest.useFakeTimers()
-    })
-
     beforeEach(() => {
       jest.resetAllMocks()
       jest.resetModules()
-    })
-
-    afterAll(() => {
-      jest.useRealTimers()
     })
 
     test.each([['0x005fe7f9'], ['0x00e4b170'], ['0x00f1918e'], ['0x0075dd4c']])(
@@ -25,15 +15,12 @@ describe('Tests for the listener interface', () => {
           .spyOn(db, 'insertReport')
           .mockImplementation(() => Promise.resolve())
 
-        const eventEmitter = new EventEmitter()
         const listenForEvmEventsSpy = jest
           .spyOn(evmListener, 'listenForEvmEvents')
           .mockImplementation((_state, _callback) =>
-            _state.eventsToListen.map(_event =>
-              _event['token-contracts'].map(_address =>
-                eventEmitter.on(`${_event.name}/${_address}`, _event =>
-                  _callback({ event: _event, address: _address })
-                )
+            _state.eventsToListen.forEach(_event =>
+              _event['token-contracts'].forEach(_address =>
+                _callback({ event: _event.name, address: _address })
               )
             )
           )
@@ -54,56 +41,30 @@ describe('Tests for the listener interface', () => {
           database: 'database',
         }
 
-        listenerInterface.listenForEvents(state)
+        await listenerInterface.listenForEvents(state)
 
-        setTimeout(
-          () => eventEmitter.emit('event1/address1', { block: 1 }),
-          200
-        )
-        setTimeout(
-          () => eventEmitter.emit('event1/address2', { block: 2 }),
-          400
-        )
-        setTimeout(
-          () => eventEmitter.emit('event2/address3', { block: 3 }),
-          600
-        )
-        setTimeout(
-          () => eventEmitter.emit('event1/address1', { block: 4 }),
-          800
-        )
-        setTimeout(
-          () => eventEmitter.emit('event2/address4', { block: 5 }),
-          1000
-        )
-
-        jest.advanceTimersByTime(1200)
         expect(listenForEvmEventsSpy).toHaveBeenCalledTimes(1)
         expect(listenForEvmEventsSpy).toHaveBeenNthCalledWith(
           1,
           state,
           expect.any(Function)
         )
-        expect(insertIntoDbSpy).toHaveBeenCalledTimes(5)
+        expect(insertIntoDbSpy).toHaveBeenCalledTimes(4)
         expect(insertIntoDbSpy).toHaveBeenNthCalledWith(1, 'database', {
           address: 'address1',
-          event: { block: 1 },
+          event: 'event1',
         })
         expect(insertIntoDbSpy).toHaveBeenNthCalledWith(2, 'database', {
           address: 'address2',
-          event: { block: 2 },
+          event: 'event1',
         })
         expect(insertIntoDbSpy).toHaveBeenNthCalledWith(3, 'database', {
           address: 'address3',
-          event: { block: 3 },
+          event: 'event2',
         })
         expect(insertIntoDbSpy).toHaveBeenNthCalledWith(4, 'database', {
-          address: 'address1',
-          event: { block: 4 },
-        })
-        expect(insertIntoDbSpy).toHaveBeenNthCalledWith(5, 'database', {
           address: 'address4',
-          event: { block: 5 },
+          event: 'event2',
         })
       }
     )
@@ -199,7 +160,7 @@ describe('Tests for the listener interface', () => {
           database: 'database',
         }
         expect(() => listenerInterface.listenForEvents(state)).rejects.toThrow(
-          'Invalid blockchain type'
+          'Unknown chain ID 0x12345678'
         )
       }
     )
