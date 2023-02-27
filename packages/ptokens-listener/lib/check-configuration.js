@@ -6,8 +6,7 @@ const validateConfiguration = _config =>
   validation.validateJson(configListenerSchema, _config).then(() => _config)
 
 module.exports.checkConfiguration = _config =>
-  Promise.resolve(_config)
-    .then(validateConfiguration)
+  validateConfiguration(_config)
     .then(
       _config => logger.info('Valid configuration file detected') || _config
     )
