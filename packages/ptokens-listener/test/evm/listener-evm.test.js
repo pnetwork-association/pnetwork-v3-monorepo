@@ -1,6 +1,6 @@
 const EventEmitter = require('events')
 const ethers = require('ethers')
-const { logs } = require('./mock/evm-logs')
+const { logs } = require('../mock/evm-logs')
 
 describe('EVM listener', () => {
   describe('listenForEvmEvents', () => {
@@ -53,7 +53,7 @@ describe('EVM listener', () => {
       const getDefaultProviderSpy = jest
         .spyOn(ethers, 'getDefaultProvider')
         .mockImplementation(_ => fakeProvider)
-      const { listenForEvmEvents } = require('../lib/evm/listener-evm')
+      const { listenForEvmEvents } = require('../../lib/evm/listener-evm')
       const callback = jest.fn()
 
       listenForEvmEvents(state, callback)
