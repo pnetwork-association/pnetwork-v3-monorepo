@@ -1,0 +1,19 @@
+{
+  "name": "ptokens-listener",
+  "version": "0.1.0",
+  "description": "Node.js implementation of the v3 pTokens Listener.",
+  "main": "index.js",
+  "scripts": {
+    "lint": "eslint .",
+    "test": "jest --config test/jest.config.js"
+  },
+  "author": "Alain Olivier",
+  "license": "MIT",
+  "dependencies": {
+    "ethers": "^5.7.2",
+    "log4js": "^6.7.1",
+    "ptokens-schemas": "*",
+    "ptokens-utils": "*",
+    "ramda": "^0.28.0"
+  }
+}

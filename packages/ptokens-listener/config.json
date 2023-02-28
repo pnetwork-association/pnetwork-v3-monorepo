@@ -1,0 +1,19 @@
+{
+  "chain-name": "telos",
+  "chain-type": "eos",
+  "chain-id": "0x0",
+  "events": [
+    {
+      "name": "redeem",
+      "token-contracts": ["btc.ptokens", "ltc.ptokens"]
+    },
+    {
+      "name": "pegin",
+      "token-contracts": ["xbsc.ptokens"]
+    }
+  ],
+  "db": {
+    "url": "127.0.0.1"
+  },
+  "provider-url": "provider-url"
+}
