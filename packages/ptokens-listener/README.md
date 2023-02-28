@@ -1,7 +1,6 @@
 # pTokens Relayer
 
-Node.js implementation of the v3 pTokens Relayer.
-
+Node.js implementation of the node listener.
 
 ### Build
 
