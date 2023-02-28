@@ -21,12 +21,12 @@ const getInterfaceFromEvent = _eventName =>
   )
 
 const addOriginatingChainId = (_eventArgs, _dafaultChainId) =>
-  _eventArgs.originChainId
+  !R.isNil(_eventArgs.originChainId)
     ? R.assoc(
         schemasConstants.SCHEMA_ORIGINATING_CHAIN_ID_KEY,
         _eventArgs.originChainId
       )
-    : _eventArgs._originChainId
+    : !R.isNil(_eventArgs._originChainId)
     ? R.assoc(
         schemasConstants.SCHEMA_ORIGINATING_CHAIN_ID_KEY,
         _eventArgs._originChainId
@@ -34,9 +34,9 @@ const addOriginatingChainId = (_eventArgs, _dafaultChainId) =>
     : R.assoc(schemasConstants.SCHEMA_ORIGINATING_CHAIN_ID_KEY, _dafaultChainId)
 
 const maybeAddAmount = _eventArgs =>
-  _eventArgs.value
+  !R.isNil(_eventArgs.value)
     ? R.assoc(schemasConstants.SCHEMA_AMOUNT_KEY, _eventArgs.value.toString())
-    : _eventArgs._tokenAmount
+    : !R.isNil(_eventArgs._tokenAmount)
     ? R.assoc(
         schemasConstants.SCHEMA_AMOUNT_KEY,
         _eventArgs._tokenAmount.toString()
@@ -44,12 +44,12 @@ const maybeAddAmount = _eventArgs =>
     : R.identity
 
 const maybeAddDestinationAddress = _eventArgs =>
-  _eventArgs._destinationAddress
+  !R.isNil(_eventArgs._destinationAddress)
     ? R.assoc(
         schemasConstants.SCHEMA_DESTINATION_ADDRESS_KEY,
         _eventArgs._destinationAddress
       )
-    : _eventArgs.underlyingAssetRecipient
+    : !R.isNil(_eventArgs.underlyingAssetRecipient)
     ? R.assoc(
         schemasConstants.SCHEMA_DESTINATION_ADDRESS_KEY,
         _eventArgs.underlyingAssetRecipient
@@ -57,12 +57,12 @@ const maybeAddDestinationAddress = _eventArgs =>
     : R.identity
 
 const maybeAddDestinationChainId = _eventArgs =>
-  _eventArgs.destinationChainId
+  !R.isNil(_eventArgs.destinationChainId)
     ? R.assoc(
         schemasConstants.SCHEMA_DESTINATION_CHAIN_ID_KEY,
         _eventArgs.destinationChainId
       )
-    : _eventArgs._destinationChainId
+    : !R.isNil(_eventArgs._destinationChainId)
     ? R.assoc(
         schemasConstants.SCHEMA_DESTINATION_CHAIN_ID_KEY,
         _eventArgs._destinationChainId
@@ -70,12 +70,12 @@ const maybeAddDestinationChainId = _eventArgs =>
     : R.identity
 
 const maybeAddUserData = _eventArgs =>
-  _eventArgs.userData && _eventArgs.userData !== '0x'
+  !R.isNil(_eventArgs.userData) && _eventArgs.userData !== '0x'
     ? R.assoc(schemasConstants.SCHEMA_USER_DATA_KEY, _eventArgs.userData)
     : R.identity
 
 const maybeAddTokenAddress = _eventArgs =>
-  _eventArgs._tokenAddress
+  !R.isNil(_eventArgs._tokenAddress)
     ? R.assoc(
         schemasConstants.SCHEMA_TOKEN_ADDRESS_KEY,
         _eventArgs._tokenAddress
