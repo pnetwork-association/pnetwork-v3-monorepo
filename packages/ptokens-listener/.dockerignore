@@ -1,10 +1,5 @@
-*.md
-*.gpg
-*.txt
-*.npmrc
-*.env
-**/logs
-**/test
-**/.github
-.dockerignore
-.gitignore
+**/*
+**/*.*
+!index.js
+!lib
+!package.json
