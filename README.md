@@ -62,8 +62,6 @@ nx run-many --target=test
 nx run ptokens-btc-syncer:test
 ```
 
-<<<<<<< HEAD
-
 ### <a name="basic-lint-single"></a> Lint a single project
 
 ```bash
