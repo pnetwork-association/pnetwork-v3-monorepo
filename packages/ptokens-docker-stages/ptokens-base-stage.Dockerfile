@@ -18,7 +18,9 @@ ENV FOLDER_APP $FOLDER_SRC/app
 ENV FOLDER_LOGS $FOLDER_APP/logs
 
 RUN mkdir -p $FOLDER_APP && \
-    mkdir -p $FOLDER_LOGS
+    mkdir -p $FOLDER_LOGS && \
+    usermod -u 1001 node && \
+    groupmod -g 1001 node
 
 COPY --from=ptokens-debian-stage \
     /usr/bin/dumb-init \
