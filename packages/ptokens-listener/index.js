@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 const { logger, shutDownLogging } = require('./lib/get-logger')
 const { checkConfiguration } = require('./lib/check-configuration')
 const {
