@@ -3,28 +3,34 @@ const { db } = require('ptokens-utils')
 const {
   getInitialStateFromConfiguration,
 } = require('../lib/populate-state-from-configuration')
+const stateConstants = require('../lib/state/constants')
+const { constants: ptokensUtilsConstants } = require('ptokens-utils')
+const { constants: schemasConstants } = require('ptokens-schemas')
 
 describe('State utilities tests', () => {
   describe('getInitialStateFromConfiguration', () => {
     it('Should populate the state from the configuration', async () => {
       const config = {
-        db: {
-          url: 'a-url',
-          name: 'a-database-name',
-          'table-events': 'a-collection-name',
+        [schemasConstants.SCHEMA_DB_KEY]: {
+          [schemasConstants.SCHEMA_URL_KEY]: 'a-url',
+          [schemasConstants.SCHEMA_NAME_KEY]: 'a-database-name',
+          [schemasConstants.SCHEMA_TABLE_EVENTS_KEY]: 'a-collection-name',
         },
-        'chain-id': '0x00112233',
-        events: [
+        [schemasConstants.SCHEMA_CHAIN_ID_KEY]: '0x00112233',
+        [schemasConstants.SCHEMA_EVENTS_KEY]: [
           {
-            name: 'redeem',
-            'token-contracts': ['btc.ptokens', 'ltc.ptokens'],
+            [schemasConstants.SCHEMA_NAME_KEY]: 'redeem',
+            [schemasConstants.SCHEMA_TOKEN_CONTRACTS_KEY]: [
+              'btc.ptokens',
+              'ltc.ptokens',
+            ],
           },
           {
-            name: 'pegin',
-            'token-contracts': ['xbsc.ptokens'],
+            [schemasConstants.SCHEMA_NAME_KEY]: 'pegin',
+            [schemasConstants.SCHEMA_TOKEN_CONTRACTS_KEY]: ['xbsc.ptokens'],
           },
         ],
-        'provider-url': 'provider-url',
+        [schemasConstants.SCHEMA_PROVIDER_URL_KEY]: 'provider-url',
       }
       jest
         .spyOn(db, 'getCollection')
@@ -34,26 +40,30 @@ describe('State utilities tests', () => {
       const state = {}
       const ret = await getInitialStateFromConfiguration(config, state)
       assert.deepStrictEqual(ret, {
-        database: 'a-url/a-database-name/a-collection-name',
-        'chain-id': '0x00112233',
-        eventsToListen: [
+        [ptokensUtilsConstants.STATE_KEY_DB]:
+          'a-url/a-database-name/a-collection-name',
+        [stateConstants.STATE_KEY_CHAIN_ID]: '0x00112233',
+        [stateConstants.STATE_KEY_EVENTS]: [
           {
-            name: 'redeem',
-            'token-contracts': ['btc.ptokens', 'ltc.ptokens'],
+            [schemasConstants.SCHEMA_NAME_KEY]: 'redeem',
+            [schemasConstants.SCHEMA_TOKEN_CONTRACTS_KEY]: [
+              'btc.ptokens',
+              'ltc.ptokens',
+            ],
           },
           {
-            name: 'pegin',
-            'token-contracts': ['xbsc.ptokens'],
+            [schemasConstants.SCHEMA_NAME_KEY]: 'pegin',
+            [schemasConstants.SCHEMA_TOKEN_CONTRACTS_KEY]: ['xbsc.ptokens'],
           },
         ],
-        'provider-url': 'provider-url',
+        [stateConstants.STATE_KEY_PROVIDER_URL]: 'provider-url',
       })
     })
 
     it('Should reject there is an error populating the state', async () => {
       const config = {
-        db: {
-          url: 'url',
+        [schemasConstants.SCHEMA_DB_KEY]: {
+          [schemasConstants.SCHEMA_URL_KEY]: 'url',
         },
       }
       jest
