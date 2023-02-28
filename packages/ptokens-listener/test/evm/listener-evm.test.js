@@ -92,7 +92,7 @@ describe('EVM listener', () => {
         )
         expect(callback).toHaveBeenCalledTimes(3)
         expect(callback).toHaveBeenNthCalledWith(1, {
-          amount: ethers.BigNumber.from('0x0bebc200'),
+          amount: '200000000',
           originatingChainId: '0x005fe7f9',
           originatingTxHash:
             '0x37eeb55eab329c73aeac6a172faa6c77e7013cd0cda0fc472274c5faf0df7003',
@@ -100,7 +100,7 @@ describe('EVM listener', () => {
           status: 'detected',
         })
         expect(callback).toHaveBeenNthCalledWith(2, {
-          amount: ethers.BigNumber.from('0x3baa0c40'),
+          amount: '1001000000',
           tokenAddress: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
           destinationAddress: '770102986',
           destinationChainId: '0x03c38e67',
@@ -111,7 +111,7 @@ describe('EVM listener', () => {
           status: 'detected',
         })
         expect(callback).toHaveBeenNthCalledWith(3, {
-          amount: ethers.BigNumber.from('0x1cab4f5986196800'),
+          amount: '2065832100000000000',
           destinationAddress: '35eXzETyUxiQPXwU2udtVFQFrFjgRhhvPj',
           destinationChainId: '0x01ec97de',
           originatingChainId: '0x005fe7f9',
