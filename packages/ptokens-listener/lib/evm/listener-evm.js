@@ -82,12 +82,12 @@ const maybeAddTokenAddress = _eventArgs =>
       )
     : R.identity
 
-const buildStandardizedEventFromEvmEvent = R.curry((_state, _event) =>
+const buildStandardizedEventFromEvmEvent = R.curry((_chainId, _event) =>
   Promise.resolve({
     [schemasConstants.SCHEMA_EVENT_NAME_KEY]: R.prop('name', _event),
     [schemasConstants.SCHEMA_STATUS_KEY]: 'detected',
   })
-    .then(addOriginatingChainId(_event.args, _state[STATE_KEY_CHAIN_ID]))
+    .then(addOriginatingChainId(_event.args, _chainId))
     .then(maybeAddAmount(_event.args))
     .then(maybeAddDestinationAddress(_event.args))
     .then(maybeAddDestinationChainId(_event.args))
@@ -111,7 +111,7 @@ const addLogInfo = R.curry((_log, _obj) =>
 )
 
 const processEventLog = R.curry(
-  (_state, _interface, _callback, _log) =>
+  (_chainId, _interface, _callback, _log) =>
     logger.info(`Received EVM event for transaction ${_log.transactionHash}`) ||
     Promise.resolve(_interface.parseLog(_log))
       .then(_parsedLog => logger.debug('Parsed EVM event log') || _parsedLog)
@@ -121,38 +121,66 @@ const processEventLog = R.curry(
           logger.debug('signature:', _parsedLog.signature) || _parsedLog
       )
       .then(_parsedLog => logger.debug('args:', _parsedLog.args) || _parsedLog)
-      .then(buildStandardizedEventFromEvmEvent(_state))
+      .then(buildStandardizedEventFromEvmEvent(_chainId))
       .then(addLogInfo(_log))
       .then(_callback)
 )
 
-const listenFromFilter = (_state, _filter, _interface, _callback) =>
-  getEthersProvider(_state[STATE_KEY_PROVIDER_URL]).on(
+const listenFromFilter = (
+  _providerUrl,
+  _chainId,
+  _filter,
+  _interface,
+  _callback
+) =>
+  getEthersProvider(_providerUrl).on(
     _filter,
-    processEventLog(_state, _interface, _callback)
+    processEventLog(_chainId, _interface, _callback)
   )
 
-const listenForEvmEvent = (_state, _eventName, _tokenContract, _callback) =>
+const listenForEvmEvent = (
+  _providerUrl,
+  _chainId,
+  _eventName,
+  _tokenContract,
+  _callback
+) =>
   Promise.all([
     getFilterObject(_eventName, _tokenContract),
     getInterfaceFromEvent(_eventName),
   ]).then(
     ([_filter, _interface]) =>
       logger.info(`Listening to ${_eventName} at contract ${_tokenContract}`) ||
-      listenFromFilter(_state, _filter, _interface, _callback)
+      listenFromFilter(_providerUrl, _chainId, _filter, _interface, _callback)
   )
 
-const startEvmListenerFromEventObject = (_state, _event, _callback) =>
+const startEvmListenerFromEventObject = (
+  _providerUrl,
+  _chainId,
+  _event,
+  _callback
+) =>
   Promise.all(
     _event[schemasConstants.SCHEMA_TOKEN_CONTRACTS_KEY].map(_tokenContract =>
-      listenForEvmEvent(_state, _event.name, _tokenContract, _callback)
+      listenForEvmEvent(
+        _providerUrl,
+        _chainId,
+        _event.name,
+        _tokenContract,
+        _callback
+      )
     )
   )
 
 const listenForEvmEvents = (_state, _callback) =>
   Promise.all(
     _state[STATE_KEY_EVENTS].map(_event =>
-      startEvmListenerFromEventObject(_state, _event, _callback)
+      startEvmListenerFromEventObject(
+        _state[STATE_KEY_PROVIDER_URL],
+        _state[STATE_KEY_CHAIN_ID],
+        _event,
+        _callback
+      )
     )
   )
 
