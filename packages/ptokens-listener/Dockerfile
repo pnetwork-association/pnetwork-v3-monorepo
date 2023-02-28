@@ -1,43 +1,48 @@
-FROM debian:bullseye-slim
+ARG VERSION_PTOKENS_UTILS=latest
+ARG VERSION_PTOKENS_SCHEMAS=latest
+ARG VERSION_PTOKENS_DEBIAN_STAGE=latest
 
-RUN apt-get update && \
-    apt-get install -y \
-        dumb-init=1.2.5-1
+ARG REGISTRY=ghcr.io/pnetwork-association
 
-ARG VERSION_PTOKEN_UTILS
-
-FROM pnetwork/ptokens-utils:${VERSION_PTOKEN_UTILS:-latest} AS ptokens_utils
+FROM $REGISTRY/ptokens-utils:$VERSION_PTOKENS_UTILS as ptokens-utils
+FROM $REGISTRY/ptokens-schemas:$VERSION_PTOKENS_SCHEMAS as ptokens-schemas
+FROM $REGISTRY/ptokens-debian-stage:$VERSION_PTOKENS_DEBIAN_STAGE as ptokens-debian-stage
 FROM node:16.17.0-bullseye-slim
 
 ENV NODE_ENV production
 ENV FOLDER_SRC /usr/src
-ENV FOLDER_APP $FOLDER_SRC/relayer
+ENV FOLDER_APP $FOLDER_SRC/processor
 ENV FOLDER_LOGS $FOLDER_APP/logs
 
 RUN mkdir -p $FOLDER_APP && \
     mkdir -p $FOLDER_LOGS
 
-COPY --from=0 \
+COPY --from=ptokens-debian-stage \
     /usr/bin/dumb-init \
     /usr/bin/dumb-init
 
-WORKDIR $FOLDER_APP
-
-COPY \
-    --from=ptokens_utils \
-    --chown=node:node \
+COPY --from=ptokens-utils \
+     --chown=node:node \
         /home/node/ptokens-utils \
         $FOLDER_SRC/ptokens-utils
 
+COPY --from=ptokens-schemas \
+     --chown=node:node \
+        /home/node/ptokens-schemas \
+        $FOLDER_SRC/ptokens-schemas
+
+WORKDIR $FOLDER_APP
+
 COPY package.json .
 
-ENV REPLACE_DEPENDENCY 's/"ptokens-utils": "\*"/"ptokens-utils":"..\/ptokens-utils"/g'
-
-RUN sed -i "$REPLACE_DEPENDENCY" package.json && \
-    npm install --omit=dev && \
+RUN npm install ../ptokens-schemas && \
+    npm install ../ptokens-utils && \
+    npm install && \
+    echo '{}' > $FOLDER_APP/config.json && \
     chown -R node:node $FOLDER_APP
 
-COPY --chown=node:node . $FOLDER_APP
+COPY --chown=node:node lib $FOLDER_APP/lib
+COPY --chown=node:node index.js $FOLDER_APP/
 
 USER node
 
