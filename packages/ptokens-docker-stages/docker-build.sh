@@ -15,6 +15,7 @@ main() {
       | tr '=' ' '  \
       | awk '{print $3}'
     )
+
     docker build \
       -f "$dockerfile" \
       -t "$registry_name/$tag:$version" \
