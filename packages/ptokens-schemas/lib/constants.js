@@ -9,4 +9,13 @@ module.exports = {
   SCHEMA_EVENTS_KEY: 'events',
   SCHEMA_DB_KEY: 'db',
   SCHEMA_TOKEN_CONTRACTS_KEY: 'token-contracts',
+  SCHEMA_ORIGINATING_CHAIN_ID_KEY: 'originatingChainId',
+  SCHEMA_ORIGINATING_TRANSACTION_HASH_KEY: 'originatingTransactionHash',
+  SCHEMA_AMOUNT_KEY: 'amount',
+  SCHEMA_DESTINATION_ADDRESS_KEY: 'destinationAddress',
+  SCHEMA_DESTINATION_CHAIN_ID_KEY: 'destinationChainId',
+  SCHEMA_USER_DATA_KEY: 'userData',
+  SCHEMA_TOKEN_ADDRESS_KEY: 'tokenAddress',
+  SCHEMA_EVENT_NAME_KEY: 'eventName',
+  SCHEMA_STATUS_KEY: 'status',
 }
