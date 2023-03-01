@@ -4,7 +4,7 @@ on:
     branches: ['master']
 
 jobs:
-  test:
+  nx:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -25,3 +25,13 @@ jobs:
       - run: npx nx affected --target=lint --parallel=3
       - run: npx nx affected --target=test --configuration=ci
       - run: npx nx affected --target=docker-build
+  docker-lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: lint
+        uses: luke142367/Docker-Lint-Action@v1.1.1
+        with:
+          target: $(find . -name *Dockerfile | tr '\n' ' ')
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

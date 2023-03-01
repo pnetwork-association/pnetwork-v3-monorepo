@@ -1,11 +1,13 @@
 {
   "name": "ptokens-listener",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "Node.js implementation of the v3 pTokens Listener.",
-  "main": "index.js",
+  "bin": "./index.js",
   "scripts": {
     "lint": "eslint .",
-    "test": "jest --config test/jest.config.js"
+    "test": "jest --config test/jest.config.js",
+    "docker-build": "PROJECT_ROOT=$(pwd) ./docker-build.sh",
+    "clean": "rm -rf $(pwd)/build"
   },
   "author": "Alain Olivier",
   "license": "MIT",
@@ -15,5 +17,10 @@
     "ptokens-schemas": "*",
     "ptokens-utils": "*",
     "ramda": "^0.28.0"
+  },
+  "nx": {
+    "implicitDependencies": [
+      "ptokens-docker-stages"
+    ]
   }
 }

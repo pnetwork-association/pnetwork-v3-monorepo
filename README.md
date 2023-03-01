@@ -150,3 +150,7 @@ build itself.
 
 If you want to change this, you can add the `docker-build` task to `cacheableOperations` list in the
 `nx.json` file.
+
+## Docker best practices for Node apps
+
+[Snyk Cheatsheet](https://snyk.io/wp-content/uploads/NodeJS-CheatSheet.pdf)
