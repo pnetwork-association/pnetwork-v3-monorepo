@@ -2,7 +2,7 @@
   "name": "ptokens-listener",
   "version": "1.0.0",
   "description": "Node.js implementation of the v3 pTokens Listener.",
-  "main": "index.js",
+  "bin": "./index.js",
   "scripts": {
     "lint": "eslint .",
     "test": "jest --config test/jest.config.js",
