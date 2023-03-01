@@ -1,6 +1,7 @@
 FROM debian:bullseye-slim
 
 LABEL version=1.0
+LABEL description="Root layer for debian based images"
 LABEL tag=ptokens-debian-stage
 
 RUN apt-get update && \
