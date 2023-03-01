@@ -1,4 +1,4 @@
-# pTokens Relayer
+# pTokens Listener
 
 Node.js implementation of the node listener.
 
