@@ -2,7 +2,7 @@
 version: '3'
 services:
   listener-bsc:
-    image: ${IMAGE_BSC_LISTENER}:${VERSION_LISTENER:-latest}
+    image: ${IMAGE_EVM_LISTENER}:${VERSION_LISTENER:-latest}
     volumes:
       - './bsc-listener.config.json:${APP_CONFIG_JSON}'
       - './logs:${APP_FOLDER_LOGS}'
@@ -10,7 +10,7 @@ services:
     depends_on: ['mongodb']
 
   request-processor-bsc:
-    image: ${IMAGE_BSC_PROCESSOR}:${VERSION_PROCESSOR:-latest}
+    image: ${IMAGE_EVM_PROCESSOR}:${VERSION_PROCESSOR:-latest}
     volumes:
       - './bsc-processor.config.json:${APP_CONFIG_JSON}'
       - './logs:${APP_FOLDER_LOGS}'
