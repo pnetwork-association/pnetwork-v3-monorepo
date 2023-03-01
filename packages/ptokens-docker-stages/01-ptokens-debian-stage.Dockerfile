@@ -1,6 +1,7 @@
 FROM debian:bullseye-slim
 
 LABEL version=1.0
+LABEL tag=ptokens-debian-stage
 
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \

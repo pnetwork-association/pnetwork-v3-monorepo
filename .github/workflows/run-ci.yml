@@ -33,6 +33,6 @@ jobs:
       - name: lint
         uses: luke142367/Docker-Lint-Action@v1.1.1
         with:
-          target: ./packages/ptokens-utils/Dockerfile ./packages/ptokens-schemas/Dockerfile ./packages/ptokens-listener/Dockerfile ./packages/ptokens-request-processor/Dockerfile ./packages/ptokens-docker-stages/ptokens-base-stage.Dockerfile ./packages/ptokens-docker-stages/ptokens-debian-stage.Dockerfile
+          target: $(find . -name *Dockerfile | tr '\n' ' ')
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

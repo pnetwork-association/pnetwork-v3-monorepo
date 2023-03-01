@@ -34,3 +34,7 @@ following property to the project's `package.json`:
   }
 }
 ```
+
+### Development
+
+Reminder: enumerate dockerfiles in the order they are supposed to be build (check the `docker-build.sh` script for further info).

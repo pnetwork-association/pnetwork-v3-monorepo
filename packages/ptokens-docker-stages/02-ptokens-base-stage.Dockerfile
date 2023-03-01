@@ -9,6 +9,7 @@ FROM $REGISTRY/ptokens-schemas:$VERSION_PTOKENS_SCHEMAS as ptokens-schemas
 FROM $REGISTRY/ptokens-debian-stage:$VERSION_PTOKENS_DEBIAN_STAGE as ptokens-debian-stage
 FROM node:16.17.0-bullseye-slim
 
+LABEL tag=ptokens-base-stage
 LABEL description="Base image for the pTokens apps"
 LABEL version=1.0
 

@@ -7,5 +7,11 @@
   },
   "author": "gitmp01",
   "license": "MIT",
-  "dependencies": {}
+  "dependencies": {},
+  "nx": {
+    "implicitDependencies": [
+      "ptokens-utils",
+      "ptokens-schemas"
+    ]
+  }
 }
