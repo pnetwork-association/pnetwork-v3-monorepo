@@ -7,7 +7,7 @@
     "lint": "eslint .",
     "test": "jest --config test/jest.config.js",
     "docker-build": "PROJECT_ROOT=$(pwd) ./docker-build.sh",
-    "clean": "docker images rm pnetwork/$npm_package_name:$npm_package_version"
+    "clean": "rm -rf $(pwd)/build"
   },
   "author": "Alain Olivier",
   "license": "MIT",
