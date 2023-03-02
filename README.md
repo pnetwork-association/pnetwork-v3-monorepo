@@ -14,6 +14,7 @@
 - [Best practices](#best-practices)
   - [Linting](#best-practices-linting)
   - [Commits](#best-practices-commits)
+  - [Docker](#best-practices-docker)
   - [Development process](#best-practices-dev-process)
 - [Development](#development)
   - [Build images](#dev-build-images)
@@ -121,6 +122,10 @@ Create a new branch having the pattern
 - feat/ptokens-utils/add-superpowers
 - chore/ptokens-listener/rename-file
 - fix/ptokens-schemas/wrong-type
+
+### <a name="best-practices-docker"> Docker
+
+[Snyk Cheatsheet](https://snyk.io/wp-content/uploads/NodeJS-CheatSheet.pdf)
 
 ## <a name="development"></a> Development
 
