@@ -2,14 +2,15 @@ const EventEmitter = require('events')
 const ethers = require('ethers')
 const { logs } = require('../mock/evm-logs')
 const stateConstants = require('../../lib/state/constants')
+const { constants: ptokensUtilsConstants } = require('ptokens-utils')
 const { constants: schemasConstants } = require('ptokens-schemas')
 
 describe('EVM listener', () => {
   describe('listenForEvmEvents', () => {
     it('Should call callback with the standardized event', done => {
       const state = {
-        [stateConstants.STATE_KEY_CHAIN_ID]: '0x005fe7f9',
-        [stateConstants.STATE_KEY_PROVIDER_URL]: 'provider-url',
+        [ptokensUtilsConstants.STATE_KEY_CHAIN_ID]: '0x005fe7f9',
+        [ptokensUtilsConstants.STATE_KEY_PROVIDER_URL]: 'provider-url',
         [stateConstants.STATE_KEY_EVENTS]: [
           {
             [schemasConstants.SCHEMA_NAME_KEY]:

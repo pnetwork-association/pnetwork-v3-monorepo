@@ -1,6 +1,6 @@
 module.exports = {
   EVM: 'EVM',
-  EOSIO: 'EOSIO',
-  ALGORAND: 'ALGORAND',
+  EOSIO: 'EOS',
+  ALGORAND: 'ALGO',
   UTXO: 'UTXO',
 }

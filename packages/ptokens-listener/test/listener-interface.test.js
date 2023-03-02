@@ -10,7 +10,7 @@ describe('Tests for the listener interface', () => {
     })
 
     const getState = _chainId => ({
-      [stateConstants.STATE_KEY_CHAIN_ID]: _chainId,
+      [ptokensUtilsConstants.STATE_KEY_CHAIN_ID]: _chainId,
       [stateConstants.STATE_KEY_EVENTS]: [
         {
           [schemasConstants.SCHEMA_NAME_KEY]: 'event1',

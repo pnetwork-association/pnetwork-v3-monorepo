@@ -2,7 +2,6 @@ const R = require('ramda')
 const { constants, utils, db } = require('ptokens-utils')
 const { listenForEvmEvents } = require('./evm/listener-evm')
 const { logger } = require('./get-logger')
-const { STATE_KEY_CHAIN_ID } = require('./state/constants')
 
 const listenForEosioEvents = (_state, _callback) =>
   Promise.reject(new Error('To be implemented!'))
@@ -38,7 +37,7 @@ const insertIntoDb = R.curry(
 
 const listenForEvents = _state =>
   utils
-    .getBlockchainTypeFromChainId(_state[STATE_KEY_CHAIN_ID])
+    .getBlockchainTypeFromChainId(_state[constants.STATE_KEY_CHAIN_ID])
     .then(getListenerForBlockchainType)
     .then(_listener =>
       _listener(_state, insertIntoDb(_state[constants.STATE_KEY_DB]))

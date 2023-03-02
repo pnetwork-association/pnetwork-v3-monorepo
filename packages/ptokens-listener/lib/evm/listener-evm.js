@@ -1,12 +1,9 @@
 const R = require('ramda')
 const ethers = require('ethers')
-const {
-  STATE_KEY_CHAIN_ID,
-  STATE_KEY_EVENTS,
-  STATE_KEY_PROVIDER_URL,
-} = require('../state/constants')
-const { constants: schemasConstants } = require('ptokens-schemas')
+const { STATE_KEY_EVENTS } = require('../state/constants')
 const { logger } = require('../get-logger')
+const { constants } = require('ptokens-utils')
+const { constants: schemasConstants } = require('ptokens-schemas')
 
 const getEthersProvider = R.memoizeWith(R.identity, _url =>
   ethers.getDefaultProvider(_url)
@@ -176,8 +173,8 @@ const listenForEvmEvents = (_state, _callback) =>
   Promise.all(
     _state[STATE_KEY_EVENTS].map(_event =>
       startEvmListenerFromEventObject(
-        _state[STATE_KEY_PROVIDER_URL],
-        _state[STATE_KEY_CHAIN_ID],
+        _state[constants.STATE_KEY_PROVIDER_URL],
+        _state[constants.STATE_KEY_CHAIN_ID],
         _event,
         _callback
       )

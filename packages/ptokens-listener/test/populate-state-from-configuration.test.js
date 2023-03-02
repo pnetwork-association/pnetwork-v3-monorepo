@@ -42,7 +42,7 @@ describe('State utilities tests', () => {
       assert.deepStrictEqual(ret, {
         [ptokensUtilsConstants.STATE_KEY_DB]:
           'a-url/a-database-name/a-collection-name',
-        [stateConstants.STATE_KEY_CHAIN_ID]: '0x00112233',
+        [ptokensUtilsConstants.STATE_KEY_CHAIN_ID]: '0x00112233',
         [stateConstants.STATE_KEY_EVENTS]: [
           {
             [schemasConstants.SCHEMA_NAME_KEY]: 'redeem',
@@ -56,7 +56,7 @@ describe('State utilities tests', () => {
             [schemasConstants.SCHEMA_TOKEN_CONTRACTS_KEY]: ['xbsc.ptokens'],
           },
         ],
-        [stateConstants.STATE_KEY_PROVIDER_URL]: 'provider-url',
+        [ptokensUtilsConstants.STATE_KEY_PROVIDER_URL]: 'provider-url',
       })
     })
 
