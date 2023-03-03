@@ -1,16 +1,117 @@
 const EventEmitter = require('events')
 const ethers = require('ethers')
 const { logs } = require('../mock/evm-logs')
+const { identity } = require('ramda')
 const stateConstants = require('../../lib/state/constants')
-const { constants: ptokensUtilsConstants } = require('ptokens-utils')
 const { constants: schemasConstants } = require('ptokens-schemas')
 
 describe('EVM listener', () => {
+  describe('getEthersProvider', () => {
+    afterEach(() => {
+      jest.restoreAllMocks()
+    })
+
+    it('Should get the correct provider', async () => {
+      const { getEthersProvider } = require('../../lib/evm/listener-evm')
+      const url = 'http://eth-node-1.ext.nu.p.network'
+
+      const getDefaultProviderSpy = jest.spyOn(ethers, 'getDefaultProvider')
+
+      const result = await getEthersProvider(url)
+
+      expect(getDefaultProviderSpy).toHaveBeenCalledTimes(1)
+      expect(result).toBeInstanceOf(ethers.providers.JsonRpcProvider)
+    })
+  })
+
+  describe('processEventLog', () => {
+    afterEach(() => {
+      jest.restoreAllMocks()
+    })
+    it('Should process the event as expected', async () => {
+      const {
+        processEventLog,
+        getInterfaceFromEvent,
+      } = require('../../lib/evm/listener-evm')
+      const chainId = '0x1234'
+      const eventName =
+        'Redeem(address indexed redeemer, uint256 value, string underlyingAssetRecipient, bytes userData, bytes4 originChainId, bytes4 destinationChainId)'
+      const methodInterface = await getInterfaceFromEvent(eventName)
+      const callback = identity
+
+      const result = await processEventLog(
+        chainId,
+        methodInterface,
+        callback,
+        logs[2]
+      )
+
+      expect(result).toStrictEqual({
+        amount: '2065832100000000000',
+        destinationAddress: '35eXzETyUxiQPXwU2udtVFQFrFjgRhhvPj',
+        destinationChainId: '0x01ec97de',
+        eventName: 'Redeem',
+        originatingChainId: '0x005fe7f9',
+        originatingTransactionHash:
+          '0x9488dee8cb5c6b2f6299e45e48bba580f46dbd496cfaa70a182060fd5dc81cb4',
+        status: 'detected',
+      })
+    })
+  })
+
+  describe('listenFromFilter', () => {
+    afterEach(() => {
+      jest.restoreAllMocks()
+    })
+    it('Should filter for the correct event and call the callback', async () => {
+      const fakeProvider = new EventEmitter()
+      fakeProvider._on = fakeProvider.on
+
+      jest
+        .spyOn(ethers, 'getDefaultProvider')
+        .mockImplementation(_url => fakeProvider)
+
+      const {
+        listenFromFilter,
+        getInterfaceFromEvent,
+      } = require('../../lib/evm/listener-evm')
+
+      const callback = jest.fn()
+      const url = 'http://url.io'
+      const chainId = '0x1234'
+      const eventName =
+        'Redeem(address indexed redeemer, uint256 value, string underlyingAssetRecipient, bytes userData, bytes4 originChainId, bytes4 destinationChainId)'
+      const methodInterface = await getInterfaceFromEvent(eventName)
+
+      listenFromFilter(url, chainId, eventName, methodInterface, callback)
+
+      const expected = {
+        amount: '2065832100000000000',
+        destinationAddress: '35eXzETyUxiQPXwU2udtVFQFrFjgRhhvPj',
+        destinationChainId: '0x01ec97de',
+        eventName: 'Redeem',
+        originatingChainId: '0x005fe7f9',
+        originatingTransactionHash:
+          '0x9488dee8cb5c6b2f6299e45e48bba580f46dbd496cfaa70a182060fd5dc81cb4',
+        status: 'detected',
+      }
+      const assertions = () => {
+        expect(callback).toHaveBeenNthCalledWith(1, expected)
+      }
+
+      setTimeout(() => fakeProvider.emit(eventName, logs[2]), 100)
+      setTimeout(assertions, 400)
+    })
+  })
+
   describe('listenForEvmEvents', () => {
+    afterEach(() => {
+      jest.restoreAllMocks()
+    })
     it('Should call callback with the standardized event', done => {
       const state = {
-        [ptokensUtilsConstants.STATE_KEY_CHAIN_ID]: '0x005fe7f9',
-        [ptokensUtilsConstants.STATE_KEY_PROVIDER_URL]: 'provider-url',
+        [schemasConstants.SCHEMA_CHAIN_ID_KEY]: '0x005fe7f9',
+        [schemasConstants.SCHEMA_PROVIDER_URL_KEY]: 'provider-url',
         [stateConstants.STATE_KEY_EVENTS]: [
           {
             [schemasConstants.SCHEMA_NAME_KEY]:
@@ -64,7 +165,7 @@ describe('EVM listener', () => {
         )
       const getDefaultProviderSpy = jest
         .spyOn(ethers, 'getDefaultProvider')
-        .mockImplementation(_ => fakeProvider)
+        .mockImplementation(_url => fakeProvider)
       const { listenForEvmEvents } = require('../../lib/evm/listener-evm')
       const callback = jest.fn()
 
