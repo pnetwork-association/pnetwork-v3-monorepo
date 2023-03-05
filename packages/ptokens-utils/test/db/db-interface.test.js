@@ -15,7 +15,7 @@ describe('Database interface tests', () => {
     { _id: 'report-5', data: 'santa' },
     { _id: 'report-6', data: 'crazy' },
     { _id: 'report-7', data: 'fog' },
-    { _id: 'report-8', data: 'fox' },
+    { _id: 'report-8', data: 'whale' },
   ]
 
   const insertReportsSet = (_lib, _collection, _reportsSet) =>
@@ -148,6 +148,39 @@ describe('Database interface tests', () => {
       const result = await db.deleteReport(collection, reportId)
 
       assert.equal(result, reportId)
+    })
+  })
+
+  describe('deleteReportByQuery', () => {
+    let collection
+    const reports = [
+      { _id: 'xyz', hello: 'world' },
+      { _id: 'abc', ciao: 'mondo' },
+    ]
+    const { db } = require('../..')
+    before(async () => {
+      collection = await db.getCollection(
+        mongod.getUri(),
+        DATABASE_NAME,
+        COLLECTION_NAME
+      )
+    })
+
+    after(async () => {
+      await Promise.all(
+        reports.map(_report => db.deleteReport(collection, _report))
+      )
+    })
+
+    it('Should delete a report by a custom query', async () => {
+      await db.insertReports(collection, reports)
+
+      await db.deleteReportByQuery(collection, { ciao: 'mondo' })
+
+      const results = await db.findReports(collection, {})
+
+      assert.equal(results.length, 1)
+      assert.deepStrictEqual(results, [reports[0]])
     })
   })
 

@@ -59,6 +59,15 @@ const insertReports = curry((_collection, _reports) =>
     .catch(handleDatabaseError)
 )
 
+const deleteReportByQuery = curry((_collection, _query) => {
+  _collection
+    .deleteOne(_query)
+    .then(_result =>
+      logger.info(`Delete ${_result.deletedCount} reports successfully!`)
+    )
+    .catch(handleDatabaseError)
+})
+
 const deleteReport = curry((_collection, _reportId) =>
   _collection
     .deleteOne({ _id: _reportId })
@@ -122,6 +131,7 @@ module.exports = {
   findReport,
   findReports,
   deleteReport,
+  deleteReportByQuery,
   insertReport,
   insertReports,
   updateReport,
