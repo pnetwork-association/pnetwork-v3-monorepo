@@ -1,10 +1,10 @@
 const { logger } = require('../get-logger')
 
-const evmMaybeBuildProposalsTxsAndPutInState = _state => {
+const maybeBuildProposalsTxsAndPutInState = _state => {
   logger.info('maybeBuildProposalsTxsAndPutInState EVM')
   return Promise.resolve(_state)
 }
 
 module.exports = {
-  evmMaybeBuildProposalsTxsAndPutInState,
+  maybeBuildProposalsTxsAndPutInState,
 }

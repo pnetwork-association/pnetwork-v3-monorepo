@@ -2,32 +2,44 @@
 const config = require('./config')
 const { keys, equals } = require('ramda')
 const { logger } = require('./lib/get-logger')
-const { validation } = require('ptokens-utils')
-const configSchema = require('./lib/schemas/config-schema')
+// const { validation } = require('ptokens-utils')
+// const { configRequestProcessorSchema } = require('ptokens-schemas')
 const { setupExitEventListeners } = require('./lib/setup-exit-listeners')
 const { pollForRequests } = require('./lib/interfaces/poll-for-requests')
 const {
   maybeProcessFinalTransactions,
 } = require('./lib/interfaces/process-final-txs')
+const {
+  getInitialStateFromConfiguration,
+} = require('./lib/populate-state-from-configuration')
+// const validateConfig = validation.getValidationFunction(
+//   configRequestProcessorSchema
+// )
 
-const validateConfig = validation.getValidationFunction(configSchema)
-
-const getInitialStateFromConfiguration = _config => Promise.resolve({})
-
-const parseArg = {
-  'pollForRequests': pollForRequests,
-  'processFinalTransactions': maybeProcessFinalTransactions,
+const commandToFunctionMapping = {
+  pollForRequests: pollForRequests,
+  processFinalTransactions: maybeProcessFinalTransactions,
 }
 
-const checkFlowIsValid = _cmd => keys(parseArg).some(equals(_cmd))
+const checkFlowIsValid = _cmd =>
+  keys(commandToFunctionMapping).some(equals(_cmd))
+    ? Promise.resolve()
+    : Promise.reject(
+        new Error(
+          `Invalid command submitted, they should be [${keys(
+            commandToFunctionMapping
+          )}]`
+        )
+      )
 
 const requestProcessor = (_config, _cmd) =>
+  logger.info(_config) ||
   setupExitEventListeners()
-    .then(validateConfig(_config))
+    // .then(_ => validateConfig(configRequestProcessorSchema, _config))
     .then(_ => checkFlowIsValid(_cmd))
-    .then(_ => logger.info(`Valid flow selected: ${_cmd}`))
+    .then(_ => logger.info(`Valid command selected: ${_cmd}`))
     .then(_ => getInitialStateFromConfiguration(_config))
-    .then(parseArg[_cmd])
+    .then(commandToFunctionMapping[_cmd])
     .catch(
       _err =>
         logger.error(_err) ||

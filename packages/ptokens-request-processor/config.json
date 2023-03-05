@@ -3,7 +3,7 @@
   "identity-address": "0xC0FEEE…",
   "chain-name": "bsc",
   "chain-type": "evm",
-  "chain-id": "0x…",
+  "chain-id": "0x00e4b170",
   "issuance-manager": "0x102938…",
   "redeem-manager": "0x039485…",
   "db": {
