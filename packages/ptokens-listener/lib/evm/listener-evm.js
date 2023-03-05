@@ -1,7 +1,7 @@
 const ethers = require('ethers')
 const { STATE_KEY_EVENTS } = require('../state/constants')
 const { logger } = require('../get-logger')
-const { constants, validation } = require('ptokens-utils')
+const { validation } = require('ptokens-utils')
 const { constants: schemasConstants } = require('ptokens-schemas')
 const { curry, assoc, identity, memoizeWith } = require('ramda')
 const {
@@ -51,6 +51,7 @@ const processEventLog = curry(
       )
       .then(buildStandardizedEventFromEvmEvent(_chainId))
       .then(addOriginatingTransactionHash(_log))
+      // TODO: add custom report ID (originatingChainID_originatingTxHash)
       .then(_callback)
 )
 
