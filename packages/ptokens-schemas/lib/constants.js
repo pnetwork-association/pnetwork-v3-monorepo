@@ -18,4 +18,8 @@ module.exports = {
   SCHEMA_TOKEN_ADDRESS_KEY: 'tokenAddress',
   SCHEMA_EVENT_NAME_KEY: 'eventName',
   SCHEMA_STATUS_KEY: 'status',
+  SCHEMA_REDEEM_MANAGER_KEY: 'redeemManagerAddress',
+  SCHEMA_ISSUANCE_MANAGER_KEY: 'issuanceManagerAddress',
+  SCHEMA_IDENTITY_GPG_KEY: 'identityGpgKey',
+  SCHEMA_IDENTITY_ADDRESS_KEY: 'identityAddress',
 }

@@ -1,4 +1,5 @@
 const constants = require('./constants')
+const enumTxStatus = require('./enum-tx-status')
 
 module.exports = {
   $async: true,
@@ -14,7 +15,7 @@ module.exports = {
       type: 'string',
     },
     [constants.SCHEMA_STATUS_KEY]: {
-      type: 'string',
+      enum: Object.values(enumTxStatus),
     },
     [constants.SCHEMA_ORIGINATING_CHAIN_ID_KEY]: {
       type: 'string',
