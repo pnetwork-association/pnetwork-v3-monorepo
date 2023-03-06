@@ -60,10 +60,34 @@ const parseJsonAsync = _jsonStr =>
 
 const objectifySync = _json => JSON.parse(JSON.stringify(_json))
 
+/**
+ * Flip object's key/value pairs. The object can't have
+ * nested fields.
+ *
+ * Example:
+ *
+ * {
+ *   a: 1
+ *   b: 2
+ * }
+ *
+ * to
+ *
+ * {
+ *   '1': 'a',
+ *   '2': 'b'
+ * }
+ * @param  {object} _obj [object to flip]
+ * @return {object}      [another object with the key/value mirrored]
+ */
+const flipObjectPropertiesSync = _obj =>
+  Object.fromEntries(Object.entries(_obj).map(([key, value]) => [value, key]))
+
 module.exports = {
   getKeyFromObj,
   objectifySync,
   parseJsonAsync,
+  flipObjectPropertiesSync,
   getKeyFromObjThroughPath,
   getKeyFromObjThroughPossiblePaths,
 }
