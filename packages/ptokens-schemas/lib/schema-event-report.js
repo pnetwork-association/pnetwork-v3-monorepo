@@ -1,5 +1,6 @@
 const constants = require('./constants')
 const enumTxStatus = require('./enum-tx-status')
+const enumEventNames = require('./enum-event-names')
 
 module.exports = {
   $async: true,
@@ -12,7 +13,7 @@ module.exports = {
   ],
   properties: {
     [constants.SCHEMA_EVENT_NAME_KEY]: {
-      type: 'string',
+      enum: Object.values(enumEventNames),
     },
     [constants.SCHEMA_STATUS_KEY]: {
       enum: Object.values(enumTxStatus),
