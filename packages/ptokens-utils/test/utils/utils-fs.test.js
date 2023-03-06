@@ -70,4 +70,17 @@ describe('File system utilities', () => {
       }
     })
   })
+
+  describe('readGpgEncryptedFile', () => {
+    // Skipped because setup for this test requires time & effort, use
+    // locally only
+    it.skip('Should read the GPG encrypted file successfully', async () => {
+      const gpgEncryptedFile = `${__dirname}/../res/encrypted.gpg`
+      const expected = 'Hello World!'
+
+      const result = await utils.readGpgEncryptedFile(gpgEncryptedFile)
+
+      assert.deepStrictEqual(result, expected)
+    })
+  })
 })

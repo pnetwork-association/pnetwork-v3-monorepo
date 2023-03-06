@@ -20,4 +20,6 @@ module.exports = {
     'Failed to extract the json from the response:',
   ERROR_INVALID_SYMBOL_FOR_BRIDGE_TYPE:
     'Invalid symbol for the given bridge type',
+  ERROR_FILE_NOT_EXISTS: 'The specified file does not exist',
+  ERROR_GPG_DECRYPTION_FAILED: 'Failed to decrypt file',
 }
