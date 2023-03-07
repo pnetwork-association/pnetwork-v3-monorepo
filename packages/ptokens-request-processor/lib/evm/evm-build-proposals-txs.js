@@ -2,7 +2,7 @@ const ethers = require('ethers')
 const schemas = require('ptokens-schemas')
 const { logger } = require('../get-logger')
 const { curry } = require('ramda')
-const { utils, constants } = require('ptokens-utils')
+const { utils, constants, logic, errors } = require('ptokens-utils')
 const { ERROR_INVALID_EVENT_NAME } = require('../errors')
 const {
   addProposalsReportsToState,
@@ -56,12 +56,17 @@ const mintProposalCall = (
     return resolve(
       contract
         .mint(tokenRecipient, tokenAddress, amount, userData)
-        .then(_tx => _tx.wait())
+        .then(_tx => logic.racePromise(5000, _tx.wait, []))
         .then(
           _tx =>
             logger.info(
               `Successfully minted ${amount} tokens on ${_tx.transactionHash} for pegIn tx ${originTx}`
             ) || _tx
+        )
+        .catch(_err =>
+          _err.message.includes(errors.ERROR_TIMEOUT)
+            ? logger.error(`Tx for ${originTx} failed:`, _err.message)
+            : Promise.reject(_err)
         )
       // .then(_txReceipt =>
       //   db.updateReport(
