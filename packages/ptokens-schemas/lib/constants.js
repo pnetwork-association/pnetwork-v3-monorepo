@@ -22,8 +22,10 @@ module.exports = {
   SCHEMA_ISSUANCE_MANAGER_KEY: 'issuanceManagerAddress',
   SCHEMA_IDENTITY_GPG_KEY: 'identityGpgKey',
   SCHEMA_IDENTITY_ADDRESS_KEY: 'identityAddress',
-  SCHEMA_PROPOSAL_TX_HASH_KEY: 'proposalTransactionHash',
+  SCHEMA_PROPOSAL_TX_HASH_KEY: 'proposedTransactionHash',
   SCHEMA_FINAL_TX_HASH_KEY: 'finalTransactionHash',
   SCHEMA_WITNESSED_TS_KEY: 'witnessedTimestamp',
   SCHEMA_FINAL_TX_TS_KEY: 'finalTransactionTimestamp',
+  SCHEMA_PROPOSAL_TS_KEY: 'proposedTransactionTimestamp',
+  SCHEMA_ORIGINATING_ADDRESS_KEY: 'originatingAddress',
 }

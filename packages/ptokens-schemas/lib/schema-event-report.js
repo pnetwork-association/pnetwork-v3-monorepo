@@ -6,7 +6,6 @@ module.exports = {
   $async: true,
   type: 'object',
   required: [
-    constants.SCHEMA_SIGNER, // msg sender
     constants.SCHEMA_STATUS_KEY,
     constants.SCHEMA_AMOUNT_KEY,
     constants.SCHEMA_USER_DATA_KEY,
@@ -18,6 +17,7 @@ module.exports = {
     constants.SCHEMA_FINAL_TX_HASH_KEY,
     constants.SCHEMA_FINAL_TX_TS_KEY,
     constants.SCHEMA_DESTINATION_ADDRESS_KEY,
+    constants.SCHEMA_ORIGINATING_ADDRESS_KEY,
     constants.SCHEMA_ORIGINATING_CHAIN_ID_KEY,
     constants.SCHEMA_ORIGINATING_TX_HASH_KEY,
   ],
@@ -45,28 +45,31 @@ module.exports = {
       type: 'string',
     },
     [constants.SCHEMA_USER_DATA_KEY]: {
-      type: 'string',
+      type: ['string', 'null'],
     },
     [constants.SCHEMA_TOKEN_ADDRESS_KEY]: {
       type: 'string',
     },
-    [constants.SCHEMA_SIGNER]: {
+    [constants.SCHEMA_ORIGINATING_ADDRESS_KEY]: {
       type: 'string',
     },
-    [constants.SCHEMA_FINAL_TX_HASH]: {
+    [constants.SCHEMA_FINAL_TX_HASH_KEY]: {
       type: ['string', 'null'],
     },
-    [constants.SCHEMA_PROPOSAL_TX_HASH]: {
+    [constants.SCHEMA_PROPOSAL_TX_HASH_KEY]: {
       type: ['string', 'null'],
     },
     [constants.SCHEMA_WITNESSED_TS_KEY]: {
-      type: 'timestamp',
+      type: ['string'],
+      format: 'date-time',
     },
     [constants.SCHEMA_PROPOSAL_TS_KEY]: {
-      type: ['timestamp', 'null'],
+      type: ['string', 'null'],
+      format: 'date-time',
     },
     [constants.SCHEMA_FINAL_TX_TS_KEY]: {
-      type: ['timestamp', 'null'],
+      type: ['string', 'null'],
+      format: 'date-time',
     },
   },
 }
