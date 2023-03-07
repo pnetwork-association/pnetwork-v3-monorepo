@@ -1,11 +1,15 @@
 const rewire = require('rewire')
 const assert = require('assert')
+const { errors } = require('../..')
 const { MongoMemoryServer } = require('mongodb-memory-server')
 
 describe('Database interface tests', () => {
   let mongod
   const DATABASE_NAME = 'test'
   const COLLECTION_NAME = 'test'
+
+  const dummyReport1 = { _id: 123, key1: 'Hello', key2: 'World' }
+  const dummyReport2 = { _id: 456, key1: 'Hola', key2: 'Mundo!' }
 
   const DUMMY_REPORTS_SET_1 = [
     { _id: 'report-1', data: 'fox' },
@@ -86,19 +90,20 @@ describe('Database interface tests', () => {
       )
     })
 
-    it('Should insert a report successfully', async () => {
-      const dummyReport = { _id: 123, key1: 'Hello', key2: 'World' }
-      const result = await db.insertReport(collection, dummyReport)
+    after(async () => {
+      await db.deleteReport(collection, dummyReport1._id)
+    })
 
-      assert.equal(result, dummyReport)
+    it('Should insert a report successfully', async () => {
+      const result = await db.insertReport(collection, dummyReport1)
+
+      assert.equal(result, dummyReport1)
     })
 
     it('Should reject upon report with the same id insertion', async () => {
-      const dummyReport = { _id: 123, key1: 'Hello', key2: 'World' }
-
       try {
         // Standalone not working, needs previous test
-        await db.insertReport(collection, dummyReport)
+        await db.insertReport(collection, dummyReport1)
         assert.fail()
       } catch (err) {
         assert(err.message.includes('duplicate key error'))
@@ -116,12 +121,78 @@ describe('Database interface tests', () => {
         DATABASE_NAME,
         COLLECTION_NAME
       )
+
+      await db.insertReport(collection, dummyReport2)
+    })
+
+    after(async () => {
+      await db.deleteReport(collection, dummyReport2._id)
+    })
+
+    it('Should update the report successfully', async () => {
+      const beforeUpdate = await db.findReportById(collection, dummyReport2._id)
+
+      assert.deepStrictEqual(beforeUpdate, dummyReport2)
+
+      const res = await db.updateReport(
+        collection,
+        { $set: { user: 'foo' } },
+        { key1: 'Hola' }
+      )
+
+      assert.equal(res.modifiedCount, 1)
+
+      const afterUpdate = await db.findReportById(collection, dummyReport2._id)
+
+      assert.deepStrictEqual(afterUpdate, {
+        ...dummyReport2,
+        user: 'foo',
+      })
+    })
+  })
+
+  describe('updateReportOrReject', () => {
+    let collection
+    const { db } = require('../..')
+
+    before(async () => {
+      collection = await db.getCollection(
+        mongod.getUri(),
+        DATABASE_NAME,
+        COLLECTION_NAME
+      )
+    })
+
+    it('Should reject when no report is updated', async () => {
+      try {
+        await db.updateReportOrReject(
+          collection,
+          { $set: { user: 'foo' } },
+          { notExistingKey: 'newValue' }
+        )
+        assert.fail('Should never reach here!')
+      } catch (e) {
+        assert(e.message.includes(errors.ERROR_NO_UPDATE_FOR_REPORT))
+      }
+    })
+  })
+
+  describe('updateReportById', () => {
+    let collection
+    const { db } = require('../..')
+
+    before(async () => {
+      collection = await db.getCollection(
+        mongod.getUri(),
+        DATABASE_NAME,
+        COLLECTION_NAME
+      )
     })
 
     it('Should update a report successfully', async () => {
       const reportId = 123
 
-      const result = await db.updateReport(
+      const result = await db.updateReportById(
         collection,
         { $set: { key1: 'Ciao' } },
         reportId
@@ -178,7 +249,6 @@ describe('Database interface tests', () => {
       await db.deleteReportByQuery(collection, { ciao: 'mondo' })
 
       const results = await db.findReports(collection, {})
-
       assert.equal(results.length, 1)
       assert.deepStrictEqual(results, [reports[0]])
     })

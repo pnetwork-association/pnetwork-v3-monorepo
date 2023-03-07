@@ -1,7 +1,7 @@
 const { logger } = require('../logger')
-const { ERROR_DB_CLIENT } = require('../errors')
-const { curry, identity, memoizeWith } = require('ramda')
+const { ERROR_DB_CLIENT, ERROR_NO_UPDATE_FOR_REPORT } = require('../errors')
 const { MongoClient, MongoServerError } = require('mongodb')
+const { curry, prop, equals, identity, memoizeWith } = require('ramda')
 
 const createConnection = memoizeWith(identity, _url =>
   MongoClient.connect(_url, {
@@ -37,6 +37,8 @@ const handleDatabaseError = _err =>
       switch (_err.code) {
         case 11000:
           return reject(new Error(_err.message))
+        default:
+          return reject(_err)
       }
     } else {
       return reject(_err)
@@ -75,11 +77,29 @@ const deleteReport = curry((_collection, _reportId) =>
     .catch(handleDatabaseError)
 )
 
-const updateReport = curry((_collection, _operations, _id) =>
-  _collection
-    .updateOne({ _id: _id }, _operations, { upsert: true })
-    .then(_ => _id)
-    .catch(handleDatabaseError)
+const updateReportOrReject = curry((_collection, _operations, _query) =>
+  updateReport(_collection, _operations, _query)
+    .then(prop('modifiedCount'))
+    .then(equals(0))
+    .then(_equalsZero =>
+      _equalsZero
+        ? Promise.reject(
+            new Error(
+              `${ERROR_NO_UPDATE_FOR_REPORT}: ${JSON.stringify(_query)}`
+            )
+          )
+        : Promise.resolve()
+    )
+)
+
+const updateReport = curry(
+  (_collection, _operations, _query) =>
+    logger.debug(`Updating report with query ${_query}...`) ||
+    _collection.updateOne(_query, _operations).catch(handleDatabaseError)
+)
+
+const updateReportById = curry((_collection, _operations, _id) =>
+  updateReport(_collection, _operations, { _id: _id }).then(_ => _id)
 )
 
 const findReport = curry((_collection, _query, _options = {}) =>
@@ -95,11 +115,15 @@ const findReports = curry((_collection, _query, _options = {}) =>
 )
 
 const editReportField = curry((_collection, _field, _value, _id) =>
-  updateReport(_collection, { $set: { [_field]: _value } }, _id)
+  updateReportById(_collection, { $set: { [_field]: _value } }, _id)
 )
 
 const copyFromField = curry((_collection, _fromField, _toField, _id) =>
-  updateReport(_collection, [{ $set: { [_fromField]: `$${_toField}` } }], _id)
+  updateReportById(
+    _collection,
+    [{ $set: { [_fromField]: `$${_toField}` } }],
+    _id
+  )
 )
 
 const renameField = curry((_collection, _actualName, _newName, _id) =>
@@ -135,6 +159,8 @@ module.exports = {
   insertReport,
   insertReports,
   updateReport,
+  updateReportById,
+  updateReportOrReject,
   getCollection,
   findReportById,
   closeConnection,
