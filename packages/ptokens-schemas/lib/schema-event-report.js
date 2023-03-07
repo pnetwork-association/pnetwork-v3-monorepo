@@ -11,11 +11,12 @@ module.exports = {
     constants.SCHEMA_AMOUNT_KEY,
     constants.SCHEMA_USER_DATA_KEY,
     constants.SCHEMA_EVENT_NAME_KEY,
-    constants.SCHEMA_FINAL_TX_HASH, // null
-    constants.SCHEMA_PROPOSAL_TX_HASH, // null
     constants.SCHEMA_TOKEN_ADDRESS_KEY,
+    constants.SCHEMA_PROPOSAL_TS_KEY,
+    constants.SCHEMA_PROPOSAL_TX_HASH_KEY,
     constants.SCHEMA_WITNESSED_TS_KEY,
-    constants.SCHEMA_FINAL_TX_TS_KEY, // null
+    constants.SCHEMA_FINAL_TX_HASH_KEY,
+    constants.SCHEMA_FINAL_TX_TS_KEY,
     constants.SCHEMA_DESTINATION_ADDRESS_KEY,
     constants.SCHEMA_ORIGINATING_CHAIN_ID_KEY,
     constants.SCHEMA_ORIGINATING_TX_HASH_KEY,
@@ -53,16 +54,19 @@ module.exports = {
       type: 'string',
     },
     [constants.SCHEMA_FINAL_TX_HASH]: {
-      type: 'string',
+      type: ['string', 'null'],
     },
     [constants.SCHEMA_PROPOSAL_TX_HASH]: {
-      type: 'string',
+      type: ['string', 'null'],
     },
     [constants.SCHEMA_WITNESSED_TS_KEY]: {
-      type: 'string',
+      type: 'timestamp',
+    },
+    [constants.SCHEMA_PROPOSAL_TS_KEY]: {
+      type: ['timestamp', 'null'],
     },
     [constants.SCHEMA_FINAL_TX_TS_KEY]: {
-      type: 'string',
+      type: ['timestamp', 'null'],
     },
   },
 }
