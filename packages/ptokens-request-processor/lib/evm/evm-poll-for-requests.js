@@ -13,6 +13,9 @@ const {
   maybeBuildProposalsTxsAndPutInState,
 } = require('./evm-build-proposals-txs')
 const { maybeBroadcastTxs } = require('./evm-broadcast-txs')
+const {
+  filterOutOnChainRequests,
+} = require('./evm-filter-out-onchain-requests')
 
 // TODO: configurable
 const SLEEP_TIME = 1000
@@ -21,6 +24,7 @@ const maybeProcessNewRequests = _state =>
   logger.info('Polling for new requests EVM...') ||
   getOnChainQueuedRequestsAndPutInState(_state)
     .then(getNewRequestsFromDbAndPutInState)
+    .then(filterOutOnChainRequests)
     .then(maybeBuildProposalsTxsAndPutInState)
     .then(maybeBroadcastTxs)
     .then(logic.sleepThenReturnArg(SLEEP_TIME))
