@@ -140,17 +140,19 @@ const maybeAddTokenAddress = curry((_eventLog, _standardEvent) =>
  * @param  {string} _parsedLog [on chain parsed log]
  * @return {object}            [the standard event object]
  */
-const buildStandardizedEventFromEvmEvent = curry((_chainId, _parsedLog) =>
-  Promise.resolve({
-    [schemasConstants.SCHEMA_EVENT_NAME_KEY]: _parsedLog.name,
-    [schemasConstants.SCHEMA_STATUS_KEY]: 'detected',
-  })
-    .then(addOriginatingChainId(_chainId, _parsedLog.args))
-    .then(maybeAddAmount(_parsedLog.args))
-    .then(maybeAddDestinationAddress(_parsedLog.args))
-    .then(maybeAddDestinationChainId(_parsedLog.args))
-    .then(maybeAddUserData(_parsedLog.args))
-    .then(maybeAddTokenAddress(_parsedLog.args))
+const buildStandardizedEventFromEvmEvent = curry(
+  (_chainId, _parsedLog) =>
+    Promise.resolve({
+      [schemasConstants.SCHEMA_EVENT_NAME_KEY]: _parsedLog.name,
+      [schemasConstants.SCHEMA_STATUS_KEY]: 'detected',
+    })
+      .then(addOriginatingChainId(_chainId, _parsedLog.args))
+      .then(maybeAddAmount(_parsedLog.args))
+      .then(maybeAddDestinationAddress(_parsedLog.args))
+      .then(maybeAddDestinationChainId(_parsedLog.args))
+      .then(maybeAddUserData(_parsedLog.args))
+      .then(maybeAddTokenAddress(_parsedLog.args))
+  // TODO add missing properties (check the schema-event-report module)
 )
 
 module.exports = {

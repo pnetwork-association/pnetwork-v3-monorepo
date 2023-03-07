@@ -10,7 +10,7 @@ module.exports = {
   SCHEMA_DB_KEY: 'db',
   SCHEMA_TOKEN_CONTRACTS_KEY: 'token-contracts',
   SCHEMA_ORIGINATING_CHAIN_ID_KEY: 'originatingChainId',
-  SCHEMA_ORIGINATING_TRANSACTION_HASH_KEY: 'originatingTransactionHash',
+  SCHEMA_ORIGINATING_TX_HASH_KEY: 'originatingTransactionHash',
   SCHEMA_AMOUNT_KEY: 'amount',
   SCHEMA_DESTINATION_ADDRESS_KEY: 'destinationAddress',
   SCHEMA_DESTINATION_CHAIN_ID_KEY: 'destinationChainId',
@@ -22,4 +22,8 @@ module.exports = {
   SCHEMA_ISSUANCE_MANAGER_KEY: 'issuanceManagerAddress',
   SCHEMA_IDENTITY_GPG_KEY: 'identityGpgKey',
   SCHEMA_IDENTITY_ADDRESS_KEY: 'identityAddress',
+  SCHEMA_PROPOSAL_TX_HASH_KEY: 'proposalTransactionHash',
+  SCHEMA_FINAL_TX_HASH_KEY: 'finalTransactionHash',
+  SCHEMA_WITNESSED_TS_KEY: 'witnessedTimestamp',
+  SCHEMA_FINAL_TX_TS_KEY: 'finalTransactionTimestamp',
 }

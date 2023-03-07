@@ -207,7 +207,7 @@ describe('EVM listener', () => {
         expect(callback).toHaveBeenNthCalledWith(1, {
           [schemasConstants.SCHEMA_AMOUNT_KEY]: '200000000',
           [schemasConstants.SCHEMA_ORIGINATING_CHAIN_ID_KEY]: '0x005fe7f9',
-          [schemasConstants.SCHEMA_ORIGINATING_TRANSACTION_HASH_KEY]:
+          [schemasConstants.SCHEMA_ORIGINATING_TX_HASH_KEY]:
             '0x37eeb55eab329c73aeac6a172faa6c77e7013cd0cda0fc472274c5faf0df7003',
           [schemasConstants.SCHEMA_EVENT_NAME_KEY]: 'Transfer',
           [schemasConstants.SCHEMA_STATUS_KEY]: 'detected',
@@ -219,7 +219,7 @@ describe('EVM listener', () => {
           [schemasConstants.SCHEMA_DESTINATION_ADDRESS_KEY]: '770102986',
           [schemasConstants.SCHEMA_DESTINATION_CHAIN_ID_KEY]: '0x03c38e67',
           [schemasConstants.SCHEMA_ORIGINATING_CHAIN_ID_KEY]: '0x005fe7f9',
-          [schemasConstants.SCHEMA_ORIGINATING_TRANSACTION_HASH_KEY]:
+          [schemasConstants.SCHEMA_ORIGINATING_TX_HASH_KEY]:
             '0x0f53438f23bd61bcee616d4f4d0f70a80dcd1d10dc8b0796774cb4afa6340305',
           [schemasConstants.SCHEMA_EVENT_NAME_KEY]: 'PegIn',
           [schemasConstants.SCHEMA_STATUS_KEY]: 'detected',
@@ -230,7 +230,7 @@ describe('EVM listener', () => {
             '35eXzETyUxiQPXwU2udtVFQFrFjgRhhvPj',
           [schemasConstants.SCHEMA_DESTINATION_CHAIN_ID_KEY]: '0x01ec97de',
           [schemasConstants.SCHEMA_ORIGINATING_CHAIN_ID_KEY]: '0x005fe7f9',
-          [schemasConstants.SCHEMA_ORIGINATING_TRANSACTION_HASH_KEY]:
+          [schemasConstants.SCHEMA_ORIGINATING_TX_HASH_KEY]:
             '0x9488dee8cb5c6b2f6299e45e48bba580f46dbd496cfaa70a182060fd5dc81cb4',
           [schemasConstants.SCHEMA_EVENT_NAME_KEY]: 'Redeem',
           [schemasConstants.SCHEMA_STATUS_KEY]: 'detected',

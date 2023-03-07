@@ -30,7 +30,7 @@ const getFilterObject = (_eventName, _tokenContract) =>
 const addOriginatingTransactionHash = curry((_log, _obj) =>
   Promise.resolve(
     assoc(
-      schemasConstants.SCHEMA_ORIGINATING_TRANSACTION_HASH_KEY,
+      schemasConstants.SCHEMA_ORIGINATING_TX_HASH_KEY,
       _log.transactionHash,
       _obj
     )
@@ -52,6 +52,7 @@ const processEventLog = curry(
       .then(buildStandardizedEventFromEvmEvent(_chainId))
       .then(addOriginatingTransactionHash(_log))
       // TODO: add custom report ID (originatingChainID_originatingTxHash)
+      // TODO: Validate event schema before inserting
       .then(_callback)
 )
 
