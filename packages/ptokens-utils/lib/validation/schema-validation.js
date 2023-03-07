@@ -1,10 +1,15 @@
 const Ajv = require('ajv')
+const addFormats = require('ajv-formats')
 const { curry } = require('ramda')
 const { memoizeWith } = require('ramda')
 const { ERROR_SCHEMA_VALIDATION_FAILED } = require('../errors')
 
+const ajv = new Ajv()
+
+addFormats(ajv)
+
 const getValidationFunction = memoizeWith(JSON.stringify, _schema =>
-  new Ajv().compile(_schema)
+  ajv.compile(_schema)
 )
 
 const validateJson = curry((_schema, _json) =>

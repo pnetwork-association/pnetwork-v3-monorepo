@@ -19,6 +19,7 @@
   "dependencies": {
     "@log4js-node/log4js-api": "^1.0.2",
     "ajv": "^8.11.0",
+    "ajv-formats": "^2.1.1",
     "inquirer": "^8.2.2",
     "jsonrpc-lite": "^2.2.0",
     "mongodb": "^5.0.0",
