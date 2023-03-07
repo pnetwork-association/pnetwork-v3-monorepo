@@ -1,4 +1,5 @@
 module.exports = {
-  STATE_KEY_ONCHAIN_REQUESTS: 'onChainRequests',
-  STATE_KEY_DETECTED_DB_REPORTS: 'detectedDbReports',
+  STATE_ONCHAIN_REQUESTS_KEY: 'onChainRequests',
+  STATE_DETECTED_DB_REPORTS_KEY: 'detectedDbReports',
+  STATE_PROPOSED_DB_REPORTS_KEY: 'proposedDbReports',
 }

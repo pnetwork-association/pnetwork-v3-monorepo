@@ -12,7 +12,6 @@ const {
 const {
   maybeBuildProposalsTxsAndPutInState,
 } = require('./evm-build-proposals-txs')
-const { maybeBroadcastTxs } = require('./evm-broadcast-txs')
 const {
   filterOutOnChainRequests,
 } = require('./evm-filter-out-onchain-requests')
@@ -26,7 +25,6 @@ const maybeProcessNewRequests = _state =>
     .then(getNewRequestsFromDbAndPutInState)
     .then(filterOutOnChainRequests)
     .then(maybeBuildProposalsTxsAndPutInState)
-    .then(maybeBroadcastTxs)
     .then(logic.sleepThenReturnArg(SLEEP_TIME))
 
 const INFINITE_LOOP = {

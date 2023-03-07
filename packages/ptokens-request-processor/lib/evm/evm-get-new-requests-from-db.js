@@ -2,14 +2,14 @@ const { assoc } = require('ramda')
 const { logger } = require('../get-logger')
 const { db, utils, validation } = require('ptokens-utils')
 const { constants: schemasConstants, dbSchema } = require('ptokens-schemas')
-const { STATE_KEY_DETECTED_DB_REPORTS } = require('../state/constants')
+const { STATE_DETECTED_DB_REPORTS_KEY } = require('../state/constants')
 
 const validateReportOrSetNull = _report =>
   validation
     .validateJson(dbSchema, _report)
     .then(_ => _report)
     .catch(_err => {
-      logger.warn('Invalid report detected, skipping...')
+      logger.warn('Invalid report detected, skipping...', _err)
       logger.warn(JSON.stringify(_report))
       return null
     })
@@ -41,7 +41,7 @@ const getNewRequestsFromDbAndPutInState = _state =>
             ) || _reports
         )
         .then(_reports =>
-          assoc(STATE_KEY_DETECTED_DB_REPORTS, _reports, _state)
+          assoc(STATE_DETECTED_DB_REPORTS_KEY, _reports, _state)
         )
     })
 
