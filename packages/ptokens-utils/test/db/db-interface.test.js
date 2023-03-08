@@ -30,7 +30,8 @@ describe('Database interface tests', () => {
       _reportsSet.map(_report => _lib.deleteReport(_collection, _report._id))
     )
 
-  before(async () => {
+  before(async function () {
+    this.timeout(10000)
     mongod = await MongoMemoryServer.create()
   })
 
