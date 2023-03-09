@@ -1,3 +1,4 @@
+const { curry } = require('ramda')
 const { logic } = require('ptokens-utils')
 const { logger } = require('../get-logger')
 const {
@@ -22,14 +23,14 @@ const {
 // TODO: configurable
 const SLEEP_TIME = 1000
 
-const maybeProcessNewRequests = (_state, _processFunction) =>
-  logger.info('Polling for new requests EVM...') ||
-  getOnChainQueuedRequestsAndPutInState(_state)
-    .then(getDetectedEventsFromDbAndPutInState)
-    .then(filterOutOnChainRequests)
-    .then(maybeBuildProposalsTxsAndPutInState)
-    // .then(maybeUpdateReportsInDb)
-    .then(logic.sleepThenReturnArg(SLEEP_TIME))
+const maybeProcessNewRequests = curry(
+  (_processFunction, _state) =>
+    logger.info('Polling for new requests EVM...') ||
+    getOnChainQueuedRequestsAndPutInState(_state)
+      .then(getDetectedEventsFromDbAndPutInState)
+      .then(_processFunction)
+      .then(logic.sleepThenReturnArg(SLEEP_TIME))
+)
 
 const filterOutOnChainRequestsAndBuildDismissals = _state =>
   filterOutOnChainRequestsAndPutInState(_state).then(
@@ -47,18 +48,20 @@ const INFINITE_LOOP = {
 
 const pollForRequestsAndDismiss = _state =>
   logic
-    .loop(INFINITE_LOOP, maybeProcessNewRequests, [
-      _state,
-      filterOutOnChainRequestsAndBuildDismissals,
-    ])
+    .loop(
+      INFINITE_LOOP,
+      maybeProcessNewRequests(filterOutOnChainRequestsAndBuildDismissals),
+      [_state]
+    )
     .catch(pollForRequestsErrorHandler(pollForRequestsAndDismiss))
 
 const pollForRequestsAndPropose = _state =>
   logic
-    .loop(INFINITE_LOOP, maybeProcessNewRequests, [
-      _state,
-      filterOutOnChainRequestsAndBuildProposals,
-    ])
+    .loop(
+      INFINITE_LOOP,
+      maybeProcessNewRequests(filterOutOnChainRequestsAndBuildProposals),
+      [_state]
+    )
     .catch(pollForRequestsErrorHandler(pollForRequestsAndPropose))
 
 module.exports = {
