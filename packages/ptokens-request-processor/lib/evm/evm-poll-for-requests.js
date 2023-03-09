@@ -13,13 +13,16 @@ const {
   maybeBuildProposalsTxsAndPutInState,
 } = require('./evm-build-proposals-txs')
 const {
-  filterOutOnChainRequests,
+  maybeBuildDismissalTxsAndPutInState,
+} = require('./evm-build-dismissal-txs')
+const {
+  filterOutOnChainRequestsAndPutInState,
 } = require('./evm-filter-out-onchain-requests')
 
 // TODO: configurable
 const SLEEP_TIME = 1000
 
-const maybeProcessNewRequests = _state =>
+const maybeProcessNewRequests = (_state, _processFunction) =>
   logger.info('Polling for new requests EVM...') ||
   getOnChainQueuedRequestsAndPutInState(_state)
     .then(getDetectedEventsFromDbAndPutInState)
@@ -28,15 +31,37 @@ const maybeProcessNewRequests = _state =>
     // .then(maybeUpdateReportsInDb)
     .then(logic.sleepThenReturnArg(SLEEP_TIME))
 
+const filterOutOnChainRequestsAndBuildDismissals = _state =>
+  filterOutOnChainRequestsAndPutInState(_state).then(
+    maybeBuildDismissalTxsAndPutInState
+  )
+
+const filterOutOnChainRequestsAndBuildProposals = _state =>
+  filterOutOnChainRequestsAndPutInState(_state).then(
+    maybeBuildProposalsTxsAndPutInState
+  )
+
 const INFINITE_LOOP = {
   rounds: logic.LOOP_MODE.INFINITE,
 }
 
-const pollForRequests = _state =>
+const pollForRequestsAndDismiss = _state =>
   logic
-    .loop(INFINITE_LOOP, maybeProcessNewRequests, [_state])
-    .catch(pollForRequestsErrorHandler(pollForRequests))
+    .loop(INFINITE_LOOP, maybeProcessNewRequests, [
+      _state,
+      filterOutOnChainRequestsAndBuildDismissals,
+    ])
+    .catch(pollForRequestsErrorHandler(pollForRequestsAndDismiss))
+
+const pollForRequestsAndPropose = _state =>
+  logic
+    .loop(INFINITE_LOOP, maybeProcessNewRequests, [
+      _state,
+      filterOutOnChainRequestsAndBuildProposals,
+    ])
+    .catch(pollForRequestsErrorHandler(pollForRequestsAndPropose))
 
 module.exports = {
-  pollForRequests,
+  pollForRequestsAndDismiss,
+  pollForRequestsAndPropose,
 }

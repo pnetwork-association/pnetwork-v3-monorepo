@@ -11,7 +11,9 @@ const filterOutOnChainRequestsAndPutInState = _state => {
   // const onChainRequests = _state[STATE_ONCHAIN_REQUESTS_KEY]
 
   // TODO: filter out on chain requests
-  Promise.resolve(assoc(STATE_DETECTED_DB_REPORTS_KEY, detectedTxs, _state))
+  return Promise.resolve(
+    assoc(STATE_DETECTED_DB_REPORTS_KEY, detectedTxs, _state)
+  )
 }
 
 module.exports = {
