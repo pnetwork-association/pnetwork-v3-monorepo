@@ -24,7 +24,7 @@ const filterForValidReports = _reports =>
 
 const getNewRequestsFromDbAndPutInState = _state =>
   utils
-    .getBlockchainTypeFromChainId(_state[schemasConstants.STATE_KEY_CHAIN_ID])
+    .getBlockchainTypeFromChainId(_state[schemasConstants.SCHEMA_CHAIN_ID_KEY])
     .then(_blockchainType => {
       logger.info(`Gettting ${_blockchainType} requests from db...`)
       const query = {
