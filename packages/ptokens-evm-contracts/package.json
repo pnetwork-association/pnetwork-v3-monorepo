@@ -1,0 +1,39 @@
+{
+  "name": "ptokens-evm-contracts",
+  "version": "1.0.0",
+  "description": "pNetwork EVM contracts",
+  "node": ">=16.15.0 <17.0.0",
+  "bin": {
+    "vault": "cli/vault.js"
+  },
+  "directories": {
+    "lib": "lib"
+  },
+  "scripts": {
+    "lint": "eslint .",
+    "test": "ENDPOINT=http://localhost:8545 npx hardhat test",
+    "compile": "ENDPOINT=http://localhost:8545 npx hardhat compile"
+  },
+  "keywords": [
+    "pnetwork",
+    "ethereum",
+    "defi",
+    "crypto"
+  ],
+  "author": "gskapka",
+  "license": "MIT",
+  "dependencies": {
+    "@nomiclabs/hardhat-etherscan": "^3.1.7",
+    "@nomiclabs/hardhat-waffle": "^2.0.5",
+    "@openzeppelin/contracts": "^4.8.2",
+    "@openzeppelin/contracts-upgradeable": "^4.8.2",
+    "@openzeppelin/hardhat-upgrades": "^1.22.1",
+    "docopt": "^0.6.2",
+    "dotenv": "^16.0.3",
+    "ethers": "^6.1.0",
+    "hardhat": "^2.13.0",
+    "hardhat-erc1820": "^0.1.0",
+    "ptokens-utils": "*",
+    "ramda": "^0.28.0"
+  }
+}
