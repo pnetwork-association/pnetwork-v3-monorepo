@@ -19,11 +19,15 @@ jobs:
         with:
           main-branch-name: 'master'
       - run: npm ci
-
       - run: npx nx workspace-lint
       - run: npx nx format:check
       - run: npx nx affected --target=lint --parallel=3
-      - run: npx nx affected --target=test --configuration=ci
+      # The find is needed because ethers & docopt create the node_modules
+      # folder inside the project, which interfere with the deps
+      # defined at the root's node_modules folder.
+      - run: |
+          find packages -maxdepth 2 -name node_modules -exec rm -rf '{}' \;
+          npx nx affected --target=test --configuration=ci
       - run: npx nx affected --target=docker-build
   docker-lint:
     runs-on: ubuntu-latest
