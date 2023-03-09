@@ -1,6 +1,6 @@
 const { assoc } = require('ramda')
 const { logger } = require('../get-logger')
-const { db, utils, validation } = require('ptokens-utils')
+const { db, constants, utils, validation } = require('ptokens-utils')
 const {
   constants: schemasConstants,
   dbSchema,
@@ -35,7 +35,7 @@ const getNewRequestsFromDbAndPutInState = _state =>
         [schemasConstants.SCHEMA_STATUS_KEY]: enums.txStatus.DETECTED,
       }
       return db
-        .findReports(query)
+        .findReports(_state[constants.STATE_KEY_DB], query)
         .then(filterForValidReports)
         .then(
           _reports =>
