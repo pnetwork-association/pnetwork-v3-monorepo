@@ -1,7 +1,11 @@
 const { assoc } = require('ramda')
 const { logger } = require('../get-logger')
 const { db, utils, validation } = require('ptokens-utils')
-const { constants: schemasConstants, dbSchema } = require('ptokens-schemas')
+const {
+  constants: schemasConstants,
+  dbSchema,
+  enums,
+} = require('ptokens-schemas')
 const { STATE_DETECTED_DB_REPORTS_KEY } = require('../state/constants')
 
 const validateReportOrSetNull = _report =>
@@ -28,8 +32,7 @@ const getNewRequestsFromDbAndPutInState = _state =>
     .then(_blockchainType => {
       logger.info(`Gettting ${_blockchainType} requests from db...`)
       const query = {
-        [schemasConstants.SCHEMA_STATUS_KEY]:
-          schemasConstants.enums.txStatus.DETECTED,
+        [schemasConstants.SCHEMA_STATUS_KEY]: enums.txStatus.DETECTED,
       }
       return db
         .findReports(query)
