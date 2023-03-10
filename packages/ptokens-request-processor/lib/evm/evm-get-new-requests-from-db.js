@@ -3,14 +3,14 @@ const { logger } = require('../get-logger')
 const { db, constants, utils, validation } = require('ptokens-utils')
 const {
   constants: schemasConstants,
-  dbSchema,
+  eventReportSchema,
   enums,
 } = require('ptokens-schemas')
 const { STATE_DETECTED_DB_REPORTS_KEY } = require('../state/constants')
 
 const validateReportOrSetNull = _report =>
   validation
-    .validateJson(dbSchema, _report)
+    .validateJson(eventReportSchema, _report)
     .then(_ => _report)
     .catch(_err => {
       logger.warn('Invalid report detected, skipping...', _err)
