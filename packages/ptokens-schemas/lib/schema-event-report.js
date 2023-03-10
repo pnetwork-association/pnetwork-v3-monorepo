@@ -18,6 +18,7 @@ module.exports = {
     constants.SCHEMA_FINAL_TX_TS_KEY,
     constants.SCHEMA_DESTINATION_ADDRESS_KEY,
     constants.SCHEMA_ORIGINATING_ADDRESS_KEY,
+    constants.SCHEMA_DESTINATION_CHAIN_ID_KEY,
     constants.SCHEMA_ORIGINATING_CHAIN_ID_KEY,
     constants.SCHEMA_ORIGINATING_TX_HASH_KEY,
   ],
