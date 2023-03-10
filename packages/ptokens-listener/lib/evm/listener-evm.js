@@ -2,7 +2,7 @@ const ethers = require('ethers')
 const { STATE_KEY_EVENTS } = require('../state/constants')
 const { logger } = require('../get-logger')
 const { validation } = require('ptokens-utils')
-const { constants: schemasConstants } = require('ptokens-schemas')
+const schemas = require('ptokens-schemas')
 const { curry, assoc, identity, memoizeWith } = require('ramda')
 const {
   buildStandardizedEventFromEvmEvent,
@@ -30,7 +30,7 @@ const getFilterObject = (_eventName, _tokenContract) =>
 const addOriginatingTransactionHash = curry((_log, _obj) =>
   Promise.resolve(
     assoc(
-      schemasConstants.SCHEMA_ORIGINATING_TX_HASH_KEY,
+      schemas.constants.SCHEMA_ORIGINATING_TX_HASH_KEY,
       _log.transactionHash,
       _obj
     )
@@ -94,7 +94,7 @@ const startEvmListenerFromEventObject = (
   _callback
 ) =>
   Promise.all(
-    _event[schemasConstants.SCHEMA_TOKEN_CONTRACTS_KEY].map(_tokenContract =>
+    _event[schemas.constants.SCHEMA_TOKEN_CONTRACTS_KEY].map(_tokenContract =>
       listenForEvmEvent(
         _providerUrl,
         _chainId,
@@ -109,8 +109,8 @@ const listenForEvmEvents = (_state, _callback) =>
   Promise.all(
     _state[STATE_KEY_EVENTS].map(_event =>
       startEvmListenerFromEventObject(
-        _state[schemasConstants.SCHEMA_PROVIDER_URL_KEY],
-        _state[schemasConstants.SCHEMA_CHAIN_ID_KEY],
+        _state[schemas.constants.SCHEMA_PROVIDER_URL_KEY],
+        _state[schemas.constants.SCHEMA_CHAIN_ID_KEY],
         _event,
         _callback
       )

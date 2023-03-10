@@ -7,13 +7,19 @@ const configListenerSchema = require('./lib/schema-config-listener')
 const configRequestProcessorSchema = require('./lib/schema-config-request-processor')
 
 module.exports = {
-  eventReportSchema,
-  constants,
-  configDbSchema,
-  configListenerSchema,
-  configRequestProcessorSchema,
-  enums: {
-    txStatus: enumTxStatus,
-    eventNames: enumEventNames,
+  db: {
+    collections: {
+      events: eventReportSchema,
+    },
+    enums: {
+      txStatus: enumTxStatus,
+      eventNames: enumEventNames,
+    },
+  },
+  constants: constants,
+  configurations: {
+    db: configDbSchema,
+    listener: configListenerSchema,
+    requestProcessor: configRequestProcessorSchema,
   },
 }

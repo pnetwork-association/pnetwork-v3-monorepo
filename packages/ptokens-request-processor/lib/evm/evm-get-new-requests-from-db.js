@@ -1,16 +1,12 @@
 const { assoc } = require('ramda')
 const { logger } = require('../get-logger')
 const { db, constants, utils, validation } = require('ptokens-utils')
-const {
-  constants: schemasConstants,
-  eventReportSchema,
-  enums,
-} = require('ptokens-schemas')
+const schemas = require('ptokens-schemas')
 const { STATE_DETECTED_DB_REPORTS_KEY } = require('../state/constants')
 
 const validateReportOrSetNull = _report =>
   validation
-    .validateJson(eventReportSchema, _report)
+    .validateJson(schemas.db.collections.events, _report)
     .then(_ => _report)
     .catch(_err => {
       logger.warn('Invalid report detected, skipping...', _err)
@@ -28,11 +24,12 @@ const filterForValidReports = _reports =>
 
 const getNewRequestsFromDbAndPutInState = _state =>
   utils
-    .getBlockchainTypeFromChainId(_state[schemasConstants.SCHEMA_CHAIN_ID_KEY])
+    .getBlockchainTypeFromChainId(_state[schemas.constants.SCHEMA_CHAIN_ID_KEY])
     .then(_blockchainType => {
       logger.info(`Gettting ${_blockchainType} requests from db...`)
       const query = {
-        [schemasConstants.SCHEMA_STATUS_KEY]: enums.txStatus.DETECTED,
+        [schemas.constants.SCHEMA_STATUS_KEY]:
+          schemas.db.enums.txStatus.DETECTED,
       }
       return db
         .findReports(_state[constants.STATE_KEY_DB], query)

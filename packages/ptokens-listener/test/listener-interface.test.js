@@ -1,6 +1,6 @@
 const stateConstants = require('../lib/state/constants')
 const { constants: ptokensUtilsConstants } = require('ptokens-utils')
-const { constants: schemasConstants } = require('ptokens-schemas')
+const schemas = require('ptokens-schemas')
 
 describe('Tests for the listener interface', () => {
   describe('listenForEvents', () => {
@@ -13,15 +13,15 @@ describe('Tests for the listener interface', () => {
       [ptokensUtilsConstants.STATE_KEY_CHAIN_ID]: _chainId,
       [stateConstants.STATE_KEY_EVENTS]: [
         {
-          [schemasConstants.SCHEMA_NAME_KEY]: 'event1',
-          [schemasConstants.SCHEMA_TOKEN_CONTRACTS_KEY]: [
+          [schemas.constants.SCHEMA_NAME_KEY]: 'event1',
+          [schemas.constants.SCHEMA_TOKEN_CONTRACTS_KEY]: [
             'address1',
             'address2',
           ],
         },
         {
-          [schemasConstants.SCHEMA_NAME_KEY]: 'event2',
-          [schemasConstants.SCHEMA_TOKEN_CONTRACTS_KEY]: [
+          [schemas.constants.SCHEMA_NAME_KEY]: 'event2',
+          [schemas.constants.SCHEMA_TOKEN_CONTRACTS_KEY]: [
             'address3',
             'address4',
           ],
@@ -44,7 +44,7 @@ describe('Tests for the listener interface', () => {
           .spyOn(evmListener, 'listenForEvmEvents')
           .mockImplementation((_state, _callback) =>
             _state[stateConstants.STATE_KEY_EVENTS].forEach(_event =>
-              _event[schemasConstants.SCHEMA_TOKEN_CONTRACTS_KEY].forEach(
+              _event[schemas.constants.SCHEMA_TOKEN_CONTRACTS_KEY].forEach(
                 _address => _callback({ event: _event.name, address: _address })
               )
             )

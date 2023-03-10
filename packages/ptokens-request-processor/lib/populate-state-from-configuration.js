@@ -1,15 +1,15 @@
 const { db, constants } = require('ptokens-utils')
 const { curry, assoc } = require('ramda')
-const { constants: schemasConstants } = require('ptokens-schemas')
+const schemas = require('ptokens-schemas')
 
 const getDbAndPutInState = curry((_config, _state) => {
   const url =
-    _config[schemasConstants.SCHEMA_DB_KEY][schemasConstants.SCHEMA_URL_KEY]
+    _config[schemas.constants.SCHEMA_DB_KEY][schemas.constants.SCHEMA_URL_KEY]
   const dbName =
-    _config[schemasConstants.SCHEMA_DB_KEY][schemasConstants.SCHEMA_NAME_KEY]
+    _config[schemas.constants.SCHEMA_DB_KEY][schemas.constants.SCHEMA_NAME_KEY]
   const tableName =
-    _config[schemasConstants.SCHEMA_DB_KEY][
-      schemasConstants.SCHEMA_TABLE_EVENTS_KEY
+    _config[schemas.constants.SCHEMA_DB_KEY][
+      schemas.constants.SCHEMA_TABLE_EVENTS_KEY
     ]
 
   return db

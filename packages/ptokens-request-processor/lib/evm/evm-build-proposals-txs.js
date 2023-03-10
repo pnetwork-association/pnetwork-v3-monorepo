@@ -1,5 +1,5 @@
 const ethers = require('ethers')
-const { constants: schemasConstants, enums } = require('ptokens-schemas')
+const schemas = require('ptokens-schemas')
 const { logger } = require('../get-logger')
 const { curry } = require('ramda')
 const { utils, constants, logic, errors } = require('ptokens-utils')
@@ -37,13 +37,14 @@ const mintProposalCall = (
   _destinationChainId
 ) =>
   new Promise(resolve => {
-    const amount = _eventReport[schemasConstants.SCHEMA_AMOUNT_KEY]
-    const userData = _eventReport[schemasConstants.SCHEMA_USER_DATA_KEY]
-    const tokenAddress = _eventReport[schemasConstants.SCHEMA_TOKEN_ADDRESS_KEY]
+    const amount = _eventReport[schemas.constants.SCHEMA_AMOUNT_KEY]
+    const userData = _eventReport[schemas.constants.SCHEMA_USER_DATA_KEY]
+    const tokenAddress =
+      _eventReport[schemas.constants.SCHEMA_TOKEN_ADDRESS_KEY]
     const originTx =
-      _eventReport[schemasConstants.SCHEMA_ORIGINATING_TX_HASH_KEY]
+      _eventReport[schemas.constants.SCHEMA_ORIGINATING_TX_HASH_KEY]
     const tokenRecipient =
-      _eventReport[schemasConstants.SCHEMA_DESTINATION_ADDRESS_KEY]
+      _eventReport[schemas.constants.SCHEMA_DESTINATION_ADDRESS_KEY]
 
     logger.info(
       `Building proposal for '${event}' event detected on ${originTx.slice(10)}`
@@ -99,9 +100,9 @@ const makeProposalContractCall = curry(
 
       // TODO check wallet balance here
 
-      const eventName = _eventReport[schemasConstants.SCHEMA_EVENT_NAME_KEY]
+      const eventName = _eventReport[schemas.constants.SCHEMA_EVENT_NAME_KEY]
       switch (eventName) {
-        case enums.eventNames.PEGIN:
+        case schemas.db.enums.eventNames.PEGIN:
           return resolve(
             mintProposalCall(
               wallet,
@@ -110,7 +111,7 @@ const makeProposalContractCall = curry(
               _destinationChainId
             )
           )
-        case enums.eventNames.REDEEM:
+        case schemas.db.enums.eventNames.REDEEM:
           return resolve(
             pegOutProposalCall(
               wallet,
@@ -141,9 +142,9 @@ const sendProposalTransaction = curry(
 
 const maybeBuildProposalsTxsAndPutInState = _state => {
   const detectedReports = _state[STATE_DETECTED_DB_REPORTS_KEY]
-  const chainId = _state[schemasConstants.SCHEMA_CHAIN_ID_KEY]
-  const providerUrl = _state[schemasConstants.SCHEMA_PROVIDER_URL_KEY]
-  const identityGpgFile = _state[schemasConstants.SCHEMA_IDENTITY_GPG_KEY]
+  const chainId = _state[schemas.constants.SCHEMA_CHAIN_ID_KEY]
+  const providerUrl = _state[schemas.constants.SCHEMA_PROVIDER_URL_KEY]
+  const identityGpgFile = _state[schemas.constants.SCHEMA_IDENTITY_GPG_KEY]
   const blockChainName = utils.flipObjectPropertiesSync(
     constants.metadataChainIds
   )[chainId]

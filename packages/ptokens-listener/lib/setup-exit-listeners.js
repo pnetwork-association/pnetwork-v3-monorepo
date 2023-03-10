@@ -1,13 +1,13 @@
 const { logger, shutDownLogging } = require('./get-logger')
 const { db } = require('ptokens-utils')
 const config = require('../config')
-const { constants: schemasConstants } = require('ptokens-schemas')
+const schemas = require('ptokens-schemas')
 
 const exitCleanly = _exitCode =>
   logger.info('Clean exit...') ||
   db
     .closeConnection(
-      config[schemasConstants.SCHEMA_DB_KEY][schemasConstants.SCHEMA_URL_KEY]
+      config[schemas.constants.SCHEMA_DB_KEY][schemas.constants.SCHEMA_URL_KEY]
     )
     .then(shutDownLogging)
     // eslint-disable-next-line no-process-exit

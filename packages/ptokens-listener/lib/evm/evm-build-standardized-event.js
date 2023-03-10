@@ -1,7 +1,7 @@
 const { utils } = require('ptokens-utils')
 const { logger } = require('../get-logger')
 const { isNil, curry, assoc } = require('ramda')
-const { constants: schemasConstants } = require('ptokens-schemas')
+const schemas = require('ptokens-schemas')
 
 const addOriginatingChainId = curry(
   (_defaultChainId, _eventLog, _standardEvent) =>
@@ -18,7 +18,7 @@ const addOriginatingChainId = curry(
 
       return resolve(
         assoc(
-          schemasConstants.SCHEMA_ORIGINATING_CHAIN_ID_KEY,
+          schemas.constants.SCHEMA_ORIGINATING_CHAIN_ID_KEY,
           originChainId,
           _standardEvent
         )
@@ -40,7 +40,7 @@ const maybeAddAmount = curry(
       logger.debug(`Adding ${amountStr} to event`)
 
       return resolve(
-        assoc(schemasConstants.SCHEMA_AMOUNT_KEY, amountStr, _standardEvent)
+        assoc(schemas.constants.SCHEMA_AMOUNT_KEY, amountStr, _standardEvent)
       )
     })
 )
@@ -62,7 +62,7 @@ const maybeAddDestinationAddress = curry(
 
       return resolve(
         assoc(
-          schemasConstants.SCHEMA_DESTINATION_ADDRESS_KEY,
+          schemas.constants.SCHEMA_DESTINATION_ADDRESS_KEY,
           destinationAddress,
           _standardEvent
         )
@@ -87,7 +87,7 @@ const maybeAddDestinationChainId = curry(
 
       return resolve(
         assoc(
-          schemasConstants.SCHEMA_DESTINATION_CHAIN_ID_KEY,
+          schemas.constants.SCHEMA_DESTINATION_CHAIN_ID_KEY,
           destinationChainId,
           _standardEvent
         )
@@ -99,7 +99,7 @@ const maybeAddUserData = curry((_eventLog, _standardEvent) =>
   Promise.resolve(
     utils.isNotNil(_eventLog.userData) && _eventLog.userData !== '0x'
       ? assoc(
-          schemasConstants.SCHEMA_USER_DATA_KEY,
+          schemas.constants.SCHEMA_USER_DATA_KEY,
           _eventLog.userData,
           _standardEvent
         )
@@ -110,7 +110,7 @@ const maybeAddTokenAddress = curry((_eventLog, _standardEvent) =>
   Promise.resolve(
     utils.isNotNil(_eventLog._tokenAddress)
       ? assoc(
-          schemasConstants.SCHEMA_TOKEN_ADDRESS_KEY,
+          schemas.constants.SCHEMA_TOKEN_ADDRESS_KEY,
           _eventLog._tokenAddress,
           _standardEvent
         )
@@ -143,8 +143,8 @@ const maybeAddTokenAddress = curry((_eventLog, _standardEvent) =>
 const buildStandardizedEventFromEvmEvent = curry(
   (_chainId, _parsedLog) =>
     Promise.resolve({
-      [schemasConstants.SCHEMA_EVENT_NAME_KEY]: _parsedLog.name,
-      [schemasConstants.SCHEMA_STATUS_KEY]: 'detected',
+      [schemas.constants.SCHEMA_EVENT_NAME_KEY]: _parsedLog.name,
+      [schemas.constants.SCHEMA_STATUS_KEY]: 'detected',
     })
       .then(addOriginatingChainId(_chainId, _parsedLog.args))
       .then(maybeAddAmount(_parsedLog.args))

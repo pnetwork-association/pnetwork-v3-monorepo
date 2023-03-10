@@ -3,7 +3,7 @@ const ethers = require('ethers')
 const { logs } = require('../mock/evm-logs')
 const { identity } = require('ramda')
 const stateConstants = require('../../lib/state/constants')
-const { constants: schemasConstants } = require('ptokens-schemas')
+const schemas = require('ptokens-schemas')
 
 describe('EVM listener', () => {
   describe('getEthersProvider', () => {
@@ -110,27 +110,27 @@ describe('EVM listener', () => {
     })
     it('Should call callback with the standardized event', done => {
       const state = {
-        [schemasConstants.SCHEMA_CHAIN_ID_KEY]: '0x005fe7f9',
-        [schemasConstants.SCHEMA_PROVIDER_URL_KEY]: 'provider-url',
+        [schemas.constants.SCHEMA_CHAIN_ID_KEY]: '0x005fe7f9',
+        [schemas.constants.SCHEMA_PROVIDER_URL_KEY]: 'provider-url',
         [stateConstants.STATE_KEY_EVENTS]: [
           {
-            [schemasConstants.SCHEMA_NAME_KEY]:
+            [schemas.constants.SCHEMA_NAME_KEY]:
               'Transfer(address indexed from,address indexed to,uint256 value)',
-            [schemasConstants.SCHEMA_TOKEN_CONTRACTS_KEY]: [
+            [schemas.constants.SCHEMA_TOKEN_CONTRACTS_KEY]: [
               '0xdac17f958d2ee523a2206206994597c13d831ec7',
             ],
           },
           {
-            [schemasConstants.SCHEMA_NAME_KEY]:
+            [schemas.constants.SCHEMA_NAME_KEY]:
               'PegIn(address _tokenAddress, address _tokenSender, uint256 _tokenAmount, string _destinationAddress, bytes _userData, bytes4 _originChainId, bytes4 _destinationChainId)',
-            [schemasConstants.SCHEMA_TOKEN_CONTRACTS_KEY]: [
+            [schemas.constants.SCHEMA_TOKEN_CONTRACTS_KEY]: [
               '0xe396757ec7e6ac7c8e5abe7285dde47b98f22db8',
             ],
           },
           {
-            [schemasConstants.SCHEMA_NAME_KEY]:
+            [schemas.constants.SCHEMA_NAME_KEY]:
               'Redeem(address indexed redeemer, uint256 value, string underlyingAssetRecipient, bytes userData, bytes4 originChainId, bytes4 destinationChainId)',
-            [schemasConstants.SCHEMA_TOKEN_CONTRACTS_KEY]: [
+            [schemas.constants.SCHEMA_TOKEN_CONTRACTS_KEY]: [
               '0x62199b909fb8b8cf870f97bef2ce6783493c4908',
             ],
           },
@@ -205,35 +205,35 @@ describe('EVM listener', () => {
         )
         expect(callback).toHaveBeenCalledTimes(3)
         expect(callback).toHaveBeenNthCalledWith(1, {
-          [schemasConstants.SCHEMA_AMOUNT_KEY]: '200000000',
-          [schemasConstants.SCHEMA_ORIGINATING_CHAIN_ID_KEY]: '0x005fe7f9',
-          [schemasConstants.SCHEMA_ORIGINATING_TX_HASH_KEY]:
+          [schemas.constants.SCHEMA_AMOUNT_KEY]: '200000000',
+          [schemas.constants.SCHEMA_ORIGINATING_CHAIN_ID_KEY]: '0x005fe7f9',
+          [schemas.constants.SCHEMA_ORIGINATING_TX_HASH_KEY]:
             '0x37eeb55eab329c73aeac6a172faa6c77e7013cd0cda0fc472274c5faf0df7003',
-          [schemasConstants.SCHEMA_EVENT_NAME_KEY]: 'Transfer',
-          [schemasConstants.SCHEMA_STATUS_KEY]: 'detected',
+          [schemas.constants.SCHEMA_EVENT_NAME_KEY]: 'Transfer',
+          [schemas.constants.SCHEMA_STATUS_KEY]: 'detected',
         })
         expect(callback).toHaveBeenNthCalledWith(2, {
-          [schemasConstants.SCHEMA_AMOUNT_KEY]: '1001000000',
-          [schemasConstants.SCHEMA_TOKEN_ADDRESS_KEY]:
+          [schemas.constants.SCHEMA_AMOUNT_KEY]: '1001000000',
+          [schemas.constants.SCHEMA_TOKEN_ADDRESS_KEY]:
             '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
-          [schemasConstants.SCHEMA_DESTINATION_ADDRESS_KEY]: '770102986',
-          [schemasConstants.SCHEMA_DESTINATION_CHAIN_ID_KEY]: '0x03c38e67',
-          [schemasConstants.SCHEMA_ORIGINATING_CHAIN_ID_KEY]: '0x005fe7f9',
-          [schemasConstants.SCHEMA_ORIGINATING_TX_HASH_KEY]:
+          [schemas.constants.SCHEMA_DESTINATION_ADDRESS_KEY]: '770102986',
+          [schemas.constants.SCHEMA_DESTINATION_CHAIN_ID_KEY]: '0x03c38e67',
+          [schemas.constants.SCHEMA_ORIGINATING_CHAIN_ID_KEY]: '0x005fe7f9',
+          [schemas.constants.SCHEMA_ORIGINATING_TX_HASH_KEY]:
             '0x0f53438f23bd61bcee616d4f4d0f70a80dcd1d10dc8b0796774cb4afa6340305',
-          [schemasConstants.SCHEMA_EVENT_NAME_KEY]: 'PegIn',
-          [schemasConstants.SCHEMA_STATUS_KEY]: 'detected',
+          [schemas.constants.SCHEMA_EVENT_NAME_KEY]: 'PegIn',
+          [schemas.constants.SCHEMA_STATUS_KEY]: 'detected',
         })
         expect(callback).toHaveBeenNthCalledWith(3, {
-          [schemasConstants.SCHEMA_AMOUNT_KEY]: '2065832100000000000',
-          [schemasConstants.SCHEMA_DESTINATION_ADDRESS_KEY]:
+          [schemas.constants.SCHEMA_AMOUNT_KEY]: '2065832100000000000',
+          [schemas.constants.SCHEMA_DESTINATION_ADDRESS_KEY]:
             '35eXzETyUxiQPXwU2udtVFQFrFjgRhhvPj',
-          [schemasConstants.SCHEMA_DESTINATION_CHAIN_ID_KEY]: '0x01ec97de',
-          [schemasConstants.SCHEMA_ORIGINATING_CHAIN_ID_KEY]: '0x005fe7f9',
-          [schemasConstants.SCHEMA_ORIGINATING_TX_HASH_KEY]:
+          [schemas.constants.SCHEMA_DESTINATION_CHAIN_ID_KEY]: '0x01ec97de',
+          [schemas.constants.SCHEMA_ORIGINATING_CHAIN_ID_KEY]: '0x005fe7f9',
+          [schemas.constants.SCHEMA_ORIGINATING_TX_HASH_KEY]:
             '0x9488dee8cb5c6b2f6299e45e48bba580f46dbd496cfaa70a182060fd5dc81cb4',
-          [schemasConstants.SCHEMA_EVENT_NAME_KEY]: 'Redeem',
-          [schemasConstants.SCHEMA_STATUS_KEY]: 'detected',
+          [schemas.constants.SCHEMA_EVENT_NAME_KEY]: 'Redeem',
+          [schemas.constants.SCHEMA_STATUS_KEY]: 'detected',
         })
         done()
       }, 600)
