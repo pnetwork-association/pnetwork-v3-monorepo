@@ -7,6 +7,15 @@
     "jest": true
   },
   "rules": {
+    "max-len": [
+      "error",
+      {
+        "code": 120,
+        "ignoreComments": true,
+        "ignoreStrings": true,
+        "ignoreTemplateLiterals": true
+      }
+    ],
     "no-console": ["error"],
     "no-unused-vars": ["error", { "argsIgnorePattern": "^_" }],
     "node/no-unpublished-require": [
