@@ -24,10 +24,11 @@ const ABI_VAULT_CONTRACT = [
 const callContractFunction = (_fxnName, _fxnArgs, _contract) =>
   _contract[_fxnName](..._fxnArgs)
 
-const callContractFunctionAndAwait = curry((_fxnName, _fxnArgs, _contract) => {
-  logger.debug(
-    `Calling ${_fxnName} in contracts and awaiting for tx receipt...`
-  ) ||
+const callContractFunctionAndAwait = curry(
+  (_fxnName, _fxnArgs, _contract) =>
+    logger.debug(
+      `Calling ${_fxnName} in contracts and awaiting for tx receipt...`
+    ) ||
     callContractFunction(_fxnName, _fxnArgs, _contract)
       .then(
         _tx =>
@@ -40,7 +41,7 @@ const callContractFunctionAndAwait = curry((_fxnName, _fxnArgs, _contract) => {
             `${_fxnName} call mined successfully ${_tx.transactionHash}`
           ) || _tx
       )
-})
+)
 
 const makeProposalContractCall = curry(
   (_wallet, _issuanceManager, _redeemManager, _eventReport) =>
@@ -80,21 +81,21 @@ const makeProposalContractCall = curry(
       const contract = new ethers.Contract(contractAddress, abi, _wallet)
 
       logger.info(`Processing proposal ${eventName}:`)
-      logger.info(`eventName: ${eventName}`)
-      logger.info(`originTx: ${originTx}`)
-      logger.info(`userData: ${userData}`)
-      logger.info(`amount: ${amount}`)
-      logger.info(`tokenAddress: ${tokenAddress}`)
-      logger.info(`tokenRecipient: ${tokenRecipient}`)
+      logger.info(`  eventName: ${eventName}`)
+      logger.info(`  originTx: ${originTx}`)
+      logger.info(`  userData: ${userData}`)
+      logger.info(`  amount: ${amount}`)
+      logger.info(`  tokenAddress: ${tokenAddress}`)
+      logger.info(`  tokenRecipient: ${tokenRecipient}`)
 
-      return resolve(
-        callContractFunctionAndAwait(functionName, args, contract).catch(_err =>
+      return callContractFunctionAndAwait(functionName, args, contract)
+        .then(resolve)
+        .catch(_err =>
           _err.message.includes(errors.ERROR_TIMEOUT)
             ? logger.error(`Tx for ${originTx} failed:`, _err.message) ||
-              Promise.resolve()
-            : Promise.reject(_err)
+              resolve()
+            : reject(_err)
         )
-      )
     })
 )
 
@@ -141,6 +142,8 @@ const maybeBuildProposalsTxsAndPutInState = _state =>
   })
 
 module.exports = {
+  callContractFunction,
   makeProposalContractCall,
+  callContractFunctionAndAwait,
   maybeBuildProposalsTxsAndPutInState,
 }
