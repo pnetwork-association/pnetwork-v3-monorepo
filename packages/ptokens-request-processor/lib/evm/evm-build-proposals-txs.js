@@ -1,9 +1,9 @@
 const ethers = require('ethers')
-const { curry, values, includes } = require('ramda')
 const schemas = require('ptokens-schemas')
 const { logger } = require('../get-logger')
 const { utils, logic, errors } = require('ptokens-utils')
 const { ERROR_INVALID_EVENT_NAME } = require('../errors')
+const { curry, values, includes, length } = require('ramda')
 const {
   addProposalsReportsToState,
   removeDetectedReportsFromState,
@@ -109,9 +109,9 @@ const sendProposals = curry(
     )
 )
 
-const maybeBuildProposalsTxsAndPutInState = _state =>
-  new Promise(resolve => {
-    logger.info('Maybe building proposals txs...')
+const buildProposalsTxsAndPutInState = _state =>
+  new Promise((resolve, reject) => {
+    logger.info('Building proposals txs...')
     const detectedEvents = _state[STATE_DETECTED_DB_REPORTS_KEY]
     const destinationChainId = _state[schemas.constants.SCHEMA_CHAIN_ID_KEY]
     const providerUrl = _state[schemas.constants.SCHEMA_PROVIDER_URL_KEY]
@@ -122,23 +122,36 @@ const maybeBuildProposalsTxsAndPutInState = _state =>
     const redeemManagerAddress =
       _state[schemas.constants.SCHEMA_REDEEM_MANAGER_KEY]
 
-    return resolve(
-      checkEventsHaveExpectedDestinationChainId(
-        destinationChainId,
-        detectedEvents
-      )
-        .then(_ => utils.readGpgEncryptedFile(identityGpgFile))
-        .then(_privateKey => new ethers.Wallet(_privateKey, provider))
-        .then(
-          sendProposals(
-            detectedEvents,
-            issuanceManagerAddress,
-            redeemManagerAddress
-          )
-        )
-        .then(addProposalsReportsToState(_state))
-        .then(removeDetectedReportsFromState(_state))
+    return checkEventsHaveExpectedDestinationChainId(
+      destinationChainId,
+      detectedEvents
     )
+      .then(_ => utils.readGpgEncryptedFile(identityGpgFile))
+      .then(_privateKey => new ethers.Wallet(_privateKey, provider))
+      .then(
+        sendProposals(
+          detectedEvents,
+          issuanceManagerAddress,
+          redeemManagerAddress
+        )
+      )
+      .then(addProposalsReportsToState(_state))
+      .then(removeDetectedReportsFromState(_state))
+      .then(resolve)
+      .catch(reject)
+  })
+
+const maybeBuildProposalsTxsAndPutInState = _state =>
+  new Promise(resolve => {
+    logger.info('Maybe building proposals txs...')
+    const detectedEvents = _state[STATE_DETECTED_DB_REPORTS_KEY]
+    const detectedEventsNumber = length(detectedEvents)
+
+    return detectedEventsNumber === 0
+      ? logger.info('No proposals found...') || resolve(_state)
+      : logger.info(
+          `Detected ${detectedEventsNumber} proposals to process...`
+        ) || resolve(buildProposalsTxsAndPutInState(_state))
   })
 
 module.exports = {

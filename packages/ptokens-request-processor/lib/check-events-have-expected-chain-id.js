@@ -22,7 +22,7 @@ const checkEventHaveExpectedChainId = curry(
 const checkEventsHaveExpectedChainId = curry(
   (_reportChainIdKey, _expectedValue, _eventReports) =>
     Promise.all(
-      _eventReports(
+      _eventReports.map(
         checkEventHaveExpectedChainId(_reportChainIdKey, _expectedValue)
       )
     )

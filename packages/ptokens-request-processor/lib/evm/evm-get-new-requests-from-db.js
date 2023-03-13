@@ -26,7 +26,7 @@ const getNewRequestsFromDbAndPutInState = _state =>
   utils
     .getBlockchainTypeFromChainId(_state[schemas.constants.SCHEMA_CHAIN_ID_KEY])
     .then(_blockchainType => {
-      logger.info(`Gettting ${_blockchainType} requests from db...`)
+      logger.info(`Getting ${_blockchainType} requests from db...`)
       const query = {
         [schemas.constants.SCHEMA_STATUS_KEY]:
           schemas.db.enums.txStatus.DETECTED,
@@ -37,7 +37,7 @@ const getNewRequestsFromDbAndPutInState = _state =>
         .then(
           _reports =>
             logger.info(
-              `Found ${_reports.length} into the db ready to be processed...`
+              `Found ${_reports.length} events into the db ready to be processed...`
             ) || _reports
         )
         .then(_reports =>
