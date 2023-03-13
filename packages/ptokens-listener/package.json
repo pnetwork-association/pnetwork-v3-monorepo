@@ -6,6 +6,7 @@
   "scripts": {
     "lint": "eslint .",
     "test": "jest --config test/jest.config.js",
+    "coverage": "npm run test -- --coverage",
     "docker-build": "PROJECT_ROOT=$(pwd) ./docker-build.sh",
     "clean": "rm -rf $(pwd)/build"
   },

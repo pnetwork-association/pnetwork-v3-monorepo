@@ -10,8 +10,9 @@
   "scripts": {
     "lint": "eslint .",
     "clean": "rm -rf $(pwd)/build",
-    "docker-build": "PROJECT_ROOT=$(pwd) ./docker-build.sh",
-    "test": "jest --config test/jest.config.js"
+    "test": "jest --config test/jest.config.js",
+    "coverage": "npm run test -- --coverage",
+    "docker-build": "PROJECT_ROOT=$(pwd) ./docker-build.sh"
   },
   "keywords": [
     "ptokens",
