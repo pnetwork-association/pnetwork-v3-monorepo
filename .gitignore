@@ -42,3 +42,4 @@ globalConfig.json
 Thumbs.db
 
 **/logs
+*.gpg
