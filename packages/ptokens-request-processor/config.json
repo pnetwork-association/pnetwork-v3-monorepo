@@ -1,6 +1,8 @@
 {
+  "provider-url": "...",
   "identity": "./bsc-identity.gpg",
   "identity-address": "0xC0FEEE…",
+  "provider-url": "...",
   "chain-name": "bsc",
   "chain-type": "evm",
   "chain-id": "0x00e4b170",
