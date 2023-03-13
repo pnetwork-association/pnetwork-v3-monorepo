@@ -5,36 +5,39 @@ const {
   maybeProcessFinalTransactions: evmMaybeProcessFinalTransactions,
 } = require('../evm/evm-process-final-txs')
 
-const getStub = memoizeWith(
+const getImplementationFromChainId = memoizeWith(
   identity,
   _blockChainType =>
     new Promise((resolve, reject) => {
-      let stub = null
+      let implementation = null
       logger.info(
-        `Getting stub for pollForRequests for blockchain type ${_blockChainType}`
+        `Getting implementation for processFinalTxs for blockchain type ${_blockChainType}`
       )
-      const error = `Stub for blockchain type ${_blockChainType} not found, is it implemented?`
+      const error = `implementation for blockchain type ${_blockChainType} not found, is it implemented?`
       switch (_blockChainType) {
         case constants.blockchainType.EVM:
-          stub = evmMaybeProcessFinalTransactions
+          implementation = evmMaybeProcessFinalTransactions
           break
         // case constants.blockchainType.ALGORAND:
-        //   stub = algoPollForRequests
+        //   implementation = algoPollForRequests
         //   break
         default:
           return reject(new Error(error))
       }
 
-      return isNil(stub)
+      return isNil(implementation)
         ? reject(new Error(`Invalid block chain type: ${_blockChainType}`))
-        : resolve(stub)
+        : resolve(implementation)
     })
 )
 
 const maybeProcessFinalTransactions = _state =>
   utils
     .getBlockchainTypeFromChainId(_state[constants.STATE_KEY_CHAIN_ID])
-    .then(getStub)
+    .then(getImplementationFromChainId)
+    .then(_processFinalTxsImplementation =>
+      _processFinalTxsImplementation(_state)
+    )
 
 module.exports = {
   maybeProcessFinalTransactions,

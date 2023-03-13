@@ -5,40 +5,42 @@ const {
   pollForRequests: evmPollForRequests,
 } = require('../evm/evm-poll-for-requests')
 
-const getStub = memoizeWith(
+const getImplementationFromChainId = memoizeWith(
   identity,
   _blockChainType =>
     new Promise((resolve, reject) => {
-      let stub = null
+      let implementation = null
       logger.info(
-        `Getting stub for pollForRequests for blockchain type ${_blockChainType}`
+        `Getting implementation for processFinalTxs for blockchain type ${_blockChainType}`
       )
       switch (_blockChainType) {
         case constants.blockchainType.EVM:
-          stub = evmPollForRequests
+          implementation = evmPollForRequests
           break
         // case constants.blockchainType.ALGORAND:
-        //   stub = algoPollForRequests
+        //   implementation = algoPollForRequests
         //   break
         default:
           return reject(
             new Error(
-              `Stub for blockchain type ${_blockChainType} not found, is it implemented?`
+              `implementation for blockchain type ${_blockChainType} not found, is it implemented?`
             )
           )
       }
 
-      return isNil(stub)
+      return isNil(implementation)
         ? reject(new Error(`Invalid block chain type: ${_blockChainType}`))
-        : resolve(stub)
+        : resolve(implementation)
     })
 )
 
 const pollForRequests = _state =>
   utils
     .getBlockchainTypeFromChainId(_state[constants.STATE_KEY_CHAIN_ID])
-    .then(getStub)
-    .then(_stub => _stub(_state))
+    .then(getImplementationFromChainId)
+    .then(_pollForRequestsImplementation =>
+      _pollForRequestsImplementation(_state)
+    )
 
 module.exports = {
   pollForRequests,
