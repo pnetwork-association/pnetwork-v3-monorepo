@@ -1,7 +1,8 @@
 const { db } = require('ptokens-utils')
-const reportsSet = require('../samples/reports-set')
+const reportsSet = require('./samples/reports-set')
+const { filterForValidReports } = require('../lib/filter-for-valid-reports')
 
-describe('EVM Get new requests from db tests', () => {
+describe('Reports filtering tests', () => {
   const dbName = 'test'
   const tableName = 'test'
   let collection = null
@@ -16,10 +17,6 @@ describe('EVM Get new requests from db tests', () => {
   })
 
   describe('filterForValidReports', () => {
-    const {
-      filterForValidReports,
-    } = require('../../lib/evm/evm-get-detected-events-from-db')
-
     beforeAll(async () => {
       await db.insertReports(collection, reportsSet)
     })

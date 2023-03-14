@@ -7,8 +7,8 @@ const {
   getOnChainQueuedRequestsAndPutInState,
 } = require('./evm-get-on-chain-queued-requests')
 const {
-  getNewRequestsFromDbAndPutInState,
-} = require('./evm-get-detected-events-from-db')
+  getDetectedEventsFromDbAndPutInState,
+} = require('../get-detected-events-from-db')
 const {
   maybeBuildProposalsTxsAndPutInState,
 } = require('./evm-build-proposals-txs')
@@ -22,7 +22,7 @@ const SLEEP_TIME = 1000
 const maybeProcessNewRequests = _state =>
   logger.info('Polling for new requests EVM...') ||
   getOnChainQueuedRequestsAndPutInState(_state)
-    .then(getNewRequestsFromDbAndPutInState)
+    .then(getDetectedEventsFromDbAndPutInState)
     .then(filterOutOnChainRequests)
     .then(maybeBuildProposalsTxsAndPutInState)
     .then(logic.sleepThenReturnArg(SLEEP_TIME))
