@@ -1,4 +1,4 @@
-const { assoc } = require('ramda')
+const { curry, assoc } = require('ramda')
 const { logger } = require('../get-logger')
 const { db, constants, utils, validation } = require('ptokens-utils')
 const schemas = require('ptokens-schemas')
@@ -22,28 +22,35 @@ const filterForValidReports = _reports =>
     _filteredReports.filter(utils.isNotNil)
   )
 
-const getNewRequestsFromDbAndPutInState = _state =>
-  utils
-    .getBlockchainTypeFromChainId(_state[schemas.constants.SCHEMA_CHAIN_ID_KEY])
-    .then(_blockchainType => {
-      logger.info(`Getting ${_blockchainType} requests from db...`)
-      const query = {
-        [schemas.constants.SCHEMA_STATUS_KEY]:
-          schemas.db.enums.txStatus.DETECTED,
-      }
+const extractReportsWithChainIdAndStatus = curry(
+  (_collection, _chainId, _status) =>
+    utils.getBlockchainTypeFromChainId(_chainId).then(_blockChainType => {
+      logger.info(
+        `Getting ${_blockChainType} requests w/ status ${_status} from db...`
+      )
+      const query = { [schemas.constants.SCHEMA_STATUS_KEY]: _status }
       return db
-        .findReports(_state[constants.STATE_KEY_DB], query)
+        .findReports(_collection, query)
         .then(filterForValidReports)
         .then(
           _reports =>
             logger.info(
-              `Found ${_reports.length} events into the db ready to be processed...`
+              `Found ${_reports.length} events w/ status ${_status} into the db!`
             ) || _reports
         )
-        .then(_reports =>
-          assoc(STATE_DETECTED_DB_REPORTS_KEY, _reports, _state)
-        )
     })
+)
+
+const getNewRequestsFromDbAndPutInState = _state =>
+  extractReportsWithChainIdAndStatus(
+    _state[constants.STATE_KEY_DB],
+    _state[schemas.constants.SCHEMA_CHAIN_ID_KEY],
+    schemas.db.enums.txStatus.DETECTED
+  ).then(
+    _reports =>
+      logger.info('Adding detected reports to state...') ||
+      assoc(STATE_DETECTED_DB_REPORTS_KEY, _reports, _state)
+  )
 
 module.exports = {
   filterForValidReports,
