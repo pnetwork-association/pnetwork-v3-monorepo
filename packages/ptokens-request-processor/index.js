@@ -2,8 +2,8 @@
 const config = require('./config')
 const { keys, equals } = require('ramda')
 const { logger } = require('./lib/get-logger')
-// const { validation } = require('ptokens-utils')
-// const schemas = require('ptokens-schemas')
+const { validation } = require('ptokens-utils')
+const schemas = require('ptokens-schemas')
 const { setupExitEventListeners } = require('./lib/setup-exit-listeners')
 const { pollForRequests } = require('./lib/interfaces/poll-for-requests')
 const {
@@ -13,7 +13,7 @@ const {
   getInitialStateFromConfiguration,
 } = require('./lib/populate-state-from-configuration')
 // const validateConfig = validation.getValidationFunction(
-//   configRequestProcessorSchema
+//   schemas.configurations.configRequestProcessorSchema
 // )
 
 const commandToFunctionMapping = {
@@ -35,7 +35,9 @@ const checkFlowIsValid = _cmd =>
 const requestProcessor = (_config, _cmd) =>
   logger.info(_config) ||
   setupExitEventListeners()
-    // .then(_ => validateConfig(schemas.configurations.requestProcessor, _config))
+    .then(_ =>
+      validation.validateJson(schemas.configurations.requestProcessor, _config)
+    )
     .then(_ => checkFlowIsValid(_cmd))
     .then(_ => logger.info(`Valid command selected: ${_cmd}`))
     .then(_ => getInitialStateFromConfiguration(_config))
