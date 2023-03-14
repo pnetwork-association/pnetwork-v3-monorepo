@@ -1,4 +1,4 @@
-const { utils, constants } = require('ptokens-utils')
+const { constants } = require('ptokens-utils')
 const {
   maybeProcessFinalTransactions: evmMaybeProcessFinalTransactions,
 } = require('../evm/evm-process-final-txs')
@@ -12,16 +12,11 @@ const blockchainTypeImplementationMapping = {
 }
 
 const maybeProcessFinalTransactions = _state =>
-  utils
-    .getBlockchainTypeFromChainId(_state[constants.STATE_KEY_CHAIN_ID])
-    .then(_blockChainType =>
-      getImplementationFromChainId(
-        _blockChainType,
-        'maybeProcessFinalTransactions',
-        blockchainTypeImplementationMapping
-      )
-    )
-    .then(_implementedMethod => _implementedMethod(_state))
+  getImplementationFromChainId(
+    _state[constants.STATE_KEY_CHAIN_ID],
+    'maybeProcessFinalTransactions',
+    blockchainTypeImplementationMapping
+  ).then(_implementedMethod => _implementedMethod(_state))
 
 module.exports = {
   maybeProcessFinalTransactions,
