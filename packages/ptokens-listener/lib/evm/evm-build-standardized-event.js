@@ -145,6 +145,51 @@ const maybeAddTokenAddress = curry((_eventLog, _standardEvent) =>
   )
 )
 
+const addInfoFromParsedLog = (_chainId, _parsedLog, _obj) =>
+  Promise.resolve(_obj)
+    .then(setStatusToDetected)
+    .then(addEventName(_parsedLog))
+    .then(addOriginatingChainId(_chainId, _parsedLog.args))
+    .then(maybeAddAmount(_parsedLog.args))
+    .then(maybeAddDestinationAddress(_parsedLog.args))
+    .then(maybeAddDestinationChainId(_parsedLog.args))
+    .then(maybeAddUserData(_parsedLog.args))
+    .then(maybeAddTokenAddress(_parsedLog.args))
+
+const addOriginatingTransactionHash = curry((_log, _obj) =>
+  Promise.resolve(
+    assoc(
+      schemas.constants.SCHEMA_ORIGINATING_TX_HASH_KEY,
+      _log.transactionHash,
+      _obj
+    )
+  )
+)
+
+const addWitnessedTs = _obj =>
+  Promise.resolve(new Date().toISOString()).then(_ts =>
+    assoc(schemas.constants.SCHEMA_WITNESSED_TS_KEY, _ts, _obj)
+  )
+
+const setId = _obj =>
+  assoc(
+    '_id',
+    `${_obj[schemas.constants.SCHEMA_ORIGINATING_CHAIN_ID_KEY]}_${
+      _obj[schemas.constants.SCHEMA_ORIGINATING_TX_HASH_KEY]
+    }`,
+    _obj
+  )
+
+const parseLog = (_interface, _log) =>
+  Promise.resolve(_interface.parseLog(_log)).then(
+    _parsedLog =>
+      logger.debug('Parsed EVM event log') ||
+      logger.debug('  name:', _parsedLog.name) ||
+      logger.debug('  signature:', _parsedLog.signature) ||
+      logger.debug('  args:', _parsedLog.args) ||
+      _parsedLog
+  )
+
 /**
  * Build an event based on the pNetwork schema from
  * an EVM one. The expected log is of the form
@@ -164,48 +209,18 @@ const maybeAddTokenAddress = curry((_eventLog, _standardEvent) =>
  * }
  *
  * @param  {string} _chainId,  [metadata chain id]
- * @param  {string} _parsedLog [on chain parsed log]
+ * @param  {object} _interface,  [ethers.js interface object]
+ * @param  {object} _log [on chain event log]
  * @return {object}            [the standard event object]
  */
-const addInfoFromParsedLog = (_chainId, _parsedLog, _obj) =>
-  Promise.resolve(_obj)
-    .then(setStatusToDetected)
-    .then(addEventName(_parsedLog))
-    .then(addOriginatingChainId(_chainId, _parsedLog.args))
-    .then(maybeAddAmount(_parsedLog.args))
-    .then(maybeAddDestinationAddress(_parsedLog.args))
-    .then(maybeAddDestinationChainId(_parsedLog.args))
-    .then(maybeAddUserData(_parsedLog.args))
-    .then(maybeAddTokenAddress(_parsedLog.args))
-// TODO add missing properties (check the schema-event-report module)
-// TODO: add custom report ID (originatingChainID_originatingTxHash)
-
-const addOriginatingTransactionHash = curry((_log, _obj) =>
-  Promise.resolve(
-    assoc(
-      schemas.constants.SCHEMA_ORIGINATING_TX_HASH_KEY,
-      _log.transactionHash,
-      _obj
-    )
-  )
-)
-
-const parseLog = (_interface, _log) =>
-  Promise.resolve(_interface.parseLog(_log)).then(
-    _parsedLog =>
-      logger.debug('Parsed EVM event log') ||
-      logger.debug('  name:', _parsedLog.name) ||
-      logger.debug('  signature:', _parsedLog.signature) ||
-      logger.debug('  args:', _parsedLog.args) ||
-      _parsedLog
-  )
-
 const buildStandardizedEvmEventObjectFromLog = (_chainId, _interface, _log) =>
   Promise.all([getEventWithAllRequiredSetToNull(), parseLog(_interface, _log)])
     .then(([_obj, _parsedLog]) =>
       addInfoFromParsedLog(_chainId, _parsedLog, _obj)
     )
     .then(addOriginatingTransactionHash(_log))
+    .then(addWitnessedTs)
+    .then(setId)
 
 module.exports = {
   buildStandardizedEvmEventObjectFromLog,

@@ -6,6 +6,9 @@ const schemas = require('ptokens-schemas')
 const { constants } = require('ptokens-utils')
 const { STATE_KEY_EVENTS } = require('../../lib/state/constants')
 
+const ISO_FORMAT_REGEX =
+  /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2}(?:\.\d*)?)((-(\d{2}):(\d{2})|Z)?)$/
+
 describe('EVM listener', () => {
   describe('getEthersProvider', () => {
     afterEach(() => {
@@ -57,7 +60,8 @@ describe('EVM listener', () => {
         [schemas.constants.SCHEMA_TOKEN_ADDRESS_KEY]: null,
         [schemas.constants.SCHEMA_PROPOSAL_TS_KEY]: null,
         [schemas.constants.SCHEMA_PROPOSAL_TX_HASH_KEY]: null,
-        [schemas.constants.SCHEMA_WITNESSED_TS_KEY]: null,
+        [schemas.constants.SCHEMA_WITNESSED_TS_KEY]:
+          expect.stringMatching(ISO_FORMAT_REGEX),
         [schemas.constants.SCHEMA_FINAL_TX_HASH_KEY]: null,
         [schemas.constants.SCHEMA_FINAL_TX_TS_KEY]: null,
         [schemas.constants.SCHEMA_DESTINATION_ADDRESS_KEY]:
@@ -67,6 +71,7 @@ describe('EVM listener', () => {
         [schemas.constants.SCHEMA_ORIGINATING_CHAIN_ID_KEY]: '0x005fe7f9',
         [schemas.constants.SCHEMA_ORIGINATING_TX_HASH_KEY]:
           '0x9488dee8cb5c6b2f6299e45e48bba580f46dbd496cfaa70a182060fd5dc81cb4',
+        _id: '0x005fe7f9_0x9488dee8cb5c6b2f6299e45e48bba580f46dbd496cfaa70a182060fd5dc81cb4',
       }
 
       expect(result).toStrictEqual(expected)
@@ -108,7 +113,8 @@ describe('EVM listener', () => {
         [schemas.constants.SCHEMA_TOKEN_ADDRESS_KEY]: null,
         [schemas.constants.SCHEMA_PROPOSAL_TS_KEY]: null,
         [schemas.constants.SCHEMA_PROPOSAL_TX_HASH_KEY]: null,
-        [schemas.constants.SCHEMA_WITNESSED_TS_KEY]: null,
+        [schemas.constants.SCHEMA_WITNESSED_TS_KEY]:
+          expect.stringMatching(ISO_FORMAT_REGEX),
         [schemas.constants.SCHEMA_FINAL_TX_HASH_KEY]: null,
         [schemas.constants.SCHEMA_FINAL_TX_TS_KEY]: null,
         [schemas.constants.SCHEMA_DESTINATION_ADDRESS_KEY]:
@@ -118,6 +124,7 @@ describe('EVM listener', () => {
         [schemas.constants.SCHEMA_ORIGINATING_CHAIN_ID_KEY]: '0x005fe7f9',
         [schemas.constants.SCHEMA_ORIGINATING_TX_HASH_KEY]:
           '0x9488dee8cb5c6b2f6299e45e48bba580f46dbd496cfaa70a182060fd5dc81cb4',
+        _id: '0x005fe7f9_0x9488dee8cb5c6b2f6299e45e48bba580f46dbd496cfaa70a182060fd5dc81cb4',
       }
       const assertions = () => {
         expect(callback).toHaveBeenNthCalledWith(1, expected)
@@ -237,7 +244,8 @@ describe('EVM listener', () => {
           [schemas.constants.SCHEMA_TOKEN_ADDRESS_KEY]: null,
           [schemas.constants.SCHEMA_PROPOSAL_TS_KEY]: null,
           [schemas.constants.SCHEMA_PROPOSAL_TX_HASH_KEY]: null,
-          [schemas.constants.SCHEMA_WITNESSED_TS_KEY]: null,
+          [schemas.constants.SCHEMA_WITNESSED_TS_KEY]:
+            expect.stringMatching(ISO_FORMAT_REGEX),
           [schemas.constants.SCHEMA_FINAL_TX_HASH_KEY]: null,
           [schemas.constants.SCHEMA_FINAL_TX_TS_KEY]: null,
           [schemas.constants.SCHEMA_DESTINATION_ADDRESS_KEY]: null,
@@ -246,6 +254,7 @@ describe('EVM listener', () => {
           [schemas.constants.SCHEMA_ORIGINATING_CHAIN_ID_KEY]: '0x005fe7f9',
           [schemas.constants.SCHEMA_ORIGINATING_TX_HASH_KEY]:
             '0x37eeb55eab329c73aeac6a172faa6c77e7013cd0cda0fc472274c5faf0df7003',
+          _id: '0x005fe7f9_0x37eeb55eab329c73aeac6a172faa6c77e7013cd0cda0fc472274c5faf0df7003',
         })
         expect(callback).toHaveBeenNthCalledWith(2, {
           [schemas.constants.SCHEMA_STATUS_KEY]:
@@ -257,7 +266,8 @@ describe('EVM listener', () => {
             '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
           [schemas.constants.SCHEMA_PROPOSAL_TS_KEY]: null,
           [schemas.constants.SCHEMA_PROPOSAL_TX_HASH_KEY]: null,
-          [schemas.constants.SCHEMA_WITNESSED_TS_KEY]: null,
+          [schemas.constants.SCHEMA_WITNESSED_TS_KEY]:
+            expect.stringMatching(ISO_FORMAT_REGEX),
           [schemas.constants.SCHEMA_FINAL_TX_HASH_KEY]: null,
           [schemas.constants.SCHEMA_FINAL_TX_TS_KEY]: null,
           [schemas.constants.SCHEMA_DESTINATION_ADDRESS_KEY]: '770102986',
@@ -266,6 +276,7 @@ describe('EVM listener', () => {
           [schemas.constants.SCHEMA_ORIGINATING_CHAIN_ID_KEY]: '0x005fe7f9',
           [schemas.constants.SCHEMA_ORIGINATING_TX_HASH_KEY]:
             '0x0f53438f23bd61bcee616d4f4d0f70a80dcd1d10dc8b0796774cb4afa6340305',
+          _id: '0x005fe7f9_0x0f53438f23bd61bcee616d4f4d0f70a80dcd1d10dc8b0796774cb4afa6340305',
         })
         expect(callback).toHaveBeenNthCalledWith(3, {
           [schemas.constants.SCHEMA_STATUS_KEY]:
@@ -276,7 +287,8 @@ describe('EVM listener', () => {
           [schemas.constants.SCHEMA_TOKEN_ADDRESS_KEY]: null,
           [schemas.constants.SCHEMA_PROPOSAL_TS_KEY]: null,
           [schemas.constants.SCHEMA_PROPOSAL_TX_HASH_KEY]: null,
-          [schemas.constants.SCHEMA_WITNESSED_TS_KEY]: null,
+          [schemas.constants.SCHEMA_WITNESSED_TS_KEY]:
+            expect.stringMatching(ISO_FORMAT_REGEX),
           [schemas.constants.SCHEMA_FINAL_TX_HASH_KEY]: null,
           [schemas.constants.SCHEMA_FINAL_TX_TS_KEY]: null,
           [schemas.constants.SCHEMA_DESTINATION_ADDRESS_KEY]:
@@ -286,6 +298,7 @@ describe('EVM listener', () => {
           [schemas.constants.SCHEMA_ORIGINATING_CHAIN_ID_KEY]: '0x005fe7f9',
           [schemas.constants.SCHEMA_ORIGINATING_TX_HASH_KEY]:
             '0x9488dee8cb5c6b2f6299e45e48bba580f46dbd496cfaa70a182060fd5dc81cb4',
+          _id: '0x005fe7f9_0x9488dee8cb5c6b2f6299e45e48bba580f46dbd496cfaa70a182060fd5dc81cb4',
         })
         done()
       }, 600)
