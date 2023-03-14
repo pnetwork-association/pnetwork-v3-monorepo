@@ -18,7 +18,7 @@ describe('EVM Get new requests from db tests', () => {
   describe('filterForValidReports', () => {
     const {
       filterForValidReports,
-    } = require('../../lib/evm/evm-get-new-requests-from-db')
+    } = require('../../lib/evm/evm-get-detected-events-from-db')
 
     beforeAll(async () => {
       await db.insertReports(collection, reportsSet)

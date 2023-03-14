@@ -8,7 +8,7 @@ const {
 } = require('./evm-get-on-chain-queued-requests')
 const {
   getNewRequestsFromDbAndPutInState,
-} = require('./evm-get-new-requests-from-db')
+} = require('./evm-get-detected-events-from-db')
 const {
   maybeBuildProposalsTxsAndPutInState,
 } = require('./evm-build-proposals-txs')
