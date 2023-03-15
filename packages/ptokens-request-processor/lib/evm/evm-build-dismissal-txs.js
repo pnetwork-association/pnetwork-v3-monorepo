@@ -12,7 +12,7 @@ const { STATE_DETECTED_DB_REPORTS_KEY } = require('../state/constants')
 const makeDismissalContractCall = curry(
   (_privateKey, _providerUrl, _destinationChainId, _eventReport) =>
     new Promise(resolve => {
-      const provider = new ethers.providers.JsonRpcProvider(_providerUrl)
+      const provider = new ethers.JsonRpcProvider(_providerUrl)
       const wallet = new ethers.Wallet(_privateKey, provider)
       logger.info(
         `Signing dismissal transactions with address ${wallet.address}`
