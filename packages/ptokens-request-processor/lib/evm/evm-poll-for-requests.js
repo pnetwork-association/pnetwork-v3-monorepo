@@ -25,6 +25,7 @@ const maybeProcessNewRequests = _state =>
     .then(getDetectedEventsFromDbAndPutInState)
     .then(filterOutOnChainRequests)
     .then(maybeBuildProposalsTxsAndPutInState)
+    // .then(maybeUpdateReportsInDb)
     .then(logic.sleepThenReturnArg(SLEEP_TIME))
 
 const INFINITE_LOOP = {

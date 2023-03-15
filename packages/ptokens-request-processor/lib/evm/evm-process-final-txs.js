@@ -1,28 +1,23 @@
 const { curry } = require('ramda')
 const { logic } = require('ptokens-utils')
 const { logger } = require('../get-logger')
+const { maybeBuildFinalTxsAndPutInState } = require('./evm-build-final-txs')
+const {
+  getProposedEventsFromDbAndPutInState,
+} = require('../get-proposed-events-from-db')
+const {
+  filterForExpiredChallengePeriodAndPutInState,
+} = require('./evm-filter-for-expired-challenge-period')
 
 // TODO: configurable
 const SLEEP_TIME = 1000
 
-const getFinalTxsFromDbAndPutInState = _state => {
-  logger.info('getFinalTxsFromDbAndPutInState EVM')
-  return Promise.resolve(_state)
-}
-const buildFinalTxsAndPutInState = _state => {
-  logger.info('buildFinalTxsAndPutInState EVM')
-  return Promise.resolve(_state)
-}
-const broadcastTxsAndPutResultInState = _state => {
-  logger.info('broadcastTxsAndPutResultInState EVM')
-  return Promise.resolve(_state)
-}
-
 const processFinalTransactions = _state =>
   logger.info('processFinalTransactions EVM') ||
-  getFinalTxsFromDbAndPutInState(_state)
-    .then(buildFinalTxsAndPutInState)
-    .then(broadcastTxsAndPutResultInState)
+  getProposedEventsFromDbAndPutInState(_state)
+    .then(filterForExpiredChallengePeriodAndPutInState)
+    .then(maybeBuildFinalTxsAndPutInState)
+    // .then(maybeUpdateReportsInDb)
     .then(logic.sleepThenReturnArg(SLEEP_TIME))
 
 const processFinalRequestsErrorHandler = curry((_state, _err) => {

@@ -1,55 +1,11 @@
+const {
+  jestMockEthers,
+  jestMockContractConstructor,
+} = require('./mock/jest-utils')
 const schemas = require('ptokens-schemas')
 const { validation } = require('ptokens-utils')
 
 describe('Build proposals test for EVM', () => {
-  const jestMockEthers = () => {
-    jest.mock('ethers', () => ({
-      __esModule: true,
-      ...jest.requireActual('ethers'),
-    }))
-
-    return require('ethers')
-  }
-
-  const jestMockContractConstructor = (_fxnName, _resolvedValue) => {
-    // No arrow function here: doesn't work with
-    // constructors
-    return function () {
-      return {
-        [_fxnName]: jest.fn().mockResolvedValue({
-          wait: jest.fn().mockResolvedValue(_resolvedValue),
-        }),
-      }
-    }
-  }
-
-  describe('callContractFunctionAndAwait', () => {
-    afterEach(() => {
-      jest.restoreAllMocks()
-    })
-
-    it('Should call a contract function', async () => {
-      const ethers = jestMockEthers()
-
-      const expectedObject = {
-        transactionHash:
-          '0xd656ffac17b71e2ea2e24f72cd4c15c909a0ebe1696f8ead388eb268268f1cbf',
-      }
-
-      ethers.Contract = jestMockContractConstructor('mint', expectedObject)
-
-      const contract = new ethers.Contract()
-
-      const {
-        callContractFunctionAndAwait,
-      } = require('../../lib/evm/evm-build-proposals-txs')
-
-      const result = await callContractFunctionAndAwait('mint', [], contract)
-
-      expect(result).toStrictEqual(expectedObject)
-    })
-  })
-
   describe('makeProposalContractCall', () => {
     afterEach(() => {
       jest.restoreAllMocks()

@@ -1,7 +1,7 @@
 const ethers = require('ethers')
 const schemas = require('ptokens-schemas')
 const { logger } = require('../get-logger')
-const { utils, logic, errors } = require('ptokens-utils')
+const { utils, errors } = require('ptokens-utils')
 const { ERROR_INVALID_EVENT_NAME } = require('../errors')
 const { curry, values, includes, length } = require('ramda')
 const {
@@ -12,6 +12,7 @@ const { STATE_DETECTED_DB_REPORTS_KEY } = require('../state/constants')
 const {
   checkEventsHaveExpectedDestinationChainId,
 } = require('../check-events-have-expected-chain-id')
+const { callContractFunctionAndAwait } = require('./evm-call-contract-function')
 
 const ABI_PTOKEN_CONTRACT = [
   'function mint(address recipient, uint256 value, bytes memory userData, bytes memory operatorData)',
@@ -20,28 +21,6 @@ const ABI_PTOKEN_CONTRACT = [
 const ABI_VAULT_CONTRACT = [
   'function pegOut(address payable _tokenRecipient, address _tokenAddress, uint256 _tokenAmount, bytes calldata _userData)',
 ]
-
-const callContractFunction = (_fxnName, _fxnArgs, _contract) =>
-  _contract[_fxnName](..._fxnArgs)
-
-const callContractFunctionAndAwait = curry(
-  (_fxnName, _fxnArgs, _contract) =>
-    logger.debug(
-      `Calling ${_fxnName} in contracts and awaiting for tx receipt...`
-    ) ||
-    callContractFunction(_fxnName, _fxnArgs, _contract)
-      .then(
-        _tx =>
-          logger.debug(`Function ${_fxnName} called, awaiting...`) ||
-          logic.racePromise(5000, _tx.wait, [])
-      )
-      .then(
-        _tx =>
-          logger.info(
-            `${_fxnName} call mined successfully ${_tx.transactionHash}`
-          ) || _tx
-      )
-)
 
 const makeProposalContractCall = curry(
   (_wallet, _issuanceManager, _redeemManager, _eventReport) =>
@@ -99,7 +78,7 @@ const makeProposalContractCall = curry(
     })
 )
 
-const sendProposals = curry(
+const sendProposalTransactions = curry(
   (_eventReports, _issuanceManager, _redeemManager, _wallet) =>
     logger.info(`Sending proposals w/ address ${_wallet.address}`) ||
     Promise.all(
@@ -129,7 +108,7 @@ const buildProposalsTxsAndPutInState = _state =>
       .then(_ => utils.readGpgEncryptedFile(identityGpgFile))
       .then(_privateKey => new ethers.Wallet(_privateKey, provider))
       .then(
-        sendProposals(
+        sendProposalTransactions(
           detectedEvents,
           issuanceManagerAddress,
           redeemManagerAddress
@@ -148,15 +127,12 @@ const maybeBuildProposalsTxsAndPutInState = _state =>
     const detectedEventsNumber = length(detectedEvents)
 
     return detectedEventsNumber === 0
-      ? logger.info('No proposals found...') || resolve(_state)
-      : logger.info(
-          `Detected ${detectedEventsNumber} proposals to process...`
-        ) || resolve(buildProposalsTxsAndPutInState(_state))
+      ? logger.info('No detected events found...') || resolve(_state)
+      : logger.info(`Detected ${detectedEventsNumber} events to process...`) ||
+          resolve(buildProposalsTxsAndPutInState(_state))
   })
 
 module.exports = {
-  callContractFunction,
   makeProposalContractCall,
-  callContractFunctionAndAwait,
   maybeBuildProposalsTxsAndPutInState,
 }
