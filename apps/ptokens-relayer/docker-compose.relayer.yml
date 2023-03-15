@@ -12,6 +12,7 @@ services:
   request-processor-bsc:
     image: ${IMAGE_EVM_PROCESSOR}:${VERSION_PROCESSOR:-latest}
     volumes:
+      - './private-key:${PRIVATE_KEY_FILE}'
       - './bsc-processor.config.json:${APP_CONFIG_JSON}'
       - './logs:${APP_FOLDER_LOGS}'
     restart: unless-stopped
