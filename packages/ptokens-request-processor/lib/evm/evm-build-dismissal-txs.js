@@ -1,4 +1,5 @@
 const ethers = require('ethers')
+const { readFile } = require('fs/promises')
 const { constants: schemasConstants } = require('ptokens-schemas')
 const { logger } = require('../get-logger')
 const { curry } = require('ramda')
@@ -23,16 +24,16 @@ const makeDismissalContractCall = curry(
 
 const sendDismissalTransaction = curry(
   (_identityGpgFile, _providerUrl, _destinationChainId, _eventReport) =>
-    utils
-      .readGpgEncryptedFile(_identityGpgFile)
-      .then(_privateKey =>
-        makeDismissalContractCall(
-          _privateKey,
-          _providerUrl,
-          _destinationChainId,
-          _eventReport
-        )
+    // utils
+    //   .readGpgEncryptedFile(_identityGpgFile)
+    readFile(_identityGpgFile, { encoding: 'utf8' }).then(_privateKey =>
+      makeDismissalContractCall(
+        _privateKey,
+        _providerUrl,
+        _destinationChainId,
+        _eventReport
       )
+    )
 )
 
 const maybeBuildDismissalTxsAndPutInState = _state => {
