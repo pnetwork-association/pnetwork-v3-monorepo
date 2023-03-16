@@ -1,4 +1,3 @@
-const { curry } = require('ramda')
 const { logic } = require('ptokens-utils')
 const { logger } = require('../get-logger')
 const {
@@ -9,6 +8,7 @@ const {
 } = require('./evm-get-on-chain-queued-requests')
 const {
   getDetectedEventsFromDbAndPutInState,
+  getValidMatchingEventsAndPutInState,
 } = require('../get-events-from-db')
 const {
   maybeBuildProposalsTxsAndPutInState,
@@ -23,24 +23,21 @@ const {
 // TODO: configurable
 const SLEEP_TIME = 1000
 
-const maybeProcessNewRequests = curry(
-  (_processFunction, _state) =>
-    logger.info('Polling for new requests EVM...') ||
-    getOnChainQueuedRequestsAndPutInState(_state)
-      .then(getDetectedEventsFromDbAndPutInState)
-      .then(_processFunction)
-      .then(logic.sleepThenReturnArg(SLEEP_TIME))
-)
+const maybeProcessNewRequestsAndPropose = _state =>
+  logger.info('Polling for new requests EVM...') ||
+  getOnChainQueuedRequestsAndPutInState(_state)
+    .then(getDetectedEventsFromDbAndPutInState)
+    .then(filterOutOnChainRequestsAndPutInState)
+    .then(maybeBuildProposalsTxsAndPutInState)
+    .then(logic.sleepThenReturnArg(SLEEP_TIME))
 
-const filterOutOnChainRequestsAndBuildDismissals = _state =>
-  filterOutOnChainRequestsAndPutInState(_state).then(
-    maybeBuildDismissalTxsAndPutInState
-  )
-
-const filterOutOnChainRequestsAndBuildProposals = _state =>
-  filterOutOnChainRequestsAndPutInState(_state).then(
-    maybeBuildProposalsTxsAndPutInState
-  )
+const maybeProcessNewRequestsAndDismiss = _state =>
+  logger.info('Polling for new requests EVM...') ||
+  getOnChainQueuedRequestsAndPutInState(_state)
+    .then(getValidMatchingEventsAndPutInState)
+    .then(filterOutOnChainRequestsAndPutInState)
+    .then(maybeBuildDismissalTxsAndPutInState)
+    .then(logic.sleepThenReturnArg(SLEEP_TIME))
 
 const INFINITE_LOOP = {
   rounds: logic.LOOP_MODE.INFINITE,
@@ -48,20 +45,12 @@ const INFINITE_LOOP = {
 
 const pollForRequestsAndDismiss = _state =>
   logic
-    .loop(
-      INFINITE_LOOP,
-      maybeProcessNewRequests(filterOutOnChainRequestsAndBuildDismissals),
-      [_state]
-    )
+    .loop(INFINITE_LOOP, maybeProcessNewRequestsAndDismiss, [_state])
     .catch(pollForRequestsErrorHandler(pollForRequestsAndDismiss))
 
 const pollForRequestsAndPropose = _state =>
   logic
-    .loop(
-      INFINITE_LOOP,
-      maybeProcessNewRequests(filterOutOnChainRequestsAndBuildProposals),
-      [_state]
-    )
+    .loop(INFINITE_LOOP, maybeProcessNewRequestsAndPropose, [_state])
     .catch(pollForRequestsErrorHandler(pollForRequestsAndPropose))
 
 module.exports = {
