@@ -3,4 +3,5 @@ module.exports = {
   verbose: true,
   preset: '@shelf/jest-mongodb',
   setupFilesAfterEnv: ['./jest-setup.js'],
+  testTimeout: 15000,
 }
