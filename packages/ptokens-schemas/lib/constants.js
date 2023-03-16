@@ -6,6 +6,7 @@ module.exports = {
   SCHEMA_CHAIN_ID_KEY: 'chain-id',
   SCHEMA_CHAIN_NAME_KEY: 'chain-name',
   SCHEMA_CHAIN_TYPE_KEY: 'chain-type',
+  SCHEMA_TX_TIMEOUT: 'tx-timeout',
   SCHEMA_EVENTS_KEY: 'events',
   SCHEMA_CHALLENGE_PERIOD: 'challenge-period',
   SCHEMA_DB_KEY: 'db',

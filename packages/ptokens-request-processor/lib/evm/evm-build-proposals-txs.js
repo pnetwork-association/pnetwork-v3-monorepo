@@ -34,6 +34,7 @@ const makeProposalContractCall = curry(
         _eventReport[schemas.constants.SCHEMA_ORIGINATING_TX_HASH_KEY]
       const tokenRecipient =
         _eventReport[schemas.constants.SCHEMA_DESTINATION_ADDRESS_KEY]
+      const tx_timeout = _eventReport[schemas.constants.SCHEMA_TX_TIMEOUT]
 
       if (!includes(eventName, values(schemas.db.enums.eventNames))) {
         return reject(new Error(`${ERROR_INVALID_EVENT_NAME}: ${eventName}`))
@@ -67,7 +68,7 @@ const makeProposalContractCall = curry(
       logger.info(`  tokenAddress: ${tokenAddress}`)
       logger.info(`  tokenRecipient: ${tokenRecipient}`)
 
-      return callContractFunctionAndAwait(functionName, args, contract)
+      return callContractFunctionAndAwait(functionName, args, contract, tx_timeout)
         .then(resolve)
         .catch(_err =>
           _err.message.includes(errors.ERROR_TIMEOUT)
