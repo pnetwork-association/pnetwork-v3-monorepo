@@ -68,7 +68,12 @@ const makeProposalContractCall = curry(
       logger.info(`  tokenAddress: ${tokenAddress}`)
       logger.info(`  tokenRecipient: ${tokenRecipient}`)
 
-      return callContractFunctionAndAwait(functionName, args, contract, tx_timeout)
+      return callContractFunctionAndAwait(
+        functionName,
+        args,
+        contract,
+        tx_timeout
+      )
         .then(resolve)
         .catch(_err =>
           _err.message.includes(errors.ERROR_TIMEOUT)

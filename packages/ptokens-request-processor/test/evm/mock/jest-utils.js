@@ -9,16 +9,20 @@ const jestMockEthers = () => {
   return require('ethers')
 }
 
-const jestMockContractConstructor = (_fxnName, _resolvedValue, _responseTime = 0) => {
+const jestMockContractConstructor = (
+  _fxnName,
+  _resolvedValue,
+  _responseTime = 0
+) => {
   // No arrow function here: doesn't work with
   // constructors
   return function () {
     return {
       [_fxnName]: jest.fn().mockResolvedValue({
         wait: jest.fn().mockImplementation(async () => {
-                await logic.sleepForXMilliseconds(_responseTime)
-                return Promise.resolve(_resolvedValue)
-              }),
+          await logic.sleepForXMilliseconds(_responseTime)
+          return Promise.resolve(_resolvedValue)
+        }),
       }),
     }
   }

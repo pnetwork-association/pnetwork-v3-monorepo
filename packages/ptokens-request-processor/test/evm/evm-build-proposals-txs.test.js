@@ -6,15 +6,6 @@ const schemas = require('ptokens-schemas')
 const { validation } = require('ptokens-utils')
 
 describe('Build proposals test for EVM', () => {
-  const jestMockEthers = () => {
-    jest.mock('ethers', () => ({
-      __esModule: true,
-      ...jest.requireActual('ethers'),
-    }))
-
-    return require('ethers')
-  }
-
   describe('makeProposalContractCall', () => {
     afterEach(() => {
       jest.restoreAllMocks()
@@ -77,7 +68,11 @@ describe('Build proposals test for EVM', () => {
           '0xd656ffac17b71e2ea2e24f72cd4c15c909a0ebe1696f8ead388eb268268f1cbf',
       }
 
-      ethers.Contract = jestMockContractConstructor('pegOut', expectedObject, 1000)
+      ethers.Contract = jestMockContractConstructor(
+        'pegOut',
+        expectedObject,
+        201
+      )
 
       const {
         makeProposalContractCall,
@@ -90,7 +85,7 @@ describe('Build proposals test for EVM', () => {
         status: 'detected',
         amount: '1111111',
         eventName: 'redeem',
-        'tx-timeout': '200',
+        'tx-timeout': 200,
         originatingChainId: '0x005fe7f9',
         destinationChainId: '0x01ec97de',
         destinationAddress: '11eXzETyUxiQPXwU2udtVFQFrFjgRhhvPj',
@@ -107,7 +102,7 @@ describe('Build proposals test for EVM', () => {
       }
 
       await validation.validateJson(schemas.db.collections.events, eventReport)
-      
+
       const result = await makeProposalContractCall(
         wallet,
         issuanceManagerAddress,
