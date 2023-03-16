@@ -4,7 +4,7 @@ const { logger } = require('../get-logger')
 const { maybeBuildFinalTxsAndPutInState } = require('./evm-build-final-txs')
 const {
   getProposedEventsFromDbAndPutInState,
-} = require('../get-proposed-events-from-db')
+} = require('../get-events-from-db')
 const {
   filterForExpiredChallengePeriodAndPutInState,
 } = require('./evm-filter-for-expired-challenge-period')
@@ -21,8 +21,8 @@ const processFinalTransactions = _state =>
     .then(logic.sleepThenReturnArg(SLEEP_TIME))
 
 const processFinalRequestsErrorHandler = curry((_state, _err) => {
-  logger.error(_err)
-  return Promise.reject(new Error('Not implemented!'))
+  logger.error('Final transactions error handler...')
+  return Promise.reject(_err)
 })
 
 const INFINITE_LOOP = {

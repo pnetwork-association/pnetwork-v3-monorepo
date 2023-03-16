@@ -22,6 +22,13 @@ const getValidEventsWithStatusAndPutInState = curry((_status, _state) =>
     )
 )
 
+const getDetectedEventsFromDbAndPutInState =
+  getValidEventsWithStatusAndPutInState(schemas.db.enums.txStatus.DETECTED)
+
+const getProposedEventsFromDbAndPutInState =
+  getValidEventsWithStatusAndPutInState(schemas.db.enums.txStatus.PROPOSED)
+
 module.exports = {
-  getValidEventsWithStatusAndPutInState,
+  getDetectedEventsFromDbAndPutInState,
+  getProposedEventsFromDbAndPutInState,
 }
