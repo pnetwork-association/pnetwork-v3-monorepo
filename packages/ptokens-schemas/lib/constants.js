@@ -7,6 +7,7 @@ module.exports = {
   SCHEMA_CHAIN_NAME_KEY: 'chain-name',
   SCHEMA_CHAIN_TYPE_KEY: 'chain-type',
   SCHEMA_EVENTS_KEY: 'events',
+  SCHEMA_CHALLENGE_PERIOD: 'challenge-period',
   SCHEMA_DB_KEY: 'db',
   SCHEMA_TOKEN_CONTRACTS_KEY: 'token-contracts',
   SCHEMA_ORIGINATING_CHAIN_ID_KEY: 'originatingChainId',
@@ -28,5 +29,4 @@ module.exports = {
   SCHEMA_FINAL_TX_TS_KEY: 'finalTransactionTimestamp',
   SCHEMA_PROPOSAL_TS_KEY: 'proposedTransactionTimestamp',
   SCHEMA_ORIGINATING_ADDRESS_KEY: 'originatingAddress',
-  SCHEMA_CHALLENGE_PERIOD: 'challengePeriod',
 }
