@@ -25,7 +25,7 @@ const checkForExpiredChallengePeriod = curry(
 const filterForExpiredChallengePeriodAndPutInState = _state =>
   new Promise((resolve, reject) => {
     const challengePeriod = _state[schemas.constants.SCHEMA_CHALLENGE_PERIOD]
-    const proposedEvents = _state[STATE_PROPOSED_DB_REPORTS_KEY]
+    const proposedEvents = _state[STATE_PROPOSED_DB_REPORTS_KEY] || []
 
     if (isNil(challengePeriod)) {
       return reject(

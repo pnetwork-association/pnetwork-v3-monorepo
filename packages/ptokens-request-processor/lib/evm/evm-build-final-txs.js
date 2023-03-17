@@ -109,6 +109,7 @@ const maybeBuildFinalTxsAndPutInState = _state =>
       : logger.info(`Found ${proposedEventsNumber} proposals to process...`) ||
           resolve(buildFinalTxsAndPutInState(_state))
   })
+
 module.exports = {
   maybeBuildFinalTxsAndPutInState,
 }
