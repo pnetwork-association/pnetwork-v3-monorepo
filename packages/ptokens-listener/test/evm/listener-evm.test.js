@@ -3,7 +3,6 @@ const ethers = require('ethers')
 const { logs } = require('../mock/evm-logs')
 const { identity } = require('ramda')
 const schemas = require('ptokens-schemas')
-const { constants } = require('ptokens-utils')
 const { STATE_KEY_EVENTS } = require('../../lib/state/constants')
 
 const ISO_FORMAT_REGEX =
@@ -141,8 +140,8 @@ describe('EVM listener', () => {
     })
     it('Should call callback with the standardized event', done => {
       const state = {
-        [constants.STATE_KEY_CHAIN_ID]: '0x005fe7f9',
-        [constants.STATE_KEY_PROVIDER_URL]: 'provider-url',
+        [schemas.constants.SCHEMA_CHAIN_ID_KEY]: '0x005fe7f9',
+        [schemas.constants.SCHEMA_PROVIDER_URL_KEY]: 'provider-url',
         [STATE_KEY_EVENTS]: [
           {
             [schemas.constants.SCHEMA_NAME_KEY]:
