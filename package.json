@@ -1,6 +1,6 @@
 {
   "name": "pnetwork",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "license": "MIT",
   "scripts": {},
   "private": true,
@@ -20,7 +20,8 @@
     "@types/jest": "^29.4.0",
     "eslint": "^8.33.0",
     "eslint-config-standard": "^17.0.0",
-    "eslint-plugin-no-only-tests": "^3.1.0"
+    "eslint-plugin-no-only-tests": "^3.1.0",
+    "rewire": "^6.0.0"
   },
   "workspaces": [
     "packages/*"

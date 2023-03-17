@@ -17,6 +17,7 @@
   - [Development process](#best-practices-dev-process)
 - [Development](#development)
   - [Build images](#dev-build-images)
+  - [Troubleshooting](#dev-troubleshooting)
 
 ## <a name="basic-tutorial"></a> Basic tutorial
 
@@ -154,3 +155,10 @@ If you want to change this, you can add the `docker-build` task to `cacheableOpe
 ## Docker best practices for Node apps
 
 [Snyk Cheatsheet](https://snyk.io/wp-content/uploads/NodeJS-CheatSheet.pdf)
+
+### <a name="dev-troubleshooting"></a> Troubleshooting
+
+#### Tests can't find some modules/functions even if they have been installed correctly through `npm i` at the root's monorepo
+
+**Solution:** Check that the project don't have the `node_modules` folder, if so delete it and the tests should
+run again.
