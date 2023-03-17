@@ -1,6 +1,6 @@
 const ethers = require('ethers')
 const { readFile } = require('fs/promises')
-const { constants: schemasConstants } = require('ptokens-schemas')
+const schemas = require('ptokens-schemas')
 const { logger } = require('../get-logger')
 const { curry } = require('ramda')
 const { utils, constants } = require('ptokens-utils')
@@ -38,9 +38,9 @@ const sendDismissalTransaction = curry(
 
 const maybeBuildDismissalTxsAndPutInState = _state => {
   const invalidRequests = _state[STATE_TO_BE_DISMISSED_REQUESTS_KEY]
-  const chainId = _state[schemasConstants.SCHEMA_CHAIN_ID_KEY]
-  const providerUrl = _state[schemasConstants.SCHEMA_PROVIDER_URL_KEY]
-  const identityGpgFile = _state[schemasConstants.SCHEMA_IDENTITY_GPG_KEY]
+  const chainId = _state[schemas.constants.SCHEMA_CHAIN_ID_KEY]
+  const providerUrl = _state[schemas.constants.SCHEMA_PROVIDER_URL_KEY]
+  const identityGpgFile = _state[schemas.constants.SCHEMA_IDENTITY_GPG_KEY]
   const blockChainName = utils.flipObjectPropertiesSync(
     constants.metadataChainIds
   )[chainId]

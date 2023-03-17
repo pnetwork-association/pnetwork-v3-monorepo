@@ -5,19 +5,19 @@ const {
   STATE_ONCHAIN_REQUESTS_KEY,
   STATE_TO_BE_DISMISSED_REQUESTS_KEY,
 } = require('../state/constants')
-const { constants } = require('ptokens-schemas')
+const schemas = require('ptokens-schemas')
 
 const checkRequestAgainstMatchingReport = (_report, _request) =>
-  _report[constants.SCHEMA_AMOUNT_KEY] ===
-    _request[constants.SCHEMA_AMOUNT_KEY] &&
-  _report[constants.SCHEMA_DESTINATION_ADDRESS_KEY] ===
-    _request[constants.SCHEMA_DESTINATION_ADDRESS_KEY]
+  _report[schemas.constants.SCHEMA_AMOUNT_KEY] ===
+    _request[schemas.constants.SCHEMA_AMOUNT_KEY] &&
+  _report[schemas.constants.SCHEMA_DESTINATION_ADDRESS_KEY] ===
+    _request[schemas.constants.SCHEMA_DESTINATION_ADDRESS_KEY]
 
 const filterIsInvalidRequest = curry((_detectedTxs, _request) => {
   const matchingReport = _detectedTxs.find(
     _element =>
-      _element[constants.SCHEMA_ORIGINATING_TX_HASH_KEY] ===
-      _request[constants.SCHEMA_ORIGINATING_TX_HASH_KEY]
+      _element[schemas.constants.SCHEMA_ORIGINATING_TX_HASH_KEY] ===
+      _request[schemas.constants.SCHEMA_ORIGINATING_TX_HASH_KEY]
   )
   return matchingReport
     ? !checkRequestAgainstMatchingReport(matchingReport, _request)
