@@ -8,10 +8,10 @@ const {
   addDismissalReportsToState,
   removeDetectedReportsFromState,
 } = require('../state/state-operations.js')
-const { STATE_DETECTED_DB_REPORTS_KEY } = require('../state/constants')
+const { STATE_TO_BE_DISMISSED_REQUESTS_KEY } = require('../state/constants')
 
 const makeDismissalContractCall = curry(
-  (_privateKey, _providerUrl, _destinationChainId, _eventReport) =>
+  (_privateKey, _providerUrl, _destinationChainId, _request) =>
     new Promise(resolve => {
       const provider = new ethers.JsonRpcProvider(_providerUrl)
       const wallet = new ethers.Wallet(_privateKey, provider)
@@ -23,7 +23,7 @@ const makeDismissalContractCall = curry(
 )
 
 const sendDismissalTransaction = curry(
-  (_identityGpgFile, _providerUrl, _destinationChainId, _eventReport) =>
+  (_identityGpgFile, _providerUrl, _destinationChainId, _requests) =>
     // utils
     //   .readGpgEncryptedFile(_identityGpgFile)
     readFile(_identityGpgFile, { encoding: 'utf8' }).then(_privateKey =>
@@ -31,13 +31,13 @@ const sendDismissalTransaction = curry(
         _privateKey,
         _providerUrl,
         _destinationChainId,
-        _eventReport
+        _requests
       )
     )
 )
 
 const maybeBuildDismissalTxsAndPutInState = _state => {
-  const detectedReports = _state[STATE_DETECTED_DB_REPORTS_KEY]
+  const invalidRequests = _state[STATE_TO_BE_DISMISSED_REQUESTS_KEY]
   const chainId = _state[schemasConstants.SCHEMA_CHAIN_ID_KEY]
   const providerUrl = _state[schemasConstants.SCHEMA_PROVIDER_URL_KEY]
   const identityGpgFile = _state[schemasConstants.SCHEMA_IDENTITY_GPG_KEY]
@@ -48,7 +48,7 @@ const maybeBuildDismissalTxsAndPutInState = _state => {
   logger.info(`Processing dismissals for ${blockChainName}...`)
 
   return Promise.all(
-    detectedReports.map(
+    invalidRequests.map(
       sendDismissalTransaction(identityGpgFile, providerUrl, chainId)
     )
   )

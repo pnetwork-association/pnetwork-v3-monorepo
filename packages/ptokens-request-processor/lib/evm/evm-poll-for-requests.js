@@ -19,6 +19,9 @@ const {
 const {
   filterOutOnChainRequestsAndPutInState,
 } = require('./evm-filter-out-onchain-requests')
+const {
+  filterOutInvalidQueuedRequestsAndPutInState,
+} = require('./evm-validate-queued-requests')
 
 // TODO: configurable
 const SLEEP_TIME = 1000
@@ -35,7 +38,7 @@ const maybeProcessNewRequestsAndDismiss = _state =>
   logger.info('Polling for new requests EVM...') ||
   getOnChainQueuedRequestsAndPutInState(_state)
     .then(getValidMatchingEventsAndPutInState)
-    .then(filterOutOnChainRequestsAndPutInState)
+    .then(filterOutInvalidQueuedRequestsAndPutInState)
     .then(maybeBuildDismissalTxsAndPutInState)
     .then(logic.sleepThenReturnArg(SLEEP_TIME))
 
@@ -54,6 +57,8 @@ const pollForRequestsAndPropose = _state =>
     .catch(pollForRequestsErrorHandler(pollForRequestsAndPropose))
 
 module.exports = {
+  maybeProcessNewRequestsAndDismiss,
+  maybeProcessNewRequestsAndPropose,
   pollForRequestsAndDismiss,
   pollForRequestsAndPropose,
 }

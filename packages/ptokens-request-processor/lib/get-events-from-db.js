@@ -46,7 +46,9 @@ const getValidMatchingEventsAndPutInState = _state =>
   extractReportsWithChainIdAndTxHash(
     _state[constants.STATE_KEY_DB],
     _state[schemas.constants.SCHEMA_CHAIN_ID_KEY],
-    _state[STATE_ONCHAIN_REQUESTS_KEY].map(prop('txHash')) // TODO: create constant once the on-chain interface has been defined
+    _state[STATE_ONCHAIN_REQUESTS_KEY].map(
+      prop(schemas.constants.SCHEMA_ORIGINATING_TX_HASH_KEY)
+    ) // TODO: create constant once the on-chain interface has been defined
   )
     .then(filterForValidReports)
     .then(
