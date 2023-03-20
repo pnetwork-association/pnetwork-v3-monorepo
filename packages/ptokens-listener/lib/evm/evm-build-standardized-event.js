@@ -166,7 +166,7 @@ const addOriginatingTransactionHash = curry((_log, _obj) =>
   )
 )
 
-const addWitnessedTs = _obj =>
+const addWitnessedTimestamp = _obj =>
   Promise.resolve(new Date().toISOString()).then(_ts =>
     assoc(schemas.constants.SCHEMA_WITNESSED_TS_KEY, _ts, _obj)
   )
@@ -219,7 +219,7 @@ const buildStandardizedEvmEventObjectFromLog = (_chainId, _interface, _log) =>
       addInfoFromParsedLog(_chainId, _parsedLog, _obj)
     )
     .then(addOriginatingTransactionHash(_log))
-    .then(addWitnessedTs)
+    .then(addWitnessedTimestamp)
     .then(setId)
 
 module.exports = {
