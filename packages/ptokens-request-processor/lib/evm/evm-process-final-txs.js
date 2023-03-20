@@ -6,7 +6,7 @@ const {
   getProposedEventsFromDbAndPutInState,
 } = require('../get-events-from-db')
 const {
-  filterForExpiredChallengePeriodAndPutInState,
+  maybefilterForExpiredProposalsAndPutThemInState,
 } = require('./evm-filter-for-expired-challenge-period')
 
 // TODO: configurable
@@ -15,7 +15,7 @@ const SLEEP_TIME = 1000
 const processFinalTransactions = _state =>
   logger.info('processFinalTransactions EVM') ||
   getProposedEventsFromDbAndPutInState(_state)
-    .then(filterForExpiredChallengePeriodAndPutInState)
+    .then(maybefilterForExpiredProposalsAndPutThemInState)
     .then(maybeBuildFinalTxsAndPutInState)
     // .then(maybeUpdateReportsInDb)
     .then(logic.sleepThenReturnArg(SLEEP_TIME))
