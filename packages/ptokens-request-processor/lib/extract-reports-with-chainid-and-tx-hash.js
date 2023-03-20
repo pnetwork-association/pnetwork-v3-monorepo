@@ -10,7 +10,9 @@ const extractReportsWithChainIdAndTxHash = curry(
         `Getting ${_blockChainType} events w/ transaction hash ${_txHashes} from db...`
       )
       const query = {
-        [schemas.constants.SCHEMA_ORIGINATING_TX_HASH_KEY]: { $in: _txHashes },
+        _id: {
+          $in: _txHashes.map(schemas.db.access.getEventId(_chainId)),
+        },
       }
       return db
         .findReports(_collection, query)

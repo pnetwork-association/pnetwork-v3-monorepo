@@ -20,6 +20,7 @@ describe('Tests for queued requests detection and dismissal', () => {
       const evmBBuildDismissalModule = require('../../lib/evm/evm-build-dismissal-txs')
       const queuedRequests = [
         {
+          [schemas.constants.SCHEMA_ORIGINATING_CHAIN_ID_KEY]: '0x005fe7f9',
           [schemas.constants.SCHEMA_ORIGINATING_TX_HASH_KEY]:
             '0x9488dee8cb5c6b2f6299e45e48bba580f46dbd496cfaa70a182060fd5dc81cb4',
           [schemas.constants.SCHEMA_AMOUNT_KEY]: '1111111',
@@ -27,6 +28,7 @@ describe('Tests for queued requests detection and dismissal', () => {
             '11eXzETyUxiQPXwU2udtVFQFrFjgRhhvPj',
         },
         {
+          [schemas.constants.SCHEMA_ORIGINATING_CHAIN_ID_KEY]: '0x005fe7f9',
           [schemas.constants.SCHEMA_ORIGINATING_TX_HASH_KEY]:
             '0x48428602101e6a805c06e9b1320d0643ed3f1479c34b279aaa87adcc72abc0a0',
           [schemas.constants.SCHEMA_AMOUNT_KEY]: '222222222', // different quantity
@@ -34,6 +36,7 @@ describe('Tests for queued requests detection and dismissal', () => {
             '22eXzETyUxiQPXwU2udtVFQFrFjgRhhvPj',
         },
         {
+          [schemas.constants.SCHEMA_ORIGINATING_CHAIN_ID_KEY]: '0x005fe7f9',
           [schemas.constants.SCHEMA_ORIGINATING_TX_HASH_KEY]:
             '0x2ae90e5210168c42fa196059a99e26de46df8e49ad4aa482df4d7d657b6a8a22',
           [schemas.constants.SCHEMA_AMOUNT_KEY]: '3333333',
@@ -68,11 +71,11 @@ describe('Tests for queued requests detection and dismissal', () => {
         1,
         { collection: 'collection' },
         {
-          originatingTransactionHash: {
+          _id: {
             $in: [
-              '0x9488dee8cb5c6b2f6299e45e48bba580f46dbd496cfaa70a182060fd5dc81cb4',
-              '0x48428602101e6a805c06e9b1320d0643ed3f1479c34b279aaa87adcc72abc0a0',
-              '0x2ae90e5210168c42fa196059a99e26de46df8e49ad4aa482df4d7d657b6a8a22',
+              '0x005fe7f9_0x9488dee8cb5c6b2f6299e45e48bba580f46dbd496cfaa70a182060fd5dc81cb4',
+              '0x005fe7f9_0x48428602101e6a805c06e9b1320d0643ed3f1479c34b279aaa87adcc72abc0a0',
+              '0x005fe7f9_0x2ae90e5210168c42fa196059a99e26de46df8e49ad4aa482df4d7d657b6a8a22',
             ],
           },
         }

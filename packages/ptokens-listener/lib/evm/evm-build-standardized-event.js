@@ -174,9 +174,10 @@ const addWitnessedTimestamp = _obj =>
 const setId = _obj =>
   assoc(
     '_id',
-    `${_obj[schemas.constants.SCHEMA_ORIGINATING_CHAIN_ID_KEY]}_${
+    schemas.db.access.getEventId(
+      _obj[schemas.constants.SCHEMA_ORIGINATING_CHAIN_ID_KEY],
       _obj[schemas.constants.SCHEMA_ORIGINATING_TX_HASH_KEY]
-    }`,
+    ),
     _obj
   )
 

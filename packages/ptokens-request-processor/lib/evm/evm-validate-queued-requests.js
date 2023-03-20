@@ -8,23 +8,33 @@ const {
 const schemas = require('ptokens-schemas')
 
 const checkRequestAgainstMatchingReport = (_report, _request) =>
-  _report[schemas.constants.SCHEMA_AMOUNT_KEY] ===
+  logger.debug('Queued request:\n', _request) ||
+  logger.debug('Matching db report:\n', _report) ||
+  (_report[schemas.constants.SCHEMA_AMOUNT_KEY] ===
     _request[schemas.constants.SCHEMA_AMOUNT_KEY] &&
-  _report[schemas.constants.SCHEMA_DESTINATION_ADDRESS_KEY] ===
-    _request[schemas.constants.SCHEMA_DESTINATION_ADDRESS_KEY] &&
-  (_request[schemas.constants.SCHEMA_USER_DATA_KEY]
-    ? _report[schemas.constants.SCHEMA_USER_DATA_KEY] ===
-      _request[schemas.constants.SCHEMA_USER_DATA_KEY]
-    : true)
+    _report[schemas.constants.SCHEMA_DESTINATION_ADDRESS_KEY] ===
+      _request[schemas.constants.SCHEMA_DESTINATION_ADDRESS_KEY] &&
+    (_request[schemas.constants.SCHEMA_USER_DATA_KEY]
+      ? _report[schemas.constants.SCHEMA_USER_DATA_KEY] ===
+        _request[schemas.constants.SCHEMA_USER_DATA_KEY]
+      : true))
 
 const isRequestInvalid = curry((_detectedTxs, _request) => {
   const matchingReport = _detectedTxs.find(
     _element =>
-      _element[schemas.constants.SCHEMA_ORIGINATING_TX_HASH_KEY] ===
-      _request[schemas.constants.SCHEMA_ORIGINATING_TX_HASH_KEY]
+      _element._id ===
+      schemas.db.access.getEventId(
+        _request[schemas.constants.SCHEMA_ORIGINATING_CHAIN_ID_KEY],
+        _request[schemas.constants.SCHEMA_ORIGINATING_TX_HASH_KEY]
+      )
   )
   return matchingReport
-    ? !checkRequestAgainstMatchingReport(matchingReport, _request)
+    ? logger.info(
+        `Found a match for ${schemas.db.access.getEventId(
+          _request[schemas.constants.SCHEMA_ORIGINATING_CHAIN_ID_KEY],
+          _request[schemas.constants.SCHEMA_ORIGINATING_TX_HASH_KEY]
+        )}...`
+      ) || !checkRequestAgainstMatchingReport(matchingReport, _request)
     : true
 })
 
@@ -34,6 +44,7 @@ const filterOutInvalidQueuedRequestsAndPutInState = _state => {
   const detectedTxs = _state[STATE_DETECTED_DB_REPORTS_KEY]
   const invalidRequests = onChainRequests.filter(isRequestInvalid(detectedTxs))
   // TODO: filter out on chain requests
+  logger.info('Invalid requests:\n', invalidRequests)
   return Promise.resolve(
     assoc(STATE_TO_BE_DISMISSED_REQUESTS_KEY, invalidRequests, _state)
   )
