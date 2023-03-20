@@ -1,4 +1,5 @@
 const fsUtils = require('./utils-fs')
+const dateUtils = require('./utils-date')
 const ramdaExtUtils = require('./utils-ramda-ext')
 const regexpUtils = require('./utils-regexp')
 const randomUtils = require('./utils-random')
@@ -14,4 +15,5 @@ module.exports = {
   ...ramdaExtUtils,
   ...getChainSymbol,
   ...chainIdUtils,
+  date: dateUtils,
 }
