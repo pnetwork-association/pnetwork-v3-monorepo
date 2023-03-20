@@ -8,7 +8,7 @@ const callContractFunctionAndAwait = (
   _fxnName,
   _fxnArgs,
   _contract,
-  tx_timeout = 5000
+  _txTimeout = 5000
 ) =>
   logger.debug(
     `Calling ${_fxnName} in contracts and awaiting for tx receipt...`
@@ -17,7 +17,7 @@ const callContractFunctionAndAwait = (
     .then(
       _tx =>
         logger.debug(`Function ${_fxnName} called, awaiting...`) ||
-        logic.racePromise(tx_timeout, _tx.wait, [])
+        logic.racePromise(_txTimeout, _tx.wait, [])
     )
     .then(
       _tx =>

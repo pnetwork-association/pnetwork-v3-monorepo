@@ -23,7 +23,7 @@ const ABI_VAULT_CONTRACT = [
 ]
 
 const makeProposalContractCall = curry(
-  (_wallet, _issuanceManager, _redeemManager, _eventReport) =>
+  (_wallet, _issuanceManager, _redeemManager, _txTimeout, _eventReport) =>
     new Promise((resolve, reject) => {
       const amount = _eventReport[schemas.constants.SCHEMA_AMOUNT_KEY]
       const userData = _eventReport[schemas.constants.SCHEMA_USER_DATA_KEY]
@@ -34,7 +34,6 @@ const makeProposalContractCall = curry(
         _eventReport[schemas.constants.SCHEMA_ORIGINATING_TX_HASH_KEY]
       const tokenRecipient =
         _eventReport[schemas.constants.SCHEMA_DESTINATION_ADDRESS_KEY]
-      const tx_timeout = _eventReport[schemas.constants.SCHEMA_TX_TIMEOUT]
 
       if (!includes(eventName, values(schemas.db.enums.eventNames))) {
         return reject(new Error(`${ERROR_INVALID_EVENT_NAME}: ${eventName}`))
@@ -72,7 +71,7 @@ const makeProposalContractCall = curry(
         functionName,
         args,
         contract,
-        tx_timeout
+        _txTimeout
       )
         .then(resolve)
         .catch(_err =>
@@ -106,6 +105,8 @@ const buildProposalsTxsAndPutInState = _state =>
       _state[schemas.constants.SCHEMA_ISSUANCE_MANAGER_KEY]
     const redeemManagerAddress =
       _state[schemas.constants.SCHEMA_REDEEM_MANAGER_KEY]
+    const tx_timeout =
+      _state[schemas.constants.SCHEMA_TX_TIMEOUT]
 
     return checkEventsHaveExpectedDestinationChainId(
       destinationChainId,
@@ -117,7 +118,8 @@ const buildProposalsTxsAndPutInState = _state =>
         sendProposalTransactions(
           detectedEvents,
           issuanceManagerAddress,
-          redeemManagerAddress
+          redeemManagerAddress,
+          tx_timeout
         )
       )
       .then(addProposalsReportsToState(_state))

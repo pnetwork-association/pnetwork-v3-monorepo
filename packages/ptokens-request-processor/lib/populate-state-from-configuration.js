@@ -1,5 +1,5 @@
 const { db, constants } = require('ptokens-utils')
-const { curry, assoc } = require('ramda')
+const { curry, assoc, mergeAll } = require('ramda')
 const schemas = require('ptokens-schemas')
 
 const getDbAndPutInState = curry((_config, _state) => {
@@ -17,11 +17,23 @@ const getDbAndPutInState = curry((_config, _state) => {
     .then(_collection => assoc(constants.STATE_KEY_DB, _collection, _state))
 })
 
+// TODO: configurable
+const DEFAULT_TX_TIMEOUT = 10000 // 10s
+const maybeSetTxTimeoutToDefaultValue = _state => 
+  assoc(
+    schemas.constants.SCHEMA_TX_TIMEOUT, 
+    _state[schemas.constants.SCHEMA_TX_TIMEOUT] || DEFAULT_TX_TIMEOUT, 
+    _state
+  )
+
+const mergeConfigAndState = curry((_state, _config) => 
+  mergeAll([_config, _state])
+)
+
 const getInitialStateFromConfiguration = _config =>
-  getDbAndPutInState(_config, {}).then(_state => ({
-    ..._config,
-    ..._state,
-  }))
+  getDbAndPutInState(_config, {})
+  .then(mergeConfigAndState(_config))
+  .then(maybeSetTxTimeoutToDefaultValue)
 
 module.exports = {
   getInitialStateFromConfiguration,

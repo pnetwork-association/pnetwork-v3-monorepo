@@ -1,9 +1,9 @@
 {
   "provider-url": "...",
   "identity": "./bsc-identity.gpg",
-  "identity-address": "0xC0FEEE…",
   "challenge-period": 30,
   "tx-timeout": 200,
+  "identityAddress": "0xC0FEEE…",
   "chain-name": "bsc",
   "chain-type": "evm",
   "chain-id": "0x00e4b170",

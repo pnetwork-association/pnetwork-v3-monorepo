@@ -51,10 +51,12 @@ describe('Build proposals test for EVM', () => {
 
       await validation.validateJson(schemas.db.collections.events, eventReport)
 
+      const txTimeoout = 10000 //ms
       const result = await makeProposalContractCall(
         wallet,
         issuanceManagerAddress,
         redeemManagerAddress,
+        txTimeoout,
         eventReport
       )
 
@@ -85,7 +87,6 @@ describe('Build proposals test for EVM', () => {
         status: 'detected',
         amount: '1111111',
         eventName: 'redeem',
-        'tx-timeout': 200,
         originatingChainId: '0x005fe7f9',
         destinationChainId: '0x01ec97de',
         destinationAddress: '11eXzETyUxiQPXwU2udtVFQFrFjgRhhvPj',
@@ -103,10 +104,12 @@ describe('Build proposals test for EVM', () => {
 
       await validation.validateJson(schemas.db.collections.events, eventReport)
 
+      const txTimeoout = 200 //ms
       const result = await makeProposalContractCall(
         wallet,
         issuanceManagerAddress,
         redeemManagerAddress,
+        txTimeoout,
         eventReport
       )
 
