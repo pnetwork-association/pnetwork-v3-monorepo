@@ -11,7 +11,11 @@ const checkRequestAgainstMatchingReport = (_report, _request) =>
   _report[schemas.constants.SCHEMA_AMOUNT_KEY] ===
     _request[schemas.constants.SCHEMA_AMOUNT_KEY] &&
   _report[schemas.constants.SCHEMA_DESTINATION_ADDRESS_KEY] ===
-    _request[schemas.constants.SCHEMA_DESTINATION_ADDRESS_KEY]
+    _request[schemas.constants.SCHEMA_DESTINATION_ADDRESS_KEY] &&
+  (_request[schemas.constants.SCHEMA_USER_DATA_KEY]
+    ? _report[schemas.constants.SCHEMA_USER_DATA_KEY] ===
+      _request[schemas.constants.SCHEMA_USER_DATA_KEY]
+    : true)
 
 const isRequestInvalid = curry((_detectedTxs, _request) => {
   const matchingReport = _detectedTxs.find(
