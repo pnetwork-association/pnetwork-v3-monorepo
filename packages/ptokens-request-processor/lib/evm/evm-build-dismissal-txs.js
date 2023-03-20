@@ -24,6 +24,7 @@ const makeDismissalContractCall = curry(
 
 const sendDismissalTransaction = curry(
   (_identityGpgFile, _providerUrl, _destinationChainId, _requests) =>
+    // FIXME
     // utils
     //   .readGpgEncryptedFile(_identityGpgFile)
     readFile(_identityGpgFile, { encoding: 'utf8' }).then(_privateKey =>
