@@ -1,5 +1,5 @@
 const { db } = require('ptokens-utils')
-const reportsSet = require('./samples/reports-set')
+const reportsSet = require('./samples/detected-report-set')
 const { filterForValidReports } = require('../lib/filter-for-valid-reports')
 
 describe('Reports filtering tests', () => {
