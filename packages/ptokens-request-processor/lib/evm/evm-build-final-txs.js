@@ -17,7 +17,7 @@ const { callContractFunctionAndAwait } = require('./evm-call-contract-function')
 const ABI_CALL_ISSUE = ['function callIssue(string _requestId)']
 const ABI_CALL_REDEEM = ['function callRedeem(string _requestId)']
 
-const sendFinalTransactions = curry(
+const makeFinalContractCall = curry(
   (_wallet, _issuanceManager, _redeemManager, _eventReport) =>
     new Promise((resolve, reject) => {
       const eventName = _eventReport[schemas.constants.SCHEMA_EVENT_NAME_KEY]
@@ -86,7 +86,7 @@ const buildFinalTxsAndPutInState = _state =>
       .then(_ => utils.readGpgEncryptedFile(identityGpgFile))
       .then(_privateKey => new ethers.Wallet(_privateKey, provider))
       .then(
-        sendFinalTransactions(
+        makeFinalContractCall(
           proposedEvents,
           issuanceManagerAddress,
           redeemManagerAddress
@@ -111,5 +111,6 @@ const maybeBuildFinalTxsAndPutInState = _state =>
   })
 
 module.exports = {
+  makeFinalContractCall,
   maybeBuildFinalTxsAndPutInState,
 }
