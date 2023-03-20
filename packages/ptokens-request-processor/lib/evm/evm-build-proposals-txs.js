@@ -4,7 +4,7 @@ const schemas = require('ptokens-schemas')
 const { logger } = require('../get-logger')
 const { errors } = require('ptokens-utils')
 const { ERROR_INVALID_EVENT_NAME } = require('../errors')
-const { curry, prop, values, includes, length, toString } = require('ramda')
+const { curry, prop, values, includes, length } = require('ramda')
 const {
   addProposalsReportsToState,
   removeDetectedReportsFromState,
@@ -133,7 +133,6 @@ const buildProposalsTxsAndPutInState = _state =>
         detectedEvents
       )
         // FIXME: use gpg decrypt
-        // .then(_ => utils.readGpgEncryptedFile(identityGpgFile))
         .then(_ => readFile(identityGpgFile, { encoding: 'utf8' }))
         .then(_privateKey => new ethers.Wallet(_privateKey, provider))
         .then(
