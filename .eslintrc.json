@@ -28,7 +28,7 @@
     "node/no-extraneous-require": [
       "error",
       {
-        "allowModules": ["mongodb-memory-server"]
+        "allowModules": ["mongodb-memory-server", "mongodb"]
       }
     ]
   }

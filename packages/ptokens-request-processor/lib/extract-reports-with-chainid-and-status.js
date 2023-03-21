@@ -9,7 +9,10 @@ const extractReportsWithChainIdAndStatus = curry(
       logger.info(
         `Getting ${_blockChainType} events w/ status ${_status} from db...`
       )
-      const query = { [schemas.constants.SCHEMA_STATUS_KEY]: _status }
+      const query = {
+        [schemas.constants.SCHEMA_STATUS_KEY]: _status,
+        [schemas.constants.SCHEMA_DESTINATION_CHAIN_ID_KEY]: _chainId,
+      }
       return db
         .findReports(_collection, query)
         .then(
