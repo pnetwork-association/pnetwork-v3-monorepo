@@ -19,21 +19,21 @@ const getDbAndPutInState = curry((_config, _state) => {
 
 // TODO: configurable
 const DEFAULT_TX_TIMEOUT = 10000 // 10s
-const maybeSetTxTimeoutToDefaultValue = _state => 
+const maybeSetTxTimeoutToDefaultValue = _state =>
   assoc(
-    schemas.constants.SCHEMA_TX_TIMEOUT, 
-    _state[schemas.constants.SCHEMA_TX_TIMEOUT] || DEFAULT_TX_TIMEOUT, 
+    schemas.constants.SCHEMA_TX_TIMEOUT,
+    _state[schemas.constants.SCHEMA_TX_TIMEOUT] || DEFAULT_TX_TIMEOUT,
     _state
   )
 
-const mergeConfigAndState = curry((_state, _config) => 
+const mergeConfigAndState = curry((_state, _config) =>
   mergeAll([_config, _state])
 )
 
 const getInitialStateFromConfiguration = _config =>
   getDbAndPutInState(_config, {})
-  .then(mergeConfigAndState(_config))
-  .then(maybeSetTxTimeoutToDefaultValue)
+    .then(mergeConfigAndState(_config))
+    .then(maybeSetTxTimeoutToDefaultValue)
 
 module.exports = {
   getInitialStateFromConfiguration,
