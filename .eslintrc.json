@@ -7,9 +7,7 @@
     "jest": true
   },
   "rules": {
-    "camelcase": [
-      "error"
-    ],
+    "camelcase": ["error"],
     "max-len": [
       "error",
       {
