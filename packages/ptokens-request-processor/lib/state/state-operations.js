@@ -10,7 +10,7 @@ const addProposalsReportsToState = curry((_state, _proposals) =>
   assoc(STATE_PROPOSED_DB_REPORTS_KEY, _proposals, _state)
 )
 
-const addDismissalReportsToState = curry((_state, _proposals) =>
+const addDismissedReportsToState = curry((_state, _proposals) =>
   assoc(STATE_DISMISSED_DB_REPORTS_KEY, _proposals, _state)
 )
 
@@ -32,6 +32,6 @@ module.exports = {
   removeProposalsFromState,
   addFinalizedEventsToState,
   addProposalsReportsToState,
-  addDismissalReportsToState,
+  addDismissedReportsToState,
   removeDetectedReportsFromState,
 }

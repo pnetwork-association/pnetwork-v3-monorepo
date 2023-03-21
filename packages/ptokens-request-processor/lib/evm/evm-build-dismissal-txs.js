@@ -5,7 +5,7 @@ const { logger } = require('../get-logger')
 const { curry } = require('ramda')
 const { utils, constants } = require('ptokens-utils')
 const {
-  addDismissalReportsToState,
+  addDismissedReportsToState,
   removeDetectedReportsFromState,
 } = require('../state/state-operations.js')
 const { STATE_TO_BE_DISMISSED_REQUESTS_KEY } = require('../state/constants')
@@ -53,7 +53,7 @@ const maybeBuildDismissalTxsAndPutInState = _state => {
       sendDismissalTransaction(identityGpgFile, providerUrl, chainId)
     )
   )
-    .then(addDismissalReportsToState(_state))
+    .then(addDismissedReportsToState(_state))
     .then(removeDetectedReportsFromState(_state))
 }
 
