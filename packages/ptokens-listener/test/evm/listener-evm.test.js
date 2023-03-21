@@ -28,6 +28,7 @@ describe('EVM listener', () => {
     afterEach(() => {
       jest.restoreAllMocks()
     })
+
     it('Should process the event as expected', async () => {
       const {
         processEventLog,
@@ -46,16 +47,19 @@ describe('EVM listener', () => {
         logs[2]
       )
 
-      expect(result).toStrictEqual({
-        amount: '2065832100000000000',
-        destinationAddress: '35eXzETyUxiQPXwU2udtVFQFrFjgRhhvPj',
-        destinationChainId: '0x01ec97de',
-        eventName: 'Redeem',
-        originatingChainId: '0x005fe7f9',
-        originatingTransactionHash:
+      const expected = {
+        [schemas.constants.SCHEMA_AMOUNT_KEY]: '2065832100000000000',
+        [schemas.constants.SCHEMA_DESTINATION_ADDRESS_KEY]:
+          '35eXzETyUxiQPXwU2udtVFQFrFjgRhhvPj',
+        [schemas.constants.SCHEMA_DESTINATION_CHAIN_ID_KEY]: '0x01ec97de',
+        [schemas.constants.SCHEMA_EVENT_NAME_KEY]: 'Redeem',
+        [schemas.constants.SCHEMA_ORIGINATING_CHAIN_ID_KEY]: '0x005fe7f9',
+        [schemas.constants.SCHEMA_ORIGINATING_TX_HASH_KEY]:
           '0x9488dee8cb5c6b2f6299e45e48bba580f46dbd496cfaa70a182060fd5dc81cb4',
-        status: 'detected',
-      })
+        [schemas.constants.SCHEMA_STATUS_KEY]: 'detected',
+      }
+
+      expect(result).toStrictEqual(expected)
     })
   })
 
@@ -86,14 +90,15 @@ describe('EVM listener', () => {
       listenFromFilter(url, chainId, eventName, methodInterface, callback)
 
       const expected = {
-        amount: '2065832100000000000',
-        destinationAddress: '35eXzETyUxiQPXwU2udtVFQFrFjgRhhvPj',
-        destinationChainId: '0x01ec97de',
-        eventName: 'Redeem',
-        originatingChainId: '0x005fe7f9',
-        originatingTransactionHash:
+        [schemas.constants.SCHEMA_AMOUNT_KEY]: '2065832100000000000',
+        [schemas.constants.SCHEMA_DESTINATION_ADDRESS_KEY]:
+          '35eXzETyUxiQPXwU2udtVFQFrFjgRhhvPj',
+        [schemas.constants.SCHEMA_DESTINATION_CHAIN_ID_KEY]: '0x01ec97de',
+        [schemas.constants.SCHEMA_EVENT_NAME_KEY]: 'Redeem',
+        [schemas.constants.SCHEMA_ORIGINATING_CHAIN_ID_KEY]: '0x005fe7f9',
+        [schemas.constants.SCHEMA_ORIGINATING_TX_HASH_KEY]:
           '0x9488dee8cb5c6b2f6299e45e48bba580f46dbd496cfaa70a182060fd5dc81cb4',
-        status: 'detected',
+        [schemas.constants.SCHEMA_STATUS_KEY]: 'detected',
       }
       const assertions = () => {
         expect(callback).toHaveBeenNthCalledWith(1, expected)
