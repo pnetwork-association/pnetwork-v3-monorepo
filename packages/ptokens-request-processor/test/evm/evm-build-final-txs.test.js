@@ -20,8 +20,9 @@ describe('General final txs testing', () => {
       } = require('../../lib/evm/evm-build-final-txs')
 
       const wallet = ethers.Wallet.createRandom()
-      const issuanceManagerAddress = ethers.Wallet.createRandom().address
-      const redeemManagerAddress = ethers.Wallet.createRandom().address
+      const issuanceManagerAddress =
+        '0xbae4957b7f913bdae17b31d8f32991ff88a12e37'
+      const redeemManagerAddress = '0x341aa660fd5c280f5a9501e3822bb4a98e816d1b'
       const eventReport = {
         [schemas.constants.SCHEMA_STATUS_KEY]: 'proposed',
         [schemas.constants.SCHEMA_AMOUNT_KEY]: '1111111',

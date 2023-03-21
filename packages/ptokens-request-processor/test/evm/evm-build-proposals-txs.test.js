@@ -37,6 +37,7 @@ describe('Build proposals test for EVM', () => {
 
     it('Should create a pegOut proposal as expected', async () => {
       const ethers = jestMockEthers()
+
       const expectedObject = {
         transactionHash:
           '0xd656ffac17b71e2ea2e24f72cd4c15c909a0ebe1696f8ead388eb268268f1cbf',
@@ -49,8 +50,9 @@ describe('Build proposals test for EVM', () => {
       } = require('../../lib/evm/evm-build-proposals-txs')
 
       const wallet = ethers.Wallet.createRandom()
-      const issuanceManagerAddress = ethers.Wallet.createRandom().address
-      const redeemManagerAddress = ethers.Wallet.createRandom().address
+      const issuanceManagerAddress =
+        '0xbae4957b7f913bdae17b31d8f32991ff88a12e37'
+      const redeemManagerAddress = '0x341aa660fd5c280f5a9501e3822bb4a98e816d1b'
 
       await validation.validateJson(schemas.db.collections.events, eventReport)
 
@@ -81,8 +83,9 @@ describe('Build proposals test for EVM', () => {
       } = require('../../lib/evm/evm-build-proposals-txs')
 
       const wallet = ethers.Wallet.createRandom()
-      const issuanceManagerAddress = ethers.Wallet.createRandom().address
-      const redeemManagerAddress = ethers.Wallet.createRandom().address
+      const issuanceManagerAddress =
+        '0xbae4957b7f913bdae17b31d8f32991ff88a12e37'
+      const redeemManagerAddress = '0x341aa660fd5c280f5a9501e3822bb4a98e816d1b'
 
       await validation.validateJson(schemas.db.collections.events, eventReport)
 
