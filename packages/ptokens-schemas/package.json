@@ -5,8 +5,12 @@
   "scripts": {
     "lint": "eslint .",
     "clean": "rm -rf $(pwd)/build",
-    "docker-build": "PROJECT_ROOT=$(pwd) ./docker-build.sh"
+    "docker-build": "PROJECT_ROOT=$(pwd) ./docker-build.sh",
+    "test": "jest --config test/jest.config.js"
   },
   "author": "gitmp01",
-  "license": "MIT"
+  "license": "MIT",
+  "dependencies": {
+    "ramda": "^0.28.0"
+  }
 }
