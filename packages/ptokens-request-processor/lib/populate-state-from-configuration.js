@@ -17,7 +17,6 @@ const getDbAndPutInState = curry((_config, _state) => {
     .then(_collection => assoc(constants.STATE_KEY_DB, _collection, _state))
 })
 
-// TODO: configurable
 const DEFAULT_TX_TIMEOUT = 10000 // 10s
 const maybeSetTxTimeoutToDefaultValue = _state =>
   assoc(

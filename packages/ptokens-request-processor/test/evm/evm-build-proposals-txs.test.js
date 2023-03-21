@@ -3,12 +3,14 @@ const {
   jestMockContractConstructor,
 } = require('./mock/jest-utils')
 const schemas = require('ptokens-schemas')
+const { errors } = require('ptokens-utils')
 const { validation } = require('ptokens-utils')
 
 describe('Build proposals test for EVM', () => {
   describe('makeProposalContractCall', () => {
     afterEach(() => {
       jest.restoreAllMocks()
+      jest.resetModules()
     })
 
     const eventReport = {
@@ -65,17 +67,14 @@ describe('Build proposals test for EVM', () => {
     })
 
     it('Should handle the timeout error correctly', async () => {
-      const ethers = jestMockEthers()
-      const expectedObject = {
-        transactionHash:
-          '0xd656ffac17b71e2ea2e24f72cd4c15c909a0ebe1696f8ead388eb268268f1cbf',
-      }
+      const ethers = require('ethers')
 
-      ethers.Contract = jestMockContractConstructor(
-        'pegOut',
-        expectedObject,
-        201
-      )
+      const contractFunctionModule = require('../../lib/evm/evm-call-contract-function')
+      const callContractFunctionAndAwait = jest
+        .spyOn(contractFunctionModule, 'callContractFunctionAndAwait')
+        .mockImplementation(() =>
+          Promise.reject(new Error(errors.ERROR_TIMEOUT))
+        )
 
       const {
         makeProposalContractCall,
@@ -96,6 +95,8 @@ describe('Build proposals test for EVM', () => {
         eventReport
       )
 
+      expect(callContractFunctionAndAwait).toHaveBeenCalledTimes(1)
+      expect(callContractFunctionAndAwait).rejects.toThrow(errors.ERROR_TIMEOUT)
       expect(result).toStrictEqual(undefined)
     })
   })
