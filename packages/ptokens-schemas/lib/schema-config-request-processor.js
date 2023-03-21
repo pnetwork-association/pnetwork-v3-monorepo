@@ -17,6 +17,9 @@ module.exports = {
     constants.SCHEMA_IDENTITY_ADDRESS_KEY,
   ],
   properties: {
+    [constants.SCHEMA_TX_TIMEOUT]: {
+      type: 'integer',
+    },
     [constants.SCHEMA_DB_KEY]: configDbSchema,
     [constants.SCHEMA_CHAIN_ID_KEY]: {
       type: 'string',
