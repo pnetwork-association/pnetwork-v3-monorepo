@@ -1,8 +1,7 @@
 const schemas = require('ptokens-schemas')
 const { utils } = require('ptokens-utils')
+const { logger } = require('../get-logger')
 const { prop, isNil, curry, assoc, length } = require('ramda')
-// const { logger } = require('../get-logger')
-const logger = console
 const { STATE_PROPOSED_DB_REPORTS_KEY } = require('../state/constants')
 
 const ERROR_INVALID_PROPOSED_TIMESTAMP = 'Invalid proposed timestamp!'
