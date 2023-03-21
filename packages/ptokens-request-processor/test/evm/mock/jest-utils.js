@@ -19,10 +19,11 @@ const jestMockContractConstructor = (
   return function () {
     return {
       [_fxnName]: jest.fn().mockResolvedValue({
-        wait: jest.fn().mockImplementation(async () => {
-          await logic.sleepForXMilliseconds(_responseTime)
-          return Promise.resolve(_resolvedValue)
-        }),
+        wait: jest
+          .fn()
+          .mockImplementation(() =>
+            logic.sleepThenReturnArg(_responseTime, _resolvedValue)
+          ),
       }),
     }
   }
