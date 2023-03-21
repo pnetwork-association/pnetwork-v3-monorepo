@@ -105,7 +105,7 @@ const buildProposalsTxsAndPutInState = _state =>
       _state[schemas.constants.SCHEMA_ISSUANCE_MANAGER_KEY]
     const redeemManagerAddress =
       _state[schemas.constants.SCHEMA_REDEEM_MANAGER_KEY]
-    const tx_timeout = _state[schemas.constants.SCHEMA_TX_TIMEOUT]
+    const txTimeout = _state[schemas.constants.SCHEMA_TX_TIMEOUT]
 
     return checkEventsHaveExpectedDestinationChainId(
       destinationChainId,
@@ -118,7 +118,7 @@ const buildProposalsTxsAndPutInState = _state =>
           detectedEvents,
           issuanceManagerAddress,
           redeemManagerAddress,
-          tx_timeout
+          txTimeout
         )
       )
       .then(addProposalsReportsToState(_state))
