@@ -44,3 +44,6 @@ Thumbs.db
 **/logs
 *.gpg
 **/coverage
+
+*config.json
+!config.json
