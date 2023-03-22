@@ -1,9 +1,10 @@
+const fs = require('fs')
 const ethers = require('ethers')
 const schemas = require('ptokens-schemas')
 const { logger } = require('../get-logger')
-const { utils, errors } = require('ptokens-utils')
+const { errors } = require('ptokens-utils')
 const { ERROR_INVALID_EVENT_NAME } = require('../errors')
-const { curry, values, includes, length } = require('ramda')
+const { curry, prop, values, includes, length, toString } = require('ramda')
 const {
   addProposalsReportsToState,
   removeDetectedReportsFromState,
@@ -21,6 +22,18 @@ const ABI_PTOKEN_CONTRACT = [
 const ABI_VAULT_CONTRACT = [
   'function pegOut(address payable _tokenRecipient, address _tokenAddress, uint256 _tokenAmount, bytes calldata _userData)',
 ]
+
+const addProposedTxHashToEvent = curry((_event, _proposedTxHash) => {
+  // TODO: replace _id field
+  logger.trace(`Adding ${_proposedTxHash} to ${_event._id.slice(0, 20)}...`)
+  const proposedTimestamp = new Date().toISOString()
+  _event[schemas.constants.SCHEMA_PROPOSAL_TS_KEY] = proposedTimestamp
+  _event[schemas.constants.SCHEMA_PROPOSAL_TX_HASH_KEY] = _proposedTxHash
+  _event[schemas.constants.SCHEMA_STATUS_KEY] =
+    schemas.db.enums.txStatus.PROPOSED
+
+  return Promise.resolve(_event)
+})
 
 const makeProposalContractCall = curry(
   (_wallet, _issuanceManager, _redeemManager, _txTimeout, _eventReport) =>
@@ -73,6 +86,8 @@ const makeProposalContractCall = curry(
         contract,
         _txTimeout
       )
+        .then(prop('transactionHash'))
+        .then(addProposedTxHashToEvent(_eventReport))
         .then(resolve)
         .catch(_err =>
           _err.message.includes(errors.ERROR_TIMEOUT)
@@ -84,11 +99,16 @@ const makeProposalContractCall = curry(
 )
 
 const sendProposalTransactions = curry(
-  (_eventReports, _issuanceManager, _redeemManager, _wallet) =>
+  (_eventReports, _issuanceManager, _redeemManager, _timeOut, _wallet) =>
     logger.info(`Sending proposals w/ address ${_wallet.address}`) ||
     Promise.all(
       _eventReports.map(
-        makeProposalContractCall(_wallet, _issuanceManager, _redeemManager)
+        makeProposalContractCall(
+          _wallet,
+          _issuanceManager,
+          _redeemManager,
+          _timeOut
+        )
       )
     )
 )
@@ -100,31 +120,36 @@ const buildProposalsTxsAndPutInState = _state =>
     const destinationChainId = _state[schemas.constants.SCHEMA_CHAIN_ID_KEY]
     const providerUrl = _state[schemas.constants.SCHEMA_PROVIDER_URL_KEY]
     const identityGpgFile = _state[schemas.constants.SCHEMA_IDENTITY_GPG_KEY]
-    const provider = new ethers.providers.JsonRpcProvider(providerUrl)
     const issuanceManagerAddress =
       _state[schemas.constants.SCHEMA_ISSUANCE_MANAGER_KEY]
     const redeemManagerAddress =
       _state[schemas.constants.SCHEMA_REDEEM_MANAGER_KEY]
     const txTimeout = _state[schemas.constants.SCHEMA_TX_TIMEOUT]
+    const provider = new ethers.providers.JsonRpcProvider(providerUrl)
 
-    return checkEventsHaveExpectedDestinationChainId(
-      destinationChainId,
-      detectedEvents
-    )
-      .then(_ => utils.readGpgEncryptedFile(identityGpgFile))
-      .then(_privateKey => new ethers.Wallet(_privateKey, provider))
-      .then(
-        sendProposalTransactions(
-          detectedEvents,
-          issuanceManagerAddress,
-          redeemManagerAddress,
-          txTimeout
-        )
+    return (
+      checkEventsHaveExpectedDestinationChainId(
+        destinationChainId,
+        detectedEvents
       )
-      .then(addProposalsReportsToState(_state))
-      .then(removeDetectedReportsFromState(_state))
-      .then(resolve)
-      .catch(reject)
+        // FIXME: use gpg decrypt
+        // .then(_ => utils.readGpgEncryptedFile(identityGpgFile))
+        .then(_ => fs.readFileSync(identityGpgFile))
+        .then(toString)
+        .then(_privateKey => new ethers.Wallet(_privateKey, provider))
+        .then(
+          sendProposalTransactions(
+            detectedEvents,
+            issuanceManagerAddress,
+            redeemManagerAddress,
+            txTimeout
+          )
+        )
+        .then(addProposalsReportsToState(_state))
+        .then(removeDetectedReportsFromState(_state))
+        .then(resolve)
+        .catch(reject)
+    )
   })
 
 const maybeBuildProposalsTxsAndPutInState = _state =>
@@ -141,5 +166,6 @@ const maybeBuildProposalsTxsAndPutInState = _state =>
 
 module.exports = {
   makeProposalContractCall,
+  buildProposalsTxsAndPutInState,
   maybeBuildProposalsTxsAndPutInState,
 }
