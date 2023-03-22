@@ -14,7 +14,6 @@ module.exports = {
     constants.SCHEMA_REDEEM_MANAGER_KEY,
     constants.SCHEMA_ISSUANCE_MANAGER_KEY,
     constants.SCHEMA_IDENTITY_GPG_KEY,
-    constants.SCHEMA_IDENTITY_ADDRESS_KEY,
   ],
   properties: {
     [constants.SCHEMA_TX_TIMEOUT]: {
@@ -40,9 +39,6 @@ module.exports = {
       type: 'string',
     },
     [constants.SCHEMA_IDENTITY_GPG_KEY]: {
-      type: 'string',
-    },
-    [constants.SCHEMA_IDENTITY_ADDRESS_KEY]: {
       type: 'string',
     },
   },

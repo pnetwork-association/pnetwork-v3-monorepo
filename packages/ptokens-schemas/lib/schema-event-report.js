@@ -6,6 +6,7 @@ module.exports = {
   $async: true,
   type: 'object',
   required: [
+    constants.SCHEMA_ID_KEY,
     constants.SCHEMA_STATUS_KEY,
     constants.SCHEMA_AMOUNT_KEY,
     constants.SCHEMA_USER_DATA_KEY,
@@ -24,6 +25,9 @@ module.exports = {
   ],
 
   properties: {
+    [constants.SCHEMA_ID_KEY]: {
+      type: 'string',
+    },
     [constants.SCHEMA_EVENT_NAME_KEY]: {
       enum: Object.values(enumEventNames),
     },

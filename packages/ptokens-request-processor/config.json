@@ -3,13 +3,11 @@
   "identity": "./bsc-identity.gpg",
   "challenge-period": 30,
   "tx-timeout": 200,
-  "identityAddress": "0xC0FEEE…",
   "chain-name": "bsc",
   "chain-type": "evm",
   "chain-id": "0x00e4b170",
   "issuanceManagerAddress": "0x102938…",
   "redeemManagerAddress": "0x039485…",
-  "identity": "./bsc-identity.gpg",
   "db": {
     "name": "ptokens",
     "table-events": "events",

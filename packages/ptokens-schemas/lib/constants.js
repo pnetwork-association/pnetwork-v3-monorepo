@@ -1,4 +1,5 @@
 module.exports = {
+  SCHEMA_ID_KEY: '_id',
   SCHEMA_NAME_KEY: 'name',
   SCHEMA_URL_KEY: 'url',
   SCHEMA_TABLE_EVENTS_KEY: 'table-events',
@@ -23,7 +24,6 @@ module.exports = {
   SCHEMA_REDEEM_MANAGER_KEY: 'redeemManagerAddress',
   SCHEMA_ISSUANCE_MANAGER_KEY: 'issuanceManagerAddress',
   SCHEMA_IDENTITY_GPG_KEY: 'identity',
-  SCHEMA_IDENTITY_ADDRESS_KEY: 'identityAddress',
   SCHEMA_PROPOSAL_TX_HASH_KEY: 'proposedTransactionHash',
   SCHEMA_FINAL_TX_HASH_KEY: 'finalTransactionHash',
   SCHEMA_WITNESSED_TS_KEY: 'witnessedTimestamp',
