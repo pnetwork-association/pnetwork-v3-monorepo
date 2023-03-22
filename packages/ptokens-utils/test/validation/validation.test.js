@@ -31,10 +31,12 @@ describe('Validation tests', () => {
   })
 
   describe('validateJson', () => {
-    it('Should resolve', async () => {
+    it('Should resolve w/ the given object', async () => {
       const schema = require('./resources/01-schema-sample.js')
       const json = { foo: 1, bar: 'abc' }
-      await validation.validateJson(schema, json)
+      const result = await validation.validateJson(schema, json)
+
+      assert.deepStrictEqual(result, json)
     })
 
     it('Should reject', async () => {
