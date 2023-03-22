@@ -12,9 +12,6 @@ const {
 const {
   getInitialStateFromConfiguration,
 } = require('./lib/populate-state-from-configuration')
-// const validateConfig = validation.getValidationFunction(
-//   schemas.configurations.configRequestProcessorSchema
-// )
 
 const commandToFunctionMapping = {
   pollForRequests: pollForRequests,
