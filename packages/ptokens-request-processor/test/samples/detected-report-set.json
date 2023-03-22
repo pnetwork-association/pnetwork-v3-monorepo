@@ -72,7 +72,6 @@
     "status": "detected"
   },
   {
-    "_id": "",
     "amount": "555555",
     "destinationAddress": "44eXzETyUxiQPXwU2udtVFQFrFjgRhhvPj",
     "eventName": "redeem",
