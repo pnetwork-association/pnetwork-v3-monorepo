@@ -19,15 +19,17 @@ const commandToFunctionMapping = {
 }
 
 const checkFlowIsValid = _cmd =>
-  keys(commandToFunctionMapping).some(equals(_cmd))
-    ? Promise.resolve()
-    : Promise.reject(
-        new Error(
-          `Invalid command submitted, they should be [${keys(
-            commandToFunctionMapping
-          )}]`
+  new Promise((resolve, reject) =>
+    keys(commandToFunctionMapping).some(equals(_cmd))
+      ? resolve()
+      : reject(
+          new Error(
+            `Invalid command submitted, they should be [${keys(
+              commandToFunctionMapping
+            )}]`
+          )
         )
-      )
+  )
 
 const requestProcessor = (_config, _cmd) =>
   logger.info(_config) ||
