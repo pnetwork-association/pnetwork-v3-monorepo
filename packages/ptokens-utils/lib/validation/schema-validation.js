@@ -10,18 +10,39 @@ const ajv = new Ajv()
 addFormats(ajv)
 
 const getValidationFunction = memoizeWith(JSON.stringify, _schema =>
-  ajv.compile(_schema)
+  Promise.resolve(ajv.compile(_schema))
 )
 
-const validateJson = curry(
-  (_schema, _json) =>
-    new Promise((resolve, reject) => {
-      const validate = getValidationFunction(_schema)
-      return validate(_json)
-        ? resolve(_json)
-        : logger.error(validate.errors) ||
-            reject(new Error(ERROR_SCHEMA_VALIDATION_FAILED))
-    })
+const printValidationError = _err =>
+  logger.error('%s %s', _err.instancePath, _err.message)
+
+const handleValidationError = _validationError => {
+  _validationError.errors.map(printValidationError)
+  return Promise.reject(new Error(ERROR_SCHEMA_VALIDATION_FAILED))
+}
+
+const validateJsonAsyncSchema = curry((_validationFunction, _json) =>
+  _validationFunction(_json)
+    .then(_ => _json)
+    .catch(handleValidationError)
+)
+
+const validateJsonSyncSchema = curry((_validationFunction, _json) =>
+  Promise.resolve(_validationFunction(_json))
+    .then(_valid =>
+      _valid
+        ? _json
+        : Promise.reject(new Ajv.ValidationError(_validationFunction.errors))
+    )
+    .catch(handleValidationError)
+)
+
+const validateJson = curry((_schema, _json) =>
+  Promise.resolve(getValidationFunction(_schema)).then(_validate => {
+    return _schema['$async']
+      ? validateJsonAsyncSchema(_validate, _json)
+      : validateJsonSyncSchema(_validate, _json)
+  })
 )
 
 module.exports = {
