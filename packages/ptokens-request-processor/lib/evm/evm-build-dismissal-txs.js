@@ -23,7 +23,7 @@ const makeDismissalContractCall = curry(
 )
 
 const sendDismissalTransaction = curry(
-  (_identityGpgFile, _providerUrl, _destinationChainId, _requests) =>
+  (_identityGpgFile, _providerUrl, _destinationChainId, _request) =>
     // FIXME
     // utils
     //   .readGpgEncryptedFile(_identityGpgFile)
@@ -32,7 +32,7 @@ const sendDismissalTransaction = curry(
         _privateKey,
         _providerUrl,
         _destinationChainId,
-        _requests
+        _request
       )
     )
 )
