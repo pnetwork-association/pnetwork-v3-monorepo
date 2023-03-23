@@ -1,5 +1,5 @@
 module.exports = {
-  STATE_FINALIZED_EVENTS_KEY: 'finalizedEvents',
+  STATE_FINALIZED_DB_REPORTS_KEY: 'finalizedEvents',
   STATE_ONCHAIN_REQUESTS_KEY: 'onChainRequests',
   STATE_DETECTED_DB_REPORTS_KEY: 'detectedDbReports',
   STATE_TO_BE_DISMISSED_REQUESTS_KEY: 'toBeDismissedRequests',

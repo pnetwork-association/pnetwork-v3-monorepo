@@ -1,5 +1,5 @@
 const {
-  STATE_FINALIZED_EVENTS_KEY,
+  STATE_FINALIZED_DB_REPORTS_KEY,
   STATE_PROPOSED_DB_REPORTS_KEY,
 } = require('./state/constants')
 const { curry, length } = require('ramda')
@@ -43,7 +43,7 @@ const maybeUpdateProposedEventsInDb = maybeUpdateEventsInDb(
   STATE_PROPOSED_DB_REPORTS_KEY
 )
 const maybeUpdateFinalizedEventsInDb = maybeUpdateEventsInDb(
-  STATE_FINALIZED_EVENTS_KEY
+  STATE_FINALIZED_DB_REPORTS_KEY
 )
 
 module.exports = {

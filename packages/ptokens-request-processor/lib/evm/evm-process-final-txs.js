@@ -17,7 +17,7 @@ const processFinalTransactions = _state =>
   getProposedEventsFromDbAndPutInState(_state)
     .then(maybefilterForExpiredProposalsAndPutThemInState)
     .then(maybeBuildFinalTxsAndPutInState)
-    // .then(maybeUpdateReportsInDb)
+    .then()
     .then(logic.sleepThenReturnArg(SLEEP_TIME))
 
 const processFinalRequestsErrorHandler = curry((_state, _err) => {
