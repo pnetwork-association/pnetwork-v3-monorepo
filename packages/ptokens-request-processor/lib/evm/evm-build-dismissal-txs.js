@@ -46,15 +46,17 @@ const maybeBuildDismissalTxsAndPutInState = _state => {
     constants.metadataChainIds
   )[chainId]
 
-  logger.info(`Processing dismissals for ${blockChainName}...`)
-
-  return Promise.all(
-    invalidRequests.map(
-      sendDismissalTransaction(identityGpgFile, providerUrl, chainId)
-    )
-  )
-    .then(addDismissedReportsToState(_state))
-    .then(removeDetectedReportsFromState(_state))
+  return invalidRequests.length > 0
+    ? logger.info(`Processing dismissals for ${blockChainName}...`) ||
+        Promise.all(
+          invalidRequests.map(
+            sendDismissalTransaction(identityGpgFile, providerUrl, chainId)
+          )
+        )
+          .then(addDismissedReportsToState(_state))
+          .then(removeDetectedReportsFromState(_state))
+    : logger.info(`No dismissal to process for ${blockChainName}...`) ||
+        Promise.resolve()
 }
 
 module.exports = {
