@@ -5,10 +5,7 @@ const { logger } = require('../get-logger')
 const { utils, errors } = require('ptokens-utils')
 const { ERROR_INVALID_EVENT_NAME } = require('../errors')
 const { curry, values, includes, length } = require('ramda')
-const {
-  removeProposalsFromState,
-  addFinalizedEventsToState,
-} = require('../state/state-operations.js')
+const { addFinalizedEventsToState } = require('../state/state-operations.js')
 const { STATE_PROPOSED_DB_REPORTS_KEY } = require('../state/constants')
 const {
   checkEventsHaveExpectedDestinationChainId,
@@ -67,7 +64,7 @@ const makeFinalContractCall = curry(
 
 // TODO: function very similar to the one for building proposals...factor out?
 const buildFinalTxsAndPutInState = _state =>
-  new Promise((resolve, reject) => {
+  new Promise(resolve => {
     logger.info('Building final txs...')
     const proposedEvents = _state[STATE_PROPOSED_DB_REPORTS_KEY]
     const destinationChainId = _state[constants.state.STATE_KEY_CHAIN_ID]
@@ -94,9 +91,7 @@ const buildFinalTxsAndPutInState = _state =>
         )
       )
       .then(addFinalizedEventsToState(_state))
-      .then(removeProposalsFromState(_state))
       .then(resolve)
-      .catch(reject)
   })
 
 const maybeBuildFinalTxsAndPutInState = _state =>
