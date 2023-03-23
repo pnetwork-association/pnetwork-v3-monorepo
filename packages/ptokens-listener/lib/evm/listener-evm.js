@@ -3,9 +3,9 @@ const { STATE_KEY_EVENTS } = require('../state/constants')
 const { logger } = require('../get-logger')
 const { validation } = require('ptokens-utils')
 const schemas = require('ptokens-schemas')
-const { curry, assoc, identity, memoizeWith } = require('ramda')
+const { curry, identity, memoizeWith } = require('ramda')
 const {
-  buildStandardizedEventFromEvmEvent,
+  buildStandardizedEvmEventObjectFromLog,
 } = require('./evm-build-standardized-event.js')
 
 const getEthersProvider = memoizeWith(identity, _url =>
@@ -27,31 +27,10 @@ const getFilterObject = (_eventName, _tokenContract) =>
     topics: [ethers.utils.id(_frag.format())],
   }))
 
-const addOriginatingTransactionHash = curry((_log, _obj) =>
-  Promise.resolve(
-    assoc(
-      schemas.constants.SCHEMA_ORIGINATING_TX_HASH_KEY,
-      _log.transactionHash,
-      _obj
-    )
-  )
-)
-
 const processEventLog = curry(
   (_chainId, _interface, _callback, _log) =>
     logger.info(`Received EVM event for transaction ${_log.transactionHash}`) ||
-    Promise.resolve(_interface.parseLog(_log))
-      .then(
-        _parsedLog =>
-          logger.debug('Parsed EVM event log') ||
-          logger.debug('  name:', _parsedLog.name) ||
-          logger.debug('  signature:', _parsedLog.signature) ||
-          logger.debug('  args:', _parsedLog.args) ||
-          _parsedLog
-      )
-      .then(buildStandardizedEventFromEvmEvent(_chainId))
-      .then(addOriginatingTransactionHash(_log))
-      // TODO: add custom report ID (originatingChainID_originatingTxHash)
+    buildStandardizedEvmEventObjectFromLog(_chainId, _interface, _log)
       // TODO: Validate event schema before inserting
       .then(_callback)
 )
@@ -123,5 +102,4 @@ module.exports = {
   getEthersProvider,
   listenForEvmEvents,
   getInterfaceFromEvent,
-  buildStandardizedEventFromEvmEvent,
 }

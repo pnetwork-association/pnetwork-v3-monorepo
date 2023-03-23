@@ -1,6 +1,5 @@
 {
   "provider-url": "...",
-  "identity": "./bsc-identity.gpg",
   "challenge-period": 30,
   "tx-timeout": 200,
   "chain-name": "bsc",

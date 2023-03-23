@@ -62,8 +62,8 @@ const keepExpiredProposedEvents = curry(
 
 const filterForExpiredProposalsAndPutThemInState = _state =>
   new Promise((resolve, reject) => {
-    const proposedEvents = _state[STATE_PROPOSED_DB_REPORTS_KEY]
     const challengePeriod = _state[schemas.constants.SCHEMA_CHALLENGE_PERIOD]
+    const proposedEvents = _state[STATE_PROPOSED_DB_REPORTS_KEY] || []
 
     if (isNil(challengePeriod)) {
       return reject(

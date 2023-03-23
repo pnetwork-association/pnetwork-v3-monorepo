@@ -16,5 +16,5 @@ services:
       - './bsc-processor.config.json:${APP_CONFIG_JSON}'
       - './logs:${APP_FOLDER_LOGS}'
     restart: unless-stopped
-    command: ./index.js pollForRequestsAndPropose
+    command: ./index.js pollForRequestsAndDismiss
     depends_on: ['mongodb']

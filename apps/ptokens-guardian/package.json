@@ -1,0 +1,10 @@
+{
+  "name": "ptokens-guardian",
+  "version": "1.0.0",
+  "description": "Guardian project",
+  "keywords": [
+    "guardian"
+  ],
+  "author": "oliviera9",
+  "license": "MIT"
+}

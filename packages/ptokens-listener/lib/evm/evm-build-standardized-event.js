@@ -3,6 +3,32 @@ const { logger } = require('../get-logger')
 const { isNil, curry, assoc } = require('ramda')
 const schemas = require('ptokens-schemas')
 
+const getEventWithAllRequiredSetToNull = _ => ({
+  [schemas.constants.SCHEMA_STATUS_KEY]: null,
+  [schemas.constants.SCHEMA_AMOUNT_KEY]: null,
+  [schemas.constants.SCHEMA_USER_DATA_KEY]: null,
+  [schemas.constants.SCHEMA_EVENT_NAME_KEY]: null,
+  [schemas.constants.SCHEMA_TOKEN_ADDRESS_KEY]: null,
+  [schemas.constants.SCHEMA_PROPOSAL_TS_KEY]: null,
+  [schemas.constants.SCHEMA_PROPOSAL_TX_HASH_KEY]: null,
+  [schemas.constants.SCHEMA_WITNESSED_TS_KEY]: null,
+  [schemas.constants.SCHEMA_FINAL_TX_HASH_KEY]: null,
+  [schemas.constants.SCHEMA_FINAL_TX_TS_KEY]: null,
+  [schemas.constants.SCHEMA_DESTINATION_ADDRESS_KEY]: null,
+  [schemas.constants.SCHEMA_DESTINATION_CHAIN_ID_KEY]: null,
+  [schemas.constants.SCHEMA_ORIGINATING_ADDRESS_KEY]: null,
+  [schemas.constants.SCHEMA_ORIGINATING_CHAIN_ID_KEY]: null,
+  [schemas.constants.SCHEMA_ORIGINATING_TX_HASH_KEY]: null,
+})
+
+const addEventName = _eventLog =>
+  assoc(schemas.constants.SCHEMA_EVENT_NAME_KEY, _eventLog.name.toLowerCase())
+
+const setStatusToDetected = assoc(
+  schemas.constants.SCHEMA_STATUS_KEY,
+  schemas.db.enums.txStatus.DETECTED
+)
+
 const addOriginatingChainId = curry(
   (_defaultChainId, _eventLog, _standardEvent) =>
     new Promise((resolve, reject) => {
@@ -103,9 +129,10 @@ const maybeAddUserData = curry((_eventLog, _standardEvent) =>
           _eventLog.userData,
           _standardEvent
         )
-      : logger.debug('No user data to add to event') || _standardEvent
+      : assoc(schemas.constants.SCHEMA_USER_DATA_KEY, null, _standardEvent)
   )
 )
+
 const maybeAddTokenAddress = curry((_eventLog, _standardEvent) =>
   Promise.resolve(
     utils.isNotNil(_eventLog._tokenAddress)
@@ -117,6 +144,52 @@ const maybeAddTokenAddress = curry((_eventLog, _standardEvent) =>
       : logger.debug('No token address to add to event') || _standardEvent
   )
 )
+
+const addInfoFromParsedLog = (_chainId, _parsedLog, _obj) =>
+  Promise.resolve(_obj)
+    .then(setStatusToDetected)
+    .then(addEventName(_parsedLog))
+    .then(addOriginatingChainId(_chainId, _parsedLog.args))
+    .then(maybeAddAmount(_parsedLog.args))
+    .then(maybeAddDestinationAddress(_parsedLog.args))
+    .then(maybeAddDestinationChainId(_parsedLog.args))
+    .then(maybeAddUserData(_parsedLog.args))
+    .then(maybeAddTokenAddress(_parsedLog.args))
+
+const addOriginatingTransactionHash = curry((_log, _obj) =>
+  Promise.resolve(
+    assoc(
+      schemas.constants.SCHEMA_ORIGINATING_TX_HASH_KEY,
+      _log.transactionHash,
+      _obj
+    )
+  )
+)
+
+const addWitnessedTimestamp = _obj =>
+  Promise.resolve(new Date().toISOString()).then(_ts =>
+    assoc(schemas.constants.SCHEMA_WITNESSED_TS_KEY, _ts, _obj)
+  )
+
+const setId = _obj =>
+  assoc(
+    '_id',
+    schemas.db.access.getEventId(
+      _obj[schemas.constants.SCHEMA_ORIGINATING_CHAIN_ID_KEY],
+      _obj[schemas.constants.SCHEMA_ORIGINATING_TX_HASH_KEY]
+    ),
+    _obj
+  )
+
+const parseLog = (_interface, _log) =>
+  Promise.resolve(_interface.parseLog(_log)).then(
+    _parsedLog =>
+      logger.debug('Parsed EVM event log') ||
+      logger.debug('  name:', _parsedLog.name) ||
+      logger.debug('  signature:', _parsedLog.signature) ||
+      logger.debug('  args:', _parsedLog.args) ||
+      _parsedLog
+  )
 
 /**
  * Build an event based on the pNetwork schema from
@@ -137,24 +210,19 @@ const maybeAddTokenAddress = curry((_eventLog, _standardEvent) =>
  * }
  *
  * @param  {string} _chainId,  [metadata chain id]
- * @param  {string} _parsedLog [on chain parsed log]
+ * @param  {object} _interface,  [ethers.js interface object]
+ * @param  {object} _log [on chain event log]
  * @return {object}            [the standard event object]
  */
-const buildStandardizedEventFromEvmEvent = curry(
-  (_chainId, _parsedLog) =>
-    Promise.resolve({
-      [schemas.constants.SCHEMA_EVENT_NAME_KEY]: _parsedLog.name,
-      [schemas.constants.SCHEMA_STATUS_KEY]: 'detected',
-    })
-      .then(addOriginatingChainId(_chainId, _parsedLog.args))
-      .then(maybeAddAmount(_parsedLog.args))
-      .then(maybeAddDestinationAddress(_parsedLog.args))
-      .then(maybeAddDestinationChainId(_parsedLog.args))
-      .then(maybeAddUserData(_parsedLog.args))
-      .then(maybeAddTokenAddress(_parsedLog.args))
-  // TODO add missing properties (check the schema-event-report module)
-)
+const buildStandardizedEvmEventObjectFromLog = (_chainId, _interface, _log) =>
+  Promise.all([getEventWithAllRequiredSetToNull(), parseLog(_interface, _log)])
+    .then(([_obj, _parsedLog]) =>
+      addInfoFromParsedLog(_chainId, _parsedLog, _obj)
+    )
+    .then(addOriginatingTransactionHash(_log))
+    .then(addWitnessedTimestamp)
+    .then(setId)
 
 module.exports = {
-  buildStandardizedEventFromEvmEvent,
+  buildStandardizedEvmEventObjectFromLog,
 }

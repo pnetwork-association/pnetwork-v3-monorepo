@@ -5,6 +5,7 @@ const eventReportSchema = require('./lib/schema-event-report')
 const configDbSchema = require('./lib/schema-config-db')
 const configListenerSchema = require('./lib/schema-config-listener')
 const configRequestProcessorSchema = require('./lib/schema-config-request-processor')
+const utils = require('./lib/utils')
 
 module.exports = {
   db: {
@@ -15,6 +16,7 @@ module.exports = {
       txStatus: enumTxStatus,
       eventNames: enumEventNames,
     },
+    access: { getEventId: utils.getEventId },
   },
   constants: constants,
   configurations: {

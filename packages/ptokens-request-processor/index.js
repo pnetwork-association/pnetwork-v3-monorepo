@@ -5,7 +5,10 @@ const { logger } = require('./lib/get-logger')
 const { validation } = require('ptokens-utils')
 const schemas = require('ptokens-schemas')
 const { setupExitEventListeners } = require('./lib/setup-exit-listeners')
-const { pollForRequests } = require('./lib/interfaces/poll-for-requests')
+const {
+  pollForRequestsAndPropose,
+  pollForRequestsAndDismiss,
+} = require('./lib/interfaces/poll-for-requests')
 const {
   maybeProcessFinalTransactions,
 } = require('./lib/interfaces/process-final-txs')
@@ -14,7 +17,8 @@ const {
 } = require('./lib/populate-state-from-configuration')
 
 const commandToFunctionMapping = {
-  pollForRequests: pollForRequests,
+  pollForRequestsAndPropose: pollForRequestsAndPropose,
+  pollForRequestsAndDismiss: pollForRequestsAndDismiss,
   processFinalTransactions: maybeProcessFinalTransactions,
 }
 

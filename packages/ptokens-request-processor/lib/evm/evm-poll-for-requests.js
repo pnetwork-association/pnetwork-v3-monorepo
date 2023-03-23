@@ -8,35 +8,57 @@ const {
 } = require('./evm-get-on-chain-queued-requests')
 const {
   getDetectedEventsFromDbAndPutInState,
+  getValidMatchingEventsAndPutInState,
 } = require('../get-events-from-db')
 const {
   maybeBuildProposalsTxsAndPutInState,
 } = require('./evm-build-proposals-txs')
 const {
-  filterOutOnChainRequests,
+  maybeBuildDismissalTxsAndPutInState,
+} = require('./evm-build-dismissal-txs')
+const {
+  filterOutOnChainRequestsAndPutInState,
 } = require('./evm-filter-out-onchain-requests')
+const {
+  filterOutInvalidQueuedRequestsAndPutInState,
+} = require('./evm-validate-queued-requests')
 
 // TODO: configurable
 const SLEEP_TIME = 1000
 
-const maybeProcessNewRequests = _state =>
+const maybeProcessNewRequestsAndPropose = _state =>
   logger.info('Polling for new requests EVM...') ||
   getOnChainQueuedRequestsAndPutInState(_state)
     .then(getDetectedEventsFromDbAndPutInState)
-    .then(filterOutOnChainRequests)
+    .then(filterOutOnChainRequestsAndPutInState)
     .then(maybeBuildProposalsTxsAndPutInState)
-    // .then(maybeUpdateReportsInDb)
+    .then(logic.sleepThenReturnArg(SLEEP_TIME))
+
+const maybeProcessNewRequestsAndDismiss = _state =>
+  logger.info('Polling for new requests EVM...') ||
+  getOnChainQueuedRequestsAndPutInState(_state)
+    .then(getValidMatchingEventsAndPutInState)
+    .then(filterOutInvalidQueuedRequestsAndPutInState)
+    .then(maybeBuildDismissalTxsAndPutInState)
     .then(logic.sleepThenReturnArg(SLEEP_TIME))
 
 const INFINITE_LOOP = {
   rounds: logic.LOOP_MODE.INFINITE,
 }
 
-const pollForRequests = _state =>
+const pollForRequestsAndDismiss = _state =>
   logic
-    .loop(INFINITE_LOOP, maybeProcessNewRequests, [_state])
-    .catch(pollForRequestsErrorHandler(pollForRequests))
+    .loop(INFINITE_LOOP, maybeProcessNewRequestsAndDismiss, [_state])
+    .catch(pollForRequestsErrorHandler(pollForRequestsAndDismiss))
+
+const pollForRequestsAndPropose = _state =>
+  logic
+    .loop(INFINITE_LOOP, maybeProcessNewRequestsAndPropose, [_state])
+    .catch(pollForRequestsErrorHandler(pollForRequestsAndPropose))
 
 module.exports = {
-  pollForRequests,
+  maybeProcessNewRequestsAndDismiss,
+  maybeProcessNewRequestsAndPropose,
+  pollForRequestsAndDismiss,
+  pollForRequestsAndPropose,
 }

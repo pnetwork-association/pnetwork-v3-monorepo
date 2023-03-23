@@ -26,7 +26,7 @@ function main() {
 
     mkdir -p "$build_folder"
 
-    /usr/bin/docker build \
+    docker build \
         -t "$prefix/$name:latest" \
         -t "$prefix/$name:$version" \
         --iidfile "$build_folder/docker-id" \
