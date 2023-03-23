@@ -129,10 +129,6 @@ describe('Build proposals test for EVM', () => {
       jest.resetModules()
     })
 
-    // it('Should add proposals only to the state', () => {
-    //   throw new Error('To be implemented')
-    // })
-
     it('Should build the proposals and add them to the state', async () => {
       const ethers = jestMockEthers()
 
@@ -194,7 +190,7 @@ describe('Build proposals test for EVM', () => {
       const result = await buildProposalsTxsAndPutInState(state)
 
       expect(result).toHaveProperty(STATE_PROPOSED_DB_REPORTS_KEY)
-      expect(result).not.toHaveProperty(STATE_DETECTED_DB_REPORTS_KEY)
+      expect(result).toHaveProperty(STATE_DETECTED_DB_REPORTS_KEY)
       expect(result).toHaveProperty(constants.state.STATE_KEY_CHAIN_ID)
       expect(result).toHaveProperty(constants.state.STATE_KEY_PROVIDER_URL)
       expect(result).toHaveProperty(constants.state.STATE_KEY_IDENTITY_FILE)

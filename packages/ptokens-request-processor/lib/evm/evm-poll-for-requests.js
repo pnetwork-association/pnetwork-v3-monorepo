@@ -42,6 +42,7 @@ const maybeProcessNewRequestsAndPropose = _state =>
     .then(getDetectedEventsFromDbAndPutInState)
     .then(filterOutOnChainRequestsAndPutInState)
     .then(maybeBuildProposalsTxsAndPutInState)
+    .then(removeDetectedReportsFromState)
     .then(maybeUpdateProposedEventsInDb)
     .then(clearProposalsIntoState)
     .then(logic.sleepThenReturnArg(SLEEP_TIME))

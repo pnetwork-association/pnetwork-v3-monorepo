@@ -6,10 +6,7 @@ const { logger } = require('../get-logger')
 const { errors } = require('ptokens-utils')
 const { ERROR_INVALID_EVENT_NAME } = require('../errors')
 const { curry, prop, values, includes, length } = require('ramda')
-const {
-  addProposalsReportsToState,
-  removeDetectedReportsFromState,
-} = require('../state/state-operations.js')
+const { addProposalsReportsToState } = require('../state/state-operations.js')
 const { STATE_DETECTED_DB_REPORTS_KEY } = require('../state/constants')
 const {
   checkEventsHaveExpectedDestinationChainId,
@@ -115,7 +112,7 @@ const sendProposalTransactions = curry(
 )
 
 const buildProposalsTxsAndPutInState = _state =>
-  new Promise((resolve, reject) => {
+  new Promise(resolve => {
     logger.info('Building proposals txs...')
     const detectedEvents = _state[STATE_DETECTED_DB_REPORTS_KEY]
     const destinationChainId = _state[constants.state.STATE_KEY_CHAIN_ID]
@@ -145,9 +142,7 @@ const buildProposalsTxsAndPutInState = _state =>
           )
         )
         .then(addProposalsReportsToState(_state))
-        .then(removeDetectedReportsFromState(_state))
         .then(resolve)
-        .catch(reject)
     )
   })
 
