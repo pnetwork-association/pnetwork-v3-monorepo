@@ -1,16 +1,16 @@
 {
   "name": "ptokens-utils",
   "description": "Node JS library for the pTokens' backend services",
-  "version": "3.4.1",
+  "version": "3.5.0",
   "engines": {
-    "npm": ">=8.0.0 <10.0.0",
+    "npm": ">=8.3.0 <10.0.0",
     "node": ">=16.15.0 <17.0.0"
   },
   "scripts": {
     "doc": "jsdoc -r .",
     "clean": "rm -rf $(pwd)/build",
     "docker-build": "PROJECT_ROOT=$(pwd) ./docker-build.sh",
-    "test": "mocha --recursive --bail test",
+    "test": "MONGOMS_VERSION=5.0.0 mocha --recursive --bail test",
     "lint": "eslint .",
     "coverage": "nyc npm run test"
   },
@@ -19,9 +19,10 @@
   "dependencies": {
     "@log4js-node/log4js-api": "^1.0.2",
     "ajv": "^8.11.0",
+    "ajv-formats": "^2.1.1",
     "inquirer": "^8.2.2",
     "jsonrpc-lite": "^2.2.0",
-    "mongodb": "^4.3.1",
+    "mongodb": "^5.0.0",
     "node-fetch": "^2.6.7",
     "ramda": "^0.28.0",
     "rewire": "^6.0.0",

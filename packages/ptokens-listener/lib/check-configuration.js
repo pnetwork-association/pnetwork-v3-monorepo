@@ -1,9 +1,11 @@
-const { configListenerSchema } = require('ptokens-schemas')
+const schemas = require('ptokens-schemas')
 const { validation } = require('ptokens-utils')
 const { logger } = require('./get-logger')
 
 const validateConfiguration = _config =>
-  validation.validateJson(configListenerSchema, _config).then(() => _config)
+  validation
+    .validateJson(schemas.configurations.listener, _config)
+    .then(() => _config)
 
 module.exports.checkConfiguration = _config =>
   validateConfiguration(_config)

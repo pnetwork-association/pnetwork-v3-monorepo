@@ -3,33 +3,44 @@ const config = require('./config')
 const { keys, equals } = require('ramda')
 const { logger } = require('./lib/get-logger')
 const { validation } = require('ptokens-utils')
-const configSchema = require('./lib/schemas/config-schema')
-const { pollForRequests } = require('./lib/poll-for-requests')
-const { maybeProcessFinalTransactions } = require('./lib/process-final-txs')
+const schemas = require('ptokens-schemas')
 const { setupExitEventListeners } = require('./lib/setup-exit-listeners')
+const { pollForRequests } = require('./lib/interfaces/poll-for-requests')
+const {
+  maybeProcessFinalTransactions,
+} = require('./lib/interfaces/process-final-txs')
+const {
+  getInitialStateFromConfiguration,
+} = require('./lib/populate-state-from-configuration')
 
-const validateConfig = validation.getValidationFunction(configSchema)
-
-const getInitialStateFromConfiguration = _config => Promise.resolve({})
-
-const proposalFlow = _config =>
-  getInitialStateFromConfiguration(_config).then(pollForRequests)
-
-const finalTxsFlow = _config =>
-  getInitialStateFromConfiguration(_config).then(maybeProcessFinalTransactions)
-
-const flowsMapping = {
-  'send-proposals': proposalFlow,
-  'send-final-transactions': finalTxsFlow,
+const commandToFunctionMapping = {
+  pollForRequests: pollForRequests,
+  processFinalTransactions: maybeProcessFinalTransactions,
 }
 
-const checkFlowIsValid = _flow => keys(flowsMapping).some(equals(_flow))
+const checkFlowIsValid = _cmd =>
+  new Promise((resolve, reject) =>
+    keys(commandToFunctionMapping).some(equals(_cmd))
+      ? resolve()
+      : reject(
+          new Error(
+            `Invalid command submitted, they should be [${keys(
+              commandToFunctionMapping
+            )}]`
+          )
+        )
+  )
 
-const requestProcessor = (_config, _flow) =>
+const requestProcessor = (_config, _cmd) =>
+  logger.info(_config) ||
   setupExitEventListeners()
-    .then(validateConfig(_config))
-    .then(_ => checkFlowIsValid(_flow))
-    .then(_ => flowsMapping[_flow](_config))
+    .then(_ =>
+      validation.validateJson(schemas.configurations.requestProcessor, _config)
+    )
+    .then(_ => checkFlowIsValid(_cmd))
+    .then(_ => logger.info(`Valid command selected: ${_cmd}`))
+    .then(_ => getInitialStateFromConfiguration(_config))
+    .then(commandToFunctionMapping[_cmd])
     .catch(
       _err =>
         logger.error(_err) ||
@@ -37,4 +48,4 @@ const requestProcessor = (_config, _flow) =>
         process.exit(1)
     )
 
-requestProcessor(config, 'send-final-transactions')
+requestProcessor(config, process.argv[2])

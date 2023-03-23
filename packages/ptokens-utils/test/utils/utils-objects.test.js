@@ -101,4 +101,22 @@ describe('Utils object testing', () => {
       assert.deepStrictEqual(result.error, expectedMessage)
     })
   })
+
+  describe('flipObjectPropertiesSync', () => {
+    it('Should get the correct object', () => {
+      const obj = {
+        a: 1,
+        b: 2,
+      }
+
+      const expected = {
+        1: 'a',
+        2: 'b',
+      }
+
+      const result = utils.flipObjectPropertiesSync(obj)
+
+      assert.deepStrictEqual(result, expected)
+    })
+  })
 })

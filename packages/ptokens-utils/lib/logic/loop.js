@@ -86,7 +86,7 @@ const loop = async (_loopParams, _promiseFn, _promiseFnArgs = []) => {
     try {
       newArgs = [await _promiseFn(...newArgs)]
     } catch (e) {
-      return Promise.reject(new LoopError(e, newArgs))
+      return Promise.reject(new LoopError(e.message, newArgs, e))
     }
   }
 

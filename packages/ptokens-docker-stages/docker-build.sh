@@ -8,8 +8,7 @@ get_label() {
   local out=""
 
   out=$(cat $__dockerfile \
-    | grep 'LABEL' \
-    | grep "$__label_key=" \
+    | grep "LABEL\s*$__label_key\s*=" \
     | tr '=' ' '  \
     | awk '{print $3}'
   )

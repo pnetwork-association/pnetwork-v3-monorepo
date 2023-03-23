@@ -1,9 +1,16 @@
-const { promisify } = require('node:util')
-const writeFile = promisify(require('fs').writeFile)
-const readdir = promisify(require('fs').readdir)
+const { existsSync } = require('fs')
 const { logger } = require('../logger')
-const { isNil, curry } = require('ramda')
-const { ERROR_INVALID_OBJECT } = require('../errors')
+const { isNil, trim, curry } = require('ramda')
+const { promisify } = require('node:util')
+const { isNotEmpty } = require('./utils-ramda-ext')
+const readdir = promisify(require('fs').readdir)
+const writeFile = promisify(require('fs').writeFile)
+const exec = promisify(require('node:child_process').exec)
+const {
+  ERROR_INVALID_OBJECT,
+  ERROR_FILE_NOT_EXISTS,
+  ERROR_GPG_DECRYPTION_FAILED,
+} = require('../errors')
 
 const listFilesInFolder = _folder => readdir(_folder)
 
@@ -15,7 +22,32 @@ const writeThingToDisk = curry((_path, _thing) =>
       )
 )
 
+const checkFileExistsOrReject = _file =>
+  new Promise((resolve, reject) => {
+    if (existsSync(_file)) {
+      return resolve(_file)
+    }
+    return reject(new Error(`${ERROR_FILE_NOT_EXISTS}: ${_file}`))
+  })
+
+const readGpgEncryptedFile = _gpgFile =>
+  checkFileExistsOrReject(_gpgFile)
+    .then(_ => exec(`/usr/bin/gpg -d -q ${_gpgFile}`))
+    .then(({ stdout, stderr }) => {
+      if (isNotEmpty(stderr)) {
+        logger.error('stderr: ', stderr)
+        return Promise.reject(
+          new Error(`${ERROR_GPG_DECRYPTION_FAILED}: ${_gpgFile}`)
+        )
+      }
+
+      logger.info(`File ${_gpgFile} successfully decrypted!`)
+      return trim(stdout)
+    })
+
 module.exports = {
   writeThingToDisk,
   listFilesInFolder,
+  readGpgEncryptedFile,
+  checkFileExistsOrReject,
 }

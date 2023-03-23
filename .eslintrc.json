@@ -7,6 +7,16 @@
     "jest": true
   },
   "rules": {
+    "camelcase": ["error"],
+    "max-len": [
+      "error",
+      {
+        "code": 120,
+        "ignoreComments": true,
+        "ignoreStrings": true,
+        "ignoreTemplateLiterals": true
+      }
+    ],
     "no-console": ["error"],
     "no-unused-vars": ["error", { "argsIgnorePattern": "^_" }],
     "node/no-unpublished-require": [
@@ -18,7 +28,7 @@
     "node/no-extraneous-require": [
       "error",
       {
-        "allowModules": ["mongodb-memory-server"]
+        "allowModules": ["mongodb-memory-server", "mongodb"]
       }
     ]
   }

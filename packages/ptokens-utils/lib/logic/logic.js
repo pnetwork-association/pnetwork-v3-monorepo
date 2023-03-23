@@ -16,8 +16,15 @@ const rejectAfterXMilliseconds = _milliseconds =>
   )
 
 const sleepForXMilliseconds = _milliseconds =>
-  logger.info(`Sleeping for ${_milliseconds}ms...`) ||
-  new Promise(resolve => setTimeout(resolve, _milliseconds))
+  new Promise(resolve => {
+    logger.info(`Sleeping for ${_milliseconds}ms...`)
+    let id = null
+
+    const clearingFunction = () =>
+      Promise.resolve(clearTimeout(id)).then(resolve)
+
+    id = setTimeout(clearingFunction, _milliseconds)
+  })
 
 const sleepThenReturnArg = curry((_milliseconds, _resolvedValue) =>
   isNil(_resolvedValue)

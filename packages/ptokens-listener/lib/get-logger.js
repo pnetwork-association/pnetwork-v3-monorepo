@@ -1,12 +1,12 @@
 const log4js = require('log4js')
 const pTokensUtils = require('ptokens-utils')
-const { constants: schemasConstants } = require('ptokens-schemas')
+const schemas = require('ptokens-schemas')
 const config = require('../config')
 
 const loggingParams = {
   stdoutLevel: 'debug',
   logFileRelativePath: `./logs/listener-${
-    config[schemasConstants.SCHEMA_CHAIN_ID_KEY]
+    config[schemas.constants.SCHEMA_CHAIN_ID_KEY]
   }.log`,
 }
 

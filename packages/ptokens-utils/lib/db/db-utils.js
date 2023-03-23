@@ -16,7 +16,7 @@ const {
 } = require('./db-reports-helpers')
 const {
   findReports,
-  updateReport,
+  updateReportById,
   deleteReport,
   findReportById,
   editReportField,
@@ -67,7 +67,7 @@ const setLastProcessedBlock = curry(
     getChainSymbolFromBridgeType(_bridgeSide, _bridgeType)
       .then(getLastProcessedBlockReportId)
       .then(
-        updateReport(_collection, {
+        updateReportById(_collection, {
           $set: { [REPORTS_KEY_BLOCK_NUM]: _blockNum },
         })
       )
@@ -143,10 +143,10 @@ const setFieldInReportToValue = curry(
       .then(editReportField(_collection, _field, _value))
 )
 
-const updateReportWithNonce = curry(
+const updateReportByIdWithNonce = curry(
   (_bridgeSide, _bridgeType, _legacy, _collection, _nonce, _operations) =>
     getReportIdFromNonce(_bridgeSide, _bridgeType, _legacy, _nonce).then(
-      updateReport(_collection, _operations)
+      updateReportById(_collection, _operations)
     )
 )
 
@@ -175,7 +175,7 @@ const approveReport = curry(
       .then(setReportBroadcastTxHash(_bridgeSide, _bridgeType, _txHash))
       .then(setReportBroadscastTimestamp(Math.round(Date.now() / 1000)))
       .then(
-        updateReportWithNonce(
+        updateReportByIdWithNonce(
           _bridgeSide,
           _bridgeType,
           _legacy,

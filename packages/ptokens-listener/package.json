@@ -1,11 +1,12 @@
 {
   "name": "ptokens-listener",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Node.js implementation of the v3 pTokens Listener.",
   "bin": "./index.js",
   "scripts": {
     "lint": "eslint .",
     "test": "jest --config test/jest.config.js",
+    "coverage": "npm run test -- --coverage",
     "docker-build": "PROJECT_ROOT=$(pwd) ./docker-build.sh",
     "clean": "rm -rf $(pwd)/build"
   },
