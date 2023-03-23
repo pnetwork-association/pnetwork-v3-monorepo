@@ -10,10 +10,8 @@ const {
 const { filterForValidReports } = require('./filter-for-valid-reports')
 const {
   extractReportsWithChainIdAndStatus,
-} = require('./extract-reports-with-chainid-and-status')
-const {
   extractReportsWithChainIdAndTxHash,
-} = require('./extract-reports-with-chainid-and-tx-hash')
+} = require('./extract-reports-with-query')
 
 const getValidEventsWithStatusAndPutInState = curry(
   (_status, _stateKey, _state) =>
