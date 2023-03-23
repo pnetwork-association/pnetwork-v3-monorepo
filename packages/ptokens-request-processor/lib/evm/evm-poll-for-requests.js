@@ -23,8 +23,14 @@ const {
   filterOutInvalidQueuedRequestsAndPutInState,
 } = require('./evm-validate-queued-requests')
 
-const { maybeUpdateProposedEventsInDb } = require('../update-events-in-db')
-const { clearProposalsIntoState } = require('../state/state-operations')
+const {
+  maybeUpdateProposedEventsInDb,
+  maybeUpdateDismissedEventsInDb,
+} = require('../update-events-in-db')
+const {
+  clearProposalsIntoState,
+  clearDismissedEventsIntoState,
+} = require('../state/state-operations')
 
 // TODO: configurable
 const SLEEP_TIME = 1000
@@ -45,6 +51,8 @@ const maybeProcessNewRequestsAndDismiss = _state =>
     .then(getValidMatchingEventsAndPutInState)
     .then(filterOutInvalidQueuedRequestsAndPutInState)
     .then(maybeBuildDismissalTxsAndPutInState)
+    .then(maybeUpdateDismissedEventsInDb)
+    .then(clearDismissedEventsIntoState)
     .then(logic.sleepThenReturnArg(SLEEP_TIME))
 
 const INFINITE_LOOP = {

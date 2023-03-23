@@ -37,11 +37,21 @@ const clearProposalsIntoState = removeKeyFromState(
   STATE_PROPOSED_DB_REPORTS_KEY
 )
 
+const clearDismissedEventsIntoState = removeKeyFromState(
+  STATE_DISMISSED_DB_REPORTS_KEY
+)
+
+const clearFinalizedEventsInState = removeKeyFromState(
+  STATE_FINALIZED_DB_REPORTS_KEY
+)
+
 module.exports = {
   clearProposalsIntoState,
   removeProposalsFromState,
   addFinalizedEventsToState,
   addProposalsReportsToState,
   addDismissedReportsToState,
+  clearFinalizedEventsInState,
+  clearDismissedEventsIntoState,
   removeDetectedReportsFromState,
 }
