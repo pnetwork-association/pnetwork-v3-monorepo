@@ -11,6 +11,13 @@ describe('Logic tests', () => {
       await logic.sleepForXMilliseconds(time)
       const timeAfter = new Date().getTime()
       const delta = timeAfter - timeBefore
+
+      // eslint-disable-next-line no-console
+      console.log('timeBefore: ', timeBefore)
+      // eslint-disable-next-line no-console
+      console.log('timeAfter: ', timeAfter)
+      // eslint-disable-next-line no-console
+      console.log('delta ', delta)
       assert(delta >= time)
     })
   })

@@ -38,7 +38,7 @@ const validateJsonSyncSchema = curry((_validationFunction, _json) =>
 )
 
 const validateJson = curry((_schema, _json) =>
-  Promise.resolve(getValidationFunction(_schema)).then(_validate => {
+  getValidationFunction(_schema).then(_validate => {
     return _schema['$async']
       ? validateJsonAsyncSchema(_validate, _json)
       : validateJsonSyncSchema(_validate, _json)
