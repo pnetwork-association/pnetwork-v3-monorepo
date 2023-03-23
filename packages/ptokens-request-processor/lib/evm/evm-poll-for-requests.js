@@ -28,9 +28,9 @@ const {
   maybeUpdateDismissedEventsInDb,
 } = require('../update-events-in-db')
 const {
-  clearProposalsIntoState,
-  clearDismissedEventsIntoState,
-  removeDetectedReportsFromState,
+  removeProposalsEventsFromState,
+  removeDismissedEventsFromState,
+  removeDetectedEventsFromState,
 } = require('../state/state-operations')
 
 // TODO: configurable
@@ -42,9 +42,9 @@ const maybeProcessNewRequestsAndPropose = _state =>
     .then(getDetectedEventsFromDbAndPutInState)
     .then(filterOutOnChainRequestsAndPutInState)
     .then(maybeBuildProposalsTxsAndPutInState)
-    .then(removeDetectedReportsFromState)
+    .then(removeDetectedEventsFromState)
     .then(maybeUpdateProposedEventsInDb)
-    .then(clearProposalsIntoState)
+    .then(removeProposalsEventsFromState)
     .then(logic.sleepThenReturnArg(SLEEP_TIME))
 
 const maybeProcessNewRequestsAndDismiss = _state =>
@@ -52,10 +52,10 @@ const maybeProcessNewRequestsAndDismiss = _state =>
   getOnChainQueuedRequestsAndPutInState(_state)
     .then(getValidMatchingEventsAndPutInState)
     .then(filterOutInvalidQueuedRequestsAndPutInState)
-    .then(removeDetectedReportsFromState)
+    .then(removeDetectedEventsFromState)
     .then(maybeBuildDismissalTxsAndPutInState)
     .then(maybeUpdateDismissedEventsInDb)
-    .then(clearDismissedEventsIntoState)
+    .then(removeDismissedEventsFromState)
     .then(logic.sleepThenReturnArg(SLEEP_TIME))
 
 const INFINITE_LOOP = {

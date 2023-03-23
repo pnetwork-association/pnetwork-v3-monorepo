@@ -3,6 +3,7 @@ const {
   STATE_DETECTED_DB_REPORTS_KEY,
   STATE_DISMISSED_DB_REPORTS_KEY,
   STATE_PROPOSED_DB_REPORTS_KEY,
+  STATE_TO_BE_DISMISSED_REQUESTS_KEY,
 } = require('./constants')
 const { curry, assoc } = require('ramda')
 
@@ -14,16 +15,6 @@ const addDismissedReportsToState = curry((_state, _proposals) =>
   assoc(STATE_DISMISSED_DB_REPORTS_KEY, _proposals, _state)
 )
 
-const removeDetectedReportsFromState = _state => {
-  delete _state[STATE_DETECTED_DB_REPORTS_KEY]
-  return _state
-}
-
-const removeProposalsFromState = _state => {
-  delete _state[STATE_DETECTED_DB_REPORTS_KEY]
-  return _state
-}
-
 const addFinalizedEventsToState = curry((_state, _finalTxs) => {
   assoc(STATE_FINALIZED_DB_REPORTS_KEY, _finalTxs, _state)
 })
@@ -33,25 +24,33 @@ const removeKeyFromState = curry((_key, _state) => {
   return Promise.resolve(_state)
 })
 
-const clearProposalsIntoState = removeKeyFromState(
+const removeDetectedEventsFromState = removeKeyFromState(
+  STATE_DETECTED_DB_REPORTS_KEY
+)
+
+const removeProposalsEventsFromState = removeKeyFromState(
   STATE_PROPOSED_DB_REPORTS_KEY
 )
 
-const clearDismissedEventsIntoState = removeKeyFromState(
-  STATE_DISMISSED_DB_REPORTS_KEY
+const removeToBeDismissedEventsFromState = removeKeyFromState(
+  STATE_TO_BE_DISMISSED_REQUESTS_KEY
 )
 
-const clearFinalizedEventsInState = removeKeyFromState(
+const removeFinalizedEventsFromState = removeKeyFromState(
   STATE_FINALIZED_DB_REPORTS_KEY
 )
 
+const removeDismissedEventsFromState = removeKeyFromState(
+  STATE_DISMISSED_DB_REPORTS_KEY
+)
+
 module.exports = {
-  clearProposalsIntoState,
-  removeProposalsFromState,
   addFinalizedEventsToState,
   addProposalsReportsToState,
   addDismissedReportsToState,
-  clearFinalizedEventsInState,
-  clearDismissedEventsIntoState,
-  removeDetectedReportsFromState,
+  removeDetectedEventsFromState,
+  removeProposalsEventsFromState,
+  removeFinalizedEventsFromState,
+  removeDismissedEventsFromState,
+  removeToBeDismissedEventsFromState,
 }
