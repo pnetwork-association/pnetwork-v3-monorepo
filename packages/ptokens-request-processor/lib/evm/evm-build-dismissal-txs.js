@@ -1,13 +1,10 @@
 const ethers = require('ethers')
+const constants = require('ptokens-constants')
+const { curry } = require('ramda')
 const { readFile } = require('fs/promises')
 const { logger } = require('../get-logger')
-const { curry } = require('ramda')
-const constants = require('ptokens-constants')
 const { utils, constants: ptokensUtilsConstants } = require('ptokens-utils')
-const {
-  addDismissedReportsToState,
-  removeDetectedReportsFromState,
-} = require('../state/state-operations.js')
+const { addDismissedReportsToState } = require('../state/state-operations.js')
 const { STATE_TO_BE_DISMISSED_REQUESTS_KEY } = require('../state/constants')
 
 const makeDismissalContractCall = curry(
@@ -54,13 +51,12 @@ const buildDismissalTxsAndPutInState = _state =>
       )
     )
       .then(addDismissedReportsToState(_state))
-      .then(removeDetectedReportsFromState(_state))
       .then(resolve)
   })
 
 const maybeBuildDismissalTxsAndPutInState = _state =>
   new Promise(resolve => {
-    const chainId = _state[schemas.constants.SCHEMA_CHAIN_ID_KEY]
+    const chainId = _state[constants.state.STATE_KEY_CHAIN_ID]
     const blockChainName = utils.flipObjectPropertiesSync(
       ptokensUtilsConstants.metadataChainIds
     )[chainId]

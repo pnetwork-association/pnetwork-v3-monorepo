@@ -30,6 +30,7 @@ const {
 const {
   clearProposalsIntoState,
   clearDismissedEventsIntoState,
+  removeDetectedReportsFromState,
 } = require('../state/state-operations')
 
 // TODO: configurable
@@ -50,6 +51,7 @@ const maybeProcessNewRequestsAndDismiss = _state =>
   getOnChainQueuedRequestsAndPutInState(_state)
     .then(getValidMatchingEventsAndPutInState)
     .then(filterOutInvalidQueuedRequestsAndPutInState)
+    .then(removeDetectedReportsFromState)
     .then(maybeBuildDismissalTxsAndPutInState)
     .then(maybeUpdateDismissedEventsInDb)
     .then(clearDismissedEventsIntoState)

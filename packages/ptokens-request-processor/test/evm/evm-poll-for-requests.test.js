@@ -84,7 +84,6 @@ describe('Tests for queued requests detection and dismissal', () => {
         1,
         {
           ...state,
-          detectedDbReports: [reports[0], reports[1], reports[2]],
           onChainRequests: queuedRequests,
           toBeDismissedRequests: [queuedRequests[1], queuedRequests[2]],
         }
