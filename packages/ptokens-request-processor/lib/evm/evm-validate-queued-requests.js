@@ -6,6 +6,7 @@ const {
   STATE_TO_BE_DISMISSED_REQUESTS_KEY,
 } = require('../state/constants')
 const schemas = require('ptokens-schemas')
+const { utils } = require('ptokens-utils')
 
 const checkRequestAgainstMatchingReport = (_report, _request) =>
   logger.debug('Queued request:\n', _request) ||
@@ -28,7 +29,7 @@ const isRequestInvalid = curry((_detectedTxs, _request) => {
         _request[schemas.constants.SCHEMA_ORIGINATING_TX_HASH_KEY]
       )
   )
-  return matchingReport
+  return utils.isNotNil(matchingReport)
     ? logger.info(
         `Found a match for ${schemas.db.access.getEventId(
           _request[schemas.constants.SCHEMA_ORIGINATING_CHAIN_ID_KEY],
