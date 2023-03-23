@@ -23,6 +23,9 @@ const {
   filterOutInvalidQueuedRequestsAndPutInState,
 } = require('./evm-validate-queued-requests')
 
+const { maybeUpdateProposedEventsInDb } = require('../update-events-in-db')
+const { clearProposalsIntoState } = require('../state/state-operations')
+
 // TODO: configurable
 const SLEEP_TIME = 1000
 
@@ -32,6 +35,8 @@ const maybeProcessNewRequestsAndPropose = _state =>
     .then(getDetectedEventsFromDbAndPutInState)
     .then(filterOutOnChainRequestsAndPutInState)
     .then(maybeBuildProposalsTxsAndPutInState)
+    .then(maybeUpdateProposedEventsInDb)
+    .then(clearProposalsIntoState)
     .then(logic.sleepThenReturnArg(SLEEP_TIME))
 
 const maybeProcessNewRequestsAndDismiss = _state =>

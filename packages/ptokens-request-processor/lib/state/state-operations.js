@@ -28,7 +28,17 @@ const addFinalizedEventsToState = curry((_state, _finalTxs) => {
   assoc(STATE_FINALIZED_EVENTS_KEY, _finalTxs, _state)
 })
 
+const removeKeyFromState = curry((_key, _state) => {
+  delete _state[_key]
+  return Promise.resolve(_state)
+})
+
+const clearProposalsIntoState = removeKeyFromState(
+  STATE_PROPOSED_DB_REPORTS_KEY
+)
+
 module.exports = {
+  clearProposalsIntoState,
   removeProposalsFromState,
   addFinalizedEventsToState,
   addProposalsReportsToState,
