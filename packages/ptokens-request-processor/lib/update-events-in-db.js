@@ -3,10 +3,11 @@ const {
   STATE_FINALIZED_DB_REPORTS_KEY,
   STATE_DISMISSED_DB_REPORTS_KEY,
 } = require('./state/constants')
+const { db } = require('ptokens-utils')
 const { curry, length } = require('ramda')
 const { logger } = require('./get-logger')
 const schemas = require('ptokens-schemas')
-const { db, constants } = require('ptokens-utils')
+const constants = require('ptokens-constants')
 
 const updateEventInDb = curry(
   (_table, _eventReport) =>
@@ -29,7 +30,7 @@ const updateEventsInDb = (_table, _events) =>
 const maybeUpdateEventsInDb = curry(
   (_eventsStateKey, _state) =>
     new Promise(resolve => {
-      const eventsTable = _state[constants.STATE_KEY_DB]
+      const eventsTable = _state[constants.state.STATE_KEY_DB]
       const events = _state[_eventsStateKey] || []
       const eventsLength = length(events)
 

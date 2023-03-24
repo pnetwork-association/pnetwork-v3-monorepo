@@ -5,7 +5,7 @@ const { STATE_ONCHAIN_REQUESTS_KEY } = require('../../lib/state/constants')
 const reports = require('../samples/detected-report-set.json')
 
 describe('Tests for queued requests detection and dismissal', () => {
-  describe('pollForRequestsAndDismiss', () => {
+  describe('maybeProcessNewRequestsAndDismiss', () => {
     beforeEach(() => {
       jest.resetAllMocks()
       jest.resetModules()

@@ -1,5 +1,6 @@
 const { prop } = require('ramda')
-const { db, constants } = require('ptokens-utils')
+const { db } = require('ptokens-utils')
+const constants = require('ptokens-constants')
 const schemas = require('ptokens-schemas')
 const detectedEvents = require('./samples/detected-report-set')
 const { STATE_PROPOSED_DB_REPORTS_KEY } = require('../lib/state/constants')
@@ -40,7 +41,7 @@ describe('General events report update tests', () => {
         new Date().toISOString(),
       ]
       const state = {
-        [constants.STATE_KEY_DB]: collection,
+        [constants.state.STATE_KEY_DB]: collection,
         [STATE_PROPOSED_DB_REPORTS_KEY]: [
           {
             ...detectedEvents[0],
@@ -63,7 +64,7 @@ describe('General events report update tests', () => {
 
       const result = await maybeUpdateProposedEventsInDb(state)
 
-      expect(result).toHaveProperty(constants.STATE_KEY_DB)
+      expect(result).toHaveProperty(constants.state.STATE_KEY_DB)
       expect(result).toHaveProperty(STATE_PROPOSED_DB_REPORTS_KEY)
 
       const query = {

@@ -14,8 +14,8 @@ const { maybeUpdateFinalizedEventsInDb } = require('../update-events-in-db')
 // TODO: configurable
 const SLEEP_TIME = 1000
 
-const processFinalTransactions = _state =>
-  logger.info('processFinalTransactions EVM') ||
+const maybeProcessFinalTransactions = _state =>
+  logger.info('Maybe processing final transactions on EVM chain...') ||
   getProposedEventsFromDbAndPutInState(_state)
     .then(maybefilterForExpiredProposalsAndPutThemInState)
     .then(maybeBuildFinalTxsAndPutInState)
@@ -23,7 +23,7 @@ const processFinalTransactions = _state =>
     .then(removeProposalsEventsFromState)
     .then(logic.sleepThenReturnArg(SLEEP_TIME))
 
-const processFinalRequestsErrorHandler = curry((_state, _err) => {
+const processFinalTxsErrorHandler = curry((_state, _err) => {
   logger.error('Final transactions error handler...')
   return Promise.reject(_err)
 })
@@ -32,11 +32,11 @@ const INFINITE_LOOP = {
   rounds: logic.LOOP_MODE.INFINITE,
 }
 
-const maybeProcessFinalTransactions = _state =>
+const processFinalTransactionsLoop = _state =>
   logic
-    .loop(INFINITE_LOOP, processFinalTransactions, [_state])
-    .catch(processFinalRequestsErrorHandler(maybeProcessFinalTransactions))
+    .loop(INFINITE_LOOP, maybeProcessFinalTransactions, [_state])
+    .catch(processFinalTxsErrorHandler(processFinalTransactionsLoop))
 
 module.exports = {
-  maybeProcessFinalTransactions,
+  processFinalTransactionsLoop,
 }

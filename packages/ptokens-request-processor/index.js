@@ -7,19 +7,21 @@ const schemas = require('ptokens-schemas')
 const { setupExitEventListeners } = require('./lib/setup-exit-listeners')
 const {
   pollForRequestsAndPropose,
-  pollForRequestsAndDismiss,
 } = require('./lib/interfaces/process-proposal-txs')
 const {
-  maybeProcessFinalTransactions,
+  pollForRequestsAndDismiss,
+} = require('./lib/interfaces/process-dismissal-txs')
+const {
+  processFinalTransactions,
 } = require('./lib/interfaces/process-final-txs')
 const {
   getInitialStateFromConfiguration,
 } = require('./lib/populate-state-from-configuration')
 
 const commandToFunctionMapping = {
+  processFinalTransactions: processFinalTransactions,
   pollForRequestsAndPropose: pollForRequestsAndPropose,
   pollForRequestsAndDismiss: pollForRequestsAndDismiss,
-  processFinalTransactions: maybeProcessFinalTransactions,
 }
 
 const checkFlowIsValid = _cmd =>

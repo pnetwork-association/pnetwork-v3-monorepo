@@ -3,14 +3,15 @@ const {
   jestMockEthers,
   jestMockContractConstructor,
 } = require('./mock/jest-utils')
+const { prop } = require('ramda')
+const { db } = require('ptokens-utils')
+const schemas = require('ptokens-schemas')
+const constants = require('ptokens-constants')
 const {
   STATE_ONCHAIN_REQUESTS_KEY,
   STATE_DETECTED_DB_REPORTS_KEY,
   STATE_PROPOSED_DB_REPORTS_KEY,
 } = require('../../lib/state/constants')
-const { prop } = require('ramda')
-const { db, constants } = require('ptokens-utils')
-const schemas = require('ptokens-schemas')
 const detectedEvents = require('../samples/detected-report-set')
 
 describe('Main EVM flow for transaction proposal tests', () => {
@@ -57,7 +58,6 @@ describe('Main EVM flow for transaction proposal tests', () => {
           transactionHash: proposedTxHashes[1],
         },
       ]
-
       const mockPegOut = jest.fn().mockResolvedValue({
         wait: jest
           .fn()
@@ -68,22 +68,21 @@ describe('Main EVM flow for transaction proposal tests', () => {
       ethers.Contract = jestMockContractConstructor('pegOut', mockPegOut)
 
       const state = {
-        [constants.STATE_KEY_DB]: collection,
-        [schemas.constants.SCHEMA_IDENTITY_GPG_KEY]: gpgEncryptedFile,
-        [schemas.constants.SCHEMA_CHAIN_ID_KEY]: '0x01ec97de',
+        [constants.state.STATE_KEY_DB]: collection,
+        [constants.state.STATE_KEY_IDENTITY_FILE]: gpgEncryptedFile,
+        [constants.state.STATE_KEY_CHAIN_ID]: '0x01ec97de',
       }
-
       const {
         maybeProcessNewRequestsAndPropose,
       } = require('../../lib/evm/evm-process-proposal-txs')
 
       const result = await maybeProcessNewRequestsAndPropose(state)
 
-      expect(result).toHaveProperty(constants.STATE_KEY_DB)
+      expect(result).toHaveProperty(constants.state.STATE_KEY_DB)
       expect(result).not.toHaveProperty(STATE_ONCHAIN_REQUESTS_KEY)
       expect(result).not.toHaveProperty(STATE_DETECTED_DB_REPORTS_KEY)
       expect(result).not.toHaveProperty(STATE_PROPOSED_DB_REPORTS_KEY)
-      expect(result).toHaveProperty(schemas.constants.SCHEMA_IDENTITY_GPG_KEY)
+      expect(result).toHaveProperty(constants.state.STATE_KEY_IDENTITY_FILE)
 
       const proposedEvents = await db.findReports(collection, {
         [schemas.constants.SCHEMA_STATUS_KEY]:

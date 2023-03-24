@@ -43,12 +43,12 @@ const INFINITE_LOOP = {
   rounds: logic.LOOP_MODE.INFINITE,
 }
 
-const pollForRequestsAndPropose = _state =>
+const pollForRequestsAndProposeLoop = _state =>
   logic
     .loop(INFINITE_LOOP, maybeProcessNewRequestsAndPropose, [_state])
-    .catch(pollForRequestsErrorHandler(pollForRequestsAndPropose))
+    .catch(pollForRequestsErrorHandler(pollForRequestsAndProposeLoop))
 
 module.exports = {
-  pollForRequestsAndPropose,
+  pollForRequestsAndProposeLoop,
   maybeProcessNewRequestsAndPropose,
 }
