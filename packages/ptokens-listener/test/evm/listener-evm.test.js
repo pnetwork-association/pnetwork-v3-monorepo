@@ -2,6 +2,7 @@ const EventEmitter = require('events')
 const ethers = require('ethers')
 const { logs } = require('../mock/evm-logs')
 const { identity } = require('ramda')
+const constants = require('ptokens-constants')
 const schemas = require('ptokens-schemas')
 const { STATE_KEY_EVENTS } = require('../../lib/state/constants')
 
@@ -140,8 +141,8 @@ describe('EVM listener', () => {
     })
     it('Should call callback with the standardized event', done => {
       const state = {
-        [schemas.constants.SCHEMA_CHAIN_ID_KEY]: '0x005fe7f9',
-        [schemas.constants.SCHEMA_PROVIDER_URL_KEY]: 'provider-url',
+        [constants.state.STATE_KEY_CHAIN_ID]: '0x005fe7f9',
+        [constants.state.STATE_KEY_PROVIDER_URL]: 'provider-url',
         [STATE_KEY_EVENTS]: [
           {
             [schemas.constants.SCHEMA_NAME_KEY]:
