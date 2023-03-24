@@ -1,14 +1,26 @@
-const { curry } = require('ramda')
+const { isNil, curry } = require('ramda')
 const { logger } = require('./get-logger')
 const { db } = require('ptokens-utils')
 const schemas = require('ptokens-schemas')
+const { ERROR_NIL_ARGUMENTS } = require('./errors')
 
 const extractReportsWithQuery = (_collection, _query) =>
   db.findReports(_collection, _query)
 
 const extractReportsWithChainIdAndStatus = curry(
   (_collection, _chainId, _status) => {
-    logger.info(`Getting events w/ status ${_status} from db...`)
+    logger.info(
+      `Getting events w/ status '${_status}' and chainId '${_chainId}' from db...`
+    )
+
+    if (isNil(_chainId) || isNil(_status)) {
+      return Promise.reject(
+        new Error(
+          `${ERROR_NIL_ARGUMENTS}: chainId: ${_chainId} status: ${_status}`
+        )
+      )
+    }
+
     const query = {
       [schemas.constants.SCHEMA_STATUS_KEY]: _status,
       [schemas.constants.SCHEMA_DESTINATION_CHAIN_ID_KEY]: _chainId,
