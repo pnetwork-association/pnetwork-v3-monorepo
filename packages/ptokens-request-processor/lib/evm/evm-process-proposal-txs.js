@@ -15,8 +15,9 @@ const {
 } = require('./evm-filter-out-onchain-requests')
 const { maybeUpdateProposedEventsInDb } = require('../update-events-in-db')
 const {
-  removeProposalsEventsFromState,
   removeDetectedEventsFromState,
+  removeOnChainRequestsFromState,
+  removeProposalsEventsFromState,
 } = require('../state/state-operations')
 
 // TODO: configurable
@@ -31,6 +32,7 @@ const maybeProcessNewRequestsAndPropose = _state =>
   getOnChainQueuedRequestsAndPutInState(_state)
     .then(getDetectedEventsFromDbAndPutInState)
     .then(filterOutOnChainRequestsAndPutInState)
+    .then(removeOnChainRequestsFromState)
     .then(maybeBuildProposalsTxsAndPutInState)
     .then(removeDetectedEventsFromState)
     .then(maybeUpdateProposedEventsInDb)

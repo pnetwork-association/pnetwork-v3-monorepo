@@ -1,4 +1,5 @@
 const {
+  STATE_ONCHAIN_REQUESTS_KEY,
   STATE_FINALIZED_DB_REPORTS_KEY,
   STATE_DETECTED_DB_REPORTS_KEY,
   STATE_DISMISSED_DB_REPORTS_KEY,
@@ -23,6 +24,10 @@ const removeKeyFromState = curry((_key, _state) => {
   delete _state[_key]
   return Promise.resolve(_state)
 })
+
+const removeOnChainRequestsFromState = removeKeyFromState(
+  STATE_ONCHAIN_REQUESTS_KEY
+)
 
 const removeDetectedEventsFromState = removeKeyFromState(
   STATE_DETECTED_DB_REPORTS_KEY
@@ -52,5 +57,6 @@ module.exports = {
   removeProposalsEventsFromState,
   removeFinalizedEventsFromState,
   removeDismissedEventsFromState,
+  removeOnChainRequestsFromState,
   removeToBeDismissedEventsFromState,
 }
