@@ -2,7 +2,7 @@ const { logic } = require('ptokens-utils')
 const { logger } = require('../get-logger')
 const {
   pollForRequestsErrorHandler,
-} = require('./evm-poll-for-requests-error-handler')
+} = require('./evm-process-proposal-txs-error-handler')
 const {
   getOnChainQueuedRequestsAndPutInState,
 } = require('./evm-get-on-chain-queued-requests')

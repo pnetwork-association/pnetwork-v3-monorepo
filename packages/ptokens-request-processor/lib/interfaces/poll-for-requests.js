@@ -3,7 +3,7 @@ const constants = require('ptokens-constants')
 const {
   pollForRequestsAndDismiss: evmPollForRequestsAndDismiss,
   pollForRequestsAndPropose: evmPollForRequestsAndPropose,
-} = require('../evm/evm-poll-for-requests')
+} = require('../evm/evm-process-proposal-txs')
 const {
   getImplementationFromChainId,
 } = require('../get-implementation-from-chainid')
