@@ -17,7 +17,7 @@ const getValidEventsWithStatusAndPutInState = curry(
   (_status, _stateKey, _state) =>
     extractReportsWithChainIdAndStatus(
       _state[constants.state.STATE_KEY_DB],
-      _state[schemas.constants.SCHEMA_CHAIN_ID_KEY],
+      _state[constants.state.STATE_KEY_CHAIN_ID],
       _status
     )
       .then(filterForValidReports)
@@ -43,7 +43,7 @@ const getProposedEventsFromDbAndPutInState =
 const getValidMatchingEventsAndPutInState = _state =>
   extractReportsWithChainIdAndTxHash(
     _state[constants.state.STATE_KEY_DB],
-    _state[schemas.constants.SCHEMA_CHAIN_ID_KEY],
+    _state[constants.state.STATE_KEY_CHAIN_ID],
     _state[STATE_ONCHAIN_REQUESTS_KEY].map(
       prop(schemas.constants.SCHEMA_ORIGINATING_TX_HASH_KEY)
     ) // TODO: create constant once the on-chain interface has been defined

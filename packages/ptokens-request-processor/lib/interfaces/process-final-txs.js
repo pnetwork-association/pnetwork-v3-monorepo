@@ -1,3 +1,4 @@
+const { constants: ptokensUtilsConstants } = require('ptokens-utils')
 const constants = require('ptokens-constants')
 const {
   maybeProcessFinalTransactions: evmMaybeProcessFinalTransactions,
@@ -7,8 +8,8 @@ const {
 } = require('../get-implementation-from-chainid')
 
 const blockchainTypeImplementationMapping = {
-  [constants.blockchainType.EVM]: evmMaybeProcessFinalTransactions,
-  // [constants.blockchainType.ALGORAND]: evmMaybeProcessFinalTransactions
+  [ptokensUtilsConstants.blockchainType.EVM]: evmMaybeProcessFinalTransactions,
+  // [ptokensUtilsConstants.blockchainType.ALGORAND]: evmMaybeProcessFinalTransactions
 }
 
 const maybeProcessFinalTransactions = _state =>

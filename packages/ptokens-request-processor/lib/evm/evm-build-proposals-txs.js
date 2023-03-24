@@ -1,5 +1,6 @@
 const ethers = require('ethers')
 const { readFile } = require('fs/promises')
+const constants = require('ptokens-constants')
 const schemas = require('ptokens-schemas')
 const { logger } = require('../get-logger')
 const { errors } = require('ptokens-utils')
@@ -117,14 +118,14 @@ const buildProposalsTxsAndPutInState = _state =>
   new Promise((resolve, reject) => {
     logger.info('Building proposals txs...')
     const detectedEvents = _state[STATE_DETECTED_DB_REPORTS_KEY]
-    const destinationChainId = _state[schemas.constants.SCHEMA_CHAIN_ID_KEY]
-    const providerUrl = _state[schemas.constants.SCHEMA_PROVIDER_URL_KEY]
-    const identityGpgFile = _state[schemas.constants.SCHEMA_IDENTITY_GPG_KEY]
+    const destinationChainId = _state[constants.state.STATE_KEY_CHAIN_ID]
+    const providerUrl = _state[constants.state.STATE_KEY_PROVIDER_URL]
+    const identityGpgFile = _state[constants.state.STATE_KEY_IDENTITY_FILE]
     const issuanceManagerAddress =
-      _state[schemas.constants.SCHEMA_ISSUANCE_MANAGER_KEY]
+      _state[constants.state.STATE_KEY_ISSUANCE_MANAGER_ADDRESS]
     const redeemManagerAddress =
-      _state[schemas.constants.SCHEMA_REDEEM_MANAGER_KEY]
-    const txTimeout = _state[schemas.constants.SCHEMA_TX_TIMEOUT]
+      _state[constants.state.STATE_KEY_REDEEM_MANAGER_ADDRESS]
+    const txTimeout = _state[constants.state.STATE_KEY_TX_TIMEOUT]
     const provider = new ethers.providers.JsonRpcProvider(providerUrl)
 
     return (

@@ -2,7 +2,6 @@ const { prop } = require('ramda')
 const { MongoClient } = require('mongodb')
 const constants = require('ptokens-constants')
 const { db } = require('ptokens-utils')
-const schemas = require('ptokens-schemas')
 const detectedEvents = require('./samples/detected-report-set')
 const { STATE_DETECTED_DB_REPORTS_KEY } = require('../lib/state/constants')
 const {
@@ -42,14 +41,14 @@ describe('General get events from db tests', () => {
     it('Should get the detected events with the chain id 0x00e4b170', async () => {
       const state = {
         [constants.state.STATE_KEY_DB]: collection,
-        [schemas.constants.SCHEMA_CHAIN_ID_KEY]: '0x01ec97de',
+        [constants.state.STATE_KEY_CHAIN_ID]: '0x01ec97de',
       }
 
       const result = await getDetectedEventsFromDbAndPutInState(state)
       const expectedReports = [detectedEvents[0], detectedEvents[1]]
 
       expect(result).toHaveProperty(constants.state.STATE_KEY_DB)
-      expect(result).toHaveProperty(schemas.constants.SCHEMA_CHAIN_ID_KEY)
+      expect(result).toHaveProperty(constants.state.STATE_KEY_CHAIN_ID)
       expect(result).toEqual(
         expect.objectContaining({
           [STATE_DETECTED_DB_REPORTS_KEY]: expectedReports,

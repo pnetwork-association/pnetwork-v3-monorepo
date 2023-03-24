@@ -1,3 +1,4 @@
+const { constants: ptokensUtilsConstants } = require('ptokens-utils')
 const constants = require('ptokens-constants')
 const {
   pollForRequestsAndDismiss: evmPollForRequestsAndDismiss,
@@ -8,11 +9,11 @@ const {
 } = require('../get-implementation-from-chainid')
 
 const blockchainTypeImplementationMapping = {
-  [constants.blockchainType.EVM]: {
+  [ptokensUtilsConstants.blockchainType.EVM]: {
     propose: evmPollForRequestsAndPropose,
     dismiss: evmPollForRequestsAndDismiss,
   },
-  // [constants.blockchainType.ALGORAND]: algoPollForRequests
+  // [ptokensUtilsConstants.blockchainType.ALGORAND]: algoPollForRequests
 }
 
 const pollForRequestsAndDismiss = _state =>

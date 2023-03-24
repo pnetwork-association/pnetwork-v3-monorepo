@@ -1,5 +1,6 @@
 const ethers = require('ethers')
 const schemas = require('ptokens-schemas')
+const constants = require('ptokens-constants')
 const { logger } = require('../get-logger')
 const { utils, errors } = require('ptokens-utils')
 const { ERROR_INVALID_EVENT_NAME } = require('../errors')
@@ -69,15 +70,15 @@ const buildFinalTxsAndPutInState = _state =>
   new Promise((resolve, reject) => {
     logger.info('Building final txs...')
     const proposedEvents = _state[STATE_PROPOSED_DB_REPORTS_KEY]
-    const destinationChainId = _state[schemas.constants.SCHEMA_CHAIN_ID_KEY]
-    const providerUrl = _state[schemas.constants.SCHEMA_PROVIDER_URL_KEY]
-    const identityGpgFile = _state[schemas.constants.SCHEMA_IDENTITY_GPG_KEY]
+    const destinationChainId = _state[constants.state.STATE_KEY_CHAIN_ID]
+    const providerUrl = _state[constants.state.STATE_KEY_PROVIDER_URL]
+    const identityGpgFile = _state[constants.state.STATE_KEY_IDENTITY_FILE]
     const provider = new ethers.providers.JsonRpcProvider(providerUrl)
 
     const issuanceManagerAddress =
-      _state[schemas.constants.SCHEMA_ISSUANCE_MANAGER_KEY]
+      _state[constants.state.STATE_KEY_ISSUANCE_MANAGER_ADDRESS]
     const redeemManagerAddress =
-      _state[schemas.constants.SCHEMA_REDEEM_MANAGER_KEY]
+      _state[constants.state.STATE_KEY_REDEEM_MANAGER_ADDRESS]
 
     return checkEventsHaveExpectedDestinationChainId(
       destinationChainId,

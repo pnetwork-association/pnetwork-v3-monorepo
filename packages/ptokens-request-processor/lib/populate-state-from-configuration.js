@@ -1,7 +1,8 @@
 const constants = require('ptokens-constants')
-const { db } = require('ptokens-utils')
-const { curry, assoc, mergeAll } = require('ramda')
+const { db, utils } = require('ptokens-utils')
+const { curry, assoc } = require('ramda')
 const schemas = require('ptokens-schemas')
+const stateConstants = require('./state/constants')
 
 const getDbAndPutInState = curry((_config, _state) => {
   const url =
@@ -20,23 +21,75 @@ const getDbAndPutInState = curry((_config, _state) => {
     )
 })
 
-const DEFAULT_TX_TIMEOUT = 10000 // 10s
-const maybeSetTxTimeoutToDefaultValue = _state =>
-  assoc(
-    schemas.constants.SCHEMA_TX_TIMEOUT,
-    _state[schemas.constants.SCHEMA_TX_TIMEOUT] || DEFAULT_TX_TIMEOUT,
-    _state
-  )
-
-const mergeConfigAndState = curry((_state, _config) =>
-  mergeAll([_config, _state])
+const getConfigPropertyAndPutInState = curry(
+  (_config, _configKey, _stateKey, _default, _state) =>
+    assoc(
+      _stateKey,
+      utils.isNotNil(_config[_configKey]) ? _config[_configKey] : _default,
+      _state
+    )
 )
+
+const DEFAULT_TX_TIMEOUT = 10000 // 10s
 
 const getInitialStateFromConfiguration = _config =>
   getDbAndPutInState(_config, {})
-    .then(mergeConfigAndState(_config))
-    .then(maybeSetTxTimeoutToDefaultValue)
-
+    .then(
+      getConfigPropertyAndPutInState(
+        _config,
+        schemas.constants.SCHEMA_CHAIN_ID_KEY,
+        constants.state.STATE_KEY_CHAIN_ID,
+        null
+      )
+    )
+    .then(
+      getConfigPropertyAndPutInState(
+        _config,
+        schemas.constants.SCHEMA_PROVIDER_URL_KEY,
+        constants.state.STATE_KEY_PROVIDER_URL,
+        null
+      )
+    )
+    .then(
+      getConfigPropertyAndPutInState(
+        _config,
+        schemas.constants.SCHEMA_REDEEM_MANAGER_KEY,
+        constants.state.STATE_KEY_REDEEM_MANAGER_ADDRESS,
+        null
+      )
+    )
+    .then(
+      getConfigPropertyAndPutInState(
+        _config,
+        schemas.constants.SCHEMA_ISSUANCE_MANAGER_KEY,
+        constants.state.STATE_KEY_ISSUANCE_MANAGER_ADDRESS,
+        null
+      )
+    )
+    .then(
+      getConfigPropertyAndPutInState(
+        _config,
+        schemas.constants.SCHEMA_IDENTITY_GPG_KEY,
+        constants.state.STATE_KEY_IDENTITY_FILE,
+        null
+      )
+    )
+    .then(
+      getConfigPropertyAndPutInState(
+        _config,
+        schemas.constants.SCHEMA_CHALLENGE_PERIOD,
+        constants.state.STATE_KEY_CHALLENGE_PERIOD,
+        null
+      )
+    )
+    .then(
+      getConfigPropertyAndPutInState(
+        _config,
+        schemas.constants.SCHEMA_TX_TIMEOUT,
+        constants.state.STATE_KEY_TX_TIMEOUT,
+        DEFAULT_TX_TIMEOUT
+      )
+    )
 module.exports = {
   getInitialStateFromConfiguration,
 }
