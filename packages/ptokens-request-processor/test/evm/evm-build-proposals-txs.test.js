@@ -48,7 +48,11 @@ describe('Build proposals test for EVM', () => {
         '0xd656ffac17b71e2ea2e24f72cd4c15c909a0ebe1696f8ead388eb268268f1cbf'
       const expectedObject = { transactionHash: proposedTxHash }
 
-      ethers.Contract = jestMockContractConstructor('pegOut', expectedObject)
+      const mockPegOut = jest.fn().mockResolvedValue({
+        wait: jest.fn().mockResolvedValue(expectedObject),
+      })
+
+      ethers.Contract = jestMockContractConstructor('pegOut', mockPegOut)
 
       const {
         makeProposalContractCall,

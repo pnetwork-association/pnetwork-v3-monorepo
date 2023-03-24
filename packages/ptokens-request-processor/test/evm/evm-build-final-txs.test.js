@@ -13,7 +13,11 @@ describe('General final txs testing', () => {
           '0xd656ffac17b71e2ea2e24f72cd4c15c909a0ebe1696f8ead388eb268268f1cbf',
       }
 
-      ethers.Contract = jestMockContractConstructor('callIssue', expectedObject)
+      const mockCallIssue = jest.fn().mockResolvedValue({
+        wait: jest.fn().mockResolvedValue(expectedObject),
+      })
+
+      ethers.Contract = jestMockContractConstructor('callIssue', mockCallIssue)
 
       const {
         makeFinalContractCall,
