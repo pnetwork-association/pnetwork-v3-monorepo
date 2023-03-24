@@ -1,9 +1,11 @@
 const { constants: ptokensUtilsConstants } = require('ptokens-utils')
 const constants = require('ptokens-constants')
 const {
-  pollForRequestsAndDismiss: evmPollForRequestsAndDismiss,
   pollForRequestsAndPropose: evmPollForRequestsAndPropose,
 } = require('../evm/evm-process-proposal-txs')
+const {
+  pollForRequestsAndDismiss: evmPollForRequestsAndDismiss,
+} = require('../evm/evm-process-dismissal-txs')
 const {
   getImplementationFromChainId,
 } = require('../get-implementation-from-chainid')

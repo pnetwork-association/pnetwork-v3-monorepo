@@ -8,7 +8,7 @@ const { setupExitEventListeners } = require('./lib/setup-exit-listeners')
 const {
   pollForRequestsAndPropose,
   pollForRequestsAndDismiss,
-} = require('./lib/interfaces/poll-for-requests')
+} = require('./lib/interfaces/process-proposal-txs')
 const {
   maybeProcessFinalTransactions,
 } = require('./lib/interfaces/process-final-txs')

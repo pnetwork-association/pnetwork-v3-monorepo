@@ -59,7 +59,7 @@ describe('Tests for queued requests detection and dismissal', () => {
         .mockImplementation(_ => _)
       const {
         maybeProcessNewRequestsAndDismiss,
-      } = require('../../lib/evm/evm-process-proposal-txs')
+      } = require('../../lib/evm/evm-process-dismissal-txs')
       const state = {
         [constants.state.STATE_KEY_CHAIN_ID]: '0x005fe7f9',
         [constants.state.STATE_KEY_DB]: { collection: 'collection' },
