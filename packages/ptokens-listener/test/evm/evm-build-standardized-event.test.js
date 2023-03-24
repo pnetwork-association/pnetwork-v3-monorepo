@@ -7,7 +7,7 @@ describe('Event building for EVM', () => {
     beforeAll(() => {
       jest
         .useFakeTimers({ legacyFakeTimers: false })
-        .setSystemTime(new Date('2023-03-14 16:00:00'))
+        .setSystemTime(new Date('2023-03-14T16:00:00Z'))
     })
 
     it('Should build a standardized event object for a Redeem event', async () => {
