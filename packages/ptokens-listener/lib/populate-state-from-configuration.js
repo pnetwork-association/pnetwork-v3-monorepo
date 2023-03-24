@@ -1,5 +1,6 @@
 const R = require('ramda')
-const { constants, db } = require('ptokens-utils')
+const constants = require('ptokens-constants')
+const { db } = require('ptokens-utils')
 const { STATE_KEY_EVENTS } = require('./state/constants')
 const schemas = require('ptokens-schemas')
 
@@ -16,7 +17,9 @@ const getDbAndPutInState = R.curry((_config, _state) =>
         schemas.constants.SCHEMA_TABLE_EVENTS_KEY
       ]
     )
-    .then(_collection => R.assoc(constants.STATE_KEY_DB, _collection, _state))
+    .then(_collection =>
+      R.assoc(constants.state.STATE_KEY_DB, _collection, _state)
+    )
 )
 
 const getEventFromConfigurationAndPutInState = R.curry((_config, _state) =>
@@ -29,7 +32,7 @@ const getEventFromConfigurationAndPutInState = R.curry((_config, _state) =>
 
 const getChainIdFromConfigurationAndPutInState = R.curry((_config, _state) =>
   R.assoc(
-    constants.STATE_KEY_CHAIN_ID,
+    constants.state.STATE_KEY_CHAIN_ID,
     _config[schemas.constants.SCHEMA_CHAIN_ID_KEY],
     _state
   )
@@ -38,7 +41,7 @@ const getChainIdFromConfigurationAndPutInState = R.curry((_config, _state) =>
 const getProviderUrlFromConfigurationAndPutInState = R.curry(
   (_config, _state) =>
     R.assoc(
-      constants.STATE_KEY_PROVIDER_URL,
+      constants.state.STATE_KEY_PROVIDER_URL,
       _config[schemas.constants.SCHEMA_PROVIDER_URL_KEY],
       _state
     )

@@ -4,7 +4,7 @@ const {
   getInitialStateFromConfiguration,
 } = require('../lib/populate-state-from-configuration')
 const stateConstants = require('../lib/state/constants')
-const { constants: ptokensUtilsConstants } = require('ptokens-utils')
+const constants = require('ptokens-constants')
 const schemas = require('ptokens-schemas')
 
 describe('State utilities tests', () => {
@@ -40,9 +40,9 @@ describe('State utilities tests', () => {
       const state = {}
       const ret = await getInitialStateFromConfiguration(config, state)
       assert.deepStrictEqual(ret, {
-        [ptokensUtilsConstants.STATE_KEY_DB]:
+        [constants.state.STATE_KEY_DB]:
           'a-url/a-database-name/a-collection-name',
-        [ptokensUtilsConstants.STATE_KEY_CHAIN_ID]: '0x00112233',
+        [constants.state.STATE_KEY_CHAIN_ID]: '0x00112233',
         [stateConstants.STATE_KEY_EVENTS]: [
           {
             [schemas.constants.SCHEMA_NAME_KEY]: 'redeem',
@@ -56,7 +56,7 @@ describe('State utilities tests', () => {
             [schemas.constants.SCHEMA_TOKEN_CONTRACTS_KEY]: ['xbsc.ptokens'],
           },
         ],
-        [ptokensUtilsConstants.STATE_KEY_PROVIDER_URL]: 'provider-url',
+        [constants.state.STATE_KEY_PROVIDER_URL]: 'provider-url',
       })
     })
 

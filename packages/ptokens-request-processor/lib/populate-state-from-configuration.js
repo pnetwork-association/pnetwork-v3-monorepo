@@ -1,4 +1,5 @@
-const { db, constants } = require('ptokens-utils')
+const constants = require('ptokens-constants')
+const { db } = require('ptokens-utils')
 const { curry, assoc, mergeAll } = require('ramda')
 const schemas = require('ptokens-schemas')
 
@@ -14,7 +15,9 @@ const getDbAndPutInState = curry((_config, _state) => {
 
   return db
     .getCollection(url, dbName, tableName)
-    .then(_collection => assoc(constants.STATE_KEY_DB, _collection, _state))
+    .then(_collection =>
+      assoc(constants.state.STATE_KEY_DB, _collection, _state)
+    )
 })
 
 const DEFAULT_TX_TIMEOUT = 10000 // 10s

@@ -3,7 +3,8 @@ const { readFile } = require('fs/promises')
 const schemas = require('ptokens-schemas')
 const { logger } = require('../get-logger')
 const { curry } = require('ramda')
-const { utils, constants } = require('ptokens-utils')
+const constants = require('ptokens-constants')
+const { utils } = require('ptokens-utils')
 const {
   addDismissedReportsToState,
   removeDetectedReportsFromState,
