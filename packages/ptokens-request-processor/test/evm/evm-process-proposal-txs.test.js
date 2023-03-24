@@ -3,6 +3,11 @@ const {
   jestMockEthers,
   jestMockContractConstructor,
 } = require('./mock/jest-utils')
+const {
+  STATE_ONCHAIN_REQUESTS_KEY,
+  STATE_DETECTED_DB_REPORTS_KEY,
+  STATE_PROPOSED_DB_REPORTS_KEY,
+} = require('../../lib/state/constants')
 const { prop } = require('ramda')
 const { db, constants } = require('ptokens-utils')
 const schemas = require('ptokens-schemas')
@@ -15,7 +20,8 @@ describe('Main EVM flow for transaction proposal tests', () => {
     const dbName = global.__MONGO_DB_NAME__
     const table = 'test'
     const gpgEncryptedFile = './identity.gpg'
-    const privKey = '0xdf57089febbacf7ba0bc227dafbffa9fc08a93fdc68e1e42411a14efcf23656e'
+    const privKey =
+      '0xdf57089febbacf7ba0bc227dafbffa9fc08a93fdc68e1e42411a14efcf23656e'
 
     beforeAll(async () => {
       collection = await db.getCollection(uri, dbName, table)
@@ -53,7 +59,8 @@ describe('Main EVM flow for transaction proposal tests', () => {
       ]
 
       const mockPegOut = jest.fn().mockResolvedValue({
-        wait: jest.fn()
+        wait: jest
+          .fn()
           .mockResolvedValueOnce(expecteCallResult[0])
           .mockResolvedValueOnce(expecteCallResult[1]),
       })
@@ -72,7 +79,18 @@ describe('Main EVM flow for transaction proposal tests', () => {
 
       const result = await maybeProcessNewRequestsAndPropose(state)
 
-      console.log(result)
+      expect(result).toHaveProperty(constants.STATE_KEY_DB)
+      expect(result).not.toHaveProperty(STATE_ONCHAIN_REQUESTS_KEY)
+      expect(result).not.toHaveProperty(STATE_DETECTED_DB_REPORTS_KEY)
+      expect(result).not.toHaveProperty(STATE_PROPOSED_DB_REPORTS_KEY)
+      expect(result).toHaveProperty(schemas.constants.SCHEMA_IDENTITY_GPG_KEY)
+
+      const proposedEvents = await db.findReports(collection, {
+        [schemas.constants.SCHEMA_STATUS_KEY]:
+          schemas.db.enums.txStatus.PROPOSED,
+      })
+
+      expect(proposedEvents).toHaveLength(2)
     })
   })
 })
