@@ -2,7 +2,6 @@ const constants = require('ptokens-constants')
 const { db, utils } = require('ptokens-utils')
 const { curry, assoc } = require('ramda')
 const schemas = require('ptokens-schemas')
-const stateConstants = require('./state/constants')
 
 const getDbAndPutInState = curry((_config, _state) => {
   const url =
