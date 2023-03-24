@@ -56,7 +56,7 @@ const maybeBuildDismissalTxsAndPutInState = _state => {
           .then(addDismissedReportsToState(_state))
           .then(removeDetectedReportsFromState(_state))
     : logger.info(`No dismissal to process for ${blockChainName}...`) ||
-        Promise.resolve()
+        Promise.resolve(_state)
 }
 
 module.exports = {
