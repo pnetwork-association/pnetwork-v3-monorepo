@@ -1,5 +1,6 @@
 [
   {
+    "_id": "0x01ec97de_0x9488dee8cb5c6b2f6299e45e48bba580f46dbd496cfaa70a182060fd5dc81cb4",
     "amount": "1111111",
     "destinationAddress": "11eXzETyUxiQPXwU2udtVFQFrFjgRhhvPj",
     "destinationChainId": "0x01ec97de",
@@ -14,9 +15,10 @@
     "proposedTransactionHash": "0xb7360493fc8022c6f056ca6f4a0018c030543a816d8003f82c364557edc005be",
     "proposedTransactionTimestamp": "2023-03-07T16:12:38.835Z",
     "finalTransactionTimestamp": null,
-    "status": "detected"
+    "status": "proposed"
   },
   {
+    "_id": "0x01ec97de_0x48428602101e6a805c06e9b1320d0643ed3f1479c34b279aaa87adcc72abc0a0",
     "amount": "2222222",
     "destinationAddress": "22eXzETyUxiQPXwU2udtVFQFrFjgRhhvPj",
     "destinationChainId": "0x01ec97de",
@@ -31,9 +33,10 @@
     "proposedTransactionHash": "0x9fefc10e9f39668e348f5acc8d204a4677e5eb6c7b06c95ed16d551457f205f5",
     "proposedTransactionTimestamp": "2023-03-07T16:31:38.835Z",
     "finalTransactionTimestamp": null,
-    "status": "detected"
+    "status": "proposed"
   },
   {
+    "_id": "0x026776fa_0x2ae90e5210168c42fa196059a99e26de46df8e49ad4aa482df4d7d657b6a8a22",
     "amount": "3333333",
     "destinationAddress": "33eXzETyUxiQPXwU2udtVFQFrFjgRhhvPj",
     "destinationChainId": "0x026776fa",
@@ -48,9 +51,10 @@
     "proposedTransactionHash": "0xbab90f87b77ff86b0c822c5cac66b6b8b66c8f8293427596dc114a1fe1910bee",
     "proposedTransactionTimestamp": "2023-03-07T16:15:38.835Z",
     "finalTransactionTimestamp": null,
-    "status": "detected"
+    "status": "proposed"
   },
   {
+    "_id": "0x00f1918e_0x7bb9918cb9b0cfa9d8a1ff96f34038256fcaa949fb6d2b27999da3e73bd25aeb",
     "amount": "4444444",
     "destinationAddress": "44eXzETyUxiQPXwU2udtVFQFrFjgRhhvPj",
     "destinationChainId": "0x00f1918e",
@@ -65,6 +69,6 @@
     "proposedTransactionHash": "0x6691f7f3898c9d6f072d4cacdde6606e76952594c714fe929de260f27e373008",
     "proposedTransactionTimestamp": "2023-03-07T16:39:38.835Z",
     "finalTransactionTimestamp": null,
-    "status": "detected"
+    "status": "proposed"
   }
 ]

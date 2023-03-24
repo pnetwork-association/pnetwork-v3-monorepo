@@ -28,7 +28,7 @@ const extractReportsWithChainIdAndStatus = curry(
     return extractReportsWithQuery(_collection, query).then(
       _reports =>
         logger.info(
-          `Found ${_reports.length} events w/ status ${_status} into the db!`
+          `Found ${_reports.length} events w/ status ${_status} from db!`
         ) || _reports
     )
   }
@@ -37,6 +37,15 @@ const extractReportsWithChainIdAndStatus = curry(
 const extractReportsWithChainIdAndTxHash = curry(
   (_collection, _chainId, _txHashes) => {
     logger.info(`Getting events w/ transaction hash ${_txHashes} from db...`)
+
+    if (isNil(_chainId) || isNil(_txHashes)) {
+      return Promise.reject(
+        new Error(
+          `${ERROR_NIL_ARGUMENTS}: chainId: ${_chainId} txHashes: ${_txHashes}`
+        )
+      )
+    }
+
     const query = {
       _id: {
         $in: _txHashes.map(schemas.db.access.getEventId(_chainId)),

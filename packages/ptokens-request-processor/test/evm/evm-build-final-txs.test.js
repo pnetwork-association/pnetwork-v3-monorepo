@@ -8,10 +8,9 @@ describe('General final txs testing', () => {
   describe('makeFinalContractCall', () => {
     it('Should create a callIssue final transaction', async () => {
       const ethers = jestMockEthers()
-      const expectedObject = {
-        transactionHash:
-          '0xd656ffac17b71e2ea2e24f72cd4c15c909a0ebe1696f8ead388eb268268f1cbf',
-      }
+      const finalizedTxHash =
+        '0xd656ffac17b71e2ea2e24f72cd4c15c909a0ebe1696f8ead388eb268268f1cbf'
+      const expectedObject = { transactionHash: finalizedTxHash }
 
       const mockCallIssue = jest.fn().mockResolvedValue({
         wait: jest.fn().mockResolvedValue(expectedObject),
@@ -28,6 +27,8 @@ describe('General final txs testing', () => {
         '0xbae4957b7f913bdae17b31d8f32991ff88a12e37'
       const redeemManagerAddress = '0x341aa660fd5c280f5a9501e3822bb4a98e816d1b'
       const eventReport = {
+        [schemas.constants.SCHEMA_ID_KEY]:
+          '0x005fe7f9_0x9488dee8cb5c6b2f6299e45e48bba580f46dbd496cfaa70a182060fd5dc81cb4',
         [schemas.constants.SCHEMA_STATUS_KEY]: 'proposed',
         [schemas.constants.SCHEMA_AMOUNT_KEY]: '1111111',
         [schemas.constants.SCHEMA_EVENT_NAME_KEY]: 'pegin',
@@ -50,16 +51,20 @@ describe('General final txs testing', () => {
         [schemas.constants.SCHEMA_FINAL_TX_TS_KEY]: null,
       }
 
+      const timeout = 5000
       const result = await makeFinalContractCall(
         wallet,
         issuanceManagerAddress,
         redeemManagerAddress,
+        timeout,
         eventReport
       )
 
-      expect(result).toStrictEqual({
-        transactionHash:
-          '0xd656ffac17b71e2ea2e24f72cd4c15c909a0ebe1696f8ead388eb268268f1cbf',
+      expect(result).toMatchObject({
+        [schemas.constants.SCHEMA_FINAL_TX_TS_KEY]: expect.any(String),
+        [schemas.constants.SCHEMA_FINAL_TX_HASH_KEY]: finalizedTxHash,
+        [schemas.constants.SCHEMA_STATUS_KEY]:
+          schemas.db.enums.txStatus.FINALIZED,
       })
     })
   })

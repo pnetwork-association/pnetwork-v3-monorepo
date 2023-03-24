@@ -8,7 +8,10 @@ const {
 const {
   maybefilterForExpiredProposalsAndPutThemInState,
 } = require('./evm-filter-for-expired-challenge-period')
-const { removeProposalsEventsFromState } = require('../state/state-operations')
+const {
+  removeProposalsEventsFromState,
+  removeFinalizedEventsFromState,
+} = require('../state/state-operations')
 const { maybeUpdateFinalizedEventsInDb } = require('../update-events-in-db')
 
 // TODO: configurable
@@ -19,8 +22,9 @@ const maybeProcessFinalTransactions = _state =>
   getProposedEventsFromDbAndPutInState(_state)
     .then(maybefilterForExpiredProposalsAndPutThemInState)
     .then(maybeBuildFinalTxsAndPutInState)
-    .then(maybeUpdateFinalizedEventsInDb)
     .then(removeProposalsEventsFromState)
+    .then(maybeUpdateFinalizedEventsInDb)
+    .then(removeFinalizedEventsFromState)
     .then(logic.sleepThenReturnArg(SLEEP_TIME))
 
 const processFinalTxsErrorHandler = curry((_state, _err) => {
@@ -38,5 +42,6 @@ const processFinalTransactionsLoop = _state =>
     .catch(processFinalTxsErrorHandler(processFinalTransactionsLoop))
 
 module.exports = {
+  maybeProcessFinalTransactions,
   processFinalTransactionsLoop,
 }

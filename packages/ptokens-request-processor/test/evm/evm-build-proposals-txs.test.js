@@ -1,4 +1,4 @@
-const fs = require('fs')
+const fs = require('fs/promises')
 const {
   jestMockEthers,
   jestMockContractConstructor,
@@ -123,12 +123,12 @@ describe('Build proposals test for EVM', () => {
     const gpgEncryptedFile = './identity.gpg'
     const privKey =
       '0xdf57089febbacf7ba0bc227dafbffa9fc08a93fdc68e1e42411a14efcf23656e'
-    beforeEach(() => {
-      fs.writeFileSync(gpgEncryptedFile, privKey)
+    beforeEach(async () => {
+      await fs.writeFile(gpgEncryptedFile, privKey)
     })
 
-    afterEach(() => {
-      fs.rmSync(gpgEncryptedFile)
+    afterEach(async () => {
+      await fs.rm(gpgEncryptedFile)
       jest.restoreAllMocks()
       jest.resetModules()
     })

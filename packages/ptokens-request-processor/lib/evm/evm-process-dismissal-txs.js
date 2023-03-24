@@ -13,6 +13,7 @@ const {
 } = require('./evm-validate-queued-requests')
 const { maybeUpdateDismissedEventsInDb } = require('../update-events-in-db')
 const {
+  removeOnChainRequestsFromState,
   removeDismissedEventsFromState,
   removeDetectedEventsFromState,
 } = require('../state/state-operations')
@@ -29,6 +30,7 @@ const maybeProcessNewRequestsAndDismiss = _state =>
   getOnChainQueuedRequestsAndPutInState(_state)
     .then(getValidMatchingEventsAndPutInState)
     .then(filterOutInvalidQueuedRequestsAndPutInState)
+    .then(removeOnChainRequestsFromState)
     .then(removeDetectedEventsFromState)
     .then(maybeBuildDismissalTxsAndPutInState)
     .then(maybeUpdateDismissedEventsInDb)

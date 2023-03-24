@@ -23,8 +23,9 @@ const getValidEventsWithStatusAndPutInState = curry(
       .then(filterForValidReports)
       .then(
         _reports =>
-          logger.info(`Adding reports w/ status '${_status}' to state...`) ||
-          assoc(_stateKey, _reports, _state)
+          logger.info(
+            `Adding reports w/ status '${_status}' to state under '${_stateKey}' key`
+          ) || assoc(_stateKey, _reports, _state)
       )
 )
 

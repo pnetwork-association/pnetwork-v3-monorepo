@@ -16,9 +16,9 @@ const addDismissedReportsToState = curry((_state, _proposals) =>
   assoc(STATE_DISMISSED_DB_REPORTS_KEY, _proposals, _state)
 )
 
-const addFinalizedEventsToState = curry((_state, _finalTxs) => {
+const addFinalizedEventsToState = curry((_state, _finalTxs) =>
   assoc(STATE_FINALIZED_DB_REPORTS_KEY, _finalTxs, _state)
-})
+)
 
 const removeKeyFromState = curry((_key, _state) => {
   delete _state[_key]

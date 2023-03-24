@@ -24,11 +24,13 @@ const getExpirationDate = curry(
 const getEventProposedTimestamp = _event =>
   Promise.resolve(prop(schemas.constants.SCHEMA_PROPOSAL_TS_KEY, _event))
 
+const getCurrentDate = () => new Date()
+
 const isChallengePeriodExpired = curry((_challengePeriod, _proposedEvent) =>
   getEventProposedTimestamp(_proposedEvent)
     .then(getExpirationDate(_challengePeriod))
     .then(_expirationDate => {
-      const now = new Date()
+      const now = getCurrentDate()
       const slicedOriginTx = _proposedEvent[
         schemas.constants.SCHEMA_ORIGINATING_TX_HASH_KEY
       ].slice(0, 10)

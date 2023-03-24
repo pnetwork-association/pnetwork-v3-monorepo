@@ -21,6 +21,7 @@ const ABI_VAULT_CONTRACT = [
   'function pegOut(address payable _tokenRecipient, address _tokenAddress, uint256 _tokenAmount, bytes calldata _userData)',
 ]
 
+// TODO: factor out (check evm-build-final-txs)
 const addProposedTxHashToEvent = curry((_event, _proposedTxHash) => {
   // TODO: replace _id field
   logger.trace(`Adding ${_proposedTxHash} to ${_event._id.slice(0, 20)}...`)
@@ -84,7 +85,7 @@ const makeProposalContractCall = curry(
         contract,
         _txTimeout
       )
-        .then(prop('transactionHash'))
+        .then(prop('transactionHash')) // TODO: store in a constant
         .then(addProposedTxHashToEvent(_eventReport))
         .then(resolve)
         .catch(_err =>
