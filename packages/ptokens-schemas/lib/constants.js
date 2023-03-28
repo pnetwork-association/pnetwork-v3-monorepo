@@ -36,4 +36,5 @@ module.exports = {
   SCHEMA_ORIGINATING_NETWORK_ID_KEY: 'originatingNetworkId',
   SCHEMA_OPTIONS_MASK: 'optionMask',
   SCHEMA_NONCE_KEY: 'nonce',
+  SCHEMA_ORIGINATING_BLOCK_HASH_KEY: 'originatingBlockhash',
 }
