@@ -35,8 +35,9 @@ const maybeUpdateEventsInDb = curry(
       const eventsLength = length(events)
 
       return eventsLength === 0
-        ? logger.info(`No entries in ${_eventsStateKey} in state, skipping db update...`) ||
-            resolve(_state)
+        ? logger.info(
+            `No entries in ${_eventsStateKey} in state, skipping db update...`
+          ) || resolve(_state)
         : updateEventsInDb(eventsTable, events).then(_ => resolve(_state))
     })
 )

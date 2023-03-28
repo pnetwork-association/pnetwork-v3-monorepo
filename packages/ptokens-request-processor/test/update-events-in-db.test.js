@@ -72,9 +72,9 @@ describe('General events report update tests', () => {
           schemas.db.enums.txStatus.PROPOSED,
       }
 
-      const updateReports = await db.findReports(collection, query)
+      const updatedReports = await db.findReports(collection, query)
 
-      expect(updateReports).toHaveLength(2)
+      expect(updatedReports).toHaveLength(2)
     })
   })
 })
