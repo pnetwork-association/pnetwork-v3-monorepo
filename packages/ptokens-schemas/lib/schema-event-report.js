@@ -21,6 +21,7 @@ module.exports = {
     constants.SCHEMA_AMOUNT_KEY,
     constants.SCHEMA_USER_DATA_KEY,
 
+    constants.SCHEMA_ORIGINATING_NETWORK_ID_KEY,
     constants.SCHEMA_ORIGINATING_TX_HASH_KEY,
     constants.SCHEMA_PROPOSAL_TS_KEY,
     constants.SCHEMA_PROPOSAL_TX_HASH_KEY,

@@ -33,5 +33,7 @@ module.exports = {
   SCHEMA_FINAL_TX_TS_KEY: 'finalTransactionTimestamp',
   SCHEMA_PROPOSAL_TS_KEY: 'proposedTransactionTimestamp',
   SCHEMA_ORIGINATING_ADDRESS_KEY: 'originatingAddress',
+  SCHEMA_ORIGINATING_NETWORK_ID_KEY: 'originatingNetworkId',
+  SCHEMA_OPTIONS_MASK: 'optionMask',
   SCHEMA_NONCE_KEY: 'nonce',
 }
