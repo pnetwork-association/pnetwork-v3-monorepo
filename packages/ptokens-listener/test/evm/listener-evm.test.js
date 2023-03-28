@@ -68,7 +68,7 @@ describe('EVM listener', () => {
           '35eXzETyUxiQPXwU2udtVFQFrFjgRhhvPj',
         [schemas.constants.SCHEMA_DESTINATION_CHAIN_ID_KEY]: '0x01ec97de',
         [schemas.constants.SCHEMA_ORIGINATING_ADDRESS_KEY]: null,
-        [schemas.constants.SCHEMA_ORIGINATING_CHAIN_ID_KEY]: '0x005fe7f9',
+        [schemas.constants.SCHEMA_UNDERLYING_CHAIN_ID_KEY]: '0x005fe7f9',
         [schemas.constants.SCHEMA_ORIGINATING_TX_HASH_KEY]:
           '0x9488dee8cb5c6b2f6299e45e48bba580f46dbd496cfaa70a182060fd5dc81cb4',
         _id: '0x005fe7f9_0x9488dee8cb5c6b2f6299e45e48bba580f46dbd496cfaa70a182060fd5dc81cb4',
@@ -121,7 +121,7 @@ describe('EVM listener', () => {
           '35eXzETyUxiQPXwU2udtVFQFrFjgRhhvPj',
         [schemas.constants.SCHEMA_DESTINATION_CHAIN_ID_KEY]: '0x01ec97de',
         [schemas.constants.SCHEMA_ORIGINATING_ADDRESS_KEY]: null,
-        [schemas.constants.SCHEMA_ORIGINATING_CHAIN_ID_KEY]: '0x005fe7f9',
+        [schemas.constants.SCHEMA_UNDERLYING_CHAIN_ID_KEY]: '0x005fe7f9',
         [schemas.constants.SCHEMA_ORIGINATING_TX_HASH_KEY]:
           '0x9488dee8cb5c6b2f6299e45e48bba580f46dbd496cfaa70a182060fd5dc81cb4',
         _id: '0x005fe7f9_0x9488dee8cb5c6b2f6299e45e48bba580f46dbd496cfaa70a182060fd5dc81cb4',
@@ -251,7 +251,7 @@ describe('EVM listener', () => {
           [schemas.constants.SCHEMA_DESTINATION_ADDRESS_KEY]: null,
           [schemas.constants.SCHEMA_DESTINATION_CHAIN_ID_KEY]: null,
           [schemas.constants.SCHEMA_ORIGINATING_ADDRESS_KEY]: null,
-          [schemas.constants.SCHEMA_ORIGINATING_CHAIN_ID_KEY]: '0x005fe7f9',
+          [schemas.constants.SCHEMA_UNDERLYING_CHAIN_ID_KEY]: '0x005fe7f9',
           [schemas.constants.SCHEMA_ORIGINATING_TX_HASH_KEY]:
             '0x37eeb55eab329c73aeac6a172faa6c77e7013cd0cda0fc472274c5faf0df7003',
           _id: '0x005fe7f9_0x37eeb55eab329c73aeac6a172faa6c77e7013cd0cda0fc472274c5faf0df7003',
@@ -273,7 +273,7 @@ describe('EVM listener', () => {
           [schemas.constants.SCHEMA_DESTINATION_ADDRESS_KEY]: '770102986',
           [schemas.constants.SCHEMA_DESTINATION_CHAIN_ID_KEY]: '0x03c38e67',
           [schemas.constants.SCHEMA_ORIGINATING_ADDRESS_KEY]: null,
-          [schemas.constants.SCHEMA_ORIGINATING_CHAIN_ID_KEY]: '0x005fe7f9',
+          [schemas.constants.SCHEMA_UNDERLYING_CHAIN_ID_KEY]: '0x005fe7f9',
           [schemas.constants.SCHEMA_ORIGINATING_TX_HASH_KEY]:
             '0x0f53438f23bd61bcee616d4f4d0f70a80dcd1d10dc8b0796774cb4afa6340305',
           _id: '0x005fe7f9_0x0f53438f23bd61bcee616d4f4d0f70a80dcd1d10dc8b0796774cb4afa6340305',
@@ -295,7 +295,7 @@ describe('EVM listener', () => {
             '35eXzETyUxiQPXwU2udtVFQFrFjgRhhvPj',
           [schemas.constants.SCHEMA_DESTINATION_CHAIN_ID_KEY]: '0x01ec97de',
           [schemas.constants.SCHEMA_ORIGINATING_ADDRESS_KEY]: null,
-          [schemas.constants.SCHEMA_ORIGINATING_CHAIN_ID_KEY]: '0x005fe7f9',
+          [schemas.constants.SCHEMA_UNDERLYING_CHAIN_ID_KEY]: '0x005fe7f9',
           [schemas.constants.SCHEMA_ORIGINATING_TX_HASH_KEY]:
             '0x9488dee8cb5c6b2f6299e45e48bba580f46dbd496cfaa70a182060fd5dc81cb4',
           _id: '0x005fe7f9_0x9488dee8cb5c6b2f6299e45e48bba580f46dbd496cfaa70a182060fd5dc81cb4',

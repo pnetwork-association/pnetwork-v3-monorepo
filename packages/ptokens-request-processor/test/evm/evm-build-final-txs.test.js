@@ -32,8 +32,9 @@ describe('General final txs testing', () => {
         [schemas.constants.SCHEMA_STATUS_KEY]: 'proposed',
         [schemas.constants.SCHEMA_AMOUNT_KEY]: '1111111',
         [schemas.constants.SCHEMA_EVENT_NAME_KEY]: 'pegin',
-        [schemas.constants.SCHEMA_ORIGINATING_CHAIN_ID_KEY]: '0x005fe7f9',
-        [schemas.constants.SCHEMA_DESTINATION_CHAIN_ID_KEY]: '0x01ec97de',
+        [schemas.constants.SCHEMA_UNDERLYING_ASSET_CHAIN_ID_KEY]:
+          '0x00000001',
+        [schemas.constants.SCHEMA_DESTINATION_NETWORK_ID_KEY]: '0x01ec97de',
         [schemas.constants.SCHEMA_DESTINATION_ADDRESS_KEY]:
           '11eXzETyUxiQPXwU2udtVFQFrFjgRhhvPj',
         [schemas.constants.SCHEMA_ORIGINATING_TX_HASH_KEY]:

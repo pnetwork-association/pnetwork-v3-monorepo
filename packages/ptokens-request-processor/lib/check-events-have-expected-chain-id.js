@@ -33,7 +33,7 @@ const checkEventsHaveExpectedDestinationChainId =
     schemas.constants.SCHEMA_DESTINATION_CHAIN_ID_KEY
   )
 const checkEventsHaveExpectedOriginChainId = checkEventsHaveExpectedChainId(
-  schemas.constants.SCHEMA_ORIGINATING_CHAIN_ID_KEY
+  schemas.constants.SCHEMA_UNDERLYING_CHAIN_ID_KEY
 )
 
 module.exports = {

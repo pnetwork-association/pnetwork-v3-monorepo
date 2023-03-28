@@ -48,7 +48,7 @@ const extractReportsWithChainIdAndTxHash = curry(
 
     const query = {
       _id: {
-        $in: _txHashes.map(schemas.db.access.getEventId(_chainId)),
+        $in: _txHashes.map(schemas.db.access.getEventId),
       },
     }
     return extractReportsWithQuery(_collection, query).then(

@@ -1,123 +1,60 @@
 const { utils } = require('ptokens-utils')
 const { logger } = require('../get-logger')
-const { isNil, curry, assoc } = require('ramda')
+const { isNil, curry, assoc, identity } = require('ramda')
 const schemas = require('ptokens-schemas')
 
 const getEventWithAllRequiredSetToNull = _ => ({
-  [schemas.constants.SCHEMA_STATUS_KEY]: null,
-  [schemas.constants.SCHEMA_AMOUNT_KEY]: null,
-  [schemas.constants.SCHEMA_USER_DATA_KEY]: null,
   [schemas.constants.SCHEMA_EVENT_NAME_KEY]: null,
+  [schemas.constants.SCHEMA_STATUS_KEY]: null,
+  [schemas.constants.SCHEMA_UNDERLYING_ASSET_CHAIN_ID_KEY]: null,
+  [schemas.constants.SCHEMA_UNDERLYING_ASSET_SYMBOL_KEY]: null,
+  [schemas.constants.SCHEMA_UNDERLYING_ASSET_NAME_KEY]: null,
+  [schemas.constants.SCHEMA_UNDERLYING_ASSET_TOKEN_ADDRESS_KEY]: null,
+  [schemas.constants.SCHEMA_ORIGINATING_TX_HASH_KEY]: null,
+  [schemas.constants.SCHEMA_AMOUNT_KEY]: null,
+  [schemas.constants.SCHEMA_DESTINATION_ADDRESS_KEY]: null,
+  [schemas.constants.SCHEMA_DESTINATION_NETWORK_ID_KEY]: null,
+  [schemas.constants.SCHEMA_USER_DATA_KEY]: null,
   [schemas.constants.SCHEMA_TOKEN_ADDRESS_KEY]: null,
-  [schemas.constants.SCHEMA_PROPOSAL_TS_KEY]: null,
+  [schemas.constants.SCHEMA_ORIGINATING_ADDRESS_KEY]: null,
+  [schemas.constants.SCHEMA_FINAL_TX_HASH_KEY]: null,
   [schemas.constants.SCHEMA_PROPOSAL_TX_HASH_KEY]: null,
   [schemas.constants.SCHEMA_WITNESSED_TS_KEY]: null,
-  [schemas.constants.SCHEMA_FINAL_TX_HASH_KEY]: null,
+  [schemas.constants.SCHEMA_PROPOSAL_TS_KEY]: null,
   [schemas.constants.SCHEMA_FINAL_TX_TS_KEY]: null,
-  [schemas.constants.SCHEMA_DESTINATION_ADDRESS_KEY]: null,
-  [schemas.constants.SCHEMA_DESTINATION_CHAIN_ID_KEY]: null,
-  [schemas.constants.SCHEMA_ORIGINATING_ADDRESS_KEY]: null,
-  [schemas.constants.SCHEMA_ORIGINATING_CHAIN_ID_KEY]: null,
-  [schemas.constants.SCHEMA_ORIGINATING_TX_HASH_KEY]: null,
 })
 
+const bigNumberToString = _n => _n.toString()
+
 const addEventName = _eventLog =>
-  assoc(schemas.constants.SCHEMA_EVENT_NAME_KEY, _eventLog.name.toLowerCase())
+  assoc(schemas.constants.SCHEMA_EVENT_NAME_KEY, _eventLog.name)
 
 const setStatusToDetected = assoc(
   schemas.constants.SCHEMA_STATUS_KEY,
   schemas.db.enums.txStatus.DETECTED
 )
 
-const addOriginatingChainId = curry(
-  (_defaultChainId, _eventLog, _standardEvent) =>
-    new Promise((resolve, reject) => {
-      const originChainId =
-        _eventLog._originChainId || _eventLog.originChainId || _defaultChainId
-
-      if (isNil(originChainId))
-        return reject(new Error('Invalid default origin chain id'))
-
-      // TODO: validate origin chain id
-
-      logger.debug(`Adding origin chain id '${originChainId}'to event`)
-
-      return resolve(
-        assoc(
-          schemas.constants.SCHEMA_ORIGINATING_CHAIN_ID_KEY,
-          originChainId,
-          _standardEvent
-        )
-      )
-    })
-)
-
-const maybeAddAmount = curry(
-  (_eventLog, _standardEvent) =>
+const maybeAddFieldFromEventLog = curry(
+  (_eventLog, _originKeys, _destKey, _conversionFunction, _standardEvent) =>
     new Promise((resolve, _) => {
-      const amount = _eventLog.value || _eventLog._tokenAmount
-      const amountStr = utils.isNotNil(amount) ? amount.toString() : null
+      logger.debug('_originKeys', _originKeys)
+      logger.debug('_destKey', _destKey)
+      logger.debug('_eventLog', _eventLog)
+      const value = _originKeys
+        .map(_key => _eventLog[_key])
+        .find(_val => utils.isNotNil(_val))
+      logger.debug('value', value)
+      const convertedValue = _conversionFunction(value)
 
-      if (isNil(amountStr))
+      if (isNil(convertedValue))
         return (
-          logger.debug('No amount to add to event') || resolve(_standardEvent)
-        )
-
-      logger.debug(`Adding ${amountStr} to event`)
-
-      return resolve(
-        assoc(schemas.constants.SCHEMA_AMOUNT_KEY, amountStr, _standardEvent)
-      )
-    })
-)
-
-const maybeAddDestinationAddress = curry(
-  (_eventLog, _standardEvent) =>
-    new Promise((resolve, _) => {
-      const destinationAddress =
-        _eventLog._destinationAddress || _eventLog.underlyingAssetRecipient
-
-      if (isNil(destinationAddress)) {
-        return (
-          logger.debug('No destination address to add to event') ||
+          logger.debug(`No ${_destKey} to add to event`) ||
           resolve(_standardEvent)
         )
-      }
 
-      logger.debug(`Adding ${destinationAddress} to event`)
+      logger.debug(`Adding ${_destKey} to event`)
 
-      return resolve(
-        assoc(
-          schemas.constants.SCHEMA_DESTINATION_ADDRESS_KEY,
-          destinationAddress,
-          _standardEvent
-        )
-      )
-    })
-)
-
-const maybeAddDestinationChainId = curry(
-  (_eventLog, _standardEvent) =>
-    new Promise((resolve, _) => {
-      const destinationChainId =
-        _eventLog.destinationChainId || _eventLog._destinationChainId
-
-      if (isNil(destinationChainId)) {
-        return (
-          logger.debug('No destination chain id to add to event') ||
-          resolve(_standardEvent)
-        )
-      }
-
-      logger.debug(`Adding ${destinationChainId} to event`)
-
-      return resolve(
-        assoc(
-          schemas.constants.SCHEMA_DESTINATION_CHAIN_ID_KEY,
-          destinationChainId,
-          _standardEvent
-        )
-      )
+      return resolve(assoc(_destKey, convertedValue, _standardEvent))
     })
 )
 
@@ -133,28 +70,83 @@ const maybeAddUserData = curry((_eventLog, _standardEvent) =>
   )
 )
 
-const maybeAddTokenAddress = curry((_eventLog, _standardEvent) =>
-  Promise.resolve(
-    utils.isNotNil(_eventLog._tokenAddress)
-      ? assoc(
-          schemas.constants.SCHEMA_TOKEN_ADDRESS_KEY,
-          _eventLog._tokenAddress,
-          _standardEvent
-        )
-      : logger.debug('No token address to add to event') || _standardEvent
-  )
-)
-
-const addInfoFromParsedLog = (_chainId, _parsedLog, _obj) =>
+const addInfoFromParsedLog = (_parsedLog, _obj) =>
   Promise.resolve(_obj)
     .then(setStatusToDetected)
     .then(addEventName(_parsedLog))
-    .then(addOriginatingChainId(_chainId, _parsedLog.args))
-    .then(maybeAddAmount(_parsedLog.args))
-    .then(maybeAddDestinationAddress(_parsedLog.args))
-    .then(maybeAddDestinationChainId(_parsedLog.args))
+    .then(
+      maybeAddFieldFromEventLog(
+        _parsedLog.args,
+        ['nonce'],
+        schemas.constants.SCHEMA_NONCE_KEY,
+        bigNumberToString
+      )
+    )
+    .then(
+      maybeAddFieldFromEventLog(
+        _parsedLog.args,
+        ['destinationAccount'],
+        schemas.constants.SCHEMA_DESTINATION_ADDRESS_KEY,
+        identity
+      )
+    )
+    .then(
+      maybeAddFieldFromEventLog(
+        _parsedLog.args,
+        ['destinationNetworkId'],
+        schemas.constants.SCHEMA_DESTINATION_NETWORK_ID_KEY,
+        identity
+      )
+    )
+    .then(
+      maybeAddFieldFromEventLog(
+        _parsedLog.args,
+        ['underlyingAssetTokenAddress'],
+        schemas.constants.SCHEMA_UNDERLYING_ASSET_TOKEN_ADDRESS_KEY,
+        identity
+      )
+    )
+    .then(
+      maybeAddFieldFromEventLog(
+        _parsedLog.args,
+        ['underlyingAssetName'],
+        schemas.constants.SCHEMA_UNDERLYING_ASSET_NAME_KEY,
+        identity
+      )
+    )
+    .then(
+      maybeAddFieldFromEventLog(
+        _parsedLog.args,
+        ['underlyingAssetSymbol'],
+        schemas.constants.SCHEMA_UNDERLYING_ASSET_SYMBOL_KEY,
+        identity
+      )
+    )
+    .then(
+      maybeAddFieldFromEventLog(
+        _parsedLog.args,
+        ['underlyingAssetChainId'],
+        schemas.constants.SCHEMA_UNDERLYING_ASSET_CHAIN_ID_KEY,
+        identity
+      )
+    )
+    .then(
+      maybeAddFieldFromEventLog(
+        _parsedLog.args,
+        ['assetTokenAddress'],
+        schemas.constants.SCHEMA_TOKEN_ADDRESS_KEY,
+        identity
+      )
+    )
+    .then(
+      maybeAddFieldFromEventLog(
+        _parsedLog.args,
+        ['assetAmount'],
+        schemas.constants.SCHEMA_AMOUNT_KEY,
+        bigNumberToString
+      )
+    )
     .then(maybeAddUserData(_parsedLog.args))
-    .then(maybeAddTokenAddress(_parsedLog.args))
 
 const addOriginatingTransactionHash = curry((_log, _obj) =>
   Promise.resolve(
@@ -175,7 +167,6 @@ const setId = _obj =>
   assoc(
     '_id',
     schemas.db.access.getEventId(
-      _obj[schemas.constants.SCHEMA_ORIGINATING_CHAIN_ID_KEY],
       _obj[schemas.constants.SCHEMA_ORIGINATING_TX_HASH_KEY]
     ),
     _obj
@@ -209,16 +200,13 @@ const parseLog = (_interface, _log) =>
  *    blockHash: '0x0fc80f64b06f1de7e0025968e1acea1c8098e99da995654bc8f28b86a5efc8be'
  * }
  *
- * @param  {string} _chainId,  [metadata chain id]
  * @param  {object} _interface,  [ethers.js interface object]
  * @param  {object} _log [on chain event log]
  * @return {object}            [the standard event object]
  */
-const buildStandardizedEvmEventObjectFromLog = (_chainId, _interface, _log) =>
+const buildStandardizedEvmEventObjectFromLog = (_interface, _log) =>
   Promise.all([getEventWithAllRequiredSetToNull(), parseLog(_interface, _log)])
-    .then(([_obj, _parsedLog]) =>
-      addInfoFromParsedLog(_chainId, _parsedLog, _obj)
-    )
+    .then(([_obj, _parsedLog]) => addInfoFromParsedLog(_parsedLog, _obj))
     .then(addOriginatingTransactionHash(_log))
     .then(addWitnessedTimestamp)
     .then(setId)

@@ -1,5 +1,3 @@
-const { curry } = require('ramda')
-
-const getEventId = curry((_chainId, _txHash) => `${_chainId}_${_txHash}`)
+const getEventId = _txHash => `${_txHash}`
 
 module.exports = { getEventId }

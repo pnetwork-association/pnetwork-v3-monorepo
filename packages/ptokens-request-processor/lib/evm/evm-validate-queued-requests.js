@@ -25,14 +25,12 @@ const isRequestInvalid = curry((_detectedTxs, _request) => {
     _element =>
       _element._id ===
       schemas.db.access.getEventId(
-        _request[schemas.constants.SCHEMA_ORIGINATING_CHAIN_ID_KEY],
         _request[schemas.constants.SCHEMA_ORIGINATING_TX_HASH_KEY]
       )
   )
   return utils.isNotNil(matchingReport)
     ? logger.info(
         `Found a match for ${schemas.db.access.getEventId(
-          _request[schemas.constants.SCHEMA_ORIGINATING_CHAIN_ID_KEY],
           _request[schemas.constants.SCHEMA_ORIGINATING_TX_HASH_KEY]
         )}...`
       ) || !checkRequestAgainstMatchingReport(matchingReport, _request)
