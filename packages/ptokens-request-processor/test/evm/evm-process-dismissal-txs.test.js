@@ -5,7 +5,7 @@ const { STATE_ONCHAIN_REQUESTS_KEY } = require('../../lib/state/constants')
 const reports = require('../samples/detected-report-set.json')
 
 describe('Tests for queued requests detection and dismissal', () => {
-  describe('pollForRequestsAndDismiss', () => {
+  describe('maybeProcessNewRequestsAndDismiss', () => {
     beforeEach(() => {
       jest.resetAllMocks()
       jest.resetModules()
@@ -59,7 +59,7 @@ describe('Tests for queued requests detection and dismissal', () => {
         .mockImplementation(_ => _)
       const {
         maybeProcessNewRequestsAndDismiss,
-      } = require('../../lib/evm/evm-poll-for-requests')
+      } = require('../../lib/evm/evm-process-dismissal-txs')
       const state = {
         [constants.state.STATE_KEY_CHAIN_ID]: '0x005fe7f9',
         [constants.state.STATE_KEY_DB]: { collection: 'collection' },
@@ -84,8 +84,6 @@ describe('Tests for queued requests detection and dismissal', () => {
         1,
         {
           ...state,
-          detectedDbReports: [reports[0], reports[1], reports[2]],
-          onChainRequests: queuedRequests,
           toBeDismissedRequests: [queuedRequests[1], queuedRequests[2]],
         }
       )

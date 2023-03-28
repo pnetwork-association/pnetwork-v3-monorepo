@@ -6,10 +6,7 @@ const { logger } = require('../get-logger')
 const { errors } = require('ptokens-utils')
 const { ERROR_INVALID_EVENT_NAME } = require('../errors')
 const { curry, prop, values, includes, length } = require('ramda')
-const {
-  addProposalsReportsToState,
-  removeDetectedReportsFromState,
-} = require('../state/state-operations.js')
+const { addProposalsReportsToState } = require('../state/state-operations.js')
 const { STATE_DETECTED_DB_REPORTS_KEY } = require('../state/constants')
 const {
   checkEventsHaveExpectedDestinationChainId,
@@ -24,6 +21,7 @@ const ABI_VAULT_CONTRACT = [
   'function pegOut(address payable _tokenRecipient, address _tokenAddress, uint256 _tokenAmount, bytes calldata _userData)',
 ]
 
+// TODO: factor out (check evm-build-final-txs)
 const addProposedTxHashToEvent = curry((_event, _proposedTxHash) => {
   // TODO: replace _id field
   logger.trace(`Adding ${_proposedTxHash} to ${_event._id.slice(0, 20)}...`)
@@ -87,7 +85,7 @@ const makeProposalContractCall = curry(
         contract,
         _txTimeout
       )
-        .then(prop('transactionHash'))
+        .then(prop('transactionHash')) // TODO: store in a constant
         .then(addProposedTxHashToEvent(_eventReport))
         .then(resolve)
         .catch(_err =>
@@ -115,7 +113,7 @@ const sendProposalTransactions = curry(
 )
 
 const buildProposalsTxsAndPutInState = _state =>
-  new Promise((resolve, reject) => {
+  new Promise(resolve => {
     logger.info('Building proposals txs...')
     const detectedEvents = _state[STATE_DETECTED_DB_REPORTS_KEY]
     const destinationChainId = _state[constants.state.STATE_KEY_CHAIN_ID]
@@ -145,9 +143,7 @@ const buildProposalsTxsAndPutInState = _state =>
           )
         )
         .then(addProposalsReportsToState(_state))
-        .then(removeDetectedReportsFromState(_state))
         .then(resolve)
-        .catch(reject)
     )
   })
 

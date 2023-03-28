@@ -1,13 +1,10 @@
 const ethers = require('ethers')
+const constants = require('ptokens-constants')
+const { curry } = require('ramda')
 const { readFile } = require('fs/promises')
 const { logger } = require('../get-logger')
-const { curry } = require('ramda')
-const constants = require('ptokens-constants')
 const { utils, constants: ptokensUtilsConstants } = require('ptokens-utils')
-const {
-  addDismissedReportsToState,
-  removeDetectedReportsFromState,
-} = require('../state/state-operations.js')
+const { addDismissedReportsToState } = require('../state/state-operations.js')
 const { STATE_TO_BE_DISMISSED_REQUESTS_KEY } = require('../state/constants')
 
 const makeDismissalContractCall = curry(
@@ -37,27 +34,39 @@ const sendDismissalTransaction = curry(
     )
 )
 
-const maybeBuildDismissalTxsAndPutInState = _state => {
-  const invalidRequests = _state[STATE_TO_BE_DISMISSED_REQUESTS_KEY]
-  const chainId = _state[constants.state.STATE_KEY_CHAIN_ID]
-  const providerUrl = _state[constants.state.STATE_KEY_PROVIDER_URL]
-  const identityGpgFile = _state[constants.state.STATE_KEY_IDENTITY_FILE]
-  const blockChainName = utils.flipObjectPropertiesSync(
-    ptokensUtilsConstants.metadataChainIds
-  )[chainId]
+const buildDismissalTxsAndPutInState = _state =>
+  new Promise(resolve => {
+    const blockChainName = utils.flipObjectPropertiesSync(
+      constants.metadataChainIds
+    )[chainId]
+    const chainId = _state[constants.state.STATE_KEY_CHAIN_ID]
+    const invalidRequests = _state[STATE_TO_BE_DISMISSED_REQUESTS_KEY]
+    const providerUrl = _state[constants.state.STATE_KEY_PROVIDER_URL]
+    const identityGpgFile = _state[constants.state.STATE_KEY_IDENTITY_FILE]
+    logger.info(`Processing dismissals for ${blockChainName}...`)
 
-  return invalidRequests.length > 0
-    ? logger.info(`Processing dismissals for ${blockChainName}...`) ||
-        Promise.all(
-          invalidRequests.map(
-            sendDismissalTransaction(identityGpgFile, providerUrl, chainId)
-          )
-        )
-          .then(addDismissedReportsToState(_state))
-          .then(removeDetectedReportsFromState(_state))
-    : logger.info(`No dismissal to process for ${blockChainName}...`) ||
-        Promise.resolve(_state)
-}
+    return Promise.all(
+      invalidRequests.map(
+        sendDismissalTransaction(identityGpgFile, providerUrl, chainId)
+      )
+    )
+      .then(addDismissedReportsToState(_state))
+      .then(resolve)
+  })
+
+const maybeBuildDismissalTxsAndPutInState = _state =>
+  new Promise(resolve => {
+    const chainId = _state[constants.state.STATE_KEY_CHAIN_ID]
+    const blockChainName = utils.flipObjectPropertiesSync(
+      ptokensUtilsConstants.metadataChainIds
+    )[chainId]
+    const invalidRequests = _state[STATE_TO_BE_DISMISSED_REQUESTS_KEY] || []
+
+    return invalidRequests.length > 0
+      ? buildDismissalTxsAndPutInState(_state)
+      : logger.info(`No dismissal to process for ${blockChainName}...`) ||
+          resolve(_state)
+  })
 
 module.exports = {
   maybeBuildDismissalTxsAndPutInState,

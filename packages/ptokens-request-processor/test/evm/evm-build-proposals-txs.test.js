@@ -1,4 +1,4 @@
-const fs = require('fs')
+const fs = require('fs/promises')
 const {
   jestMockEthers,
   jestMockContractConstructor,
@@ -48,7 +48,11 @@ describe('Build proposals test for EVM', () => {
         '0xd656ffac17b71e2ea2e24f72cd4c15c909a0ebe1696f8ead388eb268268f1cbf'
       const expectedObject = { transactionHash: proposedTxHash }
 
-      ethers.Contract = jestMockContractConstructor('pegOut', expectedObject)
+      const mockPegOut = jest.fn().mockResolvedValue({
+        wait: jest.fn().mockResolvedValue(expectedObject),
+      })
+
+      ethers.Contract = jestMockContractConstructor('pegOut', mockPegOut)
 
       const {
         makeProposalContractCall,
@@ -119,19 +123,15 @@ describe('Build proposals test for EVM', () => {
     const gpgEncryptedFile = './identity.gpg'
     const privKey =
       '0xdf57089febbacf7ba0bc227dafbffa9fc08a93fdc68e1e42411a14efcf23656e'
-    beforeEach(() => {
-      fs.writeFileSync(gpgEncryptedFile, privKey)
+    beforeEach(async () => {
+      await fs.writeFile(gpgEncryptedFile, privKey)
     })
 
-    afterEach(() => {
-      fs.rmSync(gpgEncryptedFile)
+    afterEach(async () => {
+      await fs.rm(gpgEncryptedFile)
       jest.restoreAllMocks()
       jest.resetModules()
     })
-
-    // it('Should add proposals only to the state', () => {
-    //   throw new Error('To be implemented')
-    // })
 
     it('Should build the proposals and add them to the state', async () => {
       const ethers = jestMockEthers()
@@ -194,7 +194,7 @@ describe('Build proposals test for EVM', () => {
       const result = await buildProposalsTxsAndPutInState(state)
 
       expect(result).toHaveProperty(STATE_PROPOSED_DB_REPORTS_KEY)
-      expect(result).not.toHaveProperty(STATE_DETECTED_DB_REPORTS_KEY)
+      expect(result).toHaveProperty(STATE_DETECTED_DB_REPORTS_KEY)
       expect(result).toHaveProperty(constants.state.STATE_KEY_CHAIN_ID)
       expect(result).toHaveProperty(constants.state.STATE_KEY_PROVIDER_URL)
       expect(result).toHaveProperty(constants.state.STATE_KEY_IDENTITY_FILE)

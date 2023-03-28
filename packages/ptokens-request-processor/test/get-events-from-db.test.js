@@ -1,7 +1,6 @@
 const { prop } = require('ramda')
-const { MongoClient } = require('mongodb')
-const constants = require('ptokens-constants')
 const { db } = require('ptokens-utils')
+const constants = require('ptokens-constants')
 const detectedEvents = require('./samples/detected-report-set')
 const { STATE_DETECTED_DB_REPORTS_KEY } = require('../lib/state/constants')
 const {
@@ -10,18 +9,13 @@ const {
 
 describe('General get events from db tests', () => {
   describe('getDetectedEventsFromDbAndPutInState', () => {
-    let database = null
-    let connection = null
     let collection = null
+    const uri = global.__MONGO_URI__
+    const dbName = global.__MONGO_DB_NAME__
+    const table = 'test'
 
     beforeAll(async () => {
-      connection = await MongoClient.connect(global.__MONGO_URI__, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-      })
-
-      database = await connection.db('test')
-      collection = await database.collection('test')
+      collection = await db.getCollection(uri, dbName, table)
     })
 
     beforeEach(async () => {
@@ -35,7 +29,7 @@ describe('General get events from db tests', () => {
     })
 
     afterAll(async () => {
-      await connection.close()
+      await db.closeConnection(uri)
     })
 
     it('Should get the detected events with the chain id 0x00e4b170', async () => {

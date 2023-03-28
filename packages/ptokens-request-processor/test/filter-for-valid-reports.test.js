@@ -3,7 +3,7 @@ const reportsSet = require('./samples/detected-report-set')
 const { filterForValidReports } = require('../lib/filter-for-valid-reports')
 
 describe('Reports filtering tests', () => {
-  const dbName = 'test'
+  const dbName = global.__MONGO_DB_NAME__
   const tableName = 'test'
   let collection = null
   const uri = global.__MONGO_URI__

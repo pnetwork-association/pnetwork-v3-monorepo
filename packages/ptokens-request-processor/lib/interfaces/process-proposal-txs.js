@@ -1,24 +1,23 @@
 const { constants: ptokensUtilsConstants } = require('ptokens-utils')
 const constants = require('ptokens-constants')
 const {
-  processFinalTransactionsLoop: evmProcessFinalTransactionsLoop,
-} = require('../evm/evm-process-final-txs')
+  pollForRequestsAndProposeLoop: evmPollForRequestsAndProposeLoop,
+} = require('../evm/evm-process-proposal-txs')
 const {
   getImplementationFromChainId,
 } = require('../get-implementation-from-chainid')
 
 const blockchainTypeImplementationMapping = {
-  [ptokensUtilsConstants.blockchainType.EVM]: evmProcessFinalTransactionsLoop,
-  // [ptokensUtilsConstants.blockchainType.ALGORAND]: evmprocessFinalTransactionsLoop
+  [ptokensUtilsConstants.blockchainType.EVM]: evmPollForRequestsAndProposeLoop,
 }
 
-const processFinalTransactions = _state =>
+const pollForRequestsAndPropose = _state =>
   getImplementationFromChainId(
     _state[constants.state.STATE_KEY_CHAIN_ID],
-    'processFinalTransactions',
+    'pollForRequestsAndPropose',
     blockchainTypeImplementationMapping
   ).then(_implementedMethod => _implementedMethod(_state))
 
 module.exports = {
-  processFinalTransactions,
+  pollForRequestsAndPropose,
 }
