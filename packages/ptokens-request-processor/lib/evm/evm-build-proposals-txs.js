@@ -13,18 +13,27 @@ const {
 } = require('../check-events-have-expected-chain-id')
 const { callContractFunctionAndAwait } = require('./evm-call-contract-function')
 
-const ABI_PTOKEN_CONTRACT = [
-  'function mint(address recipient, uint256 value, bytes memory userData, bytes memory operatorData)',
-]
-
-const ABI_VAULT_CONTRACT = [
-  'function pegOut(address payable _tokenRecipient, address _tokenAddress, uint256 _tokenAmount, bytes calldata _userData)',
+const ABI_QUEUE_OPERATION = [
+  'function protocolQueueOperation(' +
+    'bytes32 originBlockHash,' +
+    'bytes32 originTransactionHash,' +
+    'bytes4 originNetworkChainId,' +
+    'uint256 nonce,' +
+    'address destinationAccount,' +
+    'string calldata underlyingAssetName,' +
+    'string calldata underlyingAssetSymbol,' +
+    'address underlyingAssetTokenAddress,' +
+    'uint256 underlyingAssetChainId,' +
+    'uint256 amount,' +
+    'bytes calldata userData,' +
+    'bytes32 optionsMask' +
+    ')',
 ]
 
 // TODO: factor out (check evm-build-final-txs)
 const addProposedTxHashToEvent = curry((_event, _proposedTxHash) => {
   // TODO: replace _id field
-  logger.trace(`Adding ${_proposedTxHash} to ${_event._id.slice(0, 20)}...`)
+  logger.debug(`Adding ${_proposedTxHash} to ${_event._id.slice(0, 20)}...`)
   const proposedTimestamp = new Date().toISOString()
   _event[schemas.constants.SCHEMA_PROPOSAL_TS_KEY] = proposedTimestamp
   _event[schemas.constants.SCHEMA_PROPOSAL_TX_HASH_KEY] = _proposedTxHash
@@ -35,49 +44,77 @@ const addProposedTxHashToEvent = curry((_event, _proposedTxHash) => {
 })
 
 const makeProposalContractCall = curry(
-  (_wallet, _issuanceManager, _redeemManager, _txTimeout, _eventReport) =>
+  (_wallet, _managerContract, _txTimeout, _eventReport) =>
     new Promise((resolve, reject) => {
+      const id = _eventReport[schemas.constants.SCHEMA_ID_KEY]
+      const nonce = _eventReport[schemas.constants.SCHEMA_NONCE_KEY]
       const amount = _eventReport[schemas.constants.SCHEMA_AMOUNT_KEY]
       const userData = _eventReport[schemas.constants.SCHEMA_USER_DATA_KEY]
       const eventName = _eventReport[schemas.constants.SCHEMA_EVENT_NAME_KEY]
-      const tokenAddress =
-        _eventReport[schemas.constants.SCHEMA_TOKEN_ADDRESS_KEY]
-      const originTx =
+      const originChainId =
+        _eventReport[schemas.constants.SCHEMA_ORIGINATING_NETWORK_ID_KEY]
+      const originBlockHash =
+        _eventReport[schemas.constants.SCHEMA_ORIGINATING_BLOCK_HASH_KEY]
+      const originatingTxHash =
         _eventReport[schemas.constants.SCHEMA_ORIGINATING_TX_HASH_KEY]
-      const tokenRecipient =
+      const destinationAddress =
         _eventReport[schemas.constants.SCHEMA_DESTINATION_ADDRESS_KEY]
+      const underlyingAssetName =
+        _eventReport[schemas.constants.SCHEMA_UNDERLYING_ASSET_NAME_KEY]
+      const underlyingAssetSymbol =
+        _eventReport[schemas.constants.SCHEMA_UNDERLYING_ASSET_SYMBOL_KEY]
+      const underlyingAssetChainId =
+        _eventReport[schemas.constants.SCHEMA_UNDERLYING_ASSET_CHAIN_ID_KEY]
+      const underlyingAssetTokenAddress =
+        _eventReport[
+          schemas.constants.SCHEMA_UNDERLYING_ASSET_TOKEN_ADDRESS_KEY
+        ]
+
+      const optionsMask = _eventReport[schemas.constants.SCHEMA_OPTIONS_MASK]
 
       if (!includes(eventName, values(schemas.db.enums.eventNames))) {
         return reject(new Error(`${ERROR_INVALID_EVENT_NAME}: ${eventName}`))
       }
 
-      const abi =
-        eventName === schemas.db.enums.eventNames.PEGIN
-          ? ABI_PTOKEN_CONTRACT
-          : ABI_VAULT_CONTRACT
+      const abi = ABI_QUEUE_OPERATION
+      const args = [
+        originBlockHash,
+        originatingTxHash,
+        originChainId,
+        nonce,
+        destinationAddress,
+        underlyingAssetName,
+        underlyingAssetSymbol,
+        underlyingAssetTokenAddress,
+        underlyingAssetChainId,
+        amount,
+        userData,
+        optionsMask,
+      ]
+      const functionName = 'protocolQueueOperation'
+      const contract = new ethers.Contract(_managerContract, abi, _wallet)
 
-      const args =
-        eventName === schemas.db.enums.eventNames.PEGIN
-          ? [tokenRecipient, amount, userData, ''] // FIXME: operatorData???
-          : [tokenRecipient, tokenAddress, amount, userData]
-
-      const contractAddress =
-        eventName === schemas.db.enums.eventNames.PEGIN
-          ? _issuanceManager
-          : _redeemManager
-
-      const functionName =
-        eventName === schemas.db.enums.eventNames.PEGIN ? 'mint' : 'pegOut'
-
-      const contract = new ethers.Contract(contractAddress, abi, _wallet)
-
-      logger.info(`Processing proposal ${eventName}:`)
-      logger.info(`  eventName: ${eventName}`)
-      logger.info(`  originTx: ${originTx}`)
-      logger.info(`  userData: ${userData}`)
-      logger.info(`  amount: ${amount}`)
-      logger.info(`  tokenAddress: ${tokenAddress}`)
-      logger.info(`  tokenRecipient: ${tokenRecipient}`)
+      logger.info(`Processing _id: ${id}`)
+      logger.info('function protocolQueueOperation(')
+      logger.info(`  bytes32 originBlockHash: ${originBlockHash}`)
+      logger.info(`  bytes32 originTransactionHash: ${originatingTxHash}`)
+      logger.info(`  bytes4 originNetworkChainId: ${originChainId}`)
+      logger.info(`  uint256 nonce: ${nonce}`)
+      logger.info(`  address destinationAccount: ${destinationAddress}`)
+      logger.info(
+        `  string calldata:  underlyingAssetName ${underlyingAssetName}`
+      )
+      logger.info(
+        `  string calldata:  underlyingAssetSymbol ${underlyingAssetSymbol}`
+      )
+      logger.info(
+        `  address underlyingAssetTokenAddress: ${underlyingAssetTokenAddress}`
+      )
+      logger.info(`  uint256 underlyingAssetChainId: ${underlyingAssetChainId}`)
+      logger.info(`  uint256 amount: ${amount}`)
+      logger.info(`  bytes calldata:  userData ${userData}`)
+      logger.info(`  bytes32 optionsMask: ${optionsMask}`)
+      logger.info(')')
 
       return callContractFunctionAndAwait(
         functionName,
@@ -90,25 +127,20 @@ const makeProposalContractCall = curry(
         .then(resolve)
         .catch(_err =>
           _err.message.includes(errors.ERROR_TIMEOUT)
-            ? logger.error(`Tx for ${originTx} failed:`, _err.message) ||
-              resolve()
+            ? logger.error(
+                `Tx for ${originatingTxHash} failed:`,
+                _err.message
+              ) || resolve()
             : reject(_err)
         )
     })
 )
 
 const sendProposalTransactions = curry(
-  (_eventReports, _issuanceManager, _redeemManager, _timeOut, _wallet) =>
+  (_eventReports, _manager, _timeOut, _wallet) =>
     logger.info(`Sending proposals w/ address ${_wallet.address}`) ||
     Promise.all(
-      _eventReports.map(
-        makeProposalContractCall(
-          _wallet,
-          _issuanceManager,
-          _redeemManager,
-          _timeOut
-        )
-      )
+      _eventReports.map(makeProposalContractCall(_wallet, _manager, _timeOut))
     )
 )
 
@@ -119,10 +151,8 @@ const buildProposalsTxsAndPutInState = _state =>
     const destinationChainId = _state[constants.state.STATE_KEY_CHAIN_ID]
     const providerUrl = _state[constants.state.STATE_KEY_PROVIDER_URL]
     const identityGpgFile = _state[constants.state.STATE_KEY_IDENTITY_FILE]
-    const issuanceManagerAddress =
-      _state[constants.state.STATE_KEY_ISSUANCE_MANAGER_ADDRESS]
-    const redeemManagerAddress =
-      _state[constants.state.STATE_KEY_REDEEM_MANAGER_ADDRESS]
+    const managerAddress =
+      _state[constants.state.STATE_KEY_STATE_MANAGER_ADDRESS]
     const txTimeout = _state[constants.state.STATE_KEY_TX_TIMEOUT]
     const provider = new ethers.providers.JsonRpcProvider(providerUrl)
 
@@ -135,12 +165,7 @@ const buildProposalsTxsAndPutInState = _state =>
         .then(_ => readFile(identityGpgFile, { encoding: 'utf8' }))
         .then(_privateKey => new ethers.Wallet(_privateKey, provider))
         .then(
-          sendProposalTransactions(
-            detectedEvents,
-            issuanceManagerAddress,
-            redeemManagerAddress,
-            txTimeout
-          )
+          sendProposalTransactions(detectedEvents, managerAddress, txTimeout)
         )
         .then(addProposalsReportsToState(_state))
         .then(resolve)

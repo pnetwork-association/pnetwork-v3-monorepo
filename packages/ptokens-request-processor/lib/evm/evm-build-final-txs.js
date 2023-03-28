@@ -13,8 +13,22 @@ const {
 } = require('../check-events-have-expected-chain-id')
 const { callContractFunctionAndAwait } = require('./evm-call-contract-function')
 
-const ABI_CALL_ISSUE = ['function callIssue(string _requestId)']
-const ABI_CALL_REDEEM = ['function callRedeem(string _requestId)']
+const ABI_CALL = [
+  'function protocolExecuteOperation(' +
+    'bytes32 originBlockHash,' +
+    'bytes32 originTransactionHash,' +
+    'bytes4 originChainId,' +
+    'uint256 nonce,' +
+    'address destinationAccount,' +
+    'string calldata underlyingAssetName,' +
+    'string calldata underlyingAssetSymbol,' +
+    'address underlyingAssetTokenAddress,' +
+    'uint256 underlyingAssetChainId,' +
+    'uint256 amount,' +
+    'bytes calldata userData,' +
+    'bytes32 optionsMask' +
+    ')',
+]
 
 // TODO: factor out (check evm-build-proposals-txs)
 const addFinalizedTxHashToEvent = curry((_event, _finalizedTxHash) => {
@@ -113,7 +127,7 @@ const buildFinalTxsAndPutInState = _state =>
     const issuanceManagerAddress =
       _state[constants.state.STATE_KEY_ISSUANCE_MANAGER_ADDRESS]
     const redeemManagerAddress =
-      _state[constants.state.STATE_KEY_REDEEM_MANAGER_ADDRESS]
+      _state[constants.state.STATE_KEY_STATE_MANAGER_ADDRESS]
 
     return (
       checkEventsHaveExpectedDestinationChainId(

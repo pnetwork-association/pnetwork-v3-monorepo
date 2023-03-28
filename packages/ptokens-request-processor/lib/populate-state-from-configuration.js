@@ -52,16 +52,8 @@ const getInitialStateFromConfiguration = _config =>
     .then(
       getConfigPropertyAndPutInState(
         _config,
-        schemas.constants.SCHEMA_REDEEM_MANAGER_KEY,
-        constants.state.STATE_KEY_REDEEM_MANAGER_ADDRESS,
-        null
-      )
-    )
-    .then(
-      getConfigPropertyAndPutInState(
-        _config,
-        schemas.constants.SCHEMA_ISSUANCE_MANAGER_KEY,
-        constants.state.STATE_KEY_ISSUANCE_MANAGER_ADDRESS,
+        schemas.constants.SCHEMA_STATE_MANAGER_KEY,
+        constants.state.STATE_KEY_STATE_MANAGER_ADDRESS,
         null
       )
     )

@@ -180,8 +180,7 @@ describe('Build proposals test for EVM', () => {
         [constants.state.STATE_KEY_PROVIDER_URL]: providerUrl,
         [constants.state.STATE_KEY_CHAIN_ID]: destinationChainId,
         [constants.state.STATE_KEY_IDENTITY_FILE]: gpgEncryptedFile,
-        [constants.state.STATE_KEY_REDEEM_MANAGER_ADDRESS]:
-          redeemManagerAddress,
+        [constants.state.STATE_KEY_STATE_MANAGER_ADDRESS]: redeemManagerAddress,
         [constants.state.STATE_KEY_ISSUANCE_MANAGER_ADDRESS]:
           issuanceManagerAddress,
         [STATE_DETECTED_DB_REPORTS_KEY]: [detectedEvents[0], detectedEvents[1]],
@@ -202,7 +201,7 @@ describe('Build proposals test for EVM', () => {
         constants.state.STATE_KEY_ISSUANCE_MANAGER_ADDRESS
       )
       expect(result).toHaveProperty(
-        constants.state.STATE_KEY_REDEEM_MANAGER_ADDRESS
+        constants.state.STATE_KEY_STATE_MANAGER_ADDRESS
       )
       expect(result).toHaveProperty(constants.state.STATE_KEY_TX_TIMEOUT)
       expect(result[STATE_PROPOSED_DB_REPORTS_KEY]).toHaveLength(2)

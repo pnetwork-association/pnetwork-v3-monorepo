@@ -76,7 +76,7 @@ describe('Main EVM flow for transaction proposal tests', () => {
         [constants.state.STATE_KEY_CHAIN_ID]: '0x01ec97de',
         [constants.state.STATE_KEY_ISSUANCE_MANAGER_ADDRESS]:
           '0x73c47d9Da343328Aa744E712560D91C6de9084a0',
-        [constants.state.STATE_KEY_REDEEM_MANAGER_ADDRESS]:
+        [constants.state.STATE_KEY_STATE_MANAGER_ADDRESS]:
           '0x73c47d9Da343328Aa744E712560D91C6de9084a0',
         [constants.state.STATE_KEY_IDENTITY_FILE]: gpgEncryptedFile,
       }
