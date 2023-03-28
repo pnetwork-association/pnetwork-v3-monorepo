@@ -1,4 +1,5 @@
-const { constants } = require('ptokens-utils')
+const constants = require('ptokens-constants')
+const { constants: ptokensUtilsConstants } = require('ptokens-utils')
 const {
   pollForRequestsAndDismissLoop: evmPollForRequestsAndDismissLoop,
 } = require('../evm/evm-process-dismissal-txs')
@@ -7,12 +8,12 @@ const {
 } = require('../get-implementation-from-chainid')
 
 const blockchainTypeImplementationMapping = {
-  [constants.blockchainType.EVM]: evmPollForRequestsAndDismissLoop,
+  [ptokensUtilsConstants.blockchainType.EVM]: evmPollForRequestsAndDismissLoop,
 }
 
 const pollForRequestsAndDismiss = _state =>
   getImplementationFromChainId(
-    _state[constants.STATE_KEY_CHAIN_ID],
+    _state[constants.state.STATE_KEY_CHAIN_ID],
     'pollForRequestsAndDismiss',
     blockchainTypeImplementationMapping
   ).then(_implementedMethod => _implementedMethod(_state))
