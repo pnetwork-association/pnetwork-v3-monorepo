@@ -29,24 +29,31 @@ const getFilterObject = (_eventName, _tokenContract) =>
   }))
 
 const processEventLog = curry(
-  (_interface, _callback, _log) =>
+  (_chainId, _interface, _callback, _log) =>
     logger.info(`Received EVM event for transaction ${_log.transactionHash}`) ||
-    buildStandardizedEvmEventObjectFromLog(_interface, _log)
+    buildStandardizedEvmEventObjectFromLog(_chainId, _interface, _log)
       // TODO: Validate event schema before inserting
       .then(_callback)
 )
 
-const listenFromFilter = (_providerUrl, _eventName, _interface, _callback) =>
+const listenFromFilter = (
+  _providerUrl,
+  _chainId,
+  _eventName,
+  _interface,
+  _callback
+) =>
   logger.info(`Listening for event: ${_eventName}`) ||
   validation
     .checkType('String', _providerUrl)
     .then(_ => getEthersProvider(_providerUrl))
     .then(_provider =>
-      _provider.on(_eventName, processEventLog(_interface, _callback))
+      _provider.on(_eventName, processEventLog(_chainId, _interface, _callback))
     )
 
 const listenForEvmEvent = (
   _providerUrl,
+  _chainId,
   _eventName,
   _tokenContract,
   _callback
@@ -57,13 +64,24 @@ const listenForEvmEvent = (
   ]).then(
     ([_filter, _interface]) =>
       logger.info(`Listening to ${_eventName} @ ${_tokenContract}`) ||
-      listenFromFilter(_providerUrl, _filter, _interface, _callback)
+      listenFromFilter(_providerUrl, _chainId, _filter, _interface, _callback)
   )
 
-const startEvmListenerFromEventObject = (_providerUrl, _event, _callback) =>
+const startEvmListenerFromEventObject = (
+  _providerUrl,
+  _chainId,
+  _event,
+  _callback
+) =>
   Promise.all(
     _event[schemas.constants.SCHEMA_TOKEN_CONTRACTS_KEY].map(_tokenContract =>
-      listenForEvmEvent(_providerUrl, _event.name, _tokenContract, _callback)
+      listenForEvmEvent(
+        _providerUrl,
+        _chainId,
+        _event.name,
+        _tokenContract,
+        _callback
+      )
     )
   )
 
@@ -72,6 +90,7 @@ const listenForEvmEvents = (_state, _callback) =>
     _state[STATE_KEY_EVENTS].map(_event =>
       startEvmListenerFromEventObject(
         _state[constants.state.STATE_KEY_PROVIDER_URL],
+        _state[constants.state.STATE_KEY_CHAIN_ID],
         _event,
         _callback
       )

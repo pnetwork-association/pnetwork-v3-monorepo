@@ -25,6 +25,7 @@ const getEventWithAllRequiredSetToNull = _ => ({
 })
 
 const bigNumberToString = _n => _n.toString()
+const bigNumberToHexString = _n => _n.toHexString()
 
 const addEventName = _eventLog =>
   assoc(schemas.constants.SCHEMA_EVENT_NAME_KEY, _eventLog.name)
@@ -34,16 +35,13 @@ const setStatusToDetected = assoc(
   schemas.db.enums.txStatus.DETECTED
 )
 
-const maybeAddFieldFromEventLog = curry(
+const maybeAddFieldFromEventArgs = curry(
   (_eventLog, _originKeys, _destKey, _conversionFunction, _standardEvent) =>
     new Promise((resolve, _) => {
-      logger.debug('_originKeys', _originKeys)
-      logger.debug('_destKey', _destKey)
-      logger.debug('_eventLog', _eventLog)
       const value = _originKeys
         .map(_key => _eventLog[_key])
         .find(_val => utils.isNotNil(_val))
-      logger.debug('value', value)
+
       const convertedValue = _conversionFunction(value)
 
       if (isNil(convertedValue))
@@ -52,7 +50,10 @@ const maybeAddFieldFromEventLog = curry(
           resolve(_standardEvent)
         )
 
-      logger.debug(`Adding ${_destKey} to event`)
+      logger.debug(
+        'Adding field to event',
+        JSON.stringify({ [_destKey]: convertedValue })
+      )
 
       return resolve(assoc(_destKey, convertedValue, _standardEvent))
     })
@@ -75,7 +76,7 @@ const addInfoFromParsedLog = (_parsedLog, _obj) =>
     .then(setStatusToDetected)
     .then(addEventName(_parsedLog))
     .then(
-      maybeAddFieldFromEventLog(
+      maybeAddFieldFromEventArgs(
         _parsedLog.args,
         ['nonce'],
         schemas.constants.SCHEMA_NONCE_KEY,
@@ -83,7 +84,7 @@ const addInfoFromParsedLog = (_parsedLog, _obj) =>
       )
     )
     .then(
-      maybeAddFieldFromEventLog(
+      maybeAddFieldFromEventArgs(
         _parsedLog.args,
         ['destinationAccount'],
         schemas.constants.SCHEMA_DESTINATION_ADDRESS_KEY,
@@ -91,7 +92,7 @@ const addInfoFromParsedLog = (_parsedLog, _obj) =>
       )
     )
     .then(
-      maybeAddFieldFromEventLog(
+      maybeAddFieldFromEventArgs(
         _parsedLog.args,
         ['destinationNetworkId'],
         schemas.constants.SCHEMA_DESTINATION_NETWORK_ID_KEY,
@@ -99,7 +100,7 @@ const addInfoFromParsedLog = (_parsedLog, _obj) =>
       )
     )
     .then(
-      maybeAddFieldFromEventLog(
+      maybeAddFieldFromEventArgs(
         _parsedLog.args,
         ['underlyingAssetTokenAddress'],
         schemas.constants.SCHEMA_UNDERLYING_ASSET_TOKEN_ADDRESS_KEY,
@@ -107,7 +108,7 @@ const addInfoFromParsedLog = (_parsedLog, _obj) =>
       )
     )
     .then(
-      maybeAddFieldFromEventLog(
+      maybeAddFieldFromEventArgs(
         _parsedLog.args,
         ['underlyingAssetName'],
         schemas.constants.SCHEMA_UNDERLYING_ASSET_NAME_KEY,
@@ -115,7 +116,7 @@ const addInfoFromParsedLog = (_parsedLog, _obj) =>
       )
     )
     .then(
-      maybeAddFieldFromEventLog(
+      maybeAddFieldFromEventArgs(
         _parsedLog.args,
         ['underlyingAssetSymbol'],
         schemas.constants.SCHEMA_UNDERLYING_ASSET_SYMBOL_KEY,
@@ -123,15 +124,15 @@ const addInfoFromParsedLog = (_parsedLog, _obj) =>
       )
     )
     .then(
-      maybeAddFieldFromEventLog(
+      maybeAddFieldFromEventArgs(
         _parsedLog.args,
         ['underlyingAssetChainId'],
         schemas.constants.SCHEMA_UNDERLYING_ASSET_CHAIN_ID_KEY,
-        identity
+        bigNumberToHexString
       )
     )
     .then(
-      maybeAddFieldFromEventLog(
+      maybeAddFieldFromEventArgs(
         _parsedLog.args,
         ['assetTokenAddress'],
         schemas.constants.SCHEMA_TOKEN_ADDRESS_KEY,
@@ -139,24 +140,25 @@ const addInfoFromParsedLog = (_parsedLog, _obj) =>
       )
     )
     .then(
-      maybeAddFieldFromEventLog(
+      maybeAddFieldFromEventArgs(
         _parsedLog.args,
         ['assetAmount'],
         schemas.constants.SCHEMA_AMOUNT_KEY,
         bigNumberToString
       )
     )
+    .then(
+      maybeAddFieldFromEventArgs(
+        _parsedLog.args,
+        ['optionsMask'],
+        schemas.constants.SCHEMA_OPTIONS_MASK,
+        bigNumberToString
+      )
+    )
     .then(maybeAddUserData(_parsedLog.args))
 
-const addOriginatingTransactionHash = curry((_log, _obj) =>
-  Promise.resolve(
-    assoc(
-      schemas.constants.SCHEMA_ORIGINATING_TX_HASH_KEY,
-      _log.transactionHash,
-      _obj
-    )
-  )
-)
+const addFieldFromLog = (_eventLog, _originKey, _destKey) =>
+  assoc(_destKey, _eventLog[_originKey])
 
 const addWitnessedTimestamp = _obj =>
   Promise.resolve(new Date().toISOString()).then(_ts =>
@@ -200,14 +202,29 @@ const parseLog = (_interface, _log) =>
  *    blockHash: '0x0fc80f64b06f1de7e0025968e1acea1c8098e99da995654bc8f28b86a5efc8be'
  * }
  *
+ * @param  {string} _chainId,  [metadata chain id]
  * @param  {object} _interface,  [ethers.js interface object]
  * @param  {object} _log [on chain event log]
  * @return {object}            [the standard event object]
  */
-const buildStandardizedEvmEventObjectFromLog = (_interface, _log) =>
+const buildStandardizedEvmEventObjectFromLog = (_chainId, _interface, _log) =>
   Promise.all([getEventWithAllRequiredSetToNull(), parseLog(_interface, _log)])
     .then(([_obj, _parsedLog]) => addInfoFromParsedLog(_parsedLog, _obj))
-    .then(addOriginatingTransactionHash(_log))
+    .then(assoc(schemas.constants.SCHEMA_ORIGINATING_NETWORK_ID_KEY, _chainId))
+    .then(
+      addFieldFromLog(
+        _log,
+        'blockHash',
+        schemas.constants.SCHEMA_ORIGINATING_BLOCK_HASH_KEY
+      )
+    )
+    .then(
+      addFieldFromLog(
+        _log,
+        'transactionHash',
+        schemas.constants.SCHEMA_ORIGINATING_TX_HASH_KEY
+      )
+    )
     .then(addWitnessedTimestamp)
     .then(setId)
 

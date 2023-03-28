@@ -24,8 +24,7 @@ describe('Build proposals test for EVM', () => {
       [schemas.constants.SCHEMA_STATUS_KEY]: 'detected',
       [schemas.constants.SCHEMA_AMOUNT_KEY]: '1111111',
       [schemas.constants.SCHEMA_EVENT_NAME_KEY]: 'redeem',
-      [schemas.constants.SCHEMA_UNDERLYING_ASSET_CHAIN_ID_KEY]:
-        '0x00000001',
+      [schemas.constants.SCHEMA_UNDERLYING_ASSET_CHAIN_ID_KEY]: '0x00000001',
       [schemas.constants.SCHEMA_DESTINATION_NETWORK_ID_KEY]: '0x01ec97de',
       [schemas.constants.SCHEMA_DESTINATION_ADDRESS_KEY]:
         '11eXzETyUxiQPXwU2udtVFQFrFjgRhhvPj',
