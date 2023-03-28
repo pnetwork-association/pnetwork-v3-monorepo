@@ -29,7 +29,7 @@ module.exports = {
     constants.SCHEMA_WITNESSED_TS_KEY,
     constants.SCHEMA_FINAL_TX_HASH_KEY,
     constants.SCHEMA_FINAL_TX_TS_KEY,
-    constants.SCHEMA_OPTIONS_MASK
+    constants.SCHEMA_OPTIONS_MASK,
   ],
 
   properties: {
@@ -43,6 +43,9 @@ module.exports = {
       enum: Object.values(enumEventNames),
     },
     [constants.SCHEMA_NONCE_KEY]: {
+      type: 'string',
+    },
+    [constants.SCHEMA_OPTIONS_MASK]: {
       type: 'string',
     },
     [constants.SCHEMA_UNDERLYING_ASSET_CHAIN_ID_KEY]: {
