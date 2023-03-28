@@ -20,6 +20,7 @@ module.exports = {
     constants.SCHEMA_TOKEN_ADDRESS_KEY,
     constants.SCHEMA_AMOUNT_KEY,
     constants.SCHEMA_USER_DATA_KEY,
+    constants.SCHEMA_OPTIONS_MASK,
 
     constants.SCHEMA_ORIGINATING_BLOCK_HASH_KEY,
     constants.SCHEMA_ORIGINATING_NETWORK_ID_KEY,
@@ -29,7 +30,6 @@ module.exports = {
     constants.SCHEMA_WITNESSED_TS_KEY,
     constants.SCHEMA_FINAL_TX_HASH_KEY,
     constants.SCHEMA_FINAL_TX_TS_KEY,
-    constants.SCHEMA_OPTIONS_MASK,
   ],
 
   properties: {
@@ -43,7 +43,7 @@ module.exports = {
       enum: Object.values(enumEventNames),
     },
     [constants.SCHEMA_NONCE_KEY]: {
-      type: 'integer',
+      type: 'string',
     },
     [constants.SCHEMA_OPTIONS_MASK]: {
       type: 'string',

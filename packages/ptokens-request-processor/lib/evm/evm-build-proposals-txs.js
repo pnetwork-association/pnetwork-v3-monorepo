@@ -125,14 +125,19 @@ const makeProposalContractCall = curry(
         .then(prop('transactionHash')) // TODO: store in a constant
         .then(addProposedTxHashToEvent(_eventReport))
         .then(resolve)
-        .catch(_err =>
-          _err.message.includes(errors.ERROR_TIMEOUT)
-            ? logger.error(
-                `Tx for ${originatingTxHash} failed:`,
-                _err.message
-              ) || resolve()
-            : reject(_err)
-        )
+        .catch(_err => {
+          if (_err.message.includes(errors.ERROR_TIMEOUT)) {
+            logger.error(`Tx for ${originatingTxHash} failed:`, _err.message)
+            return resolve()
+          } else if (
+            _err.message.includes(errors.ERROR_REQUEST_ALREADY_PROCESSED)
+          ) {
+            logger.error(`Tx for ${originatingTxHash} failed:`, _err.message)
+            return resolve()
+          } else {
+            return reject(_err)
+          }
+        })
     })
 )
 
@@ -154,7 +159,7 @@ const buildProposalsTxsAndPutInState = _state =>
     const managerAddress =
       _state[constants.state.STATE_KEY_STATE_MANAGER_ADDRESS]
     const txTimeout = _state[constants.state.STATE_KEY_TX_TIMEOUT]
-    const provider = new ethers.providers.JsonRpcProvider(providerUrl)
+    const provider = new ethers.JsonRpcProvider(providerUrl)
 
     return (
       checkEventsHaveExpectedDestinationChainId(

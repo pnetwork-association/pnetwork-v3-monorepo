@@ -4,16 +4,16 @@ services:
   listener-bsc:
     image: ${IMAGE_EVM_LISTENER}:${VERSION_LISTENER:-latest}
     volumes:
-      - './bsc-listener.config.json:${APP_CONFIG_JSON}'
+      - './listener.config.json:${APP_CONFIG_JSON}'
       - './logs:${APP_FOLDER_LOGS}'
     restart: unless-stopped
     depends_on: ['mongodb']
 
-  request-processor-bsc:
+  request-processor-proposer:
     image: ${IMAGE_EVM_PROCESSOR}:${VERSION_PROCESSOR:-latest}
     volumes:
       - './private-key:${PRIVATE_KEY_FILE}'
-      - './bsc-processor.config.json:${APP_CONFIG_JSON}'
+      - './processor.config.json:${APP_CONFIG_JSON}'
       - './logs:${APP_FOLDER_LOGS}'
     restart: unless-stopped
     command: ./index.js pollForRequestsAndPropose

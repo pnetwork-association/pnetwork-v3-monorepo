@@ -39,16 +39,18 @@ const processEventLog = curry(
 const listenFromFilter = (
   _providerUrl,
   _chainId,
-  _eventName,
+  _filter,
   _interface,
   _callback
 ) =>
-  logger.info(`Listening for event: ${_eventName}`) ||
+  logger.info(
+    `Listening for event from ${_filter.address} with topics [${_filter.topics}]`
+  ) ||
   validation
     .checkType('String', _providerUrl)
     .then(_ => getEthersProvider(_providerUrl))
     .then(_provider =>
-      _provider.on(_eventName, processEventLog(_chainId, _interface, _callback))
+      _provider.on(_filter, processEventLog(_chainId, _interface, _callback))
     )
 
 const listenForEvmEvent = (

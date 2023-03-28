@@ -121,7 +121,7 @@ const buildFinalTxsAndPutInState = _state =>
     const destinationChainId = _state[constants.state.STATE_KEY_CHAIN_ID]
     const providerUrl = _state[constants.state.STATE_KEY_PROVIDER_URL]
     const identityGpgFile = _state[constants.state.STATE_KEY_IDENTITY_FILE]
-    const provider = new ethers.providers.JsonRpcProvider(providerUrl)
+    const provider = new ethers.JsonRpcProvider(providerUrl)
     const txTimeout = _state[schemas.constants.SCHEMA_TX_TIMEOUT]
 
     const issuanceManagerAddress =
