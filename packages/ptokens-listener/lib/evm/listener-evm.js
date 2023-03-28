@@ -2,6 +2,7 @@ const ethers = require('ethers')
 const { STATE_KEY_EVENTS } = require('../state/constants')
 const { logger } = require('../get-logger')
 const { validation } = require('ptokens-utils')
+const constants = require('ptokens-constants')
 const schemas = require('ptokens-schemas')
 const { curry, identity, memoizeWith } = require('ramda')
 const {
@@ -88,8 +89,8 @@ const listenForEvmEvents = (_state, _callback) =>
   Promise.all(
     _state[STATE_KEY_EVENTS].map(_event =>
       startEvmListenerFromEventObject(
-        _state[schemas.constants.SCHEMA_PROVIDER_URL_KEY],
-        _state[schemas.constants.SCHEMA_CHAIN_ID_KEY],
+        _state[constants.state.STATE_KEY_PROVIDER_URL],
+        _state[constants.state.STATE_KEY_CHAIN_ID],
         _event,
         _callback
       )

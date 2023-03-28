@@ -1,0 +1,12 @@
+{
+  "name": "ptokens-constants",
+  "version": "0.1.0",
+  "description": "Group all the shared constants for the pTokens libraries'",
+  "scripts": {
+    "lint": "eslint .",
+    "clean": "rm -rf $(pwd)/build",
+    "docker-build": "PROJECT_ROOT=$(pwd) ./docker-build.sh"
+  },
+  "author": "oliviera9",
+  "license": "MIT"
+}

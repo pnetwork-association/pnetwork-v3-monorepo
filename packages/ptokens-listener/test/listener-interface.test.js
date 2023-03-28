@@ -1,5 +1,5 @@
 const stateConstants = require('../lib/state/constants')
-const { constants: ptokensUtilsConstants } = require('ptokens-utils')
+const constants = require('ptokens-constants')
 const schemas = require('ptokens-schemas')
 
 describe('Tests for the listener interface', () => {
@@ -10,7 +10,7 @@ describe('Tests for the listener interface', () => {
     })
 
     const getState = _chainId => ({
-      [ptokensUtilsConstants.STATE_KEY_CHAIN_ID]: _chainId,
+      [constants.state.STATE_KEY_CHAIN_ID]: _chainId,
       [stateConstants.STATE_KEY_EVENTS]: [
         {
           [schemas.constants.SCHEMA_NAME_KEY]: 'event1',
@@ -27,7 +27,7 @@ describe('Tests for the listener interface', () => {
           ],
         },
       ],
-      [ptokensUtilsConstants.STATE_KEY_DB]: { database: 'database' },
+      [constants.state.STATE_KEY_DB]: { database: 'database' },
     })
 
     test.each([['0x005fe7f9'], ['0x00e4b170'], ['0x00f1918e'], ['0x0075dd4c']])(

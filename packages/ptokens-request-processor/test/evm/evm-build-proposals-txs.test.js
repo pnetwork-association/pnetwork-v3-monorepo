@@ -8,8 +8,8 @@ const {
   STATE_PROPOSED_DB_REPORTS_KEY,
 } = require('../../lib/state/constants')
 const schemas = require('ptokens-schemas')
-const { errors } = require('ptokens-utils')
-const { validation } = require('ptokens-utils')
+const { errors, validation } = require('ptokens-utils')
+const constants = require('ptokens-constants')
 const detectedEvents = require('../samples/detected-report-set')
 
 describe('Build proposals test for EVM', () => {
@@ -176,12 +176,14 @@ describe('Build proposals test for EVM', () => {
       const redeemManagerAddress = '0x341aa660fd5c280f5a9501e3822bb4a98e816d1b'
 
       const state = {
-        [schemas.constants.SCHEMA_TX_TIMEOUT]: txTimeout,
-        [schemas.constants.SCHEMA_PROVIDER_URL_KEY]: providerUrl,
-        [schemas.constants.SCHEMA_CHAIN_ID_KEY]: destinationChainId,
-        [schemas.constants.SCHEMA_IDENTITY_GPG_KEY]: gpgEncryptedFile,
-        [schemas.constants.SCHEMA_REDEEM_MANAGER_KEY]: redeemManagerAddress,
-        [schemas.constants.SCHEMA_ISSUANCE_MANAGER_KEY]: issuanceManagerAddress,
+        [constants.state.STATE_KEY_TX_TIMEOUT]: txTimeout,
+        [constants.state.STATE_KEY_PROVIDER_URL]: providerUrl,
+        [constants.state.STATE_KEY_CHAIN_ID]: destinationChainId,
+        [constants.state.STATE_KEY_IDENTITY_FILE]: gpgEncryptedFile,
+        [constants.state.STATE_KEY_REDEEM_MANAGER_ADDRESS]:
+          redeemManagerAddress,
+        [constants.state.STATE_KEY_ISSUANCE_MANAGER_ADDRESS]:
+          issuanceManagerAddress,
         [STATE_DETECTED_DB_REPORTS_KEY]: [detectedEvents[0], detectedEvents[1]],
       }
 
@@ -193,14 +195,16 @@ describe('Build proposals test for EVM', () => {
 
       expect(result).toHaveProperty(STATE_PROPOSED_DB_REPORTS_KEY)
       expect(result).not.toHaveProperty(STATE_DETECTED_DB_REPORTS_KEY)
-      expect(result).toHaveProperty(schemas.constants.SCHEMA_CHAIN_ID_KEY)
-      expect(result).toHaveProperty(schemas.constants.SCHEMA_PROVIDER_URL_KEY)
-      expect(result).toHaveProperty(schemas.constants.SCHEMA_IDENTITY_GPG_KEY)
+      expect(result).toHaveProperty(constants.state.STATE_KEY_CHAIN_ID)
+      expect(result).toHaveProperty(constants.state.STATE_KEY_PROVIDER_URL)
+      expect(result).toHaveProperty(constants.state.STATE_KEY_IDENTITY_FILE)
       expect(result).toHaveProperty(
-        schemas.constants.SCHEMA_ISSUANCE_MANAGER_KEY
+        constants.state.STATE_KEY_ISSUANCE_MANAGER_ADDRESS
       )
-      expect(result).toHaveProperty(schemas.constants.SCHEMA_REDEEM_MANAGER_KEY)
-      expect(result).toHaveProperty(schemas.constants.SCHEMA_TX_TIMEOUT)
+      expect(result).toHaveProperty(
+        constants.state.STATE_KEY_REDEEM_MANAGER_ADDRESS
+      )
+      expect(result).toHaveProperty(constants.state.STATE_KEY_TX_TIMEOUT)
       expect(result[STATE_PROPOSED_DB_REPORTS_KEY]).toHaveLength(2)
 
       expect(result[STATE_PROPOSED_DB_REPORTS_KEY][0]).toEqual(

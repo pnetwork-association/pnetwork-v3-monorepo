@@ -1,5 +1,6 @@
 const R = require('ramda')
-const { constants, utils, db } = require('ptokens-utils')
+const { constants: ptokensUtilsConstants, utils, db } = require('ptokens-utils')
+const constants = require('ptokens-constants')
 const { listenForEvmEvents } = require('./evm/listener-evm')
 const { logger } = require('./get-logger')
 
@@ -13,13 +14,13 @@ const listenForUtxoDeposits = (_state, _callback) =>
 const getListenerForBlockchainType = _blockchainType => {
   logger.info(`Listen to ${_blockchainType} events`)
   switch (_blockchainType) {
-    case constants.blockchainType.EVM:
+    case ptokensUtilsConstants.blockchainType.EVM:
       return listenForEvmEvents
-    case constants.blockchainType.EOSIO:
+    case ptokensUtilsConstants.blockchainType.EOSIO:
       return listenForEosioEvents
-    case constants.blockchainType.UTXO:
+    case ptokensUtilsConstants.blockchainType.UTXO:
       return listenForUtxoDeposits
-    case constants.blockchainType.ALGORAND:
+    case ptokensUtilsConstants.blockchainType.ALGORAND:
       return listenForAlgorandEvents
     default:
       return () => Promise.reject(new Error('Invalid blockchain type'))
@@ -37,10 +38,10 @@ const insertIntoDb = R.curry(
 
 const listenForEvents = _state =>
   utils
-    .getBlockchainTypeFromChainId(_state[constants.STATE_KEY_CHAIN_ID])
+    .getBlockchainTypeFromChainId(_state[constants.state.STATE_KEY_CHAIN_ID])
     .then(getListenerForBlockchainType)
     .then(_listener =>
-      _listener(_state, insertIntoDb(_state[constants.STATE_KEY_DB]))
+      _listener(_state, insertIntoDb(_state[constants.state.STATE_KEY_DB]))
     )
 
 module.exports = { listenForEvents }

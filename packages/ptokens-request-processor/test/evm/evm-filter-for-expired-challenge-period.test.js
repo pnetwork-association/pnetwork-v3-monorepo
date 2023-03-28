@@ -1,5 +1,5 @@
+const constants = require('ptokens-constants')
 const { STATE_PROPOSED_DB_REPORTS_KEY } = require('../../lib/state/constants')
-const schemas = require('ptokens-schemas')
 const proposedReports = require('../samples/proposed-report-set')
 
 describe('Challenge period expired report filtering', () => {
@@ -14,7 +14,7 @@ describe('Challenge period expired report filtering', () => {
       jest.useFakeTimers({ now: Date.parse(now) })
 
       const state = {
-        [schemas.constants.SCHEMA_CHALLENGE_PERIOD]: 20, // 20mins
+        [constants.state.STATE_KEY_CHALLENGE_PERIOD]: 20, // 20mins
         [STATE_PROPOSED_DB_REPORTS_KEY]: proposedReports,
       }
 

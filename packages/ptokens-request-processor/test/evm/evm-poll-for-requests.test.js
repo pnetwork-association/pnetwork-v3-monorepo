@@ -1,5 +1,5 @@
 const { assoc } = require('ramda')
-const { constants } = require('ptokens-utils')
+const constants = require('ptokens-constants')
 const schemas = require('ptokens-schemas')
 const { STATE_ONCHAIN_REQUESTS_KEY } = require('../../lib/state/constants')
 const reports = require('../samples/detected-report-set.json')
@@ -61,8 +61,8 @@ describe('Tests for queued requests detection and dismissal', () => {
         maybeProcessNewRequestsAndDismiss,
       } = require('../../lib/evm/evm-poll-for-requests')
       const state = {
-        [constants.STATE_KEY_CHAIN_ID]: '0x005fe7f9',
-        [constants.STATE_KEY_DB]: { collection: 'collection' },
+        [constants.state.STATE_KEY_CHAIN_ID]: '0x005fe7f9',
+        [constants.state.STATE_KEY_DB]: { collection: 'collection' },
       }
 
       await maybeProcessNewRequestsAndDismiss(state)

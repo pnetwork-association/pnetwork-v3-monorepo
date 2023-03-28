@@ -1,3 +1,4 @@
+const constants = require('ptokens-constants')
 const schemas = require('ptokens-schemas')
 const { utils } = require('ptokens-utils')
 const { logger } = require('../get-logger')
@@ -62,13 +63,13 @@ const keepExpiredProposedEvents = curry(
 
 const filterForExpiredProposalsAndPutThemInState = _state =>
   new Promise((resolve, reject) => {
-    const challengePeriod = _state[schemas.constants.SCHEMA_CHALLENGE_PERIOD]
+    const challengePeriod = _state[constants.state.STATE_KEY_CHALLENGE_PERIOD]
     const proposedEvents = _state[STATE_PROPOSED_DB_REPORTS_KEY] || []
 
     if (isNil(challengePeriod)) {
       return reject(
         new Error(
-          `Invalid value for '${schemas.constants.SCHEMA_CHALLENGE_PERIOD}': ${challengePeriod}`
+          `Invalid value for '${constants.state.STATE_KEY_CHALLENGE_PERIOD}': ${challengePeriod}`
         )
       )
     }
