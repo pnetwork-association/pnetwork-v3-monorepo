@@ -11,8 +11,7 @@ module.exports = {
     constants.SCHEMA_CHAIN_TYPE_KEY,
     constants.SCHEMA_CHALLENGE_PERIOD,
     constants.SCHEMA_PROVIDER_URL_KEY,
-    constants.SCHEMA_REDEEM_MANAGER_KEY,
-    constants.SCHEMA_ISSUANCE_MANAGER_KEY,
+    constants.SCHEMA_STATE_MANAGER_KEY,
     constants.SCHEMA_IDENTITY_GPG_KEY,
   ],
   properties: {
@@ -32,10 +31,7 @@ module.exports = {
     [constants.SCHEMA_PROVIDER_URL_KEY]: {
       type: 'string',
     },
-    [constants.SCHEMA_REDEEM_MANAGER_KEY]: {
-      type: 'string',
-    },
-    [constants.SCHEMA_ISSUANCE_MANAGER_KEY]: {
+    [constants.SCHEMA_STATE_MANAGER_KEY]: {
       type: 'string',
     },
     [constants.SCHEMA_IDENTITY_GPG_KEY]: {

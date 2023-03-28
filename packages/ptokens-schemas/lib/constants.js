@@ -24,8 +24,7 @@ module.exports = {
   SCHEMA_TOKEN_ADDRESS_KEY: 'tokenAddress',
   SCHEMA_EVENT_NAME_KEY: 'eventName',
   SCHEMA_STATUS_KEY: 'status',
-  SCHEMA_REDEEM_MANAGER_KEY: 'redeem-manager-address',
-  SCHEMA_ISSUANCE_MANAGER_KEY: 'issuance-manager-address',
+  SCHEMA_STATE_MANAGER_KEY: 'state-manager-address',
   SCHEMA_IDENTITY_GPG_KEY: 'identity',
   SCHEMA_PROPOSAL_TX_HASH_KEY: 'proposedTransactionHash',
   SCHEMA_FINAL_TX_HASH_KEY: 'finalTransactionHash',
@@ -34,7 +33,7 @@ module.exports = {
   SCHEMA_PROPOSAL_TS_KEY: 'proposedTransactionTimestamp',
   SCHEMA_ORIGINATING_ADDRESS_KEY: 'originatingAddress',
   SCHEMA_ORIGINATING_NETWORK_ID_KEY: 'originatingNetworkId',
-  SCHEMA_OPTIONS_MASK: 'optionMask',
+  SCHEMA_OPTIONS_MASK: 'optionsMask',
   SCHEMA_NONCE_KEY: 'nonce',
   SCHEMA_ORIGINATING_BLOCK_HASH_KEY: 'originatingBlockhash',
 }

@@ -43,7 +43,7 @@ module.exports = {
       enum: Object.values(enumEventNames),
     },
     [constants.SCHEMA_NONCE_KEY]: {
-      type: 'string',
+      type: 'integer',
     },
     [constants.SCHEMA_OPTIONS_MASK]: {
       type: 'string',
