@@ -28,6 +28,7 @@ const ABI_QUEUE_OPERATION = [
     'bytes calldata userData,' +
     'bytes32 optionsMask' +
     ')',
+  'error OperationAlreadyProcessed(bytes32 operationId)',
 ]
 
 // TODO: factor out (check evm-build-final-txs)
@@ -128,10 +129,14 @@ const makeProposalContractCall = curry(
         .catch(_err => {
           if (_err.message.includes(errors.ERROR_TIMEOUT)) {
             logger.error(`Tx for ${originatingTxHash} failed:`, _err.message)
-            return resolve()
-          } else if (_err.message.includes(errors.ERROR_ESTIMATE_GAS)) {
-            logger.error(`Tx for ${originatingTxHash} failed:`, _err.message)
-            return resolve()
+            return resolve(_eventReport)
+          } else if (
+            _err.message.includes(errors.ERROR_OPERATION_ALREADY_PROCESSED)
+          ) {
+            logger.error(
+              `Tx for ${originatingTxHash} has already been proposed`
+            )
+            return resolve(addProposedTxHashToEvent(_eventReport, '0x'))
           } else {
             return reject(_err)
           }

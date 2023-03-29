@@ -1,8 +1,18 @@
 const { logger } = require('../get-logger')
-const { logic } = require('ptokens-utils')
+const { errors } = require('ptokens-utils')
 
 const callContractFunction = (_fxnName, _fxnArgs, _contract) =>
-  _contract[_fxnName](..._fxnArgs)
+  _contract[_fxnName](..._fxnArgs).catch(_err => {
+    if (_err.message.includes(errors.ERROR_ESTIMATE_GAS)) {
+      const revertData = _err.data
+      const decodedError = _contract.interface.parseError(revertData)
+      if (decodedError.name === 'OperationAlreadyProcessed')
+        return Promise.reject(
+          new Error(errors.ERROR_OPERATION_ALREADY_PROCESSED)
+        )
+    }
+    return Promise.reject(_err)
+  })
 
 const callContractFunctionAndAwait = (
   _fxnName,

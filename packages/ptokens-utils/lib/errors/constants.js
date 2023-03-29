@@ -24,4 +24,5 @@ module.exports = {
   ERROR_FILE_NOT_EXISTS: 'The specified file does not exist',
   ERROR_GPG_DECRYPTION_FAILED: 'Failed to decrypt file',
   ERROR_ESTIMATE_GAS: 'estimateGas',
+  ERROR_OPERATION_ALREADY_PROCESSED: 'Transaction has alredy been sent',
 }
