@@ -13,11 +13,11 @@ const {
 } = require('../check-events-have-expected-chain-id')
 const { callContractFunctionAndAwait } = require('./evm-call-contract-function')
 
-const ABI_CALL = [
+const ABI_EXECUTE_OPERATION = [
   'function protocolExecuteOperation(' +
     'bytes32 originBlockHash,' +
     'bytes32 originTransactionHash,' +
-    'bytes4 originChainId,' +
+    'bytes4 originNetworkId,' +
     'uint256 nonce,' +
     'address destinationAccount,' +
     'string calldata underlyingAssetName,' +
@@ -45,38 +45,79 @@ const addFinalizedTxHashToEvent = curry((_event, _finalizedTxHash) => {
 })
 
 const makeFinalContractCall = curry(
-  (_wallet, _issuanceManager, _redeemManager, _txTimeout, _eventReport) =>
+  (_wallet, _stateManager, _txTimeout, _eventReport) =>
     new Promise((resolve, reject) => {
+      const id = _eventReport[schemas.constants.SCHEMA_ID_KEY]
+      const nonce = _eventReport[schemas.constants.SCHEMA_NONCE_KEY]
+      const amount = _eventReport[schemas.constants.SCHEMA_AMOUNT_KEY]
+      const userData = _eventReport[schemas.constants.SCHEMA_USER_DATA_KEY]
       const eventName = _eventReport[schemas.constants.SCHEMA_EVENT_NAME_KEY]
-      const originTx =
+      const originChainId =
+        _eventReport[schemas.constants.SCHEMA_ORIGINATING_NETWORK_ID_KEY]
+      const originBlockHash =
+        _eventReport[schemas.constants.SCHEMA_ORIGINATING_BLOCK_HASH_KEY]
+      const originatingTxHash =
         _eventReport[schemas.constants.SCHEMA_ORIGINATING_TX_HASH_KEY]
+      const destinationAddress =
+        _eventReport[schemas.constants.SCHEMA_DESTINATION_ADDRESS_KEY]
+      const underlyingAssetName =
+        _eventReport[schemas.constants.SCHEMA_UNDERLYING_ASSET_NAME_KEY]
+      const underlyingAssetSymbol =
+        _eventReport[schemas.constants.SCHEMA_UNDERLYING_ASSET_SYMBOL_KEY]
+      const underlyingAssetChainId =
+        _eventReport[schemas.constants.SCHEMA_UNDERLYING_ASSET_CHAIN_ID_KEY]
+      const underlyingAssetTokenAddress =
+        _eventReport[
+          schemas.constants.SCHEMA_UNDERLYING_ASSET_TOKEN_ADDRESS_KEY
+        ]
+
+      const optionsMask = _eventReport[schemas.constants.SCHEMA_OPTIONS_MASK]
 
       if (!includes(eventName, values(schemas.db.enums.eventNames))) {
         return reject(new Error(`${ERROR_INVALID_EVENT_NAME}: ${eventName}`))
       }
 
-      const abi =
-        eventName === schemas.db.enums.eventNames.PEGIN
-          ? ABI_CALL_ISSUE
-          : ABI_CALL_REDEEM
+      const abi = ABI_EXECUTE_OPERATION
+      const args = [
+        originBlockHash,
+        originatingTxHash,
+        originChainId,
+        nonce,
+        destinationAddress,
+        underlyingAssetName,
+        underlyingAssetSymbol,
+        underlyingAssetTokenAddress,
+        underlyingAssetChainId,
+        amount,
+        userData,
+        optionsMask,
+      ]
 
-      const args = [originTx]
-
-      const contractAddress =
-        eventName === schemas.db.enums.eventNames.PEGIN
-          ? _issuanceManager
-          : _redeemManager
-
-      const functionName =
-        eventName === schemas.db.enums.eventNames.PEGIN
-          ? 'callIssue'
-          : 'callRedeem'
-
+      const contractAddress = _stateManager
+      const functionName = 'protocolExecuteOperation'
       const contract = new ethers.Contract(contractAddress, abi, _wallet)
 
-      logger.info(`Processing final transaction ${eventName}:`)
-      logger.info(`  eventName: ${eventName}`)
-      logger.info(`  originTx: ${originTx}`)
+      logger.info(`Executing _id: ${id}`)
+      logger.info('function protocolQueueOperation(')
+      logger.info(`  bytes32 originBlockHash: ${originBlockHash}`)
+      logger.info(`  bytes32 originTransactionHash: ${originatingTxHash}`)
+      logger.info(`  bytes4 originNetworkChainId: ${originChainId}`)
+      logger.info(`  uint256 nonce: ${nonce}`)
+      logger.info(`  address destinationAccount: ${destinationAddress}`)
+      logger.info(
+        `  string calldata:  underlyingAssetName ${underlyingAssetName}`
+      )
+      logger.info(
+        `  string calldata:  underlyingAssetSymbol ${underlyingAssetSymbol}`
+      )
+      logger.info(
+        `  address underlyingAssetTokenAddress: ${underlyingAssetTokenAddress}`
+      )
+      logger.info(`  uint256 underlyingAssetChainId: ${underlyingAssetChainId}`)
+      logger.info(`  uint256 amount: ${amount}`)
+      logger.info(`  bytes calldata:  userData ${userData}`)
+      logger.info(`  bytes32 optionsMask: ${optionsMask}`)
+      logger.info(')')
 
       return callContractFunctionAndAwait(
         functionName,
@@ -90,7 +131,7 @@ const makeFinalContractCall = curry(
         .catch(_err =>
           _err.message.includes(errors.ERROR_TIMEOUT)
             ? logger.error(
-                `Final transaction for ${originTx} failed:`,
+                `Final transaction for ${_eventReport._id} failed:`,
                 _err.message
               ) || resolve()
             : reject(_err)
@@ -99,17 +140,10 @@ const makeFinalContractCall = curry(
 )
 
 const sendFinalTransactions = curry(
-  (_eventReports, _issuanceManager, _redeemManager, _timeOut, _wallet) =>
+  (_eventReports, _stateManager, _timeOut, _wallet) =>
     logger.info(`Sending final txs w/ address ${_wallet.address}`) ||
     Promise.all(
-      _eventReports.map(
-        makeFinalContractCall(
-          _wallet,
-          _issuanceManager,
-          _redeemManager,
-          _timeOut
-        )
-      )
+      _eventReports.map(makeFinalContractCall(_wallet, _stateManager, _timeOut))
     )
 )
 
@@ -123,11 +157,7 @@ const buildFinalTxsAndPutInState = _state =>
     const identityGpgFile = _state[constants.state.STATE_KEY_IDENTITY_FILE]
     const provider = new ethers.JsonRpcProvider(providerUrl)
     const txTimeout = _state[schemas.constants.SCHEMA_TX_TIMEOUT]
-
-    const issuanceManagerAddress =
-      _state[constants.state.STATE_KEY_ISSUANCE_MANAGER_ADDRESS]
-    const redeemManagerAddress =
-      _state[constants.state.STATE_KEY_STATE_MANAGER_ADDRESS]
+    const stateManager = _state[constants.state.STATE_KEY_STATE_MANAGER_ADDRESS]
 
     return (
       checkEventsHaveExpectedDestinationChainId(
@@ -138,14 +168,7 @@ const buildFinalTxsAndPutInState = _state =>
         // .then(_ => utils.readGpgEncryptedFile(identityGpgFile))
         .then(_ => readFile(identityGpgFile, { encoding: 'utf8' }))
         .then(_privateKey => new ethers.Wallet(_privateKey, provider))
-        .then(
-          sendFinalTransactions(
-            proposedEvents,
-            issuanceManagerAddress,
-            redeemManagerAddress,
-            txTimeout
-          )
-        )
+        .then(sendFinalTransactions(proposedEvents, stateManager, txTimeout))
         .then(addFinalizedEventsToState(_state))
         .then(resolve)
     )

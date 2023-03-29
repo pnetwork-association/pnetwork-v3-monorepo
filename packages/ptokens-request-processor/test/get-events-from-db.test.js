@@ -19,8 +19,7 @@ describe('General get events from db tests', () => {
     })
 
     beforeEach(async () => {
-      const s = await collection.insertMany(detectedEvents)
-      console.log(s)
+      await collection.insertMany(detectedEvents)
     })
 
     afterEach(async () => {
@@ -45,12 +44,11 @@ describe('General get events from db tests', () => {
 
       expect(result).toHaveProperty(constants.state.STATE_KEY_DB)
       expect(result).toHaveProperty(constants.state.STATE_KEY_CHAIN_ID)
-      console.log(result[STATE_DETECTED_DB_REPORTS_KEY])
-      // expect(result).toEqual(
-      //   expect.objectContaining({
-      //     [STATE_DETECTED_DB_REPORTS_KEY]: expectedReports,
-      //   })
-      // )
+      expect(result).toEqual(
+        expect.objectContaining({
+          [STATE_DETECTED_DB_REPORTS_KEY]: expectedReports,
+        })
+      )
     })
   })
 })
