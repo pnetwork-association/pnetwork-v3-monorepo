@@ -3,7 +3,7 @@ const { readFile } = require('fs/promises')
 const constants = require('ptokens-constants')
 const schemas = require('ptokens-schemas')
 const { logger } = require('../get-logger')
-const { errors } = require('ptokens-utils')
+const { errors, logic } = require('ptokens-utils')
 const { ERROR_INVALID_EVENT_NAME } = require('../errors')
 const { curry, prop, values, includes, length } = require('ramda')
 const { addProposalsReportsToState } = require('../state/state-operations.js')
@@ -148,10 +148,15 @@ const sendProposalTransactions = curry(
   (_eventReports, _manager, _timeOut, _wallet) =>
     logger.info(`Sending proposals w/ address ${_wallet.address}`) ||
     Promise.all(
-      _eventReports.map(makeProposalContractCall(_wallet, _manager, _timeOut))
+      _eventReports.map((_eventReport, _i) =>
+        logic
+          .sleepForXMilliseconds(1000 * _i)
+          .then(_ =>
+            makeProposalContractCall(_wallet, _manager, _timeOut, _eventReport)
+          )
+      )
     )
 )
-
 const buildProposalsTxsAndPutInState = _state =>
   new Promise(resolve => {
     logger.info('Building proposals txs...')

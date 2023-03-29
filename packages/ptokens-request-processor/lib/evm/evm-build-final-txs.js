@@ -3,7 +3,7 @@ const schemas = require('ptokens-schemas')
 const constants = require('ptokens-constants')
 const { logger } = require('../get-logger')
 const { readFile } = require('fs/promises')
-const { errors } = require('ptokens-utils')
+const { errors, logic } = require('ptokens-utils')
 const { ERROR_INVALID_EVENT_NAME } = require('../errors')
 const { curry, values, includes, length, prop } = require('ramda')
 const { addFinalizedEventsToState } = require('../state/state-operations.js')
@@ -143,7 +143,18 @@ const sendFinalTransactions = curry(
   (_eventReports, _stateManager, _timeOut, _wallet) =>
     logger.info(`Sending final txs w/ address ${_wallet.address}`) ||
     Promise.all(
-      _eventReports.map(makeFinalContractCall(_wallet, _stateManager, _timeOut))
+      _eventReports.map((_eventReport, _i) =>
+        logic
+          .sleepForXMilliseconds(1000 * _i)
+          .then(_ =>
+            makeFinalContractCall(
+              _wallet,
+              _stateManager,
+              _timeOut,
+              _eventReport
+            )
+          )
+      )
     )
 )
 
