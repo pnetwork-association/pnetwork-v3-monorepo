@@ -126,7 +126,7 @@ const makeFinalContractCall = curry(
         contract,
         _txTimeout
       )
-        .then(prop('transactionHash')) // TODO: store in a constant
+        .then(prop('hash')) // TODO: store in a constant
         .then(addFinalizedTxHashToEvent(_eventReport))
         .then(resolve)
         .catch(_err => {
