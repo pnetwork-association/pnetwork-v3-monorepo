@@ -28,6 +28,7 @@ const ABI_EXECUTE_OPERATION = [
     'bytes calldata userData,' +
     'bytes32 optionsMask' +
     ')',
+  'error OperationAlreadyProcessed(bytes32 operationId)',
 ]
 
 // TODO: factor out (check evm-build-proposals-txs)
@@ -128,14 +129,21 @@ const makeFinalContractCall = curry(
         .then(prop('transactionHash')) // TODO: store in a constant
         .then(addFinalizedTxHashToEvent(_eventReport))
         .then(resolve)
-        .catch(_err =>
-          _err.message.includes(errors.ERROR_TIMEOUT)
-            ? logger.error(
-                `Final transaction for ${_eventReport._id} failed:`,
-                _err.message
-              ) || resolve()
-            : reject(_err)
-        )
+        .catch(_err => {
+          if (_err.message.includes(errors.ERROR_TIMEOUT)) {
+            logger.error(`Tx for ${originatingTxHash} failed:`, _err.message)
+            return resolve(_eventReport)
+          } else if (
+            _err.message.includes(errors.ERROR_OPERATION_ALREADY_PROCESSED)
+          ) {
+            logger.error(
+              `Tx for ${originatingTxHash} has already been finalized`
+            )
+            return resolve(addFinalizedTxHashToEvent(_eventReport, '0x'))
+          } else {
+            return reject(_err)
+          }
+        })
     })
 )
 
