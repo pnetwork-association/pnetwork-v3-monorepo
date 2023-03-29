@@ -23,5 +23,5 @@ module.exports = {
     'Invalid symbol for the given bridge type',
   ERROR_FILE_NOT_EXISTS: 'The specified file does not exist',
   ERROR_GPG_DECRYPTION_FAILED: 'Failed to decrypt file',
-  ERROR_REQUEST_ALREADY_PROCESSED: 'RequestAlreadyProcessed',
+  ERROR_ESTIMATE_GAS: 'estimateGas',
 }

@@ -23,7 +23,7 @@
   "author": "gitmp01",
   "license": "MIT",
   "dependencies": {
-    "ethers": "^6.1.0",
+    "ethers": "^6.2.3",
     "log4js": "^6.7.1",
     "ptokens-constants": "*",
     "ptokens-schemas": "*",

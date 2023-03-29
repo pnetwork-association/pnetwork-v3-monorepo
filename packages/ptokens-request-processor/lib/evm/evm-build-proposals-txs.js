@@ -122,16 +122,14 @@ const makeProposalContractCall = curry(
         contract,
         _txTimeout
       )
-        .then(prop('transactionHash')) // TODO: store in a constant
+        .then(prop('hash')) // TODO: store in a constant
         .then(addProposedTxHashToEvent(_eventReport))
         .then(resolve)
         .catch(_err => {
           if (_err.message.includes(errors.ERROR_TIMEOUT)) {
             logger.error(`Tx for ${originatingTxHash} failed:`, _err.message)
             return resolve()
-          } else if (
-            _err.message.includes(errors.ERROR_REQUEST_ALREADY_PROCESSED)
-          ) {
+          } else if (_err.message.includes(errors.ERROR_ESTIMATE_GAS)) {
             logger.error(`Tx for ${originatingTxHash} failed:`, _err.message)
             return resolve()
           } else {

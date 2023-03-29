@@ -61,7 +61,7 @@ const maybeAddFieldFromEventArgs = curry(
 
 const maybeAddUserData = curry((_eventLog, _standardEvent) =>
   Promise.resolve(
-    utils.isNotNil(_eventLog.userData) && _eventLog.userData !== '0x'
+    utils.isNotNil(_eventLog.userData)
       ? assoc(
           schemas.constants.SCHEMA_USER_DATA_KEY,
           _eventLog.userData,
