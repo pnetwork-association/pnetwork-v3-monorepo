@@ -1,19 +1,22 @@
+const assert = require('assert')
+
 describe('Tests for schemas utilities', () => {
   describe('getEventId', () => {
     it('Should return the correct ID', async () => {
-      const originBlockHash = '0x8c27616afe506eef2a3c47e8d094ab7d385b409fa7cf51a473ddaa189e5e3506'
-      const originTransactionHash = '0xfcc12cfd71e53906be4c06c80d3eca6623afef863967cc2a6e66c7e0ead62e2c'
+      const originBlockHash =
+        '0x8c27616afe506eef2a3c47e8d094ab7d385b409fa7cf51a473ddaa189e5e3506'
+      const originTransactionHash =
+        '0xfcc12cfd71e53906be4c06c80d3eca6623afef863967cc2a6e66c7e0ead62e2c'
       const originNetworkId = '0x0030d6b5'
       const nonce = '6374'
-      const destinationAccount = "0x3aEa738FDe85CF147746733bBf4D3a4f11A16bF4"
-      const underlyingAssetName = "Token"
-      const underlyingAssetSymbol = "TKN"
+      const destinationAccount = '0x3aEa738FDe85CF147746733bBf4D3a4f11A16bF4'
+      const underlyingAssetName = 'Token'
+      const underlyingAssetSymbol = 'TKN'
       const underlyingAssetDecimals = 18
       const underlyingAssetTokenAddress = null
       const underlyingAssetNetworkId = null
       const amount = null
       const userData = null
-
 
       // {
       //   "_id": "0xfcc12cfd71e53906be4c06c80d3eca6623afef863967cc2a6e66c7e0ead62e2c",
@@ -41,7 +44,7 @@ describe('Tests for schemas utilities', () => {
       //   "originatingBlockhash": "0x8c27616afe506eef2a3c47e8d094ab7d385b409fa7cf51a473ddaa189e5e3506"
       // }
 
-      const utils = require('../lib/utils')
+      const { utils } = require('../..')
       const ret = utils.getEventId(
         originBlockHash,
         originTransactionHash,
@@ -54,10 +57,13 @@ describe('Tests for schemas utilities', () => {
         underlyingAssetTokenAddress,
         underlyingAssetNetworkId,
         amount,
-        userData,
+        userData
       )
 
-      expect(ret).toStrictEqual()
+      assert.strictEqual(
+        ret,
+        '0xd7fd8b39cdab66f8df856986ca17da157d8e1f833feae2aa243e13b8eb055b20'
+      )
     })
   })
 })
