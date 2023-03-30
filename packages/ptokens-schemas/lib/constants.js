@@ -16,6 +16,7 @@ module.exports = {
   SCHEMA_UNDERLYING_ASSET_NAME_KEY: 'underlyingAssetName',
   SCHEMA_UNDERLYING_ASSET_SYMBOL_KEY: 'underlyingAssetSymbol',
   SCHEMA_UNDERLYING_ASSET_CHAIN_ID_KEY: 'underlyingAssetChainId',
+  SCHEMA_UNDERLYING_ASSET_DECIMALS: 'underlyingAssetDecimals',
   SCHEMA_ORIGINATING_TX_HASH_KEY: 'originatingTransactionHash',
   SCHEMA_AMOUNT_KEY: 'amount',
   SCHEMA_DESTINATION_ADDRESS_KEY: 'destinationAddress',

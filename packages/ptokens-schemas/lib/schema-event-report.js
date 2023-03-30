@@ -17,6 +17,7 @@ module.exports = {
     constants.SCHEMA_UNDERLYING_ASSET_NAME_KEY,
     constants.SCHEMA_UNDERLYING_ASSET_SYMBOL_KEY,
     constants.SCHEMA_UNDERLYING_ASSET_CHAIN_ID_KEY,
+    constants.SCHEMA_UNDERLYING_ASSET_DECIMALS,
     constants.SCHEMA_TOKEN_ADDRESS_KEY,
     constants.SCHEMA_AMOUNT_KEY,
     constants.SCHEMA_USER_DATA_KEY,
@@ -59,6 +60,9 @@ module.exports = {
     },
     [constants.SCHEMA_UNDERLYING_ASSET_TOKEN_ADDRESS_KEY]: {
       type: 'string',
+    },
+    [constants.SCHEMA_UNDERLYING_ASSET_DECIMALS]: {
+      type: 'integer',
     },
     [constants.SCHEMA_ORIGINATING_TX_HASH_KEY]: {
       type: 'string',
