@@ -24,6 +24,7 @@ module.exports = {
     constants.SCHEMA_OPTIONS_MASK,
 
     constants.SCHEMA_ORIGINATING_BLOCK_HASH_KEY,
+    constants.SCHEMA_ORIGINATING_ADDRESS_KEY,
     constants.SCHEMA_ORIGINATING_NETWORK_ID_KEY,
     constants.SCHEMA_ORIGINATING_TX_HASH_KEY,
     constants.SCHEMA_PROPOSAL_TS_KEY,
