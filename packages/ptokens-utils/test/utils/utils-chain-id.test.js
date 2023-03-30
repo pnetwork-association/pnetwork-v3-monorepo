@@ -9,6 +9,7 @@ describe('Chain ID utils tests', () => {
         constants.blockchainType.EVM,
         constants.blockchainType.EVM,
         constants.blockchainType.EVM,
+        constants.blockchainType.EVM,
         constants.blockchainType.UTXO,
         constants.blockchainType.UTXO,
         constants.blockchainType.EOSIO,
@@ -35,7 +36,7 @@ describe('Chain ID utils tests', () => {
         values(constants.metadataChainIds).map((_val, _i) =>
           utils
             .getBlockchainTypeFromChainId(_val)
-            .then(_ret => assert.equal(_ret, expectedResults[_i]))
+            .then(_ret => assert.strictEqual(_ret, expectedResults[_i]))
         )
       )
     })
