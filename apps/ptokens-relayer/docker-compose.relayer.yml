@@ -1,7 +1,7 @@
 # TODO: maybe dynamically generated from a custom YAML file?
 version: '3'
 services:
-  listener-bsc:
+  listener:
     image: ${IMAGE_EVM_LISTENER}:${VERSION_LISTENER:-latest}
     volumes:
       - './listener.config.json:${APP_CONFIG_JSON}'
@@ -9,7 +9,7 @@ services:
     restart: unless-stopped
     depends_on: ['mongodb']
 
-  request-processor-proposer:
+  proposer:
     image: ${IMAGE_EVM_PROCESSOR}:${VERSION_PROCESSOR:-latest}
     volumes:
       - './private-key:${PRIVATE_KEY_FILE}'
