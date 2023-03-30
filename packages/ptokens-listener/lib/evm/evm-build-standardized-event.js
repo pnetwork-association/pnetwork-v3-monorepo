@@ -6,16 +6,17 @@ const schemas = require('ptokens-schemas')
 const getEventWithAllRequiredSetToNull = _ => ({
   [schemas.constants.SCHEMA_EVENT_NAME_KEY]: null,
   [schemas.constants.SCHEMA_STATUS_KEY]: null,
-  [schemas.constants.SCHEMA_UNDERLYING_ASSET_CHAIN_ID_KEY]: null,
+  [schemas.constants.SCHEMA_UNDERLYING_ASSET_NETWORK_ID_KEY]: null,
+  [schemas.constants.SCHEMA_UNDERLYING_ASSET_DECIMALS_KEY]: null,
   [schemas.constants.SCHEMA_UNDERLYING_ASSET_SYMBOL_KEY]: null,
   [schemas.constants.SCHEMA_UNDERLYING_ASSET_NAME_KEY]: null,
   [schemas.constants.SCHEMA_UNDERLYING_ASSET_TOKEN_ADDRESS_KEY]: null,
   [schemas.constants.SCHEMA_ORIGINATING_TX_HASH_KEY]: null,
-  [schemas.constants.SCHEMA_AMOUNT_KEY]: null,
-  [schemas.constants.SCHEMA_DESTINATION_ADDRESS_KEY]: null,
+  [schemas.constants.SCHEMA_ASSET_AMOUNT_KEY]: null,
+  [schemas.constants.SCHEMA_DESTINATION_ACCOUNT_KEY]: null,
   [schemas.constants.SCHEMA_DESTINATION_NETWORK_ID_KEY]: null,
   [schemas.constants.SCHEMA_USER_DATA_KEY]: null,
-  [schemas.constants.SCHEMA_TOKEN_ADDRESS_KEY]: null,
+  [schemas.constants.SCHEMA_ASSET_TOKEN_ADDRESS_KEY]: null,
   [schemas.constants.SCHEMA_ORIGINATING_ADDRESS_KEY]: null,
   [schemas.constants.SCHEMA_FINAL_TX_HASH_KEY]: null,
   [schemas.constants.SCHEMA_PROPOSAL_TX_HASH_KEY]: null,
@@ -25,7 +26,6 @@ const getEventWithAllRequiredSetToNull = _ => ({
 })
 
 const bigNumberToString = _n => _n.toString()
-const bigNumberToHexString = _n => _n.toHexString()
 
 const addEventName = _eventLog =>
   assoc(schemas.constants.SCHEMA_EVENT_NAME_KEY, _eventLog.name)
@@ -42,14 +42,13 @@ const maybeAddFieldFromEventArgs = curry(
         .map(_key => _eventLog[_key])
         .find(_val => utils.isNotNil(_val))
 
-      const convertedValue = _conversionFunction(value)
-
-      if (isNil(convertedValue))
+      if (isNil(value))
         return (
           logger.debug(`No ${_destKey} to add to event`) ||
           resolve(_standardEvent)
         )
 
+      const convertedValue = _conversionFunction(value)
       logger.debug(
         'Adding field to event',
         JSON.stringify({ [_destKey]: convertedValue })
@@ -86,24 +85,16 @@ const addInfoFromParsedLog = (_parsedLog, _obj) =>
     .then(
       maybeAddFieldFromEventArgs(
         _parsedLog.args,
-        ['destinationAccount'],
-        schemas.constants.SCHEMA_DESTINATION_ADDRESS_KEY,
+        ['destinationAccount', 'to', 'underlyingAssetRecipient'],
+        schemas.constants.SCHEMA_DESTINATION_ACCOUNT_KEY,
         identity
       )
     )
     .then(
       maybeAddFieldFromEventArgs(
         _parsedLog.args,
-        ['destinationNetworkId'],
+        ['destinationNetworkId', 'destinationChainId'],
         schemas.constants.SCHEMA_DESTINATION_NETWORK_ID_KEY,
-        identity
-      )
-    )
-    .then(
-      maybeAddFieldFromEventArgs(
-        _parsedLog.args,
-        ['underlyingAssetTokenAddress'],
-        schemas.constants.SCHEMA_UNDERLYING_ASSET_TOKEN_ADDRESS_KEY,
         identity
       )
     )
@@ -126,24 +117,40 @@ const addInfoFromParsedLog = (_parsedLog, _obj) =>
     .then(
       maybeAddFieldFromEventArgs(
         _parsedLog.args,
-        ['underlyingAssetChainId'],
-        schemas.constants.SCHEMA_UNDERLYING_ASSET_CHAIN_ID_KEY,
-        bigNumberToHexString
+        ['underlyingAssetDecimals'],
+        schemas.constants.SCHEMA_UNDERLYING_ASSET_DECIMALS_KEY,
+        _n => _n.toNumber()
       )
     )
     .then(
       maybeAddFieldFromEventArgs(
         _parsedLog.args,
-        ['assetTokenAddress'],
-        schemas.constants.SCHEMA_TOKEN_ADDRESS_KEY,
+        ['underlyingAssetTokenAddress'],
+        schemas.constants.SCHEMA_UNDERLYING_ASSET_TOKEN_ADDRESS_KEY,
         identity
       )
     )
     .then(
       maybeAddFieldFromEventArgs(
         _parsedLog.args,
-        ['assetAmount'],
-        schemas.constants.SCHEMA_AMOUNT_KEY,
+        ['underlyingAssetNetworkId'],
+        schemas.constants.SCHEMA_UNDERLYING_ASSET_NETWORK_ID_KEY,
+        identity
+      )
+    )
+    .then(
+      maybeAddFieldFromEventArgs(
+        _parsedLog.args,
+        ['assetTokenAddress', '_tokenAddress'],
+        schemas.constants.SCHEMA_ASSET_TOKEN_ADDRESS_KEY,
+        identity
+      )
+    )
+    .then(
+      maybeAddFieldFromEventArgs(
+        _parsedLog.args,
+        ['assetAmount', '_tokenAmount', 'value'],
+        schemas.constants.SCHEMA_ASSET_AMOUNT_KEY,
         bigNumberToString
       )
     )
@@ -166,13 +173,24 @@ const addWitnessedTimestamp = _obj =>
   )
 
 const setId = _obj =>
-  assoc(
-    '_id',
-    schemas.db.access.getEventId(
-      _obj[schemas.constants.SCHEMA_ORIGINATING_TX_HASH_KEY]
-    ),
-    _obj
-  )
+  utils
+    .getEventId(
+      _obj[schemas.constants.SCHEMA_ORIGINATING_BLOCK_HASH_KEY],
+      _obj[schemas.constants.SCHEMA_ORIGINATING_TX_HASH_KEY],
+      _obj[schemas.constants.SCHEMA_ORIGINATING_NETWORK_ID_KEY],
+      _obj[schemas.constants.SCHEMA_NONCE_KEY],
+      _obj[schemas.constants.SCHEMA_DESTINATION_ACCOUNT_KEY],
+      _obj[schemas.constants.SCHEMA_DESTINATION_NETWORK_ID_KEY],
+      _obj[schemas.constants.SCHEMA_UNDERLYING_ASSET_NAME_KEY],
+      _obj[schemas.constants.SCHEMA_UNDERLYING_ASSET_SYMBOL_KEY],
+      _obj[schemas.constants.SCHEMA_UNDERLYING_ASSET_DECIMALS_KEY],
+      _obj[schemas.constants.SCHEMA_UNDERLYING_ASSET_TOKEN_ADDRESS_KEY],
+      _obj[schemas.constants.SCHEMA_UNDERLYING_ASSET_NETWORK_ID_KEY],
+      _obj[schemas.constants.SCHEMA_ASSET_AMOUNT_KEY],
+      _obj[schemas.constants.SCHEMA_USER_DATA_KEY],
+      _obj[schemas.constants.SCHEMA_OPTIONS_MASK]
+    )
+    .then(_id => assoc('_id', _id, _obj))
 
 const parseLog = (_interface, _log) =>
   Promise.resolve(_interface.parseLog(_log)).then(
