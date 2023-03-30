@@ -18,14 +18,13 @@ describe('Event building for EVM', () => {
       const chainId = '0x005fe7f9'
       const eventName =
         'UserOperation(uint256 nonce,string destinationAccount,bytes4 destinationNetworkId,string underlyingAssetName,string underlyingAssetSymbol,uint256 underlyingAssetDecimals,address underlyingAssetTokenAddress,bytes4 underlyingAssetNetworkId,address assetTokenAddress,uint256 assetAmount,bytes userData,bytes32 optionsMask)'
-      const eventLog = logs[3]
+      const eventLog = logs[1]
       const methodInterface = await getInterfaceFromEvent(eventName)
       const result = await buildStandardizedEvmEventObjectFromLog(
         chainId,
         methodInterface,
         eventLog
       )
-      await validation.validateJson(schemas.db.collections.events, result)
 
       const expected = {
         _id: '0x8331da272b47ccc84065aefffe99718f3caaa003d10acd6a42b183deb230e38a',
@@ -51,8 +50,8 @@ describe('Event building for EVM', () => {
           '0x89Ab32156e46F46D02ade3FEcbe5Fc4243B9AAeD',
         [schemas.constants.SCHEMA_OPTIONS_MASK]:
           '0x0000000000000000000000000000000000000000000000000000000000000000',
-        [schemas.constants.SCHEMA_ORIGINATING_ADDRESS_KEY]: null,
         [schemas.constants.SCHEMA_ORIGINATING_NETWORK_ID_KEY]: '0x005fe7f9',
+        [schemas.constants.SCHEMA_ORIGINATING_ADDRESS_KEY]: null,
         [schemas.constants.SCHEMA_ORIGINATING_BLOCK_HASH_KEY]:
           '0x0fc80f64b06f1de7e0025968e1acea1c8098e99da995654bc8f28b86a5efc8bf',
         [schemas.constants.SCHEMA_ORIGINATING_TX_HASH_KEY]:

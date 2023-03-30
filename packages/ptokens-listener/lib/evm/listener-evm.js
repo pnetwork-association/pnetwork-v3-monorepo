@@ -100,8 +100,6 @@ const listenForEvmEvents = (_state, _callback) =>
   )
 
 module.exports = {
-  processEventLog,
-  listenFromFilter,
   getEthersProvider,
   listenForEvmEvents,
   getInterfaceFromEvent,

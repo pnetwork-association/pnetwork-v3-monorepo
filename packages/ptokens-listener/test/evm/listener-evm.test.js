@@ -45,16 +45,9 @@ describe('EVM listener', () => {
           },
           {
             [schemas.constants.SCHEMA_NAME_KEY]:
-              'PegIn(address _tokenAddress, address _tokenSender, uint256 _tokenAmount, string _destinationAddress, bytes _userData, bytes4 _originChainId, bytes4 _destinationChainId)',
+              'UserOperation(uint256 nonce,string destinationAccount,bytes4 destinationNetworkId,string underlyingAssetName,string underlyingAssetSymbol,uint256 underlyingAssetDecimals,address underlyingAssetTokenAddress,bytes4 underlyingAssetNetworkId,address assetTokenAddress,uint256 assetAmount,bytes userData,bytes32 optionsMask)',
             [schemas.constants.SCHEMA_TOKEN_CONTRACTS_KEY]: [
-              '0xe396757ec7e6ac7c8e5abe7285dde47b98f22db8',
-            ],
-          },
-          {
-            [schemas.constants.SCHEMA_NAME_KEY]:
-              'Redeem(address indexed redeemer, uint256 value, string underlyingAssetRecipient, bytes userData, bytes4 originChainId, bytes4 destinationChainId)',
-            [schemas.constants.SCHEMA_TOKEN_CONTRACTS_KEY]: [
-              '0x62199b909fb8b8cf870f97bef2ce6783493c4908',
+              '0x62199B909FB8B8cf870f97BEf2cE6783493c4908',
             ],
           },
         ],
@@ -76,10 +69,9 @@ describe('EVM listener', () => {
         )
 
       scheduleEvent('0xdac17f958d2ee523a2206206994597c13d831ec7', logs[0], 100)
-      scheduleEvent('0xe396757ec7e6ac7c8e5abe7285dde47b98f22db8', logs[1], 200)
-      scheduleEvent('0x45bc7Bc558FcCaA7674310254798A968D9190fd7', logs[1], 300) // malicious attempt
-      scheduleEvent('0x62199b909fb8b8cf870f97bef2ce6783493c4908', logs[2], 400)
-      scheduleEvent('0x45bc7Bc558FcCaA7674310254798A968D9190fd7', logs[2], 500) // malicious attempt
+      scheduleEvent('0x45bc7Bc558FcCaA7674310254798A968D9190fd7', logs[0], 300) // malicious attempt
+      scheduleEvent('0x62199B909FB8B8cf870f97BEf2cE6783493c4908', logs[1], 400)
+      scheduleEvent('0x45bc7Bc558FcCaA7674310254798A968D9190fd7', logs[1], 500) // malicious attempt
 
       const onListenerSpy = jest
         .spyOn(fakeProvider, 'on')
@@ -96,6 +88,7 @@ describe('EVM listener', () => {
 
       setTimeout(() => {
         expect(getDefaultProviderSpy).toHaveBeenNthCalledWith(1, 'provider-url')
+        expect(onListenerSpy).toHaveBeenCalledTimes(2)
         expect(onListenerSpy).toHaveBeenNthCalledWith(
           1,
           {
@@ -109,25 +102,16 @@ describe('EVM listener', () => {
         expect(onListenerSpy).toHaveBeenNthCalledWith(
           2,
           {
-            address: '0xe396757ec7e6ac7c8e5abe7285dde47b98f22db8',
+            address: '0x62199B909FB8B8cf870f97BEf2cE6783493c4908',
             topics: [
-              '0xc03be660a5421fb17c93895da9db564bd4485d475f0d8b3175f7d55ed421bebb',
+              '0xba98a314fb19bf102109515e22a4e48acbbe8f5610a657a9ed6cb3327afbc2e2',
             ],
           },
           expect.anything()
         )
-        expect(onListenerSpy).toHaveBeenNthCalledWith(
-          3,
-          {
-            address: '0x62199b909fb8b8cf870f97bef2ce6783493c4908',
-            topics: [
-              '0xdd56da0e6e7b301867b3632876d707f60c7cbf4b06f9ae191c67ea016cc5bf31',
-            ],
-          },
-          expect.anything()
-        )
-        expect(callback).toHaveBeenCalledTimes(3)
+        expect(callback).toHaveBeenCalledTimes(2)
         expect(callback).toHaveBeenNthCalledWith(1, {
+          _id: '0x37eeb55eab329c73aeac6a172faa6c77e7013cd0cda0fc472274c5faf0df7003',
           [schemas.constants.SCHEMA_STATUS_KEY]:
             schemas.db.enums.txStatus.DETECTED,
           [schemas.constants.SCHEMA_ASSET_AMOUNT_KEY]: '200000000',
@@ -140,79 +124,63 @@ describe('EVM listener', () => {
             expect.stringMatching(ISO_FORMAT_REGEX),
           [schemas.constants.SCHEMA_FINAL_TX_HASH_KEY]: null,
           [schemas.constants.SCHEMA_FINAL_TX_TS_KEY]: null,
+          [schemas.constants.SCHEMA_OPTIONS_MASK]: null,
+          [schemas.constants.SCHEMA_NONCE_KEY]: null,
           [schemas.constants.SCHEMA_DESTINATION_ACCOUNT_KEY]:
             '0x31c43E2be5BCd4EDb512aD47A0F1A93aA22941b9',
           [schemas.constants.SCHEMA_DESTINATION_NETWORK_ID_KEY]: null,
-          [schemas.constants.SCHEMA_ORIGINATING_ADDRESS_KEY]: null,
           [schemas.constants.SCHEMA_UNDERLYING_ASSET_NAME_KEY]: null,
           [schemas.constants.SCHEMA_UNDERLYING_ASSET_SYMBOL_KEY]: null,
           [schemas.constants.SCHEMA_UNDERLYING_ASSET_DECIMALS_KEY]: null,
           [schemas.constants.SCHEMA_UNDERLYING_ASSET_TOKEN_ADDRESS_KEY]: null,
           [schemas.constants.SCHEMA_UNDERLYING_ASSET_NETWORK_ID_KEY]: null,
+          [schemas.constants.SCHEMA_ORIGINATING_ADDRESS_KEY]:
+            '0xd8a7346Ffef357542857aB5fCF7ed1baED08680f',
           [schemas.constants.SCHEMA_ORIGINATING_NETWORK_ID_KEY]: '0x005fe7f9',
           [schemas.constants.SCHEMA_ORIGINATING_TX_HASH_KEY]:
             '0x37eeb55eab329c73aeac6a172faa6c77e7013cd0cda0fc472274c5faf0df7003',
           [schemas.constants.SCHEMA_ORIGINATING_BLOCK_HASH_KEY]:
             '0x460635ecc1efa7230644fe6c2c01635f873663e81afc8c727947da5560ed12e5',
-          _id: '0xb3a8b1ca0aba479fd02780ffff929d4c700efc9a070327a1440b56a07c502345',
+          [schemas.constants.SCHEMA_ID_KEY]:
+            '0xb3a8b1ca0aba479fd02780ffff929d4c700efc9a070327a1440b56a07c502345',
         })
         expect(callback).toHaveBeenNthCalledWith(2, {
+          _id: '0x8331da272b47ccc84065aefffe99718f3caaa003d10acd6a42b183deb230e38a',
           [schemas.constants.SCHEMA_STATUS_KEY]:
             schemas.db.enums.txStatus.DETECTED,
-          [schemas.constants.SCHEMA_ASSET_AMOUNT_KEY]: '1001000000',
-          [schemas.constants.SCHEMA_USER_DATA_KEY]: null,
-          [schemas.constants.SCHEMA_EVENT_NAME_KEY]: 'PegIn',
-          [schemas.constants.SCHEMA_ASSET_TOKEN_ADDRESS_KEY]:
-            '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
-          [schemas.constants.SCHEMA_PROPOSAL_TS_KEY]: null,
-          [schemas.constants.SCHEMA_PROPOSAL_TX_HASH_KEY]: null,
-          [schemas.constants.SCHEMA_WITNESSED_TS_KEY]:
-            expect.stringMatching(ISO_FORMAT_REGEX),
-          [schemas.constants.SCHEMA_FINAL_TX_HASH_KEY]: null,
-          [schemas.constants.SCHEMA_FINAL_TX_TS_KEY]: null,
-          [schemas.constants.SCHEMA_DESTINATION_ACCOUNT_KEY]: null,
-          [schemas.constants.SCHEMA_DESTINATION_NETWORK_ID_KEY]: null,
-          [schemas.constants.SCHEMA_UNDERLYING_ASSET_NAME_KEY]: null,
-          [schemas.constants.SCHEMA_UNDERLYING_ASSET_SYMBOL_KEY]: null,
-          [schemas.constants.SCHEMA_UNDERLYING_ASSET_DECIMALS_KEY]: null,
-          [schemas.constants.SCHEMA_UNDERLYING_ASSET_TOKEN_ADDRESS_KEY]: null,
-          [schemas.constants.SCHEMA_UNDERLYING_ASSET_NETWORK_ID_KEY]: null,
-          [schemas.constants.SCHEMA_ORIGINATING_ADDRESS_KEY]: null,
-          [schemas.constants.SCHEMA_ORIGINATING_BLOCK_HASH_KEY]:
-            '0x2c0e755fa4987a7a4a90cd18bc7c72a4a492e507e75274e21541d5237115f575',
-          [schemas.constants.SCHEMA_ORIGINATING_NETWORK_ID_KEY]: '0x005fe7f9',
-          [schemas.constants.SCHEMA_ORIGINATING_TX_HASH_KEY]:
-            '0x0f53438f23bd61bcee616d4f4d0f70a80dcd1d10dc8b0796774cb4afa6340305',
-          _id: '0x88e150263c29b674562237bb57f6e5cd4846dca5c8cb04973267993472037cb1',
-        })
-        expect(callback).toHaveBeenNthCalledWith(3, {
-          [schemas.constants.SCHEMA_STATUS_KEY]:
-            schemas.db.enums.txStatus.DETECTED,
-          [schemas.constants.SCHEMA_ASSET_AMOUNT_KEY]: '2065832100000000000',
-          [schemas.constants.SCHEMA_USER_DATA_KEY]: '0x',
-          [schemas.constants.SCHEMA_EVENT_NAME_KEY]: 'Redeem',
-          [schemas.constants.SCHEMA_ASSET_TOKEN_ADDRESS_KEY]: null,
-          [schemas.constants.SCHEMA_PROPOSAL_TS_KEY]: null,
-          [schemas.constants.SCHEMA_PROPOSAL_TX_HASH_KEY]: null,
-          [schemas.constants.SCHEMA_WITNESSED_TS_KEY]:
-            expect.stringMatching(ISO_FORMAT_REGEX),
-          [schemas.constants.SCHEMA_FINAL_TX_HASH_KEY]: null,
-          [schemas.constants.SCHEMA_FINAL_TX_TS_KEY]: null,
+          [schemas.constants.SCHEMA_EVENT_NAME_KEY]:
+            schemas.db.enums.eventNames.USER_OPERATION,
+
+          [schemas.constants.SCHEMA_NONCE_KEY]: '444444',
+          [schemas.constants.SCHEMA_ASSET_AMOUNT_KEY]: '444444444444',
           [schemas.constants.SCHEMA_DESTINATION_ACCOUNT_KEY]:
-            '35eXzETyUxiQPXwU2udtVFQFrFjgRhhvPj',
-          [schemas.constants.SCHEMA_DESTINATION_NETWORK_ID_KEY]: '0x01ec97de',
-          [schemas.constants.SCHEMA_UNDERLYING_ASSET_NAME_KEY]: null,
-          [schemas.constants.SCHEMA_UNDERLYING_ASSET_SYMBOL_KEY]: null,
-          [schemas.constants.SCHEMA_UNDERLYING_ASSET_DECIMALS_KEY]: null,
-          [schemas.constants.SCHEMA_UNDERLYING_ASSET_TOKEN_ADDRESS_KEY]: null,
-          [schemas.constants.SCHEMA_UNDERLYING_ASSET_NETWORK_ID_KEY]: null,
-          [schemas.constants.SCHEMA_ORIGINATING_ADDRESS_KEY]: null,
+            '0xc39867e393cb061b837240862d9ad318c176a96d',
+          [schemas.constants.SCHEMA_DESTINATION_NETWORK_ID_KEY]: '0x00e4b170',
+
+          [schemas.constants.SCHEMA_FINAL_TX_HASH_KEY]: null,
+          [schemas.constants.SCHEMA_FINAL_TX_TS_KEY]: null,
+          [schemas.constants.SCHEMA_UNDERLYING_ASSET_NAME_KEY]: 'PNT',
+          [schemas.constants.SCHEMA_UNDERLYING_ASSET_SYMBOL_KEY]: 'PNT',
+          [schemas.constants.SCHEMA_UNDERLYING_ASSET_DECIMALS_KEY]: 18,
+          [schemas.constants.SCHEMA_UNDERLYING_ASSET_NETWORK_ID_KEY]:
+            '0x00000001',
+          [schemas.constants.SCHEMA_UNDERLYING_ASSET_TOKEN_ADDRESS_KEY]:
+            '0x89Ab32156e46F46D02ade3FEcbe5Fc4243B9AAeD',
+          [schemas.constants.SCHEMA_OPTIONS_MASK]:
+            '0x0000000000000000000000000000000000000000000000000000000000000000',
           [schemas.constants.SCHEMA_ORIGINATING_NETWORK_ID_KEY]: '0x005fe7f9',
+          [schemas.constants.SCHEMA_ORIGINATING_ADDRESS_KEY]: null,
           [schemas.constants.SCHEMA_ORIGINATING_BLOCK_HASH_KEY]:
-            '0x0fc80f64b06f1de7e0025968e1acea1c8098e99da995654bc8f28b86a5efc8be',
+            '0x0fc80f64b06f1de7e0025968e1acea1c8098e99da995654bc8f28b86a5efc8bf',
           [schemas.constants.SCHEMA_ORIGINATING_TX_HASH_KEY]:
-            '0x9488dee8cb5c6b2f6299e45e48bba580f46dbd496cfaa70a182060fd5dc81cb4',
-          _id: '0x893ff72e527978e0d8044e16bdd62d07216c54eb51bf8df922508d5585eda4b8',
+            '0x9488dee8cb5c6b2f6299e45e48bba580f46dbd496cfaa70a182060fd5dc81cb5',
+          [schemas.constants.SCHEMA_PROPOSAL_TX_HASH_KEY]: null,
+          [schemas.constants.SCHEMA_PROPOSAL_TS_KEY]: null,
+          [schemas.constants.SCHEMA_ASSET_TOKEN_ADDRESS_KEY]:
+            '0x89Ab32156e46F46D02ade3FEcbe5Fc4243B9AAeD',
+          [schemas.constants.SCHEMA_USER_DATA_KEY]: '0x',
+          [schemas.constants.SCHEMA_WITNESSED_TS_KEY]:
+            expect.stringMatching(ISO_FORMAT_REGEX),
         })
         done()
       }, 600)

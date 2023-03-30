@@ -4,24 +4,28 @@ const { isNil, curry, assoc, identity } = require('ramda')
 const schemas = require('ptokens-schemas')
 
 const getEventWithAllRequiredSetToNull = _ => ({
-  [schemas.constants.SCHEMA_EVENT_NAME_KEY]: null,
   [schemas.constants.SCHEMA_STATUS_KEY]: null,
-  [schemas.constants.SCHEMA_UNDERLYING_ASSET_NETWORK_ID_KEY]: null,
-  [schemas.constants.SCHEMA_UNDERLYING_ASSET_DECIMALS_KEY]: null,
-  [schemas.constants.SCHEMA_UNDERLYING_ASSET_SYMBOL_KEY]: null,
-  [schemas.constants.SCHEMA_UNDERLYING_ASSET_NAME_KEY]: null,
-  [schemas.constants.SCHEMA_UNDERLYING_ASSET_TOKEN_ADDRESS_KEY]: null,
-  [schemas.constants.SCHEMA_ORIGINATING_TX_HASH_KEY]: null,
-  [schemas.constants.SCHEMA_ASSET_AMOUNT_KEY]: null,
+  [schemas.constants.SCHEMA_EVENT_NAME_KEY]: null,
+  [schemas.constants.SCHEMA_NONCE_KEY]: null,
   [schemas.constants.SCHEMA_DESTINATION_ACCOUNT_KEY]: null,
   [schemas.constants.SCHEMA_DESTINATION_NETWORK_ID_KEY]: null,
-  [schemas.constants.SCHEMA_USER_DATA_KEY]: null,
+  [schemas.constants.SCHEMA_UNDERLYING_ASSET_NAME_KEY]: null,
+  [schemas.constants.SCHEMA_UNDERLYING_ASSET_SYMBOL_KEY]: null,
+  [schemas.constants.SCHEMA_UNDERLYING_ASSET_DECIMALS_KEY]: null,
+  [schemas.constants.SCHEMA_UNDERLYING_ASSET_TOKEN_ADDRESS_KEY]: null,
+  [schemas.constants.SCHEMA_UNDERLYING_ASSET_NETWORK_ID_KEY]: null,
   [schemas.constants.SCHEMA_ASSET_TOKEN_ADDRESS_KEY]: null,
+  [schemas.constants.SCHEMA_ASSET_AMOUNT_KEY]: null,
+  [schemas.constants.SCHEMA_USER_DATA_KEY]: null,
+  [schemas.constants.SCHEMA_OPTIONS_MASK]: null,
+  [schemas.constants.SCHEMA_ORIGINATING_BLOCK_HASH_KEY]: null,
   [schemas.constants.SCHEMA_ORIGINATING_ADDRESS_KEY]: null,
-  [schemas.constants.SCHEMA_FINAL_TX_HASH_KEY]: null,
+  [schemas.constants.SCHEMA_ORIGINATING_NETWORK_ID_KEY]: null,
+  [schemas.constants.SCHEMA_ORIGINATING_TX_HASH_KEY]: null,
+  [schemas.constants.SCHEMA_PROPOSAL_TS_KEY]: null,
   [schemas.constants.SCHEMA_PROPOSAL_TX_HASH_KEY]: null,
   [schemas.constants.SCHEMA_WITNESSED_TS_KEY]: null,
-  [schemas.constants.SCHEMA_PROPOSAL_TS_KEY]: null,
+  [schemas.constants.SCHEMA_FINAL_TX_HASH_KEY]: null,
   [schemas.constants.SCHEMA_FINAL_TX_TS_KEY]: null,
 })
 
@@ -152,6 +156,14 @@ const addInfoFromParsedLog = (_parsedLog, _obj) =>
         ['assetAmount', '_tokenAmount', 'value'],
         schemas.constants.SCHEMA_ASSET_AMOUNT_KEY,
         bigNumberToString
+      )
+    )
+    .then(
+      maybeAddFieldFromEventArgs(
+        _parsedLog.args,
+        ['from'],
+        schemas.constants.SCHEMA_ORIGINATING_ADDRESS_KEY,
+        identity
       )
     )
     .then(
