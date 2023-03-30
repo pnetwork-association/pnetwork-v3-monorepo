@@ -11,15 +11,15 @@ module.exports = {
     constants.SCHEMA_EVENT_NAME_KEY,
 
     constants.SCHEMA_NONCE_KEY,
-    constants.SCHEMA_DESTINATION_ADDRESS_KEY,
+    constants.SCHEMA_DESTINATION_ACCOUNT_KEY,
     constants.SCHEMA_DESTINATION_NETWORK_ID_KEY,
-    constants.SCHEMA_UNDERLYING_ASSET_TOKEN_ADDRESS_KEY,
     constants.SCHEMA_UNDERLYING_ASSET_NAME_KEY,
     constants.SCHEMA_UNDERLYING_ASSET_SYMBOL_KEY,
-    constants.SCHEMA_UNDERLYING_ASSET_CHAIN_ID_KEY,
-    constants.SCHEMA_UNDERLYING_ASSET_DECIMALS,
-    constants.SCHEMA_TOKEN_ADDRESS_KEY,
-    constants.SCHEMA_AMOUNT_KEY,
+    constants.SCHEMA_UNDERLYING_ASSET_DECIMALS_KEY,
+    constants.SCHEMA_UNDERLYING_ASSET_TOKEN_ADDRESS_KEY,
+    constants.SCHEMA_UNDERLYING_ASSET_NETWORK_ID_KEY,
+    constants.SCHEMA_ASSET_TOKEN_ADDRESS_KEY,
+    constants.SCHEMA_ASSET_AMOUNT_KEY,
     constants.SCHEMA_USER_DATA_KEY,
     constants.SCHEMA_OPTIONS_MASK,
 
@@ -49,7 +49,7 @@ module.exports = {
     [constants.SCHEMA_OPTIONS_MASK]: {
       type: 'string',
     },
-    [constants.SCHEMA_UNDERLYING_ASSET_CHAIN_ID_KEY]: {
+    [constants.SCHEMA_UNDERLYING_ASSET_NETWORK_ID_KEY]: {
       type: 'string',
     },
     [constants.SCHEMA_UNDERLYING_ASSET_SYMBOL_KEY]: {
@@ -61,16 +61,16 @@ module.exports = {
     [constants.SCHEMA_UNDERLYING_ASSET_TOKEN_ADDRESS_KEY]: {
       type: 'string',
     },
-    [constants.SCHEMA_UNDERLYING_ASSET_DECIMALS]: {
+    [constants.SCHEMA_UNDERLYING_ASSET_DECIMALS_KEY]: {
       type: 'integer',
     },
     [constants.SCHEMA_ORIGINATING_TX_HASH_KEY]: {
       type: 'string',
     },
-    [constants.SCHEMA_AMOUNT_KEY]: {
+    [constants.SCHEMA_ASSET_AMOUNT_KEY]: {
       type: 'string',
     },
-    [constants.SCHEMA_DESTINATION_ADDRESS_KEY]: {
+    [constants.SCHEMA_DESTINATION_ACCOUNT_KEY]: {
       type: 'string',
     },
     [constants.SCHEMA_DESTINATION_NETWORK_ID_KEY]: {
@@ -79,7 +79,7 @@ module.exports = {
     [constants.SCHEMA_USER_DATA_KEY]: {
       type: ['string', 'null'],
     },
-    [constants.SCHEMA_TOKEN_ADDRESS_KEY]: {
+    [constants.SCHEMA_ASSET_TOKEN_ADDRESS_KEY]: {
       type: 'string',
     },
     [constants.SCHEMA_ORIGINATING_BLOCK_HASH_KEY]: {
