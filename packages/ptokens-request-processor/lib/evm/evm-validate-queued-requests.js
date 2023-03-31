@@ -11,10 +11,10 @@ const { utils } = require('ptokens-utils')
 const checkRequestAgainstMatchingReport = (_report, _request) =>
   logger.debug('Queued request:\n', _request) ||
   logger.debug('Matching db report:\n', _report) ||
-  (_report[schemas.constants.SCHEMA_AMOUNT_KEY] ===
-    _request[schemas.constants.SCHEMA_AMOUNT_KEY] &&
-    _report[schemas.constants.SCHEMA_DESTINATION_ADDRESS_KEY] ===
-      _request[schemas.constants.SCHEMA_DESTINATION_ADDRESS_KEY] &&
+  (_report[schemas.constants.SCHEMA_ASSET_AMOUNT_KEY] ===
+    _request[schemas.constants.SCHEMA_ASSET_AMOUNT_KEY] &&
+    _report[schemas.constants.SCHEMA_DESTINATION_ACCOUNT_KEY] ===
+      _request[schemas.constants.SCHEMA_DESTINATION_ACCOUNT_KEY] &&
     (_request[schemas.constants.SCHEMA_USER_DATA_KEY]
       ? _report[schemas.constants.SCHEMA_USER_DATA_KEY] ===
         _request[schemas.constants.SCHEMA_USER_DATA_KEY]

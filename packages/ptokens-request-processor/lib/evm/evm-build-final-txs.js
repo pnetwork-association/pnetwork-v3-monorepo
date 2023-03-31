@@ -14,20 +14,22 @@ const {
 const { callContractFunctionAndAwait } = require('./evm-call-contract-function')
 
 const ABI_EXECUTE_OPERATION = [
-  'function protocolExecuteOperation(' +
-    'bytes32 originBlockHash,' +
-    'bytes32 originTransactionHash,' +
-    'bytes4 originNetworkId,' +
-    'uint256 nonce,' +
-    'address destinationAccount,' +
-    'string calldata underlyingAssetName,' +
-    'string calldata underlyingAssetSymbol,' +
-    'address underlyingAssetTokenAddress,' +
-    'uint256 underlyingAssetChainId,' +
-    'uint256 amount,' +
-    'bytes calldata userData,' +
-    'bytes32 optionsMask' +
-    ')',
+  'function protocolExecuteOperation(tuple(' +
+    'bytes32 originBlockHash, ' +
+    'bytes32 originTransactionHash, ' +
+    'bytes32 optionsMask, ' +
+    'uint256 nonce, ' +
+    'uint256 underlyingAssetDecimals, ' +
+    'uint256 amount, ' +
+    'address underlyingAssetTokenAddress, ' +
+    'bytes4 originNetworkId, ' +
+    'bytes4 destinationNetworkId, ' +
+    'bytes4 underlyingAssetNetworkId, ' +
+    'string destinationAccount, ' +
+    'string underlyingAssetName, ' +
+    'string underlyingAssetSymbol, ' +
+    'bytes userData, ' +
+    ') calldata operation)',
   'error OperationAlreadyProcessed(bytes32 operationId)',
 ]
 
@@ -50,7 +52,7 @@ const makeFinalContractCall = curry(
     new Promise((resolve, reject) => {
       const id = _eventReport[schemas.constants.SCHEMA_ID_KEY]
       const nonce = _eventReport[schemas.constants.SCHEMA_NONCE_KEY]
-      const amount = _eventReport[schemas.constants.SCHEMA_AMOUNT_KEY]
+      const amount = _eventReport[schemas.constants.SCHEMA_ASSET_AMOUNT_KEY]
       const userData = _eventReport[schemas.constants.SCHEMA_USER_DATA_KEY]
       const eventName = _eventReport[schemas.constants.SCHEMA_EVENT_NAME_KEY]
       const originChainId =
@@ -60,13 +62,17 @@ const makeFinalContractCall = curry(
       const originatingTxHash =
         _eventReport[schemas.constants.SCHEMA_ORIGINATING_TX_HASH_KEY]
       const destinationAddress =
-        _eventReport[schemas.constants.SCHEMA_DESTINATION_ADDRESS_KEY]
+        _eventReport[schemas.constants.SCHEMA_DESTINATION_ACCOUNT_KEY]
+      const destinationNetworkId =
+        _eventReport[schemas.constants.SCHEMA_DESTINATION_NETWORK_ID_KEY]
       const underlyingAssetName =
         _eventReport[schemas.constants.SCHEMA_UNDERLYING_ASSET_NAME_KEY]
       const underlyingAssetSymbol =
         _eventReport[schemas.constants.SCHEMA_UNDERLYING_ASSET_SYMBOL_KEY]
-      const underlyingAssetChainId =
-        _eventReport[schemas.constants.SCHEMA_UNDERLYING_ASSET_CHAIN_ID_KEY]
+      const underlyingAssetDecimals =
+        _eventReport[schemas.constants.SCHEMA_UNDERLYING_ASSET_DECIMALS_KEY]
+      const underlyingAssetNetworkId =
+        _eventReport[schemas.constants.SCHEMA_UNDERLYING_ASSET_NETWORK_ID_KEY]
       const underlyingAssetTokenAddress =
         _eventReport[
           schemas.constants.SCHEMA_UNDERLYING_ASSET_TOKEN_ADDRESS_KEY
@@ -80,18 +86,22 @@ const makeFinalContractCall = curry(
 
       const abi = ABI_EXECUTE_OPERATION
       const args = [
-        originBlockHash,
-        originatingTxHash,
-        originChainId,
-        nonce,
-        destinationAddress,
-        underlyingAssetName,
-        underlyingAssetSymbol,
-        underlyingAssetTokenAddress,
-        underlyingAssetChainId,
-        amount,
-        userData,
-        optionsMask,
+        [
+          originBlockHash,
+          originatingTxHash,
+          optionsMask,
+          nonce,
+          underlyingAssetDecimals,
+          amount,
+          underlyingAssetTokenAddress,
+          originChainId,
+          destinationNetworkId,
+          underlyingAssetNetworkId,
+          destinationAddress,
+          underlyingAssetName,
+          underlyingAssetSymbol,
+          userData,
+        ],
       ]
 
       const contractAddress = _stateManager
@@ -99,11 +109,23 @@ const makeFinalContractCall = curry(
       const contract = new ethers.Contract(contractAddress, abi, _wallet)
 
       logger.info(`Executing _id: ${id}`)
-      logger.info('function protocolQueueOperation(')
+      logger.info('function protocolExecuteOperation([')
       logger.info(`  bytes32 originBlockHash: ${originBlockHash}`)
       logger.info(`  bytes32 originTransactionHash: ${originatingTxHash}`)
-      logger.info(`  bytes4 originNetworkChainId: ${originChainId}`)
+      logger.info(`  bytes32 optionsMask: ${optionsMask}`)
       logger.info(`  uint256 nonce: ${nonce}`)
+      logger.info(
+        `  uint256 underlyingAssetDecimals: ${underlyingAssetDecimals}`
+      )
+      logger.info(`  uint256 amount: ${amount}`)
+      logger.info(
+        `  address underlyingAssetTokenAddress: ${underlyingAssetTokenAddress}`
+      )
+      logger.info(`  bytes4 originNetworkId: ${originChainId}`)
+      logger.info(`  bytes4 destinationNetworkId: ${destinationNetworkId}`)
+      logger.info(
+        `  bytes4 underlyingAssetNetworkId: ${underlyingAssetNetworkId}`
+      )
       logger.info(`  address destinationAccount: ${destinationAddress}`)
       logger.info(
         `  string calldata:  underlyingAssetName ${underlyingAssetName}`
@@ -111,14 +133,8 @@ const makeFinalContractCall = curry(
       logger.info(
         `  string calldata:  underlyingAssetSymbol ${underlyingAssetSymbol}`
       )
-      logger.info(
-        `  address underlyingAssetTokenAddress: ${underlyingAssetTokenAddress}`
-      )
-      logger.info(`  uint256 underlyingAssetChainId: ${underlyingAssetChainId}`)
-      logger.info(`  uint256 amount: ${amount}`)
       logger.info(`  bytes calldata:  userData ${userData}`)
-      logger.info(`  bytes32 optionsMask: ${optionsMask}`)
-      logger.info(')')
+      logger.info('])')
 
       return callContractFunctionAndAwait(
         functionName,
