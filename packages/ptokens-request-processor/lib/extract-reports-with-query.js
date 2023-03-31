@@ -23,7 +23,7 @@ const extractReportsWithChainIdAndStatus = curry(
 
     const query = {
       [schemas.constants.SCHEMA_STATUS_KEY]: _status,
-      [schemas.constants.SCHEMA_ORIGINATING_NETWORK_ID_KEY]: _chainId,
+      [schemas.constants.SCHEMA_DESTINATION_NETWORK_ID_KEY]: _chainId,
     }
     return extractReportsWithQuery(_collection, query).then(
       _reports =>
