@@ -53,8 +53,8 @@ const getEventIdEvm = (
     userData || '0x',
     optionsMask || '0x00',
   ]
-  const iface = new ethers.utils.Interface(abi)
-  return ethers.utils.keccak256(
+  const iface = new ethers.Interface(abi)
+  return ethers.keccak256(
     iface.encodeFunctionData('protocolExecuteOperation', values)
   )
 }

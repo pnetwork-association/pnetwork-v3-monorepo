@@ -7,7 +7,7 @@ describe('Tests for schemas utilities', () => {
         '0x8c27616afe506eef2a3c47e8d094ab7d385b409fa7cf51a473ddaa189e5e3506'
       const originTransactionHash =
         '0xfcc12cfd71e53906be4c06c80d3eca6623afef863967cc2a6e66c7e0ead62e2c'
-      const originNetworkId = '0x0030d6b5'
+      const originNetworkId = '0xe15503e4'
       const nonce = '6374'
       const destinationAccount = '0x3aEa738FDe85CF147746733bBf4D3a4f11A16bF4'
       const underlyingAssetName = 'Token'
@@ -29,7 +29,7 @@ describe('Tests for schemas utilities', () => {
       //   "originatingTransactionHash": "0xfcc12cfd71e53906be4c06c80d3eca6623afef863967cc2a6e66c7e0ead62e2c",
       //   "amount": "100000000000000000000",
       //   "destinationAddress": "0x3aEa738FDe85CF147746733bBf4D3a4f11A16bF4",
-      //   "destinationChainId": "0x0030d6b5",
+      //   "destinationChainId": "0xe15503e4",
       //   "userData": "0x",
       //   "tokenAddress": "0x30Ce4A040d803F4FcF24CaF4fC81ba464bcD4853",
       //   "originatingAddress": null,
@@ -40,12 +40,12 @@ describe('Tests for schemas utilities', () => {
       //   "finalTransactionTimestamp": "2023-03-29T09:45:24.295Z",
       //   "nonce": "6374",
       //   "optionsMask": "0x0000000000000000000000000000000000000000000000000000000000000000",
-      //   "originatingNetworkId": "0x0030d6b5",
+      //   "originatingNetworkId": "0xe15503e4",
       //   "originatingBlockhash": "0x8c27616afe506eef2a3c47e8d094ab7d385b409fa7cf51a473ddaa189e5e3506"
       // }
 
       const { utils } = require('../..')
-      const ret = utils.getEventId(
+      const ret = await utils.getEventId(
         originBlockHash,
         originTransactionHash,
         originNetworkId,
@@ -62,7 +62,7 @@ describe('Tests for schemas utilities', () => {
 
       assert.strictEqual(
         ret,
-        '0xd7fd8b39cdab66f8df856986ca17da157d8e1f833feae2aa243e13b8eb055b20'
+        '0xd6f38f8c5db12c16a09bc1f23f36eee65e838abc1ca83de1af0c41cb8816cada'
       )
     })
   })
