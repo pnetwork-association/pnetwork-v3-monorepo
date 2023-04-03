@@ -24,7 +24,7 @@ module.exports = {
   SCHEMA_ORIGINATING_ADDRESS_KEY: 'originatingAddress',
   SCHEMA_ORIGINATING_NETWORK_ID_KEY: 'originatingNetworkId',
   SCHEMA_ORIGINATING_TX_HASH_KEY: 'originatingTransactionHash',
-  SCHEMA_ORIGINATING_BLOCK_HASH_KEY: 'originatingBlockhash',
+  SCHEMA_ORIGINATING_BLOCK_HASH_KEY: 'originatingBlockHash',
   // event UserOperation fields
   SCHEMA_NONCE_KEY: 'nonce',
   SCHEMA_DESTINATION_ACCOUNT_KEY: 'destinationAccount',
