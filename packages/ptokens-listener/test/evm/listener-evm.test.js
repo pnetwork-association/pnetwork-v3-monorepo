@@ -23,7 +23,7 @@ describe('EVM listener', () => {
       const result = await getEthersProvider(url)
 
       expect(getDefaultProviderSpy).toHaveBeenCalledTimes(1)
-      expect(result).toBeInstanceOf(ethers.providers.JsonRpcProvider)
+      expect(result).toBeInstanceOf(ethers.JsonRpcProvider)
     })
   })
 

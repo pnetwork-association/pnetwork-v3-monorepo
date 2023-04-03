@@ -29,7 +29,8 @@ const getEventWithAllRequiredSetToNull = _ => ({
   [schemas.constants.SCHEMA_FINAL_TX_TS_KEY]: null,
 })
 
-const bigNumberToString = _n => _n.toString()
+const bigIntToNumber = _n => Number(_n)
+const bitIntToString = _n => _n.toString()
 
 const addEventName = _eventLog =>
   assoc(schemas.constants.SCHEMA_EVENT_NAME_KEY, _eventLog.name)
@@ -83,7 +84,7 @@ const addInfoFromParsedLog = (_parsedLog, _obj) =>
         _parsedLog.args,
         ['nonce'],
         schemas.constants.SCHEMA_NONCE_KEY,
-        bigNumberToString
+        bitIntToString
       )
     )
     .then(
@@ -123,7 +124,7 @@ const addInfoFromParsedLog = (_parsedLog, _obj) =>
         _parsedLog.args,
         ['underlyingAssetDecimals'],
         schemas.constants.SCHEMA_UNDERLYING_ASSET_DECIMALS_KEY,
-        _n => _n.toNumber()
+        bigIntToNumber
       )
     )
     .then(
@@ -155,7 +156,7 @@ const addInfoFromParsedLog = (_parsedLog, _obj) =>
         _parsedLog.args,
         ['assetAmount', '_tokenAmount', 'value'],
         schemas.constants.SCHEMA_ASSET_AMOUNT_KEY,
-        bigNumberToString
+        bitIntToString
       )
     )
     .then(
@@ -171,7 +172,7 @@ const addInfoFromParsedLog = (_parsedLog, _obj) =>
         _parsedLog.args,
         ['optionsMask'],
         schemas.constants.SCHEMA_OPTIONS_MASK,
-        bigNumberToString
+        bitIntToString
       )
     )
     .then(maybeAddUserData(_parsedLog.args))

@@ -14,10 +14,10 @@ const getEthersProvider = memoizeWith(identity, _url =>
 )
 
 const getEventFragment = _eventName =>
-  Promise.resolve(ethers.utils.EventFragment.from(_eventName))
+  Promise.resolve(ethers.EventFragment.from(_eventName))
 
 const createInterface = _fragments =>
-  Promise.resolve(new ethers.utils.Interface(_fragments))
+  Promise.resolve(new ethers.Interface(_fragments))
 
 const getInterfaceFromEvent = _eventName =>
   getEventFragment(_eventName).then(Array.of).then(createInterface)
@@ -25,7 +25,7 @@ const getInterfaceFromEvent = _eventName =>
 const getFilterObject = (_eventName, _tokenContract) =>
   getEventFragment(_eventName).then(_frag => ({
     address: _tokenContract,
-    topics: [ethers.utils.id(_frag.format())],
+    topics: [ethers.id(_frag.format())],
   }))
 
 const processEventLog = curry(
