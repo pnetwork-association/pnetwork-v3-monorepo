@@ -3,66 +3,40 @@ const assert = require('assert')
 describe('Tests for schemas utilities', () => {
   describe('getEventId', () => {
     it('Should return the correct ID', async () => {
-      const originBlockHash =
-        '0x8c27616afe506eef2a3c47e8d094ab7d385b409fa7cf51a473ddaa189e5e3506'
-      const originTransactionHash =
-        '0xfcc12cfd71e53906be4c06c80d3eca6623afef863967cc2a6e66c7e0ead62e2c'
-      const originNetworkId = '0xe15503e4'
-      const nonce = '6374'
-      const destinationAccount = '0x3aEa738FDe85CF147746733bBf4D3a4f11A16bF4'
-      const underlyingAssetName = 'Token'
-      const underlyingAssetSymbol = 'TKN'
-      const underlyingAssetDecimals = 18
-      const underlyingAssetTokenAddress = null
-      const underlyingAssetNetworkId = null
-      const amount = null
-      const userData = null
-
-      // {
-      //   "_id": "0xfcc12cfd71e53906be4c06c80d3eca6623afef863967cc2a6e66c7e0ead62e2c",
-      //   "eventName": "UserOperation",
-      //   "status": "proposed",
-      //   "underlyingAssetChainId": "0xaa36a7",
-      //   "underlyingAssetSymbol": "TKN",
-      //   "underlyingAssetName": "Token",
-      //   "underlyingAssetTokenAddress": "0x30Ce4A040d803F4FcF24CaF4fC81ba464bcD4853",
-      //   "originatingTransactionHash": "0xfcc12cfd71e53906be4c06c80d3eca6623afef863967cc2a6e66c7e0ead62e2c",
-      //   "amount": "100000000000000000000",
-      //   "destinationAddress": "0x3aEa738FDe85CF147746733bBf4D3a4f11A16bF4",
-      //   "destinationChainId": "0xe15503e4",
-      //   "userData": "0x",
-      //   "tokenAddress": "0x30Ce4A040d803F4FcF24CaF4fC81ba464bcD4853",
-      //   "originatingAddress": null,
-      //   "finalTransactionHash": "0x",
-      //   "proposedTransactionHash": "0x",
-      //   "witnessedTimestamp": "2023-03-28T16:33:35.764Z",
-      //   "proposedTransactionTimestamp": "2023-03-29T08:56:08.812Z",
-      //   "finalTransactionTimestamp": "2023-03-29T09:45:24.295Z",
-      //   "nonce": "6374",
-      //   "optionsMask": "0x0000000000000000000000000000000000000000000000000000000000000000",
-      //   "originatingNetworkId": "0xe15503e4",
-      //   "originatingBlockhash": "0x8c27616afe506eef2a3c47e8d094ab7d385b409fa7cf51a473ddaa189e5e3506"
-      // }
-
       const { utils } = require('../..')
-      const ret = await utils.getEventId(
-        originBlockHash,
-        originTransactionHash,
-        originNetworkId,
-        nonce,
-        destinationAccount,
-        underlyingAssetName,
-        underlyingAssetSymbol,
-        underlyingAssetDecimals,
-        underlyingAssetTokenAddress,
-        underlyingAssetNetworkId,
-        amount,
-        userData
-      )
+      const ret = await utils.getEventId({
+        status: 'detected',
+        eventName: 'UserOperation',
+        nonce: 52083,
+        destinationAccount: '0xa41657bf225F8Ec7E2010C89c3F084172948264D',
+        destinationNetworkId: '0xe15503e4',
+        underlyingAssetName: 'Token',
+        underlyingAssetSymbol: 'TKN',
+        underlyingAssetDecimals: 18,
+        underlyingAssetTokenAddress:
+          '0x49a5D1CF92772328Ad70f51894FD632a14dF12C9',
+        underlyingAssetNetworkId: '0xe15503e4',
+        assetTokenAddress: '0x49a5D1CF92772328Ad70f51894FD632a14dF12C9',
+        assetAmount: '100000000000000000000',
+        userData: '0x',
+        optionsMask:
+          '0x0000000000000000000000000000000000000000000000000000000000000000',
+        originatingBlockHash:
+          '0xe19ab626cfc3f471238da9a375d396e3bd8a10c55601425d69677c908f0ad8f1',
+        originatingAddress: null,
+        originatingNetworkId: '0xe15503e4',
+        originatingTransactionHash:
+          '0x009fb472130864d1ea9d9e011a1e5ff2d1fae827668f2807146dd3e227eb42ce',
+        proposedTransactionTimestamp: null,
+        proposedTransactionHash: null,
+        witnessedTimestamp: '2023-03-14T16:00:00.000Z',
+        finalTransactionHash: null,
+        finalTransactionTimestamp: null,
+      })
 
       assert.strictEqual(
         ret,
-        '0xd6f38f8c5db12c16a09bc1f23f36eee65e838abc1ca83de1af0c41cb8816cada'
+        '0x5ac3de11a54ac11a448052ad1c3f57ab5fe18a35024aa6fee622620fd1098d55'
       )
     })
   })

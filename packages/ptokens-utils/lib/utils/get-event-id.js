@@ -3,10 +3,10 @@ const ethers = require('ethers')
 const { blockchainType } = require('../constants')
 const { getBlockchainTypeFromChainId } = require('./utils-chain-id')
 
-const getEventIdEvm = (
-  originBlockHash,
-  originTransactionHash,
-  originNetworkId,
+const getEventIdEvm = ({
+  originatingBlockHash,
+  originatingTransactionHash,
+  originatingNetworkId,
   nonce,
   destinationAccount,
   destinationNetworkId,
@@ -15,63 +15,104 @@ const getEventIdEvm = (
   underlyingAssetDecimals,
   underlyingAssetTokenAddress,
   underlyingAssetNetworkId,
-  amount,
+  assetAmount,
   userData,
-  optionsMask
-) => {
-  const abi = [
-    'function protocolExecuteOperation(\
-        bytes32 originBlockHash,\
-        bytes32 originTransactionHash,\
-        bytes4 originNetworkId,\
-        uint256 nonce,\
-        address destinationAccount,\
-        bytes4 destinationNetworkId,\
-        string calldata underlyingAssetName,\
-        string calldata underlyingAssetSymbol,\
-        uint256 underlyingAssetDecimals,\
-        address underlyingAssetTokenAddress,\
-        bytes4 underlyingAssetNetworkId,\
-        uint256 amount,\
-        bytes calldata userData,\
-        bytes32 optionsMask\
-    )',
+  optionsMask,
+}) => {
+  /*
+    struct Operation {
+        bytes32 originBlockHash;
+        bytes32 originTransactionHash;
+        bytes32 optionsMask;
+        uint256 nonce;
+        uint256 underlyingAssetDecimals;
+        uint256 amount;
+        address underlyingAssetTokenAddress;
+        bytes4 originNetworkId;
+        bytes4 destinationNetworkId;
+        bytes4 underlyingAssetNetworkId;
+        string destinationAccount;
+        string underlyingAssetName;
+        string underlyingAssetSymbol;
+        bytes userData;
+    }
+    function operationIdOf(Operation memory operation) public pure returns (bytes32) {
+    return
+        keccak256(
+            abi.encode(
+                operation.originBlockHash,
+                operation.originTransactionHash,
+                operation.originNetworkId,
+                operation.nonce,
+                operation.destinationAccount,
+                operation.destinationNetworkId,
+                operation.underlyingAssetName,
+                operation.underlyingAssetSymbol,
+                operation.underlyingAssetDecimals,
+                operation.underlyingAssetTokenAddress,
+                operation.underlyingAssetNetworkId,
+                operation.amount,
+                operation.userData,
+                operation.optionsMask
+            )
+        );
+    }
+  */
+
+  const types = [
+    'bytes32',
+    'bytes32',
+    'bytes4',
+    'uint256',
+    'string',
+    'bytes4',
+    'string',
+    'string',
+    'uint256',
+    'address',
+    'bytes4',
+    'uint256',
+    'bytes',
+    'bytes32',
   ]
-  const values = [
-    originBlockHash,
-    originTransactionHash,
-    originNetworkId,
-    nonce || 0,
-    destinationAccount || '',
-    destinationNetworkId || '0x00',
-    underlyingAssetName || '',
-    underlyingAssetSymbol || '',
-    underlyingAssetDecimals || 0,
-    underlyingAssetTokenAddress || '0x00',
-    underlyingAssetNetworkId || '0x00000000',
-    amount || '0',
-    userData || '0x',
-    optionsMask || '0x00',
-  ]
-  const iface = new ethers.Interface(abi)
+  const coder = new ethers.AbiCoder()
   return ethers.keccak256(
-    iface.encodeFunctionData('protocolExecuteOperation', values)
+    coder.encode(types, [
+      originatingBlockHash,
+      originatingTransactionHash,
+      originatingNetworkId,
+      nonce,
+      destinationAccount,
+      destinationNetworkId,
+      underlyingAssetName,
+      underlyingAssetSymbol,
+      underlyingAssetDecimals,
+      underlyingAssetTokenAddress,
+      underlyingAssetNetworkId,
+      assetAmount,
+      userData,
+      optionsMask,
+    ])
   )
 }
 
 const fallbackEventId = (
-  originNetworkId,
-  originBlockHash,
-  originTransactionHash
+  originatingNetworkId,
+  originatingBlockHash,
+  originatingTransactionHash
 ) =>
   ethers.keccak256(
-    ethers.concat([originNetworkId, originBlockHash, originTransactionHash])
+    ethers.concat([
+      originatingNetworkId,
+      originatingBlockHash,
+      originatingTransactionHash,
+    ])
   )
 
-const getEventId = (
-  originBlockHash,
-  originTransactionHash,
-  originNetworkId,
+const getEventId = ({
+  originatingBlockHash,
+  originatingTransactionHash,
+  originatingNetworkId,
   nonce,
   destinationAccount,
   destinationNetworkId,
@@ -80,18 +121,18 @@ const getEventId = (
   underlyingAssetDecimals,
   underlyingAssetTokenAddress,
   underlyingAssetNetworkId,
-  amount,
+  assetAmount,
   userData,
-  optionsMask
-) =>
+  optionsMask,
+}) =>
   getBlockchainTypeFromChainId(destinationNetworkId)
     .then(_type => {
       switch (_type) {
         case blockchainType.EVM:
-          return getEventIdEvm(
-            originBlockHash,
-            originTransactionHash,
-            originNetworkId,
+          return getEventIdEvm({
+            originatingBlockHash,
+            originatingTransactionHash,
+            originatingNetworkId,
             nonce,
             destinationAccount,
             destinationNetworkId,
@@ -100,20 +141,24 @@ const getEventId = (
             underlyingAssetDecimals,
             underlyingAssetTokenAddress,
             underlyingAssetNetworkId,
-            amount,
+            assetAmount,
             userData,
-            optionsMask
-          )
+            optionsMask,
+          })
         default:
           return fallbackEventId(
-            originNetworkId,
-            originBlockHash,
-            originTransactionHash
+            originatingNetworkId,
+            originatingBlockHash,
+            originatingTransactionHash
           )
       }
     })
     .catch(_ =>
-      fallbackEventId(originNetworkId, originBlockHash, originTransactionHash)
+      fallbackEventId(
+        originatingNetworkId,
+        originatingBlockHash,
+        originatingTransactionHash
+      )
     )
 
 module.exports = { getEventId }
