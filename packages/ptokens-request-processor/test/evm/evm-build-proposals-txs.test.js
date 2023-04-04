@@ -8,9 +8,12 @@ const {
   STATE_PROPOSED_DB_REPORTS_KEY,
 } = require('../../lib/state/constants')
 const schemas = require('ptokens-schemas')
-const { errors, validation } = require('ptokens-utils')
+const { logic, validation } = require('ptokens-utils')
 const constants = require('ptokens-constants')
 const detectedEvents = require('../samples/detected-report-set')
+const {
+  ETHERS_KEY_TX_HASH,
+} = require('../../lib/evm/evm-call-contract-function')
 
 describe('Build proposals test for EVM', () => {
   describe('makeProposalContractCall', () => {
@@ -25,7 +28,7 @@ describe('Build proposals test for EVM', () => {
       const ethers = jestMockEthers()
       const proposedTxHash =
         '0xd656ffac17b71e2ea2e24f72cd4c15c909a0ebe1696f8ead388eb268268f1cbf'
-      const expectedObject = { hash: proposedTxHash }
+      const expectedObject = { [ETHERS_KEY_TX_HASH]: proposedTxHash }
 
       const mockQueueOperation = jest.fn().mockResolvedValue({
         wait: jest.fn().mockResolvedValue(expectedObject),
@@ -63,14 +66,18 @@ describe('Build proposals test for EVM', () => {
     })
 
     it('Should handle the timeout error correctly', async () => {
-      const ethers = require('ethers')
+      const ethers = jestMockEthers()
 
-      const contractFunctionModule = require('../../lib/evm/evm-call-contract-function')
-      const callContractFunctionAndAwait = jest
-        .spyOn(contractFunctionModule, 'callContractFunctionAndAwait')
-        .mockImplementation(() =>
-          Promise.reject(new Error(errors.ERROR_TIMEOUT))
-        )
+      const mockProtocolQueueOperation = jest.fn().mockResolvedValue({
+        wait: jest
+          .fn()
+          .mockImplementation(() => logic.sleepForXMilliseconds(1000)),
+      })
+
+      ethers.Contract = jestMockContractConstructor(
+        'protocolQueueOperation',
+        mockProtocolQueueOperation
+      )
 
       const {
         makeProposalContractCall,
@@ -88,9 +95,6 @@ describe('Build proposals test for EVM', () => {
         txTimeout,
         eventReport
       )
-
-      expect(callContractFunctionAndAwait).toHaveBeenCalledTimes(1)
-      expect(callContractFunctionAndAwait).rejects.toThrow(errors.ERROR_TIMEOUT)
       expect(result).toStrictEqual(eventReport)
     })
   })
@@ -128,12 +132,13 @@ describe('Build proposals test for EVM', () => {
         '0xd656ffac17b71e2ea2e24f72cd4c15c909a0ebe1696f8ead388eb268268f1cbf',
         '0x2c7e8870be7643d97699bbcf3396dfb13217ee54a6784abfcacdb1e077fe201f',
       ]
+
       const expecteCallResult = [
         {
-          hash: proposedTxHashes[0],
+          [ETHERS_KEY_TX_HASH]: proposedTxHashes[0],
         },
         {
-          hash: proposedTxHashes[1],
+          [ETHERS_KEY_TX_HASH]: proposedTxHashes[1],
         },
       ]
 
@@ -145,14 +150,14 @@ describe('Build proposals test for EVM', () => {
         .mockResolvedValueOnce(expecteCallResult[1])
 
       const txTimeout = 1000
-      const destinationChainId = '0xe15503e4'
+      const destinationNetworkId = '0xe15503e4'
       const providerUrl = 'http://localhost:8545'
       const stateManagerAddress = '0xC8E4270a6EF24B67eD38046318Fc8FC2d312f73C'
 
       const state = {
         [constants.state.STATE_KEY_TX_TIMEOUT]: txTimeout,
         [constants.state.STATE_KEY_PROVIDER_URL]: providerUrl,
-        [constants.state.STATE_KEY_CHAIN_ID]: destinationChainId,
+        [constants.state.STATE_KEY_CHAIN_ID]: destinationNetworkId,
         [constants.state.STATE_KEY_IDENTITY_FILE]: gpgEncryptedFile,
         [constants.state.STATE_KEY_STATE_MANAGER_ADDRESS]: stateManagerAddress,
         [STATE_DETECTED_DB_REPORTS_KEY]: [detectedEvents[0], detectedEvents[1]],

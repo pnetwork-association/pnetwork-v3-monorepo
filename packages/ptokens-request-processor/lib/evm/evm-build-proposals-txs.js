@@ -11,7 +11,10 @@ const { STATE_DETECTED_DB_REPORTS_KEY } = require('../state/constants')
 const {
   checkEventsHaveExpectedDestinationChainId,
 } = require('../check-events-have-expected-chain-id')
-const { callContractFunctionAndAwait } = require('./evm-call-contract-function')
+const {
+  callContractFunctionAndAwait,
+  ETHERS_KEY_TX_HASH,
+} = require('./evm-call-contract-function')
 
 const ABI_QUEUE_OPERATION = [
   'function protocolQueueOperation(tuple(' +
@@ -153,7 +156,7 @@ const makeProposalContractCall = curry(
         contract,
         _txTimeout
       )
-        .then(prop('hash')) // TODO: store in a constant
+        .then(prop(ETHERS_KEY_TX_HASH))
         .then(addProposedTxHashToEvent(_eventReport))
         .then(resolve)
         .catch(_err => {
@@ -189,7 +192,7 @@ const buildProposalsTxsAndPutInState = _state =>
   new Promise(resolve => {
     logger.info('Building proposals txs...')
     const detectedEvents = _state[STATE_DETECTED_DB_REPORTS_KEY]
-    const destinationChainId = _state[constants.state.STATE_KEY_CHAIN_ID]
+    const destinationNetworkId = _state[constants.state.STATE_KEY_CHAIN_ID]
     const providerUrl = _state[constants.state.STATE_KEY_PROVIDER_URL]
     const identityGpgFile = _state[constants.state.STATE_KEY_IDENTITY_FILE]
     const managerAddress =
@@ -199,7 +202,7 @@ const buildProposalsTxsAndPutInState = _state =>
 
     return (
       checkEventsHaveExpectedDestinationChainId(
-        destinationChainId,
+        destinationNetworkId,
         detectedEvents
       )
         // FIXME: use gpg decrypt

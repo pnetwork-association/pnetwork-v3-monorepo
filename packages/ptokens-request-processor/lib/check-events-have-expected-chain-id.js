@@ -10,9 +10,9 @@ const checkEventHaveExpectedChainId = curry(
       return eventChainId !== _expectedValue
         ? reject(
             new Error(
-              `${ERROR_INVALID_CHAIN_ID}: on report ${JSON.stringify(
+              `${ERROR_INVALID_CHAIN_ID} ${eventChainId} on report ${JSON.stringify(
                 _eventReport
-              )}`
+              )}, should be ${_expectedValue}`
             )
           )
         : resolve()
@@ -30,7 +30,7 @@ const checkEventsHaveExpectedChainId = curry(
 
 const checkEventsHaveExpectedDestinationChainId =
   checkEventsHaveExpectedChainId(
-    schemas.constants.SCHEMA_ORIGINATING_NETWORK_ID_KEY
+    schemas.constants.SCHEMA_DESTINATION_NETWORK_ID_KEY
   )
 const checkEventsHaveExpectedOriginChainId = checkEventsHaveExpectedChainId(
   schemas.constants.SCHEMA_UNDERLYING_ASSET_NETWORK_ID_KEY
