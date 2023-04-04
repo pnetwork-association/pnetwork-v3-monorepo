@@ -94,5 +94,56 @@ describe('Main EVM flow for transaction proposal tests', () => {
 
       expect(proposedEvents).toHaveLength(2)
     })
+
+    it('Should detect the new events, build the proposals and discard already proposed', async () => {
+      const ethers = jestMockEthers()
+      const txSamples = require('../samples/detected-report-set.json')
+      const proposedTxHashes = [
+        '0xd656ffac17b71e2ea2e24f72cd4c15c909a0ebe1696f8ead388eb268268f1cbf',
+        '0x2c7e8870be7643d97699bbcf3396dfb13217ee54a6784abfcacdb1e077fe201f',
+        txSamples[0]._id,
+      ]
+      const expecteCallResult = [
+        {
+          transactionHash: proposedTxHashes[0],
+        },
+        {
+          transactionHash: proposedTxHashes[1],
+        },
+      ]
+      const mockPegOut = jest.fn().mockResolvedValue({
+        wait: jest
+          .fn()
+          .mockResolvedValueOnce(expecteCallResult[0])
+          .mockResolvedValueOnce(expecteCallResult[1]),
+      })
+
+      ethers.Contract = jestMockContractConstructor('pegOut', mockPegOut)
+
+      const state = {
+        [constants.state.STATE_KEY_DB]: collection,
+        [constants.state.STATE_KEY_IDENTITY_FILE]: gpgEncryptedFile,
+        [constants.state.STATE_KEY_CHAIN_ID]: '0x01ec97de',
+        [STATE_PROPOSED_DB_REPORTS_KEY]: [txSamples[0]],
+      }
+      const {
+        maybeProcessNewRequestsAndPropose,
+      } = require('../../lib/evm/evm-process-proposal-txs')
+
+      const result = await maybeProcessNewRequestsAndPropose(state)
+
+      expect(result).toHaveProperty(constants.state.STATE_KEY_DB)
+      expect(result).not.toHaveProperty(STATE_ONCHAIN_REQUESTS_KEY)
+      expect(result).not.toHaveProperty(STATE_DETECTED_DB_REPORTS_KEY)
+      expect(result).not.toHaveProperty(STATE_PROPOSED_DB_REPORTS_KEY)
+      expect(result).toHaveProperty(constants.state.STATE_KEY_IDENTITY_FILE)
+
+      const proposedEvents = await db.findReports(collection, {
+        [schemas.constants.SCHEMA_STATUS_KEY]:
+          schemas.db.enums.txStatus.PROPOSED,
+      })
+
+      expect(proposedEvents).toHaveLength(3)
+    })
   })
 })

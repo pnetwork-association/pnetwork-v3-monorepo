@@ -1,20 +1,55 @@
-const { assoc } = require('ramda')
+const { assoc, curry, complement, any, identical } = require('ramda')
 const { logger } = require('../get-logger')
 const {
   STATE_DETECTED_DB_REPORTS_KEY,
-  // STATE_ONCHAIN_REQUESTS_KEY,
+  STATE_ONCHAIN_REQUESTS_KEY,
+  STATE_PROPOSED_DB_REPORTS_KEY,
 } = require('../state/constants')
+const schemas = require('ptokens-schemas')
 
-const filterOutOnChainRequestsAndPutInState = _state => {
-  logger.info('Getting EVM on chain requests and putting in state...')
-  const detectedTxs = _state[STATE_DETECTED_DB_REPORTS_KEY]
-  // const onChainRequests = _state[STATE_ONCHAIN_REQUESTS_KEY]
+const areRequestsIdsEqual = curry(
+  (_report, _request) =>
+    logger.debug('Queued request:\n', _request) ||
+    logger.debug('Matching db report:\n', _report) ||
+    _report[schemas.constants.SCHEMA_ID_KEY] ===
+      _request[schemas.constants.SCHEMA_ID_KEY]
+)
 
-  // TODO: filter out on chain requests
-  return Promise.resolve(
-    assoc(STATE_DETECTED_DB_REPORTS_KEY, detectedTxs, _state)
+const isAlreadyProcessedTxs = curry((_onChainTxs, _requestedTx) => {
+  const list = _onChainTxs.map(areRequestsIdsEqual(_requestedTx))
+  return any(identical(true), list)
+})
+
+const setRequestStatusToProposed = request =>
+  assoc(
+    schemas.constants.SCHEMA_STATUS_KEY,
+    schemas.db.enums.txStatus.PROPOSED,
+    request
   )
-}
+
+const filterOutOnChainRequestsAndPutInState = _state =>
+  new Promise(resolve => {
+    logger.info('Getting EVM on chain requests and putting in state...')
+    const detectedTxs = _state[STATE_DETECTED_DB_REPORTS_KEY]
+    const onChainRequests = _state[STATE_ONCHAIN_REQUESTS_KEY]
+    const alreadyProposedTxs = detectedTxs.filter(
+      isAlreadyProcessedTxs(onChainRequests)
+    )
+    const alreadyProposedRequests = alreadyProposedTxs.map(
+      setRequestStatusToProposed
+    )
+    const toProcessRequests = detectedTxs.filter(
+      complement(isAlreadyProcessedTxs(onChainRequests))
+    )
+
+    return resolve(
+      assoc(
+        STATE_DETECTED_DB_REPORTS_KEY,
+        toProcessRequests,
+        assoc(STATE_PROPOSED_DB_REPORTS_KEY, alreadyProposedRequests, _state)
+      )
+    )
+  })
 
 module.exports = {
   filterOutOnChainRequestsAndPutInState,

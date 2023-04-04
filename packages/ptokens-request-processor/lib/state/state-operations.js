@@ -6,11 +6,16 @@ const {
   STATE_PROPOSED_DB_REPORTS_KEY,
   STATE_TO_BE_DISMISSED_REQUESTS_KEY,
 } = require('./constants')
-const { curry, assoc } = require('ramda')
+const { curry, assoc, concat } = require('ramda')
 
-const addProposalsReportsToState = curry((_state, _proposals) =>
-  assoc(STATE_PROPOSED_DB_REPORTS_KEY, _proposals, _state)
-)
+const addProposalsReportsToState = curry((_state, _proposals) => {
+  const proposedReports = _state[STATE_PROPOSED_DB_REPORTS_KEY]
+  const allProposedTxs =
+    proposedReports && proposedReports.length > 0
+      ? concat(_proposals, proposedReports)
+      : _proposals
+  return assoc(STATE_PROPOSED_DB_REPORTS_KEY, allProposedTxs, _state)
+})
 
 const addDismissedReportsToState = curry((_state, _proposals) =>
   assoc(STATE_DISMISSED_DB_REPORTS_KEY, _proposals, _state)
