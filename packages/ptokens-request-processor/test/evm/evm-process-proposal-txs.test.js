@@ -12,7 +12,7 @@ const {
   STATE_DETECTED_DB_REPORTS_KEY,
   STATE_PROPOSED_DB_REPORTS_KEY,
 } = require('../../lib/state/constants')
-const detectedEvents = require('../samples/detected-report-set')
+const detectedEvents = require('../samples/detected-report-set').slice(0, 2)
 
 describe('Main EVM flow for transaction proposal tests', () => {
   describe('maybeProcessNewRequestsAndPropose', () => {
@@ -52,25 +52,28 @@ describe('Main EVM flow for transaction proposal tests', () => {
       ]
       const expecteCallResult = [
         {
-          transactionHash: proposedTxHashes[0],
+          hash: proposedTxHashes[0],
         },
         {
-          transactionHash: proposedTxHashes[1],
+          hash: proposedTxHashes[1],
         },
       ]
-      const mockPegOut = jest.fn().mockResolvedValue({
+      const mockQueueOperation = jest.fn().mockResolvedValue({
         wait: jest
           .fn()
           .mockResolvedValueOnce(expecteCallResult[0])
           .mockResolvedValueOnce(expecteCallResult[1]),
       })
 
-      ethers.Contract = jestMockContractConstructor('pegOut', mockPegOut)
+      ethers.Contract = jestMockContractConstructor(
+        'protocolQueueOperation',
+        mockQueueOperation
+      )
 
       const state = {
         [constants.state.STATE_KEY_DB]: collection,
         [constants.state.STATE_KEY_IDENTITY_FILE]: gpgEncryptedFile,
-        [constants.state.STATE_KEY_CHAIN_ID]: '0x01ec97de',
+        [constants.state.STATE_KEY_CHAIN_ID]: '0xe15503e4',
       }
       const {
         maybeProcessNewRequestsAndPropose,

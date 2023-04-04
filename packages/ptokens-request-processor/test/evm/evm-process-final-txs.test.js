@@ -13,7 +13,7 @@ const { prop } = require('ramda')
 const { db } = require('ptokens-utils')
 const constants = require('ptokens-constants')
 const schemas = require('ptokens-schemas')
-const proposedEvents = require('../samples/proposed-report-set')
+const proposedEvents = require('../samples/proposed-report-set').slice(0, 2)
 
 describe('Main EVM flow for transaction proposal tests', () => {
   describe('maybeProcessFinalTransactions', () => {
@@ -52,32 +52,33 @@ describe('Main EVM flow for transaction proposal tests', () => {
         '0x3319a74fd2e369da02c230818d5196682daaf86d213ce5257766858558ee5462',
         '0x5639789165d988f45f55bc8fcfc5bb24a6000b2669d0d2f1524f693ce3e4588f',
       ]
-      const expecteCallResults = [
+      const expectedCallResults = [
         {
-          transactionHash: finalizedTxHashes[0],
+          hash: finalizedTxHashes[0],
         },
         {
-          transactionHash: finalizedTxHashes[1],
+          hash: finalizedTxHashes[1],
         },
       ]
 
-      const mockCallIssue = jest.fn().mockResolvedValue({
+      const mockExecuteOperation = jest.fn().mockResolvedValue({
         wait: jest
           .fn()
-          .mockResolvedValueOnce(expecteCallResults[0])
-          .mockResolvedValueOnce(expecteCallResults[1]),
+          .mockResolvedValueOnce(expectedCallResults[0])
+          .mockResolvedValueOnce(expectedCallResults[1]),
       })
 
-      ethers.Contract = jestMockContractConstructor('callRedeem', mockCallIssue)
+      ethers.Contract = jestMockContractConstructor(
+        'protocolExecuteOperation',
+        mockExecuteOperation
+      )
 
       const state = {
         [constants.state.STATE_KEY_DB]: collection,
         [constants.state.STATE_KEY_CHALLENGE_PERIOD]: 20,
-        [constants.state.STATE_KEY_CHAIN_ID]: '0x01ec97de',
-        [constants.state.STATE_KEY_ISSUANCE_MANAGER_ADDRESS]:
-          '0x73c47d9Da343328Aa744E712560D91C6de9084a0',
+        [constants.state.STATE_KEY_CHAIN_ID]: '0xe15503e4',
         [constants.state.STATE_KEY_STATE_MANAGER_ADDRESS]:
-          '0x73c47d9Da343328Aa744E712560D91C6de9084a0',
+          '0xC8E4270a6EF24B67eD38046318Fc8FC2d312f73C',
         [constants.state.STATE_KEY_IDENTITY_FILE]: gpgEncryptedFile,
       }
 

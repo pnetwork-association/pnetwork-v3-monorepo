@@ -19,57 +19,36 @@ describe('Build proposals test for EVM', () => {
       jest.resetModules()
     })
 
-    const eventReport = {
-      _id: '0x005fe7f9_0x9488dee8cb5c6b2f6299e45e48bba580f46dbd496cfaa70a182060fd5dc81cb4',
-      [schemas.constants.SCHEMA_STATUS_KEY]: 'detected',
-      [schemas.constants.SCHEMA_AMOUNT_KEY]: '1111111',
-      [schemas.constants.SCHEMA_EVENT_NAME_KEY]: 'redeem',
-      [schemas.constants.SCHEMA_UNDERLYING_ASSET_CHAIN_ID_KEY]: '0x00000001',
-      [schemas.constants.SCHEMA_DESTINATION_NETWORK_ID_KEY]: '0x01ec97de',
-      [schemas.constants.SCHEMA_DESTINATION_ADDRESS_KEY]:
-        '11eXzETyUxiQPXwU2udtVFQFrFjgRhhvPj',
-      [schemas.constants.SCHEMA_ORIGINATING_TX_HASH_KEY]:
-        '0x9488dee8cb5c6b2f6299e45e48bba580f46dbd496cfaa70a182060fd5dc81cb4]',
-      [schemas.constants.SCHEMA_TOKEN_ADDRESS_KEY]:
-        '0xdaacb0ab6fb34d24e8a67bfa14bf4d95d4c7af92',
-      [schemas.constants.SCHEMA_ORIGINATING_ADDRESS_KEY]:
-        '0x9f5377fa03dcd4016a33669b385be4d0e02f27bc',
-      [schemas.constants.SCHEMA_WITNESSED_TS_KEY]: '2023-03-07T16:11:38.835Z',
-      [schemas.constants.SCHEMA_USER_DATA_KEY]: null,
-      [schemas.constants.SCHEMA_FINAL_TX_HASH_KEY]: null,
-      [schemas.constants.SCHEMA_PROPOSAL_TS_KEY]: null,
-      [schemas.constants.SCHEMA_PROPOSAL_TX_HASH_KEY]: null,
-      [schemas.constants.SCHEMA_FINAL_TX_TS_KEY]: null,
-    }
+    const eventReport = detectedEvents[0]
 
     it('Should create a pegOut proposal as expected', async () => {
       const ethers = jestMockEthers()
       const proposedTxHash =
         '0xd656ffac17b71e2ea2e24f72cd4c15c909a0ebe1696f8ead388eb268268f1cbf'
-      const expectedObject = { transactionHash: proposedTxHash }
+      const expectedObject = { hash: proposedTxHash }
 
-      const mockPegOut = jest.fn().mockResolvedValue({
+      const mockQueueOperation = jest.fn().mockResolvedValue({
         wait: jest.fn().mockResolvedValue(expectedObject),
       })
 
-      ethers.Contract = jestMockContractConstructor('pegOut', mockPegOut)
+      ethers.Contract = jestMockContractConstructor(
+        'protocolQueueOperation',
+        mockQueueOperation
+      )
 
       const {
         makeProposalContractCall,
       } = require('../../lib/evm/evm-build-proposals-txs')
 
       const wallet = ethers.Wallet.createRandom()
-      const issuanceManagerAddress =
-        '0xbae4957b7f913bdae17b31d8f32991ff88a12e37'
-      const redeemManagerAddress = '0x341aa660fd5c280f5a9501e3822bb4a98e816d1b'
+      const stateManagerAddress = '0xC8E4270a6EF24B67eD38046318Fc8FC2d312f73C'
 
       await validation.validateJson(schemas.db.collections.events, eventReport)
 
       const txTimeout = 1000 //ms
       const result = await makeProposalContractCall(
         wallet,
-        issuanceManagerAddress,
-        redeemManagerAddress,
+        stateManagerAddress,
         txTimeout,
         eventReport
       )
@@ -98,24 +77,21 @@ describe('Build proposals test for EVM', () => {
       } = require('../../lib/evm/evm-build-proposals-txs')
 
       const wallet = ethers.Wallet.createRandom()
-      const issuanceManagerAddress =
-        '0xbae4957b7f913bdae17b31d8f32991ff88a12e37'
-      const redeemManagerAddress = '0x341aa660fd5c280f5a9501e3822bb4a98e816d1b'
+      const stateManagerAddress = '0xC8E4270a6EF24B67eD38046318Fc8FC2d312f73C'
 
       await validation.validateJson(schemas.db.collections.events, eventReport)
 
       const txTimeout = 100 //ms
       const result = await makeProposalContractCall(
         wallet,
-        issuanceManagerAddress,
-        redeemManagerAddress,
+        stateManagerAddress,
         txTimeout,
         eventReport
       )
 
       expect(callContractFunctionAndAwait).toHaveBeenCalledTimes(1)
       expect(callContractFunctionAndAwait).rejects.toThrow(errors.ERROR_TIMEOUT)
-      expect(result).toStrictEqual(undefined)
+      expect(result).toStrictEqual(eventReport)
     })
   })
 
@@ -154,10 +130,10 @@ describe('Build proposals test for EVM', () => {
       ]
       const expecteCallResult = [
         {
-          transactionHash: proposedTxHashes[0],
+          hash: proposedTxHashes[0],
         },
         {
-          transactionHash: proposedTxHashes[1],
+          hash: proposedTxHashes[1],
         },
       ]
 
@@ -169,20 +145,16 @@ describe('Build proposals test for EVM', () => {
         .mockResolvedValueOnce(expecteCallResult[1])
 
       const txTimeout = 1000
-      const destinationChainId = '0x01ec97de'
+      const destinationChainId = '0xe15503e4'
       const providerUrl = 'http://localhost:8545'
-      const issuanceManagerAddress =
-        '0xbae4957b7f913bdae17b31d8f32991ff88a12e37'
-      const redeemManagerAddress = '0x341aa660fd5c280f5a9501e3822bb4a98e816d1b'
+      const stateManagerAddress = '0xC8E4270a6EF24B67eD38046318Fc8FC2d312f73C'
 
       const state = {
         [constants.state.STATE_KEY_TX_TIMEOUT]: txTimeout,
         [constants.state.STATE_KEY_PROVIDER_URL]: providerUrl,
         [constants.state.STATE_KEY_CHAIN_ID]: destinationChainId,
         [constants.state.STATE_KEY_IDENTITY_FILE]: gpgEncryptedFile,
-        [constants.state.STATE_KEY_STATE_MANAGER_ADDRESS]: redeemManagerAddress,
-        [constants.state.STATE_KEY_ISSUANCE_MANAGER_ADDRESS]:
-          issuanceManagerAddress,
+        [constants.state.STATE_KEY_STATE_MANAGER_ADDRESS]: stateManagerAddress,
         [STATE_DETECTED_DB_REPORTS_KEY]: [detectedEvents[0], detectedEvents[1]],
       }
 
@@ -197,9 +169,6 @@ describe('Build proposals test for EVM', () => {
       expect(result).toHaveProperty(constants.state.STATE_KEY_CHAIN_ID)
       expect(result).toHaveProperty(constants.state.STATE_KEY_PROVIDER_URL)
       expect(result).toHaveProperty(constants.state.STATE_KEY_IDENTITY_FILE)
-      expect(result).toHaveProperty(
-        constants.state.STATE_KEY_ISSUANCE_MANAGER_ADDRESS
-      )
       expect(result).toHaveProperty(
         constants.state.STATE_KEY_STATE_MANAGER_ADDRESS
       )

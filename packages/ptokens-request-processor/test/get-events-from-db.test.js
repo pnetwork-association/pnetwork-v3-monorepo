@@ -1,7 +1,7 @@
 const { prop } = require('ramda')
 const { db } = require('ptokens-utils')
 const constants = require('ptokens-constants')
-const detectedEvents = require('./samples/detected-report-set')
+const detectedEvents = require('./samples/detected-report-set').slice(0, 2)
 const { STATE_DETECTED_DB_REPORTS_KEY } = require('../lib/state/constants')
 const {
   getDetectedEventsFromDbAndPutInState,
@@ -33,7 +33,7 @@ describe('General get events from db tests', () => {
     })
 
     it('Should get the detected events with the chain id 0x00e4b170', async () => {
-      const chainId = '0x01ec97de'
+      const chainId = '0xe15503e4'
       const state = {
         [constants.state.STATE_KEY_DB]: collection,
         [constants.state.STATE_KEY_CHAIN_ID]: chainId,

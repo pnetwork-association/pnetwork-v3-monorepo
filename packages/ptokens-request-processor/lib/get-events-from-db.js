@@ -1,5 +1,5 @@
 const schemas = require('ptokens-schemas')
-const { assoc, curry, prop } = require('ramda')
+const { assoc, curry } = require('ramda')
 const { logger } = require('./get-logger')
 const constants = require('ptokens-constants')
 const {
@@ -45,9 +45,7 @@ const getValidMatchingEventsAndPutInState = _state =>
   extractReportsWithChainIdAndTxHash(
     _state[constants.state.STATE_KEY_DB],
     _state[constants.state.STATE_KEY_CHAIN_ID],
-    _state[STATE_ONCHAIN_REQUESTS_KEY].map(
-      prop(schemas.constants.SCHEMA_ORIGINATING_TX_HASH_KEY)
-    ) // TODO: create constant once the on-chain interface has been defined
+    _state[STATE_ONCHAIN_REQUESTS_KEY]
   )
     .then(filterForValidReports)
     .then(

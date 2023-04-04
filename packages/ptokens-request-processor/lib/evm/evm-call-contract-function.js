@@ -6,10 +6,16 @@ const callContractFunction = (_fxnName, _fxnArgs, _contract) =>
     if (_err.message.includes(errors.ERROR_ESTIMATE_GAS)) {
       const revertData = _err.data
       const decodedError = _contract.interface.parseError(revertData)
-      if (decodedError && decodedError.name === 'OperationAlreadyProcessed')
-        return Promise.reject(
-          new Error(errors.ERROR_OPERATION_ALREADY_PROCESSED)
-        )
+      if (decodedError) {
+        if (decodedError.name === 'OperationAlreadyExecuted')
+          return Promise.reject(
+            new Error(errors.ERROR_OPERATION_ALREADY_EXECUTED)
+          )
+        else if (decodedError.name === 'OperationAlreadyQueued')
+          return Promise.reject(
+            new Error(errors.ERROR_OPERATION_ALREADY_QUEUED)
+          )
+      }
     }
     return Promise.reject(_err)
   })

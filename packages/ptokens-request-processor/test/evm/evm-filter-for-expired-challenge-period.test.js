@@ -10,7 +10,7 @@ describe('Challenge period expired report filtering', () => {
 
   describe('maybefilterForExpiredProposalsAndPutThemInState', () => {
     it('Should filter the correct reports', async () => {
-      const now = '2023-03-07T16:45:38.835Z'
+      const now = '2023-04-04T13:37:00.000Z'
       jest.useFakeTimers({ now: Date.parse(now) })
 
       const state = {
@@ -30,6 +30,7 @@ describe('Challenge period expired report filtering', () => {
         ...state,
         [STATE_PROPOSED_DB_REPORTS_KEY]: [
           proposedReports[0],
+          proposedReports[1],
           proposedReports[2],
         ],
       })

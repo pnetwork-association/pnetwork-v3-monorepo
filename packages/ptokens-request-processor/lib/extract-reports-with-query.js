@@ -1,6 +1,6 @@
 const { isNil, curry } = require('ramda')
 const { logger } = require('./get-logger')
-const { db } = require('ptokens-utils')
+const { db, utils } = require('ptokens-utils')
 const schemas = require('ptokens-schemas')
 const { ERROR_NIL_ARGUMENTS } = require('./errors')
 
@@ -34,27 +34,34 @@ const extractReportsWithChainIdAndStatus = curry(
   }
 )
 
-const extractReportsWithChainIdAndTxHash = curry(
-  (_collection, _chainId, _txHashes) => {
-    logger.info(`Getting events w/ transaction hash ${_txHashes} from db...`)
+const getQueryForIdInArray = _possibleIds => ({
+  _id: {
+    $in: _possibleIds,
+  },
+})
 
-    if (isNil(_chainId) || isNil(_txHashes)) {
+const extractReportsWithChainIdAndTxHash = curry(
+  (_collection, _chainId, _onChainRequests) => {
+    logger.info(
+      `Getting events w/ transaction hash ${_onChainRequests} from db...`
+    )
+
+    if (isNil(_chainId) || isNil(_onChainRequests)) {
       return Promise.reject(
         new Error(
-          `${ERROR_NIL_ARGUMENTS}: chainId: ${_chainId} txHashes: ${_txHashes}`
+          `${ERROR_NIL_ARGUMENTS}: chainId: ${_chainId} txHashes: ${_onChainRequests}`
         )
       )
     }
 
-    const query = {
-      _id: {
-        $in: _txHashes.map(schemas.db.access.getEventId),
-      },
-    }
-    return extractReportsWithQuery(_collection, query).then(
-      _reports =>
-        logger.info(`Found ${_reports.length} events into the db!`) || _reports
-    )
+    return Promise.all(_onChainRequests.map(utils.getEventId))
+      .then(getQueryForIdInArray)
+      .then(_query => extractReportsWithQuery(_collection, _query))
+      .then(
+        _reports =>
+          logger.info(`Found ${_reports.length} events into the db!`) ||
+          _reports
+      )
   }
 )
 

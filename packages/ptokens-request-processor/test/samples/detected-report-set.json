@@ -154,5 +154,29 @@
     "assetTokenAddress": "0x49a5D1CF92772328Ad70f51894FD632a14dF12C9",
     "userData": "0x",
     "witnessedTimestamp": "2023-03-14T16:00:00.000Z"
+  },
+  {
+    "status": null,
+    "nonce": "6649",
+    "assetAmount": "6000000000000000000",
+    "destinationAccount": "0xdDb5f4535123DAa5aE343c24006F4075aBAF5F7B",
+    "destinationNetworkId": "0xf9b459a1",
+    "finalTransactionHash": null,
+    "finalTransactionTimestamp": null,
+    "underlyingAssetName": "Token",
+    "underlyingAssetSymbol": "TKN",
+    "underlyingAssetDecimals": 18,
+    "underlyingAssetNetworkId": "0xe15503e4",
+    "underlyingAssetTokenAddress": "0x49a5D1CF92772328Ad70f51894FD632a14dF12C9",
+    "optionsMask": "0x0000000000000000000000000000000000000000000000000000000000000000",
+    "originatingNetworkId": "0xe15503e4",
+    "originatingAddress": null,
+    "originatingBlockHash": "0x2eeefc9258765455e8e347c7e6b2e3b167afbf2354e6cafd30049c6fc5f4d010",
+    "originatingTransactionHash": "0x2b948164aad1517cdcd11e22c3f96d58b146fdee233ab74e46cb038afcc273e3",
+    "proposedTransactionHash": null,
+    "proposedTransactionTimestamp": null,
+    "assetTokenAddress": "0x49a5D1CF92772328Ad70f51894FD632a14dF12C9",
+    "userData": "0x",
+    "witnessedTimestamp": "2023-03-14T16:00:00.000Z"
   }
 ]

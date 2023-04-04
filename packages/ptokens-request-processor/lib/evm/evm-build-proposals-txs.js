@@ -30,7 +30,21 @@ const ABI_QUEUE_OPERATION = [
     'string underlyingAssetSymbol, ' +
     'bytes userData, ' +
     ') calldata operation)',
-  'error OperationAlreadyProcessed(bytes32 operationId)',
+  'error OperationAlreadyQueued(bytes32 operationId)',
+  'error OperationAlreadyExecuted(bytes32 operationId)',
+  'error OperationCancelled(bytes32 operationId)',
+  'error OperationNotQueued(bytes32 operationId)',
+  'error ExecuteTimestampNotReached(uint64 executeTimestamp)',
+  'error InvalidUnderlyingAssetName(string underlyingAssetName, string expectedUnderlyingAssetName)',
+  'error InvalidUnderlyingAssetSymbol(string underlyingAssetSymbol, string expectedUnderlyingAssetSymbol)',
+  'error InvalidUnderlyingAssetDecimals(uint256 underlyingAssetDecimals, uint256 expectedUnderlyingAssetDecimals)',
+  'error InvalidAssetParameters(uint256 assetAmount, address assetTokenAddress)',
+  'error SenderIsNotRouter()',
+  'error SenderIsNotStateManager()',
+  'error InvalidUserOperation()',
+  'error NoUserOperation()',
+  'error PTokenNotCreated(address pTokenAddress)',
+  'error InvalidNetwork(bytes4 networkId)',
 ]
 
 // TODO: factor out (check evm-build-final-txs)
@@ -147,11 +161,9 @@ const makeProposalContractCall = curry(
             logger.error(`Tx for ${originatingTxHash} failed:`, _err.message)
             return resolve(_eventReport)
           } else if (
-            _err.message.includes(errors.ERROR_OPERATION_ALREADY_PROCESSED)
+            _err.message.includes(errors.ERROR_OPERATION_ALREADY_QUEUED)
           ) {
-            logger.error(
-              `Tx for ${originatingTxHash} has already been proposed`
-            )
+            logger.error(`Tx for ${originatingTxHash} has already been queued`)
             return resolve(addProposedTxHashToEvent(_eventReport, '0x'))
           } else {
             return reject(_err)

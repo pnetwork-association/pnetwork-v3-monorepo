@@ -22,15 +22,11 @@ const checkRequestAgainstMatchingReport = (_report, _request) =>
 
 const isRequestInvalid = curry((_detectedTxs, _request) => {
   const matchingReport = _detectedTxs.find(
-    _element =>
-      _element._id ===
-      schemas.db.access.getEventId(
-        _request[schemas.constants.SCHEMA_ORIGINATING_TX_HASH_KEY]
-      )
+    _element => _element._id === utils.getEventId(_request)
   )
   return utils.isNotNil(matchingReport)
     ? logger.info(
-        `Found a match for ${schemas.db.access.getEventId(
+        `Found a match for ${utils.getEventId(
           _request[schemas.constants.SCHEMA_ORIGINATING_TX_HASH_KEY]
         )}...`
       ) || !checkRequestAgainstMatchingReport(matchingReport, _request)
