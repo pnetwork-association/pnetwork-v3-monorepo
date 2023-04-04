@@ -47,7 +47,7 @@ describe('EVM listener', () => {
             [schemas.constants.SCHEMA_NAME_KEY]:
               'UserOperation(uint256 nonce,string destinationAccount,bytes4 destinationNetworkId,string underlyingAssetName,string underlyingAssetSymbol,uint256 underlyingAssetDecimals,address underlyingAssetTokenAddress,bytes4 underlyingAssetNetworkId,address assetTokenAddress,uint256 assetAmount,bytes userData,bytes32 optionsMask)',
             [schemas.constants.SCHEMA_TOKEN_CONTRACTS_KEY]: [
-              '0x62199B909FB8B8cf870f97BEf2cE6783493c4908',
+              '0xEFcD9f9eE77A79A6E2536cb3759Ed3c00107a398',
             ],
           },
         ],
@@ -70,7 +70,7 @@ describe('EVM listener', () => {
 
       scheduleEvent('0xdac17f958d2ee523a2206206994597c13d831ec7', logs[0], 100)
       scheduleEvent('0x45bc7Bc558FcCaA7674310254798A968D9190fd7', logs[0], 300) // malicious attempt
-      scheduleEvent('0x62199B909FB8B8cf870f97BEf2cE6783493c4908', logs[1], 400)
+      scheduleEvent('0xEFcD9f9eE77A79A6E2536cb3759Ed3c00107a398', logs[1], 400)
       scheduleEvent('0x45bc7Bc558FcCaA7674310254798A968D9190fd7', logs[1], 500) // malicious attempt
 
       const onListenerSpy = jest
@@ -102,7 +102,7 @@ describe('EVM listener', () => {
         expect(onListenerSpy).toHaveBeenNthCalledWith(
           2,
           {
-            address: '0x62199B909FB8B8cf870f97BEf2cE6783493c4908',
+            address: '0xEFcD9f9eE77A79A6E2536cb3759Ed3c00107a398',
             topics: [
               '0xba98a314fb19bf102109515e22a4e48acbbe8f5610a657a9ed6cb3327afbc2e2',
             ],
@@ -147,16 +147,16 @@ describe('EVM listener', () => {
         })
         expect(callback).toHaveBeenNthCalledWith(2, {
           [schemas.constants.SCHEMA_ID_KEY]:
-            '0x5ac3de11a54ac11a448052ad1c3f57ab5fe18a35024aa6fee622620fd1098d55',
+            '0xbe8b7571ab50cc63da7f1d9f6b22802922aa2e242a5c7400c493ba9c831b24aa',
           [schemas.constants.SCHEMA_STATUS_KEY]:
             schemas.db.enums.txStatus.DETECTED,
           [schemas.constants.SCHEMA_EVENT_NAME_KEY]:
             schemas.db.enums.eventNames.USER_OPERATION,
 
-          [schemas.constants.SCHEMA_NONCE_KEY]: '52083',
-          [schemas.constants.SCHEMA_ASSET_AMOUNT_KEY]: '100000000000000000000',
+          [schemas.constants.SCHEMA_NONCE_KEY]: '6648',
+          [schemas.constants.SCHEMA_ASSET_AMOUNT_KEY]: '1000000000000000000',
           [schemas.constants.SCHEMA_DESTINATION_ACCOUNT_KEY]:
-            '0xa41657bf225F8Ec7E2010C89c3F084172948264D',
+            '0xdDb5f4535123DAa5aE343c24006F4075aBAF5F7B',
           [schemas.constants.SCHEMA_DESTINATION_NETWORK_ID_KEY]: '0xe15503e4',
 
           [schemas.constants.SCHEMA_FINAL_TX_HASH_KEY]: null,
@@ -173,9 +173,9 @@ describe('EVM listener', () => {
           [schemas.constants.SCHEMA_ORIGINATING_NETWORK_ID_KEY]: '0xe15503e4',
           [schemas.constants.SCHEMA_ORIGINATING_ADDRESS_KEY]: null,
           [schemas.constants.SCHEMA_ORIGINATING_BLOCK_HASH_KEY]:
-            '0xe19ab626cfc3f471238da9a375d396e3bd8a10c55601425d69677c908f0ad8f1',
+            '0xbaa9e89896c03366c3578a4568a6defd4b127e4b09bb06b67a12cb1a4c332376',
           [schemas.constants.SCHEMA_ORIGINATING_TX_HASH_KEY]:
-            '0x009fb472130864d1ea9d9e011a1e5ff2d1fae827668f2807146dd3e227eb42ce',
+            '0x0907eefad58dfcb2cbfad66d29accd4d6ddc345851ec1d180b23122084fa2834',
           [schemas.constants.SCHEMA_PROPOSAL_TX_HASH_KEY]: null,
           [schemas.constants.SCHEMA_PROPOSAL_TS_KEY]: null,
           [schemas.constants.SCHEMA_ASSET_TOKEN_ADDRESS_KEY]:
