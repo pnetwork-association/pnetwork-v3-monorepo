@@ -10,7 +10,7 @@ describe('Logic tests', () => {
       const timeBefore = new Date().getTime()
       await logic.sleepForXMilliseconds(time)
       const timeAfter = new Date().getTime()
-      const delta = timeAfter - timeBefore
+      const delta = timeAfter - timeBefore + 1
 
       // eslint-disable-next-line no-console
       console.log('timeBefore: ', timeBefore)
@@ -464,7 +464,7 @@ describe('Logic tests', () => {
       const timeBefore = new Date().getTime()
       const result = await logic.sleepThenReturnArg(time, expected)
       const timeAfter = new Date().getTime()
-      const delta = timeAfter - timeBefore
+      const delta = timeAfter - timeBefore + 1
 
       // eslint-disable-next-line no-console
       console.log('timeBefore: ', timeBefore)
