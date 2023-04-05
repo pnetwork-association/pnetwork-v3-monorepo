@@ -108,7 +108,6 @@ describe('Build proposals test for EVM', () => {
     })
 
     afterEach(async () => {
-      await fs.rm(gpgEncryptedFile)
       jest.restoreAllMocks()
       jest.resetModules()
     })
