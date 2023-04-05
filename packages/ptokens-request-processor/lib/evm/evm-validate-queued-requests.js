@@ -20,29 +20,33 @@ const checkRequestAgainstMatchingReport = (_report, _request) =>
         _request[schemas.constants.SCHEMA_USER_DATA_KEY]
       : true))
 
-const isRequestInvalid = curry((_detectedTxs, _request) => {
-  const matchingReport = _detectedTxs.find(
-    _element => _element._id === utils.getEventId(_request)
-  )
-  return utils.isNotNil(matchingReport)
-    ? logger.info(
-        `Found a match for ${utils.getEventId(
-          _request[schemas.constants.SCHEMA_ORIGINATING_TX_HASH_KEY]
-        )}...`
-      ) || !checkRequestAgainstMatchingReport(matchingReport, _request)
-    : true
-})
+const findMatchingReport = (_detectedTxs, _request) =>
+  utils
+    .getEventId(_request)
+    .then(_id => _detectedTxs.find(_element => _element._id === _id))
 
+const isRequestInvalid = curry((_detectedTxs, _request) =>
+  findMatchingReport(_detectedTxs, _request).then(_matchingReport =>
+    utils.isNotNil(_matchingReport)
+      ? logger.info(
+          `Found a match for ${
+            _matchingReport[schemas.constants.SCHEMA_ID_KEY]
+          }...`
+        ) || !checkRequestAgainstMatchingReport(_matchingReport, _request)
+      : true
+  )
+)
 const filterOutInvalidQueuedRequestsAndPutInState = _state => {
   logger.info('Getting EVM on chain requests and putting in state...')
   const onChainRequests = _state[STATE_ONCHAIN_REQUESTS_KEY]
   const detectedTxs = _state[STATE_DETECTED_DB_REPORTS_KEY]
-  const invalidRequests = onChainRequests.filter(isRequestInvalid(detectedTxs))
-  // TODO: filter out on chain requests
-  logger.info('Invalid requests:\n', invalidRequests)
-  return Promise.resolve(
-    assoc(STATE_TO_BE_DISMISSED_REQUESTS_KEY, invalidRequests, _state)
-  )
+  return Promise.all(onChainRequests.map(isRequestInvalid(detectedTxs)))
+    .then(_invalidArray =>
+      onChainRequests.filter((_req, _i) => _invalidArray[_i])
+    )
+    .then(_invalidRequests =>
+      assoc(STATE_TO_BE_DISMISSED_REQUESTS_KEY, _invalidRequests, _state)
+    )
 }
 
 module.exports = {
