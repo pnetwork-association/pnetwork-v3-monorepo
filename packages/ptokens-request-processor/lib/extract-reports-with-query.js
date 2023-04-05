@@ -1,4 +1,4 @@
-const { isNil, curry } = require('ramda')
+const { isNil, curry, prop } = require('ramda')
 const { logger } = require('./get-logger')
 const { db, utils } = require('ptokens-utils')
 const schemas = require('ptokens-schemas')
@@ -40,17 +40,17 @@ const getQueryForIdInArray = _possibleIds => ({
   },
 })
 
-const extractReportsWithChainIdAndTxHash = curry(
-  (_collection, _chainId, _onChainRequests) => {
+const extractReportsFromOnChainRequests = curry(
+  (_collection, _onChainRequests) => {
     logger.info(
-      `Getting events w/ transaction hash ${_onChainRequests} from db...`
+      `Getting events w/ transaction hash ${_onChainRequests.map(
+        prop(schemas.constants.SCHEMA_ORIGINATING_TX_HASH_KEY)
+      )} from db...`
     )
 
-    if (isNil(_chainId) || isNil(_onChainRequests)) {
+    if (isNil(_onChainRequests)) {
       return Promise.reject(
-        new Error(
-          `${ERROR_NIL_ARGUMENTS}: chainId: ${_chainId} txHashes: ${_onChainRequests}`
-        )
+        new Error(`${ERROR_NIL_ARGUMENTS}: requests: ${_onChainRequests}`)
       )
     }
 
@@ -67,5 +67,5 @@ const extractReportsWithChainIdAndTxHash = curry(
 
 module.exports = {
   extractReportsWithChainIdAndStatus,
-  extractReportsWithChainIdAndTxHash,
+  extractReportsFromOnChainRequests,
 }
