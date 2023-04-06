@@ -1,4 +1,4 @@
-const { assoc } = require('ramda')
+const { assoc, curry } = require('ramda')
 const constants = require('ptokens-constants')
 const schemas = require('ptokens-schemas')
 const { STATE_ONCHAIN_REQUESTS_KEY } = require('../../lib/state/constants')
@@ -12,10 +12,18 @@ describe('Tests for queued requests detection and dismissal', () => {
     })
 
     it('Should put invalid transactions to be dismissed into state', async () => {
-      const { db } = require('ptokens-utils')
+      const { db, logic } = require('ptokens-utils')
       const findReportsSpy = jest
         .spyOn(db, 'findReports')
         .mockResolvedValue([reports[0]])
+
+      jest
+        .spyOn(logic, 'sleepForXMilliseconds')
+        .mockImplementation(_ => Promise.resolve())
+      jest
+        .spyOn(logic, 'sleepThenReturnArg')
+        .mockImplementation(curry((_, _r) => Promise.resolve(_r)))
+
       const getOnChainRequestsModule = require('../../lib/evm/evm-get-on-chain-queued-requests')
       const evmBBuildDismissalModule = require('../../lib/evm/evm-build-dismissal-txs')
       const queuedRequests = [

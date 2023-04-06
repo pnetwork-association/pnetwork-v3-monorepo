@@ -1,16 +1,13 @@
-const fs = require('fs/promises')
-const {
-  jestMockEthers,
-  jestMockContractConstructor,
-} = require('./mock/jest-utils')
+const fs = require('fs')
+const { jestMockContractConstructor } = require('./mock/jest-utils')
 const {
   STATE_ONCHAIN_REQUESTS_KEY,
   STATE_DETECTED_DB_REPORTS_KEY,
   STATE_PROPOSED_DB_REPORTS_KEY,
   STATE_FINALIZED_DB_REPORTS_KEY,
 } = require('../../lib/state/constants')
-const { prop } = require('ramda')
-const { db } = require('ptokens-utils')
+const { curry, prop } = require('ramda')
+const { db, logic } = require('ptokens-utils')
 const constants = require('ptokens-constants')
 const schemas = require('ptokens-schemas')
 const proposedEvents = require('../samples/proposed-report-set').slice(0, 2)
@@ -21,13 +18,13 @@ describe('Main EVM flow for transaction proposal tests', () => {
     const uri = global.__MONGO_URI__
     const dbName = global.__MONGO_DB_NAME__
     const table = 'test'
-    const gpgEncryptedFile = './identity.gpg'
+    const gpgEncryptedFile = './identity2.gpg'
     const privKey =
       '0xdf57089febbacf7ba0bc227dafbffa9fc08a93fdc68e1e42411a14efcf23656e'
 
     beforeAll(async () => {
       collection = await db.getCollection(uri, dbName, table)
-      await fs.writeFile(gpgEncryptedFile, privKey)
+      fs.writeFileSync(gpgEncryptedFile, privKey)
     })
 
     beforeEach(async () => {
@@ -38,8 +35,7 @@ describe('Main EVM flow for transaction proposal tests', () => {
       await Promise.all(proposedEvents.map(prop('_id'))).then(_ids =>
         Promise.all(_ids.map(db.deleteReport(collection)))
       )
-
-      await jest.restoreAllMocks()
+      jest.restoreAllMocks()
     })
 
     afterAll(async () => {
@@ -47,7 +43,7 @@ describe('Main EVM flow for transaction proposal tests', () => {
     })
 
     it('Should finalize proposed events which challenge period has expired', async () => {
-      const ethers = jestMockEthers()
+      const ethers = require('ethers')
       const finalizedTxHashes = [
         '0x3319a74fd2e369da02c230818d5196682daaf86d213ce5257766858558ee5462',
         '0x5639789165d988f45f55bc8fcfc5bb24a6000b2669d0d2f1524f693ce3e4588f',
@@ -68,10 +64,21 @@ describe('Main EVM flow for transaction proposal tests', () => {
           .mockResolvedValueOnce(expectedCallResults[1]),
       })
 
-      ethers.Contract = jestMockContractConstructor(
-        'protocolExecuteOperation',
-        mockExecuteOperation
-      )
+      jest
+        .spyOn(logic, 'sleepForXMilliseconds')
+        .mockImplementation(_ => Promise.resolve())
+      jest
+        .spyOn(logic, 'sleepThenReturnArg')
+        .mockImplementation(curry((_, _r) => Promise.resolve(_r)))
+
+      jest
+        .spyOn(ethers, 'Contract')
+        .mockImplementation(
+          jestMockContractConstructor(
+            'protocolExecuteOperation',
+            mockExecuteOperation
+          )
+        )
 
       const state = {
         [constants.state.STATE_KEY_DB]: collection,

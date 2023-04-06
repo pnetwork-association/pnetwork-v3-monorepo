@@ -1,13 +1,10 @@
 const schemas = require('ptokens-schemas')
-const {
-  jestMockEthers,
-  jestMockContractConstructor,
-} = require('./mock/jest-utils')
+const { jestMockContractConstructor } = require('./mock/jest-utils')
 
 describe('General final txs testing', () => {
   describe('makeFinalContractCall', () => {
     it('Should create a callIssue final transaction', async () => {
-      const ethers = jestMockEthers()
+      const ethers = require('ethers')
       const finalizedTxHash =
         '0xd656ffac17b71e2ea2e24f72cd4c15c909a0ebe1696f8ead388eb268268f1cbf'
       const expectedObject = { hash: finalizedTxHash }
@@ -16,10 +13,11 @@ describe('General final txs testing', () => {
         wait: jest.fn().mockResolvedValue(expectedObject),
       })
 
-      ethers.Contract = jestMockContractConstructor(
-        'protocolExecuteOperation',
-        mockExecute
-      )
+      jest
+        .spyOn(ethers, 'Contract')
+        .mockImplementation(
+          jestMockContractConstructor('protocolExecuteOperation', mockExecute)
+        )
 
       const {
         makeFinalContractCall,

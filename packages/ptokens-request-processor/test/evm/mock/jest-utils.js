@@ -1,12 +1,3 @@
-const jestMockEthers = () => {
-  jest.mock('ethers', () => ({
-    __esModule: true,
-    ...jest.requireActual('ethers'),
-  }))
-
-  return require('ethers')
-}
-
 const jestMockContractConstructor = (_fxnName, _jestFn) => {
   // No arrow function here: doesn't work with
   // constructors
@@ -18,6 +9,5 @@ const jestMockContractConstructor = (_fxnName, _jestFn) => {
 }
 
 module.exports = {
-  jestMockEthers,
   jestMockContractConstructor,
 }

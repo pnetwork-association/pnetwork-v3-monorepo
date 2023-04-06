@@ -1,10 +1,7 @@
 const fs = require('fs')
-const {
-  jestMockEthers,
-  jestMockContractConstructor,
-} = require('./mock/jest-utils')
-const { prop } = require('ramda')
-const { db } = require('ptokens-utils')
+const { jestMockContractConstructor } = require('./mock/jest-utils')
+const { curry, prop } = require('ramda')
+const { db, logic } = require('ptokens-utils')
 const schemas = require('ptokens-schemas')
 const constants = require('ptokens-constants')
 const {
@@ -20,7 +17,7 @@ describe('Main EVM flow for transaction proposal tests', () => {
     const uri = global.__MONGO_URI__
     const dbName = global.__MONGO_DB_NAME__
     const table = 'test'
-    const gpgEncryptedFile = './identity.gpg'
+    const gpgEncryptedFile = './identity3.gpg'
     const privKey =
       '0xdf57089febbacf7ba0bc227dafbffa9fc08a93fdc68e1e42411a14efcf23656e'
 
@@ -45,7 +42,7 @@ describe('Main EVM flow for transaction proposal tests', () => {
     })
 
     it('Should detect the new events and build the proposals', async () => {
-      const ethers = jestMockEthers()
+      const ethers = require('ethers')
       const proposedTxHashes = [
         '0xd656ffac17b71e2ea2e24f72cd4c15c909a0ebe1696f8ead388eb268268f1cbf',
         '0x2c7e8870be7643d97699bbcf3396dfb13217ee54a6784abfcacdb1e077fe201f',
@@ -65,10 +62,21 @@ describe('Main EVM flow for transaction proposal tests', () => {
           .mockResolvedValueOnce(expecteCallResult[1]),
       })
 
-      ethers.Contract = jestMockContractConstructor(
-        'protocolQueueOperation',
-        mockQueueOperation
-      )
+      jest
+        .spyOn(logic, 'sleepForXMilliseconds')
+        .mockImplementation(_ => Promise.resolve())
+      jest
+        .spyOn(logic, 'sleepThenReturnArg')
+        .mockImplementation(curry((_, _r) => Promise.resolve(_r)))
+
+      jest
+        .spyOn(ethers, 'Contract')
+        .mockImplementation(
+          jestMockContractConstructor(
+            'protocolQueueOperation',
+            mockQueueOperation
+          )
+        )
 
       const state = {
         [constants.state.STATE_KEY_DB]: collection,

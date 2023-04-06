@@ -1,8 +1,5 @@
-const fs = require('fs/promises')
-const {
-  jestMockEthers,
-  jestMockContractConstructor,
-} = require('./mock/jest-utils')
+const fs = require('fs')
+const { jestMockContractConstructor } = require('./mock/jest-utils')
 const {
   STATE_DETECTED_DB_REPORTS_KEY,
   STATE_PROPOSED_DB_REPORTS_KEY,
@@ -25,7 +22,7 @@ describe('Build proposals test for EVM', () => {
     const eventReport = detectedEvents[0]
 
     it('Should create a pegOut proposal as expected', async () => {
-      const ethers = jestMockEthers()
+      const ethers = require('ethers')
       const proposedTxHash =
         '0xd656ffac17b71e2ea2e24f72cd4c15c909a0ebe1696f8ead388eb268268f1cbf'
       const expectedObject = { [ETHERS_KEY_TX_HASH]: proposedTxHash }
@@ -34,10 +31,14 @@ describe('Build proposals test for EVM', () => {
         wait: jest.fn().mockResolvedValue(expectedObject),
       })
 
-      ethers.Contract = jestMockContractConstructor(
-        'protocolQueueOperation',
-        mockQueueOperation
-      )
+      jest
+        .spyOn(ethers, 'Contract')
+        .mockImplementation(
+          jestMockContractConstructor(
+            'protocolQueueOperation',
+            mockQueueOperation
+          )
+        )
 
       const {
         makeProposalContractCall,
@@ -66,7 +67,7 @@ describe('Build proposals test for EVM', () => {
     })
 
     it('Should handle the timeout error correctly', async () => {
-      const ethers = jestMockEthers()
+      const ethers = require('ethers')
 
       const mockProtocolQueueOperation = jest.fn().mockResolvedValue({
         wait: jest
@@ -74,10 +75,14 @@ describe('Build proposals test for EVM', () => {
           .mockImplementation(() => logic.sleepForXMilliseconds(1000)),
       })
 
-      ethers.Contract = jestMockContractConstructor(
-        'protocolQueueOperation',
-        mockProtocolQueueOperation
-      )
+      jest
+        .spyOn(ethers, 'Contract')
+        .mockImplementation(
+          jestMockContractConstructor(
+            'protocolQueueOperation',
+            mockProtocolQueueOperation
+          )
+        )
 
       const {
         makeProposalContractCall,
@@ -100,11 +105,11 @@ describe('Build proposals test for EVM', () => {
   })
 
   describe('buildProposalsTxsAndPutInState', () => {
-    const gpgEncryptedFile = './identity.gpg'
+    const gpgEncryptedFile = './identity1.gpg'
     const privKey =
       '0xdf57089febbacf7ba0bc227dafbffa9fc08a93fdc68e1e42411a14efcf23656e'
     beforeEach(async () => {
-      await fs.writeFile(gpgEncryptedFile, privKey)
+      fs.writeFileSync(gpgEncryptedFile, privKey)
     })
 
     afterEach(async () => {
@@ -113,19 +118,11 @@ describe('Build proposals test for EVM', () => {
     })
 
     it('Should build the proposals and add them to the state', async () => {
-      const ethers = jestMockEthers()
+      const ethers = require('ethers')
 
-      ethers.providers = {
-        JsonRpcProvider: jest.fn().mockResolvedValue({}),
-      }
-
-      ethers.Wallet = function () {
-        return jest.fn()
-      }
-
-      ethers.Contract = function () {
-        return jest.fn()
-      }
+      jest.spyOn(ethers, 'JsonRpcProvider').mockResolvedValue({})
+      jest.spyOn(ethers, 'Wallet').mockImplementation(_ => jest.fn())
+      jest.spyOn(ethers, 'Contract').mockImplementation(_ => jest.fn())
 
       const proposedTxHashes = [
         '0xd656ffac17b71e2ea2e24f72cd4c15c909a0ebe1696f8ead388eb268268f1cbf',
