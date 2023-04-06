@@ -67,12 +67,11 @@ const maybeAddFieldFromEventArgs = curry(
   ) =>
     Promise.all(_possibleEventKeys.map(_key => _eventLog[_key]))
       .then(find(utils.isNotNil))
-      .then(_conversionFunction)
       .then(_value =>
         isNil(_value)
           ? Promise.resolve(_standardEvent)
           : addFieldFromEventArgs(
-              _value,
+              _conversionFunction(_value),
               _destKey,
               _conversionFunction,
               _standardEvent
