@@ -95,40 +95,58 @@ describe('Main EVM flow for transaction proposal tests', () => {
       expect(proposedEvents).toHaveLength(2)
     })
 
-    it('Should detect the new events, build the proposals and discard already proposed', async () => {
+    it('Should detect the new events, build the proposals and add already proposed requests', async () => {
       const ethers = jestMockEthers()
-      const txSamples = require('../samples/detected-report-set.json')
+      const getOnChainQueuedRequestsAndPutInState = require('../../lib/evm/evm-get-on-chain-queued-requests')
       const proposedTxHashes = [
         '0xd656ffac17b71e2ea2e24f72cd4c15c909a0ebe1696f8ead388eb268268f1cbf',
         '0x2c7e8870be7643d97699bbcf3396dfb13217ee54a6784abfcacdb1e077fe201f',
-        txSamples[0]._id,
       ]
       const expecteCallResult = [
         {
-          transactionHash: proposedTxHashes[0],
+          hash: proposedTxHashes[0],
         },
         {
-          transactionHash: proposedTxHashes[1],
+          hash: proposedTxHashes[1],
         },
       ]
-      const mockPegOut = jest.fn().mockResolvedValue({
+      const mockQueueOperation = jest.fn().mockResolvedValue({
         wait: jest
           .fn()
           .mockResolvedValueOnce(expecteCallResult[0])
           .mockResolvedValueOnce(expecteCallResult[1]),
       })
 
-      ethers.Contract = jestMockContractConstructor('pegOut', mockPegOut)
+      ethers.Contract = jestMockContractConstructor(
+        'protocolQueueOperation',
+        mockQueueOperation
+      )
 
       const state = {
         [constants.state.STATE_KEY_DB]: collection,
         [constants.state.STATE_KEY_IDENTITY_FILE]: gpgEncryptedFile,
-        [constants.state.STATE_KEY_CHAIN_ID]: '0x01ec97de',
-        [STATE_PROPOSED_DB_REPORTS_KEY]: [txSamples[0]],
+        [constants.state.STATE_KEY_CHAIN_ID]: '0xe15503e4',
+        [STATE_DETECTED_DB_REPORTS_KEY]:
+          '0xd566ffac17b71e2ea2e24f72cd4c15c909a0ebe1696f8ead388eb268268f1cbf',
+        [STATE_ONCHAIN_REQUESTS_KEY]: [
+          {
+            _id: '0xbe8b7571ab50cc63da7f1d9f6b22802922aa2e242a5c7400c493ba9c831b24aa',
+          },
+        ],
       }
+
+      const mockState = state
+      console.log('mytest', state)
       const {
         maybeProcessNewRequestsAndPropose,
       } = require('../../lib/evm/evm-process-proposal-txs')
+
+      jest
+        .spyOn(
+          getOnChainQueuedRequestsAndPutInState,
+          'getOnChainQueuedRequestsAndPutInState'
+        )
+        .mockResolvedValue(Promise.resolve(mockState))
 
       const result = await maybeProcessNewRequestsAndPropose(state)
 
@@ -143,7 +161,7 @@ describe('Main EVM flow for transaction proposal tests', () => {
           schemas.db.enums.txStatus.PROPOSED,
       })
 
-      expect(proposedEvents).toHaveLength(3)
+      expect(proposedEvents).toHaveLength(2)
     })
   })
 })
