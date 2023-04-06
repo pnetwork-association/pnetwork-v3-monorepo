@@ -1,4 +1,3 @@
-const fs = require('fs')
 const { jestMockContractConstructor } = require('./mock/jest-utils')
 const {
   STATE_DETECTED_DB_REPORTS_KEY,
@@ -105,12 +104,9 @@ describe('Build proposals test for EVM', () => {
   })
 
   describe('buildProposalsTxsAndPutInState', () => {
-    const gpgEncryptedFile = './identity1.gpg'
     const privKey =
       '0xdf57089febbacf7ba0bc227dafbffa9fc08a93fdc68e1e42411a14efcf23656e'
-    beforeEach(async () => {
-      fs.writeFileSync(gpgEncryptedFile, privKey)
-    })
+    const gpgEncryptedFile = './identity.gpg'
 
     afterEach(async () => {
       jest.restoreAllMocks()
@@ -119,7 +115,9 @@ describe('Build proposals test for EVM', () => {
 
     it('Should build the proposals and add them to the state', async () => {
       const ethers = require('ethers')
+      const fs = require('fs/promises')
 
+      jest.spyOn(fs, 'readFile').mockResolvedValue(privKey)
       jest.spyOn(ethers, 'JsonRpcProvider').mockResolvedValue({})
       jest.spyOn(ethers, 'Wallet').mockImplementation(_ => jest.fn())
       jest.spyOn(ethers, 'Contract').mockImplementation(_ => jest.fn())

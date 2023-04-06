@@ -1,4 +1,3 @@
-const fs = require('fs')
 const { jestMockContractConstructor } = require('./mock/jest-utils')
 const {
   STATE_ONCHAIN_REQUESTS_KEY,
@@ -18,13 +17,13 @@ describe('Main EVM flow for transaction proposal tests', () => {
     const uri = global.__MONGO_URI__
     const dbName = global.__MONGO_DB_NAME__
     const table = 'test'
-    const gpgEncryptedFile = './identity2.gpg'
+
     const privKey =
       '0xdf57089febbacf7ba0bc227dafbffa9fc08a93fdc68e1e42411a14efcf23656e'
+    const gpgEncryptedFile = './identity.gpg'
 
     beforeAll(async () => {
       collection = await db.getCollection(uri, dbName, table)
-      fs.writeFileSync(gpgEncryptedFile, privKey)
     })
 
     beforeEach(async () => {
@@ -44,6 +43,8 @@ describe('Main EVM flow for transaction proposal tests', () => {
 
     it('Should finalize proposed events which challenge period has expired', async () => {
       const ethers = require('ethers')
+      const fs = require('fs/promises')
+
       const finalizedTxHashes = [
         '0x3319a74fd2e369da02c230818d5196682daaf86d213ce5257766858558ee5462',
         '0x5639789165d988f45f55bc8fcfc5bb24a6000b2669d0d2f1524f693ce3e4588f',
@@ -79,6 +80,8 @@ describe('Main EVM flow for transaction proposal tests', () => {
             mockExecuteOperation
           )
         )
+
+      jest.spyOn(fs, 'readFile').mockResolvedValue(privKey)
 
       const state = {
         [constants.state.STATE_KEY_DB]: collection,

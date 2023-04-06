@@ -1,4 +1,3 @@
-const fs = require('fs')
 const { jestMockContractConstructor } = require('./mock/jest-utils')
 const { curry, prop } = require('ramda')
 const { db, logic } = require('ptokens-utils')
@@ -23,7 +22,6 @@ describe('Main EVM flow for transaction proposal tests', () => {
 
     beforeAll(async () => {
       collection = await db.getCollection(uri, dbName, table)
-      fs.writeFileSync(gpgEncryptedFile, privKey)
     })
 
     beforeEach(async () => {
@@ -38,15 +36,17 @@ describe('Main EVM flow for transaction proposal tests', () => {
 
     afterAll(async () => {
       await db.closeConnection(uri)
-      fs.rmSync(gpgEncryptedFile)
     })
 
     it('Should detect the new events and build the proposals', async () => {
       const ethers = require('ethers')
+      const fs = require('fs/promises')
+
       const proposedTxHashes = [
         '0xd656ffac17b71e2ea2e24f72cd4c15c909a0ebe1696f8ead388eb268268f1cbf',
         '0x2c7e8870be7643d97699bbcf3396dfb13217ee54a6784abfcacdb1e077fe201f',
       ]
+
       const expecteCallResult = [
         {
           hash: proposedTxHashes[0],
@@ -77,6 +77,8 @@ describe('Main EVM flow for transaction proposal tests', () => {
             mockQueueOperation
           )
         )
+
+      jest.spyOn(fs, 'readFile').mockResolvedValue(privKey)
 
       const state = {
         [constants.state.STATE_KEY_DB]: collection,
