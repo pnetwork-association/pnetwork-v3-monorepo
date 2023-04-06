@@ -1,6 +1,8 @@
 const assert = require('assert')
 const { db, validation } = require('ptokens-utils')
 const {
+  DEFAULT_TX_TIMEOUT,
+  DEFAULT_LOOP_SLEEP_TIME,
   getInitialStateFromConfiguration,
 } = require('../lib/populate-state-from-configuration')
 const constants = require('ptokens-constants')
@@ -44,7 +46,8 @@ describe('State utilities tests', () => {
         [constants.state.STATE_KEY_STATE_MANAGER_ADDRESS]: '0x1',
         [constants.state.STATE_KEY_IDENTITY_FILE]: '/usr/src/app/private-key',
         [constants.state.STATE_KEY_CHALLENGE_PERIOD]: 10,
-        [constants.state.STATE_KEY_TX_TIMEOUT]: 10000,
+        [constants.state.STATE_KEY_LOOP_SLEEP_TIME]: DEFAULT_LOOP_SLEEP_TIME,
+        [constants.state.STATE_KEY_TX_TIMEOUT]: DEFAULT_TX_TIMEOUT,
       })
     })
 

@@ -17,9 +17,7 @@ const {
   removeDismissedEventsFromState,
   removeDetectedEventsFromState,
 } = require('../state/state-operations')
-
-// TODO: configurable
-const SLEEP_TIME = 1000
+const constants = require('ptokens-constants')
 
 const pollForRequestsErrorHandler = curry((_pollForRequestsLoop, _err) => {
   return Promise.reject(_err)
@@ -35,7 +33,11 @@ const maybeProcessNewRequestsAndDismiss = _state =>
     .then(maybeBuildDismissalTxsAndPutInState)
     .then(maybeUpdateDismissedEventsInDb)
     .then(removeDismissedEventsFromState)
-    .then(logic.sleepThenReturnArg(SLEEP_TIME))
+    .then(
+      logic.sleepThenReturnArg(
+        _state[constants.state.STATE_KEY_LOOP_SLEEP_TIME]
+      )
+    )
 
 const INFINITE_LOOP = {
   rounds: logic.LOOP_MODE.INFINITE,

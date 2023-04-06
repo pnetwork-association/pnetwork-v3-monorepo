@@ -75,6 +75,7 @@ describe('Main EVM flow for transaction proposal tests', () => {
 
       const state = {
         [constants.state.STATE_KEY_DB]: collection,
+        [constants.state.STATE_KEY_LOOP_SLEEP_TIME]: 1,
         [constants.state.STATE_KEY_CHALLENGE_PERIOD]: 20,
         [constants.state.STATE_KEY_CHAIN_ID]: '0xe15503e4',
         [constants.state.STATE_KEY_STATE_MANAGER_ADDRESS]:

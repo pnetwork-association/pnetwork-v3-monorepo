@@ -10,6 +10,7 @@ module.exports = {
   SCHEMA_TX_TIMEOUT: 'tx-timeout',
   SCHEMA_EVENTS_KEY: 'events',
   SCHEMA_CHALLENGE_PERIOD: 'challenge-period',
+  SCHEMA_LOOP_SLEEP_TIME: 'loop-sleep-time',
   SCHEMA_DB_KEY: 'db',
   SCHEMA_TOKEN_CONTRACTS_KEY: 'token-contracts',
   SCHEMA_EVENT_NAME_KEY: 'eventName',

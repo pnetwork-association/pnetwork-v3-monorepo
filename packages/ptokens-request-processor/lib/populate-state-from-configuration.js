@@ -30,6 +30,7 @@ const getConfigPropertyAndPutInState = curry(
 )
 
 const DEFAULT_TX_TIMEOUT = 10000 // 10s
+const DEFAULT_LOOP_SLEEP_TIME = 1000 // 1s
 
 const getInitialStateFromConfiguration = _config =>
   getDbAndPutInState(_config, {})
@@ -81,6 +82,17 @@ const getInitialStateFromConfiguration = _config =>
         DEFAULT_TX_TIMEOUT
       )
     )
+    .then(
+      getConfigPropertyAndPutInState(
+        _config,
+        schemas.constants.SCHEMA_LOOP_SLEEP_TIME,
+        constants.state.STATE_KEY_LOOP_SLEEP_TIME,
+        DEFAULT_LOOP_SLEEP_TIME
+      )
+    )
+
 module.exports = {
+  DEFAULT_TX_TIMEOUT,
+  DEFAULT_LOOP_SLEEP_TIME,
   getInitialStateFromConfiguration,
 }

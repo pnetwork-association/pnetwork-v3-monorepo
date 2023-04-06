@@ -12,10 +12,8 @@ const {
   removeProposalsEventsFromState,
   removeFinalizedEventsFromState,
 } = require('../state/state-operations')
+const constants = require('ptokens-constants')
 const { maybeUpdateFinalizedEventsInDb } = require('../update-events-in-db')
-
-// TODO: configurable
-const SLEEP_TIME = 1000
 
 const maybeProcessFinalTransactions = _state =>
   logger.info('Maybe processing final transactions on EVM chain...') ||
@@ -25,7 +23,11 @@ const maybeProcessFinalTransactions = _state =>
     .then(removeProposalsEventsFromState)
     .then(maybeUpdateFinalizedEventsInDb)
     .then(removeFinalizedEventsFromState)
-    .then(logic.sleepThenReturnArg(SLEEP_TIME))
+    .then(
+      logic.sleepThenReturnArg(
+        _state[constants.state.STATE_KEY_LOOP_SLEEP_TIME]
+      )
+    )
 
 const processFinalTxsErrorHandler = curry((_state, _err) => {
   logger.error('Final transactions error handler...')

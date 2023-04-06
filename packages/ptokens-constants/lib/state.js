@@ -7,4 +7,5 @@ module.exports = {
   STATE_KEY_IDENTITY_FILE: 'identityFile',
   STATE_KEY_CHALLENGE_PERIOD: 'challengePeriod',
   STATE_KEY_TX_TIMEOUT: 'txTimeout',
+  STATE_KEY_LOOP_SLEEP_TIME: 'loopSleepTime',
 }

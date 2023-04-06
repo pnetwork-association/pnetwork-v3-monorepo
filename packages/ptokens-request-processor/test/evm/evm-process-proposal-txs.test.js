@@ -72,13 +72,13 @@ describe('Main EVM flow for transaction proposal tests', () => {
 
       const state = {
         [constants.state.STATE_KEY_DB]: collection,
+        [constants.state.STATE_KEY_LOOP_SLEEP_TIME]: 1,
         [constants.state.STATE_KEY_IDENTITY_FILE]: gpgEncryptedFile,
         [constants.state.STATE_KEY_CHAIN_ID]: '0xe15503e4',
       }
       const {
         maybeProcessNewRequestsAndPropose,
       } = require('../../lib/evm/evm-process-proposal-txs')
-
       const result = await maybeProcessNewRequestsAndPropose(state)
 
       expect(result).toHaveProperty(constants.state.STATE_KEY_DB)
