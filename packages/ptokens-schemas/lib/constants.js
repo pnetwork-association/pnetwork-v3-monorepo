@@ -12,7 +12,7 @@ module.exports = {
   SCHEMA_CHALLENGE_PERIOD: 'challenge-period',
   SCHEMA_LOOP_SLEEP_TIME: 'loop-sleep-time',
   SCHEMA_DB_KEY: 'db',
-  SCHEMA_TOKEN_CONTRACTS_KEY: 'token-contracts',
+  SCHEMA_TOKEN_CONTRACTS_KEY: 'contracts',
   SCHEMA_EVENT_NAME_KEY: 'eventName',
   SCHEMA_STATUS_KEY: 'status',
   SCHEMA_STATE_MANAGER_KEY: 'state-manager-address',
