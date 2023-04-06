@@ -1,6 +1,14 @@
 const { utils } = require('ptokens-utils')
 const { logger } = require('../get-logger')
-const { isNil, curry, assoc, identity } = require('ramda')
+const {
+  isNil,
+  curry,
+  assoc,
+  find,
+  identity,
+  tryCatch,
+  always,
+} = require('ramda')
 const schemas = require('ptokens-schemas')
 
 const getEventWithAllRequiredSetToNull = _ => ({
@@ -29,8 +37,8 @@ const getEventWithAllRequiredSetToNull = _ => ({
   [schemas.constants.SCHEMA_FINAL_TX_TS_KEY]: null,
 })
 
-const bigIntToNumber = _n => Number(_n)
-const bitIntToString = _n => _n.toString()
+const bigIntToNumber = tryCatch(_n => Number(_n) || null, always(null))
+const bitIntToString = tryCatch(_n => _n.toString(), always(null))
 
 const addEventName = _eventLog =>
   assoc(schemas.constants.SCHEMA_EVENT_NAME_KEY, _eventLog.name)
@@ -40,27 +48,36 @@ const setStatusToDetected = assoc(
   schemas.db.enums.txStatus.DETECTED
 )
 
+const addFieldFromEventArgs = (
+  _eventValue,
+  _destKey,
+  _conversionFunction,
+  _standardEvent
+) =>
+  logger.debug(`Adding ${_eventValue} to "${_destKey}"`) ||
+  Promise.resolve(assoc(_destKey, _eventValue, _standardEvent))
+
 const maybeAddFieldFromEventArgs = curry(
-  (_eventLog, _originKeys, _destKey, _conversionFunction, _standardEvent) =>
-    new Promise((resolve, _) => {
-      const value = _originKeys
-        .map(_key => _eventLog[_key])
-        .find(_val => utils.isNotNil(_val))
-
-      if (isNil(value))
-        return (
-          logger.debug(`No ${_destKey} to add to event`) ||
-          resolve(_standardEvent)
-        )
-
-      const convertedValue = _conversionFunction(value)
-      logger.debug(
-        'Adding field to event',
-        JSON.stringify({ [_destKey]: convertedValue })
+  (
+    _eventLog,
+    _possibleEventKeys,
+    _destKey,
+    _conversionFunction,
+    _standardEvent
+  ) =>
+    Promise.all(_possibleEventKeys.map(_key => _eventLog[_key]))
+      .then(find(utils.isNotNil))
+      .then(_conversionFunction)
+      .then(_value =>
+        isNil(_value)
+          ? Promise.resolve(_standardEvent)
+          : addFieldFromEventArgs(
+              _value,
+              _destKey,
+              _conversionFunction,
+              _standardEvent
+            )
       )
-
-      return resolve(assoc(_destKey, convertedValue, _standardEvent))
-    })
 )
 
 const maybeAddUserData = curry((_eventLog, _standardEvent) =>
