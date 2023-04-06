@@ -1,6 +1,0 @@
-/build
-/.openzeppelin
-/artifacts
-/cache
-*.gpg
-private-key*
