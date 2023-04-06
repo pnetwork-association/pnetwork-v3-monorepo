@@ -1,3 +1,4 @@
+const tick = require('./bench-tick')
 const fsUtils = require('./utils-fs')
 const dateUtils = require('./utils-date')
 const ramdaExtUtils = require('./utils-ramda-ext')
@@ -16,6 +17,7 @@ module.exports = {
   ...ramdaExtUtils,
   ...getChainSymbol,
   ...chainIdUtils,
+  bench: tick,
   date: dateUtils,
   ...getEventId,
 }
