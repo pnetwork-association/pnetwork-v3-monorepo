@@ -27,6 +27,10 @@ module.exports = {
     constants.SCHEMA_ORIGINATING_ADDRESS_KEY,
     constants.SCHEMA_ORIGINATING_NETWORK_ID_KEY,
     constants.SCHEMA_ORIGINATING_TX_HASH_KEY,
+
+    constants.SCHEMA_BLOCK_HASH_KEY,
+    constants.SCHEMA_NETWORK_ID_KEY,
+    constants.SCHEMA_TX_HASH_KEY,
     constants.SCHEMA_PROPOSAL_TS_KEY,
     constants.SCHEMA_PROPOSAL_TX_HASH_KEY,
     constants.SCHEMA_WITNESSED_TS_KEY,
@@ -65,9 +69,6 @@ module.exports = {
     [constants.SCHEMA_UNDERLYING_ASSET_DECIMALS_KEY]: {
       type: 'integer',
     },
-    [constants.SCHEMA_ORIGINATING_TX_HASH_KEY]: {
-      type: 'string',
-    },
     [constants.SCHEMA_ASSET_AMOUNT_KEY]: {
       type: 'string',
     },
@@ -83,6 +84,9 @@ module.exports = {
     [constants.SCHEMA_ASSET_TOKEN_ADDRESS_KEY]: {
       type: ['string', 'null'],
     },
+    [constants.SCHEMA_ORIGINATING_TX_HASH_KEY]: {
+      type: ['string', 'null'],
+    },
     [constants.SCHEMA_ORIGINATING_BLOCK_HASH_KEY]: {
       type: ['string', 'null'],
     },
@@ -91,6 +95,15 @@ module.exports = {
     },
     [constants.SCHEMA_ORIGINATING_NETWORK_ID_KEY]: {
       type: ['string', 'null'],
+    },
+    [constants.SCHEMA_TX_HASH_KEY]: {
+      type: 'string',
+    },
+    [constants.SCHEMA_BLOCK_HASH_KEY]: {
+      type: 'string',
+    },
+    [constants.SCHEMA_NETWORK_ID_KEY]: {
+      type: 'string',
     },
     [constants.SCHEMA_FINAL_TX_HASH_KEY]: {
       type: ['string', 'null'],

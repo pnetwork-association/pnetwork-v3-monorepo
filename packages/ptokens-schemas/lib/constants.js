@@ -4,7 +4,6 @@ module.exports = {
   SCHEMA_URL_KEY: 'url',
   SCHEMA_TABLE_EVENTS_KEY: 'table-events',
   SCHEMA_PROVIDER_URL_KEY: 'provider-url',
-  SCHEMA_NETWORK_ID_KEY: 'network-id',
   SCHEMA_CHAIN_NAME_KEY: 'chain-name',
   SCHEMA_CHAIN_TYPE_KEY: 'chain-type',
   SCHEMA_TX_TIMEOUT: 'tx-timeout',
@@ -26,6 +25,9 @@ module.exports = {
   SCHEMA_ORIGINATING_NETWORK_ID_KEY: 'originatingNetworkId',
   SCHEMA_ORIGINATING_TX_HASH_KEY: 'originatingTransactionHash',
   SCHEMA_ORIGINATING_BLOCK_HASH_KEY: 'originatingBlockHash',
+  SCHEMA_NETWORK_ID_KEY: 'networkId',
+  SCHEMA_TX_HASH_KEY: 'transactionHash',
+  SCHEMA_BLOCK_HASH_KEY: 'blockHash',
   // event UserOperation fields
   SCHEMA_NONCE_KEY: 'nonce',
   SCHEMA_DESTINATION_ACCOUNT_KEY: 'destinationAccount',
