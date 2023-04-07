@@ -57,15 +57,21 @@ const addFieldFromEventArgs = (
   logger.debug(`Adding ${_eventValue} to "${_destKey}"`) ||
   Promise.resolve(assoc(_destKey, _eventValue, _standardEvent))
 
+const getValueFromEventArgsByKey = curry((_eventArgs, _key) =>
+  typeof _eventArgs[0] === 'object'
+    ? _eventArgs[0].getValue(_key)
+    : _eventArgs.getValue(_key)
+)
+
 const maybeAddFieldFromEventArgs = curry(
   (
-    _eventLog,
+    _eventArgs,
     _possibleEventKeys,
     _destKey,
     _conversionFunction,
     _standardEvent
   ) =>
-    Promise.all(_possibleEventKeys.map(_key => _eventLog[_key]))
+    Promise.all(_possibleEventKeys.map(getValueFromEventArgsByKey(_eventArgs)))
       .then(find(utils.isNotNil))
       .then(_value =>
         isNil(_value)
