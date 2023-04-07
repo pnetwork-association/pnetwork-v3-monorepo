@@ -7,6 +7,9 @@ const getEventIdEvm = ({
   originatingBlockHash,
   originatingTransactionHash,
   originatingNetworkId,
+  blockHash,
+  transactionHash,
+  networkId,
   nonce,
   destinationAccount,
   destinationNetworkId,
@@ -78,9 +81,9 @@ const getEventIdEvm = ({
   const coder = new ethers.AbiCoder()
   return ethers.keccak256(
     coder.encode(types, [
-      originatingBlockHash,
-      originatingTransactionHash,
-      originatingNetworkId,
+      originatingBlockHash || blockHash,
+      originatingTransactionHash || transactionHash,
+      originatingNetworkId || networkId,
       nonce,
       destinationAccount,
       destinationNetworkId,
@@ -96,23 +99,16 @@ const getEventIdEvm = ({
   )
 }
 
-const fallbackEventId = (
-  originatingNetworkId,
-  originatingBlockHash,
-  originatingTransactionHash
-) =>
-  ethers.keccak256(
-    ethers.concat([
-      originatingNetworkId,
-      originatingBlockHash,
-      originatingTransactionHash,
-    ])
-  )
+const fallbackEventId = (networkId, blockHash, transactionHash) =>
+  ethers.keccak256(ethers.concat([networkId, blockHash, transactionHash]))
 
 const getEventId = ({
   originatingBlockHash,
   originatingTransactionHash,
   originatingNetworkId,
+  blockHash,
+  transactionHash,
+  networkId,
   nonce,
   destinationAccount,
   destinationNetworkId,
@@ -133,6 +129,9 @@ const getEventId = ({
             originatingBlockHash,
             originatingTransactionHash,
             originatingNetworkId,
+            blockHash,
+            transactionHash,
+            networkId,
             nonce,
             destinationAccount,
             destinationNetworkId,
@@ -146,11 +145,7 @@ const getEventId = ({
             optionsMask,
           })
         default:
-          return fallbackEventId(
-            originatingNetworkId,
-            originatingBlockHash,
-            originatingTransactionHash
-          )
+          return fallbackEventId(networkId, blockHash, transactionHash)
       }
     })
     // This should handle cases where
@@ -159,11 +154,7 @@ const getEventId = ({
     .catch(
       _err =>
         logger.error(_err) ||
-        fallbackEventId(
-          originatingNetworkId,
-          originatingBlockHash,
-          originatingTransactionHash
-        )
+        fallbackEventId(networkId, blockHash, transactionHash)
     )
 
 module.exports = { getEventId }
