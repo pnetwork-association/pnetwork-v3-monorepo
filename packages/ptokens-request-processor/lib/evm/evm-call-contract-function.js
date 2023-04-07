@@ -1,6 +1,6 @@
 const { logger } = require('../get-logger')
 const errors = require('../errors')
-const { logic } = require('ptokens-utils')
+// const { logic } = require('ptokens-utils')
 
 const ETHERS_KEY_TX_HASH = 'hash'
 
@@ -37,8 +37,8 @@ const callContractFunctionAndAwait = (
   callContractFunction(_fxnName, _fxnArgs, _contract)
     .then(
       _tx =>
-        logger.debug(`Function ${_fxnName} called, awaiting...`) ||
-        logic.racePromise(_txTimeout, _tx.wait, [])
+        logger.debug(`Function ${_fxnName} called, awaiting...`) || _tx.wait()
+      // logic.racePromise(_txTimeout, _tx.wait, [])
     )
     .then(
       _tx =>

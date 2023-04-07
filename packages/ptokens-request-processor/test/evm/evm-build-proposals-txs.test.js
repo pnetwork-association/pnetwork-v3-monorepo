@@ -4,7 +4,7 @@ const {
   STATE_PROPOSED_DB_REPORTS_KEY,
 } = require('../../lib/state/constants')
 const schemas = require('ptokens-schemas')
-const { logic, validation } = require('ptokens-utils')
+const { validation } = require('ptokens-utils')
 const constants = require('ptokens-constants')
 const detectedEvents = require('../samples/detected-report-set')
 const {
@@ -65,42 +65,42 @@ describe('Build proposals test for EVM', () => {
       })
     })
 
-    it('Should handle the timeout error correctly', async () => {
-      const ethers = require('ethers')
+    // it('Should handle the timeout error correctly', async () => {
+    //   const ethers = require('ethers')
 
-      const mockProtocolQueueOperation = jest.fn().mockResolvedValue({
-        wait: jest
-          .fn()
-          .mockImplementation(() => logic.sleepForXMilliseconds(1000)),
-      })
+    //   const mockProtocolQueueOperation = jest.fn().mockResolvedValue({
+    //     wait: jest
+    //       .fn()
+    //       .mockImplementation(() => logic.sleepForXMilliseconds(1000)),
+    //   })
 
-      jest
-        .spyOn(ethers, 'Contract')
-        .mockImplementation(
-          jestMockContractConstructor(
-            'protocolQueueOperation',
-            mockProtocolQueueOperation
-          )
-        )
+    //   jest
+    //     .spyOn(ethers, 'Contract')
+    //     .mockImplementation(
+    //       jestMockContractConstructor(
+    //         'protocolQueueOperation',
+    //         mockProtocolQueueOperation
+    //       )
+    //     )
 
-      const {
-        makeProposalContractCall,
-      } = require('../../lib/evm/evm-build-proposals-txs')
+    //   const {
+    //     makeProposalContractCall,
+    //   } = require('../../lib/evm/evm-build-proposals-txs')
 
-      const wallet = ethers.Wallet.createRandom()
-      const stateManagerAddress = '0xC8E4270a6EF24B67eD38046318Fc8FC2d312f73C'
+    //   const wallet = ethers.Wallet.createRandom()
+    //   const stateManagerAddress = '0xC8E4270a6EF24B67eD38046318Fc8FC2d312f73C'
 
-      await validation.validateJson(schemas.db.collections.events, eventReport)
+    //   await validation.validateJson(schemas.db.collections.events, eventReport)
 
-      const txTimeout = 100 //ms
-      const result = await makeProposalContractCall(
-        wallet,
-        stateManagerAddress,
-        txTimeout,
-        eventReport
-      )
-      expect(result).toStrictEqual(eventReport)
-    })
+    //   const txTimeout = 100 //ms
+    //   const result = await makeProposalContractCall(
+    //     wallet,
+    //     stateManagerAddress,
+    //     txTimeout,
+    //     eventReport
+    //   )
+    //   expect(result).toStrictEqual(eventReport)
+    // })
   })
 
   describe('buildProposalsTxsAndPutInState', () => {
