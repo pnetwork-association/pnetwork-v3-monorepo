@@ -22,6 +22,9 @@ const getEventWithAllRequiredSetToNull = _ => ({
   [schemas.constants.SCHEMA_ORIGINATING_ADDRESS_KEY]: null,
   [schemas.constants.SCHEMA_ORIGINATING_NETWORK_ID_KEY]: null,
   [schemas.constants.SCHEMA_ORIGINATING_TX_HASH_KEY]: null,
+  [schemas.constants.SCHEMA_BLOCK_HASH_KEY]: null,
+  [schemas.constants.SCHEMA_NETWORK_ID_KEY]: null,
+  [schemas.constants.SCHEMA_TX_HASH_KEY]: null,
   [schemas.constants.SCHEMA_PROPOSAL_TS_KEY]: null,
   [schemas.constants.SCHEMA_PROPOSAL_TX_HASH_KEY]: null,
   [schemas.constants.SCHEMA_WITNESSED_TS_KEY]: null,
@@ -75,18 +78,6 @@ const maybeAddFieldFromEventArgs = R.curry(
               _standardEvent
             )
       )
-)
-
-const maybeAddUserData = R.curry((_eventLog, _standardEvent) =>
-  Promise.resolve(
-    utils.isNotNil(_eventLog.userData)
-      ? R.assoc(
-          schemas.constants.SCHEMA_USER_DATA_KEY,
-          _eventLog.userData,
-          _standardEvent
-        )
-      : R.assoc(schemas.constants.SCHEMA_USER_DATA_KEY, null, _standardEvent)
-  )
 )
 
 const addInfoFromParsedLog = (_parsedLog, _obj) =>
@@ -189,7 +180,38 @@ const addInfoFromParsedLog = (_parsedLog, _obj) =>
         bitIntToString
       )
     )
-    .then(maybeAddUserData(_parsedLog.args))
+    .then(
+      maybeAddFieldFromEventArgs(
+        _parsedLog.args,
+        ['originBlockHash'],
+        schemas.constants.SCHEMA_ORIGINATING_BLOCK_HASH_KEY,
+        bitIntToString
+      )
+    )
+    .then(
+      maybeAddFieldFromEventArgs(
+        _parsedLog.args,
+        ['originTransactionHash'],
+        schemas.constants.SCHEMA_ORIGINATING_TX_HASH_KEY,
+        bitIntToString
+      )
+    )
+    .then(
+      maybeAddFieldFromEventArgs(
+        _parsedLog.args,
+        ['originNetworkId'],
+        schemas.constants.SCHEMA_ORIGINATING_NETWORK_ID_KEY,
+        bitIntToString
+      )
+    )
+    .then(
+      maybeAddFieldFromEventArgs(
+        _parsedLog.args,
+        ['userData'],
+        schemas.constants.SCHEMA_USER_DATA_KEY,
+        R.identity
+      )
+    )
 
 const addFieldFromLog = (_eventLog, _originKey, _destKey) =>
   R.assoc(_destKey, _eventLog[_originKey])
@@ -200,7 +222,15 @@ const addWitnessedTimestamp = _obj =>
   )
 
 const setId = _obj =>
-  utils.getEventId(_obj).then(_id => R.assoc('_id', _id, _obj))
+  utils
+    .getEventId(_obj)
+    .then(_id =>
+      R.assoc(
+        '_id',
+        `${_obj[schemas.constants.SCHEMA_EVENT_NAME_KEY]}_${_id}`.toLowerCase(),
+        _obj
+      )
+    )
 
 const parseLog = (_interface, _log) =>
   Promise.resolve(_interface.parseLog(_log)).then(
@@ -238,21 +268,19 @@ const parseLog = (_interface, _log) =>
 const buildStandardizedEvmEventObjectFromLog = (_networkId, _interface, _log) =>
   Promise.all([getEventWithAllRequiredSetToNull(), parseLog(_interface, _log)])
     .then(([_obj, _parsedLog]) => addInfoFromParsedLog(_parsedLog, _obj))
-    .then(
-      R.assoc(schemas.constants.SCHEMA_ORIGINATING_NETWORK_ID_KEY, _networkId)
-    )
+    .then(R.assoc(schemas.constants.SCHEMA_NETWORK_ID_KEY, _networkId))
     .then(
       addFieldFromLog(
         _log,
         'blockHash',
-        schemas.constants.SCHEMA_ORIGINATING_BLOCK_HASH_KEY
+        schemas.constants.SCHEMA_BLOCK_HASH_KEY
       )
     )
     .then(
       addFieldFromLog(
         _log,
         'transactionHash',
-        schemas.constants.SCHEMA_ORIGINATING_TX_HASH_KEY
+        schemas.constants.SCHEMA_TX_HASH_KEY
       )
     )
     .then(addWitnessedTimestamp)

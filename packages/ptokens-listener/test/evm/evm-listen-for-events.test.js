@@ -97,7 +97,7 @@ describe('EVM listen for events', () => {
         expect(callback).toHaveBeenCalledTimes(2)
         expect(callback).toHaveBeenNthCalledWith(1, {
           [schemas.constants.SCHEMA_ID_KEY]:
-            '0x37eeb55eab329c73aeac6a172faa6c77e7013cd0cda0fc472274c5faf0df7003',
+            'transfer_0x36f48a80848eeb2b49d59aac077aedf775f75463ed7d34b531750329dceaa8b5',
           [schemas.constants.SCHEMA_STATUS_KEY]:
             schemas.db.enums.txStatus.DETECTED,
           [schemas.constants.SCHEMA_ASSET_AMOUNT_KEY]: '200000000',
@@ -122,17 +122,18 @@ describe('EVM listen for events', () => {
           [schemas.constants.SCHEMA_UNDERLYING_ASSET_NETWORK_ID_KEY]: null,
           [schemas.constants.SCHEMA_ORIGINATING_ADDRESS_KEY]:
             '0xd8a7346Ffef357542857aB5fCF7ed1baED08680f',
-          [schemas.constants.SCHEMA_ORIGINATING_NETWORK_ID_KEY]: '0xe15503e4',
-          [schemas.constants.SCHEMA_ORIGINATING_TX_HASH_KEY]:
-            '0x37eeb55eab329c73aeac6a172faa6c77e7013cd0cda0fc472274c5faf0df7003',
-          [schemas.constants.SCHEMA_ORIGINATING_BLOCK_HASH_KEY]:
+          [schemas.constants.SCHEMA_ORIGINATING_NETWORK_ID_KEY]: null,
+          [schemas.constants.SCHEMA_ORIGINATING_TX_HASH_KEY]: null,
+          [schemas.constants.SCHEMA_ORIGINATING_BLOCK_HASH_KEY]: null,
+          [schemas.constants.SCHEMA_NETWORK_ID_KEY]: '0xe15503e4',
+          [schemas.constants.SCHEMA_BLOCK_HASH_KEY]:
             '0x460635ecc1efa7230644fe6c2c01635f873663e81afc8c727947da5560ed12e5',
-          [schemas.constants.SCHEMA_ID_KEY]:
-            '0x36f48a80848eeb2b49d59aac077aedf775f75463ed7d34b531750329dceaa8b5',
+          [schemas.constants.SCHEMA_TX_HASH_KEY]:
+            '0x37eeb55eab329c73aeac6a172faa6c77e7013cd0cda0fc472274c5faf0df7003',
         })
         expect(callback).toHaveBeenNthCalledWith(2, {
           [schemas.constants.SCHEMA_ID_KEY]:
-            '0xbe8b7571ab50cc63da7f1d9f6b22802922aa2e242a5c7400c493ba9c831b24aa',
+            'useroperation_0xbe8b7571ab50cc63da7f1d9f6b22802922aa2e242a5c7400c493ba9c831b24aa',
           [schemas.constants.SCHEMA_STATUS_KEY]:
             schemas.db.enums.txStatus.DETECTED,
           [schemas.constants.SCHEMA_EVENT_NAME_KEY]:
@@ -155,11 +156,14 @@ describe('EVM listen for events', () => {
             '0x49a5D1CF92772328Ad70f51894FD632a14dF12C9',
           [schemas.constants.SCHEMA_OPTIONS_MASK]:
             '0x0000000000000000000000000000000000000000000000000000000000000000',
-          [schemas.constants.SCHEMA_ORIGINATING_NETWORK_ID_KEY]: '0xe15503e4',
+          [schemas.constants.SCHEMA_ORIGINATING_NETWORK_ID_KEY]: null,
           [schemas.constants.SCHEMA_ORIGINATING_ADDRESS_KEY]: null,
-          [schemas.constants.SCHEMA_ORIGINATING_BLOCK_HASH_KEY]:
+          [schemas.constants.SCHEMA_ORIGINATING_BLOCK_HASH_KEY]: null,
+          [schemas.constants.SCHEMA_ORIGINATING_TX_HASH_KEY]: null,
+          [schemas.constants.SCHEMA_NETWORK_ID_KEY]: '0xe15503e4',
+          [schemas.constants.SCHEMA_BLOCK_HASH_KEY]:
             '0xbaa9e89896c03366c3578a4568a6defd4b127e4b09bb06b67a12cb1a4c332376',
-          [schemas.constants.SCHEMA_ORIGINATING_TX_HASH_KEY]:
+          [schemas.constants.SCHEMA_TX_HASH_KEY]:
             '0x0907eefad58dfcb2cbfad66d29accd4d6ddc345851ec1d180b23122084fa2834',
           [schemas.constants.SCHEMA_PROPOSAL_TX_HASH_KEY]: null,
           [schemas.constants.SCHEMA_PROPOSAL_TS_KEY]: null,
