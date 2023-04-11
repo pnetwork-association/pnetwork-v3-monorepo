@@ -106,7 +106,7 @@ describe('Main EVM flow for transaction proposal tests', () => {
     })
 
     it('Should detect the new events, build the proposals and add already proposed requests', async () => {
-      const ethers = jestMockEthers()
+      const ethers = require('ethers')
       const getOnChainQueuedRequestsAndPutInState = require('../../lib/evm/evm-get-on-chain-queued-requests')
       const proposedTxHashes = [
         '0xd656ffac17b71e2ea2e24f72cd4c15c909a0ebe1696f8ead388eb268268f1cbf',
@@ -127,10 +127,14 @@ describe('Main EVM flow for transaction proposal tests', () => {
           .mockResolvedValueOnce(expecteCallResult[1]),
       })
 
-      ethers.Contract = jestMockContractConstructor(
-        'protocolQueueOperation',
-        mockQueueOperation
-      )
+      jest
+        .spyOn(ethers, 'Contract')
+        .mockImplementation(
+          jestMockContractConstructor(
+            'protocolQueueOperation',
+            mockQueueOperation
+          )
+        )
 
       const state = {
         [constants.state.STATE_KEY_DB]: collection,
@@ -146,7 +150,6 @@ describe('Main EVM flow for transaction proposal tests', () => {
       }
 
       const mockState = state
-      console.log('mytest', state)
       const {
         maybeProcessNewRequestsAndPropose,
       } = require('../../lib/evm/evm-process-proposal-txs')
