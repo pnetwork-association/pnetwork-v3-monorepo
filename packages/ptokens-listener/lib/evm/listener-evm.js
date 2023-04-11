@@ -22,10 +22,12 @@ const createInterface = _fragments =>
 const getInterfaceFromEvent = _eventName =>
   getEventFragment(_eventName).then(Array.of).then(createInterface)
 
+const keccak256 = _string => ethers.id(_string)
+
 const getFilterObject = (_eventName, _tokenContract) =>
   getEventFragment(_eventName).then(_frag => ({
     address: _tokenContract,
-    topics: [ethers.id(_frag.format())],
+    topics: [keccak256(_frag.format())],
   }))
 
 const processEventLog = curry(
