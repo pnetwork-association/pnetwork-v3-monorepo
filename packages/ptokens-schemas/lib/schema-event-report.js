@@ -81,7 +81,7 @@ module.exports = {
       type: ['string', 'null'],
     },
     [constants.SCHEMA_ASSET_TOKEN_ADDRESS_KEY]: {
-      type: 'string',
+      type: ['string', 'null'],
     },
     [constants.SCHEMA_ORIGINATING_BLOCK_HASH_KEY]: {
       type: ['string', 'null'],
