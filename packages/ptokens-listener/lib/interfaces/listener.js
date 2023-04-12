@@ -2,8 +2,8 @@ const R = require('ramda')
 const { constants: ptokensUtilsConstants, utils, db } = require('ptokens-utils')
 const schemas = require('ptokens-schemas')
 const constants = require('ptokens-constants')
-const { listenForEvmEvents } = require('./evm/listener-evm')
-const { logger } = require('./get-logger')
+const { listenForEvmEvents } = require('../evm/listener-evm')
+const { logger } = require('../get-logger')
 
 const listenForEosioEvents = (_state, _callback) =>
   Promise.reject(new Error('To be implemented!'))

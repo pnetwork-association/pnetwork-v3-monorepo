@@ -60,8 +60,8 @@ describe('EVM listener', () => {
           _ =>
             fakeProvider.emit(
               JSON.stringify({
-                address: _address,
                 topics: [_log.topics.at(0)],
+                address: _address,
               }),
               _log
             ),
