@@ -170,7 +170,7 @@ const addInfoFromParsedLog = (_parsedLog, _obj) =>
     .then(
       maybeAddFieldFromEventArgs(
         _parsedLog.args,
-        ['assetAmount', '_tokenAmount', 'value'],
+        ['assetAmount', 'amount', '_tokenAmount', 'value'],
         schemas.constants.SCHEMA_ASSET_AMOUNT_KEY,
         bitIntToString
       )
