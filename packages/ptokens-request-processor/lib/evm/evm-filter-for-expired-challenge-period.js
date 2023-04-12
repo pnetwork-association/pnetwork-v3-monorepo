@@ -31,12 +31,12 @@ const isChallengePeriodExpired = R.curry((_challengePeriod, _proposedEvent) =>
     .then(getExpirationDate(_challengePeriod))
     .then(_expirationDate => {
       const now = getCurrentDate()
-      const slicedOriginTx = _proposedEvent[
-        schemas.constants.SCHEMA_ORIGINATING_TX_HASH_KEY
+      const slicedTxHash = _proposedEvent[
+        schemas.constants.SCHEMA_TX_HASH_KEY
       ].slice(0, 10)
       logger.debug(
         '%s: %s > %s => %s',
-        slicedOriginTx,
+        slicedTxHash,
         now,
         _expirationDate,
         now > _expirationDate

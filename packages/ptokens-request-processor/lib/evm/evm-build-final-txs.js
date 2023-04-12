@@ -3,8 +3,11 @@ const schemas = require('ptokens-schemas')
 const constants = require('ptokens-constants')
 const { logger } = require('../get-logger')
 const { readFile } = require('fs/promises')
-const { errors, logic } = require('ptokens-utils')
-const { ERROR_INVALID_EVENT_NAME } = require('../errors')
+const { logic, errors } = require('ptokens-utils')
+const {
+  ERROR_INVALID_EVENT_NAME,
+  ERROR_OPERATION_ALREADY_EXECUTED,
+} = require('../errors')
 const R = require('ramda')
 const { addFinalizedEventsToState } = require('../state/state-operations.js')
 const { STATE_PROPOSED_DB_REPORTS_KEY } = require('../state/constants')
@@ -42,7 +45,7 @@ const executeOperationErrorHandler = R.curry(
     if (_err.message.includes(errors.ERROR_TIMEOUT)) {
       logger.error(`Tx for ${originTxHash} failed:`, _err.message)
       return resolve(_eventReport)
-    } else if (_err.message.includes(errors.ERROR_OPERATION_ALREADY_EXECUTED)) {
+    } else if (_err.message.includes(ERROR_OPERATION_ALREADY_EXECUTED)) {
       logger.error(`Tx for ${originTxHash} has already been executed`)
       return resolve(addFinalizedTxHashToEvent(_eventReport, '0x'))
     } else {

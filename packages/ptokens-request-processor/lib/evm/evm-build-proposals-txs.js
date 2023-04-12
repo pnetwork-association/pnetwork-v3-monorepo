@@ -4,7 +4,10 @@ const constants = require('ptokens-constants')
 const schemas = require('ptokens-schemas')
 const { logger } = require('../get-logger')
 const { errors, logic } = require('ptokens-utils')
-const { ERROR_INVALID_EVENT_NAME } = require('../errors')
+const {
+  ERROR_INVALID_EVENT_NAME,
+  ERROR_OPERATION_ALREADY_QUEUED,
+} = require('../errors')
 const R = require('ramda')
 const { addProposalsReportsToState } = require('../state/state-operations.js')
 const { STATE_DETECTED_DB_REPORTS_KEY } = require('../state/constants')
@@ -44,7 +47,7 @@ const queueOperationErrorHandler = R.curry(
     if (_err.message.includes(errors.ERROR_TIMEOUT)) {
       logger.error(`Tx for ${originTxHash} failed:`, _err.message)
       return resolve(_eventReport)
-    } else if (_err.message.includes(errors.ERROR_OPERATION_ALREADY_QUEUED)) {
+    } else if (_err.message.includes(ERROR_OPERATION_ALREADY_QUEUED)) {
       logger.error(`Tx for ${originTxHash} has already been queued`)
       return addProposedTxHashToEvent(_eventReport, '0x').then(resolve)
     } else {

@@ -5,19 +5,21 @@ const constants = require('ptokens-constants')
 const {
   STATE_DETECTED_DB_REPORTS_KEY,
   STATE_PROPOSED_DB_REPORTS_KEY,
-  STATE_ONCHAIN_REQUESTS_KEY,
+  STATE_QUEUED_DB_REPORTS_KEY,
 } = require('./state/constants')
 const { filterForValidReports } = require('./filter-for-valid-reports')
 const {
-  extractReportsWithChainIdAndStatus,
+  extractReportsWithNameAndChainIdAndStatus,
   extractReportsFromOnChainRequests,
 } = require('./extract-reports-with-query')
 
 const getValidEventsWithStatusAndPutInState = R.curry(
-  (_status, _stateKey, _state) =>
-    extractReportsWithChainIdAndStatus(
+  (_status, _stateKey, _networkIdKey, _eventName, _state) =>
+    extractReportsWithNameAndChainIdAndStatus(
       _state[constants.state.STATE_KEY_DB],
+      _eventName,
       _state[constants.state.STATE_KEY_NETWORK_ID],
+      _networkIdKey,
       _status
     )
       .then(filterForValidReports)
@@ -29,22 +31,37 @@ const getValidEventsWithStatusAndPutInState = R.curry(
       )
 )
 
-const getDetectedEventsFromDbAndPutInState =
+const getDetectedEventsFromDbAndPutInState = _state =>
   getValidEventsWithStatusAndPutInState(
     schemas.db.enums.txStatus.DETECTED,
-    STATE_DETECTED_DB_REPORTS_KEY
+    STATE_DETECTED_DB_REPORTS_KEY,
+    schemas.constants.SCHEMA_DESTINATION_NETWORK_ID_KEY,
+    'UserOperation',
+    _state
   )
 
-const getProposedEventsFromDbAndPutInState =
+const getQueuedEventsFromDbAndPutInState = _state =>
+  getValidEventsWithStatusAndPutInState(
+    schemas.db.enums.txStatus.DETECTED,
+    STATE_QUEUED_DB_REPORTS_KEY,
+    schemas.constants.SCHEMA_ORIGINATING_NETWORK_ID_KEY,
+    'OperationQueued',
+    _state
+  )
+
+const getProposedEventsFromDbAndPutInState = _state =>
   getValidEventsWithStatusAndPutInState(
     schemas.db.enums.txStatus.PROPOSED,
-    STATE_PROPOSED_DB_REPORTS_KEY
+    STATE_PROPOSED_DB_REPORTS_KEY,
+    schemas.constants.SCHEMA_DESTINATION_NETWORK_ID_KEY,
+    'UserOperation',
+    _state
   )
 
 const getValidMatchingEventsAndPutInState = _state =>
   extractReportsFromOnChainRequests(
     _state[constants.state.STATE_KEY_DB],
-    _state[STATE_ONCHAIN_REQUESTS_KEY]
+    _state[STATE_QUEUED_DB_REPORTS_KEY]
   )
     .then(filterForValidReports)
     .then(
@@ -55,6 +72,7 @@ const getValidMatchingEventsAndPutInState = _state =>
 
 module.exports = {
   getDetectedEventsFromDbAndPutInState,
+  getQueuedEventsFromDbAndPutInState,
   getProposedEventsFromDbAndPutInState,
   getValidMatchingEventsAndPutInState,
 }

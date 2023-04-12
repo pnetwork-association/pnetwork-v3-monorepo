@@ -1,5 +1,6 @@
 const { logger } = require('../get-logger')
-const { errors, logic } = require('ptokens-utils')
+const errors = require('../errors')
+const { logic } = require('ptokens-utils')
 
 const ETHERS_KEY_TX_HASH = 'hash'
 
@@ -17,6 +18,8 @@ const callContractFunction = (_fxnName, _fxnArgs, _contract) =>
           return Promise.reject(
             new Error(errors.ERROR_OPERATION_ALREADY_QUEUED)
           )
+        else if (decodedError.name === 'OperationNotQueued')
+          return Promise.reject(new Error(errors.ERROR_OPERATION_NOT_QUEUED))
       }
     }
     return Promise.reject(_err)

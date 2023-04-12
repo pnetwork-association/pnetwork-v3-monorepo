@@ -4,7 +4,10 @@ const { logger } = require('../get-logger')
 const {
   getOnChainQueuedRequestsAndPutInState,
 } = require('./evm-get-on-chain-queued-requests')
-const { getValidMatchingEventsAndPutInState } = require('../get-events-from-db')
+const {
+  getQueuedEventsFromDbAndPutInState,
+  getValidMatchingEventsAndPutInState,
+} = require('../get-events-from-db')
 const {
   maybeBuildDismissalTxsAndPutInState,
 } = require('./evm-build-dismissal-txs')
@@ -26,6 +29,7 @@ const pollForRequestsErrorHandler = R.curry((_pollForRequestsLoop, _err) => {
 const maybeProcessNewRequestsAndDismiss = _state =>
   logger.info('Polling for new requests EVM...') ||
   getOnChainQueuedRequestsAndPutInState(_state)
+    .then(getQueuedEventsFromDbAndPutInState)
     .then(getValidMatchingEventsAndPutInState)
     .then(filterOutInvalidQueuedRequestsAndPutInState)
     .then(removeOnChainRequestsFromState)
