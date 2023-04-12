@@ -1,10 +1,18 @@
 # TODO: maybe dynamically generated from a custom YAML file?
 version: '3'
 services:
-  listener-bsc:
+  listener-requests:
     image: ${IMAGE_EVM_LISTENER}:${VERSION_LISTENER:-latest}
     volumes:
-      - './bsc-listener.config.json:${APP_CONFIG_JSON}'
+      - './requests-listener.config.json:${APP_CONFIG_JSON}'
+      - './logs:${APP_FOLDER_LOGS}'
+    restart: unless-stopped
+    depends_on: ['mongodb']
+
+  listener-queue:
+    image: ${IMAGE_EVM_LISTENER}:${VERSION_LISTENER:-latest}
+    volumes:
+      - './queue-listener.config.json:${APP_CONFIG_JSON}'
       - './logs:${APP_FOLDER_LOGS}'
     restart: unless-stopped
     depends_on: ['mongodb']
@@ -13,7 +21,7 @@ services:
     image: ${IMAGE_EVM_PROCESSOR}:${VERSION_PROCESSOR:-latest}
     volumes:
       - './private-key:${PRIVATE_KEY_FILE}'
-      - './bsc-processor.config.json:${APP_CONFIG_JSON}'
+      - './processor.config.json:${APP_CONFIG_JSON}'
       - './logs:${APP_FOLDER_LOGS}'
     restart: unless-stopped
     command: ./index.js pollForRequestsAndDismiss
