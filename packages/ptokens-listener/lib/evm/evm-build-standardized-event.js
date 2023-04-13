@@ -1,14 +1,6 @@
 const { utils } = require('ptokens-utils')
 const { logger } = require('../get-logger')
-const {
-  isNil,
-  curry,
-  assoc,
-  find,
-  identity,
-  tryCatch,
-  always,
-} = require('ramda')
+const R = require('ramda')
 const schemas = require('ptokens-schemas')
 
 const getEventWithAllRequiredSetToNull = _ => ({
@@ -37,13 +29,13 @@ const getEventWithAllRequiredSetToNull = _ => ({
   [schemas.constants.SCHEMA_FINAL_TX_TS_KEY]: null,
 })
 
-const bigIntToNumber = tryCatch(_n => Number(_n) || null, always(null))
-const bitIntToString = tryCatch(_n => _n.toString(), always(null))
+const bigIntToNumber = R.tryCatch(_n => Number(_n) || null, R.always(null))
+const bitIntToString = R.tryCatch(_n => _n.toString(), R.always(null))
 
 const addEventName = _eventLog =>
-  assoc(schemas.constants.SCHEMA_EVENT_NAME_KEY, _eventLog.name)
+  R.assoc(schemas.constants.SCHEMA_EVENT_NAME_KEY, _eventLog.name)
 
-const setStatusToDetected = assoc(
+const setStatusToDetected = R.assoc(
   schemas.constants.SCHEMA_STATUS_KEY,
   schemas.db.enums.txStatus.DETECTED
 )
@@ -55,15 +47,15 @@ const addFieldFromEventArgs = (
   _standardEvent
 ) =>
   logger.debug(`Adding ${_eventValue} to "${_destKey}"`) ||
-  Promise.resolve(assoc(_destKey, _eventValue, _standardEvent))
+  Promise.resolve(R.assoc(_destKey, _eventValue, _standardEvent))
 
-const getValueFromEventArgsByKey = curry((_eventArgs, _key) =>
+const getValueFromEventArgsByKey = R.curry((_eventArgs, _key) =>
   typeof _eventArgs[0] === 'object'
     ? _eventArgs[0].getValue(_key)
     : _eventArgs.getValue(_key)
 )
 
-const maybeAddFieldFromEventArgs = curry(
+const maybeAddFieldFromEventArgs = R.curry(
   (
     _eventArgs,
     _possibleEventKeys,
@@ -72,9 +64,9 @@ const maybeAddFieldFromEventArgs = curry(
     _standardEvent
   ) =>
     Promise.all(_possibleEventKeys.map(getValueFromEventArgsByKey(_eventArgs)))
-      .then(find(utils.isNotNil))
+      .then(R.find(utils.isNotNil))
       .then(_value =>
-        isNil(_value)
+        R.isNil(_value)
           ? Promise.resolve(_standardEvent)
           : addFieldFromEventArgs(
               _conversionFunction(_value),
@@ -85,15 +77,15 @@ const maybeAddFieldFromEventArgs = curry(
       )
 )
 
-const maybeAddUserData = curry((_eventLog, _standardEvent) =>
+const maybeAddUserData = R.curry((_eventLog, _standardEvent) =>
   Promise.resolve(
     utils.isNotNil(_eventLog.userData)
-      ? assoc(
+      ? R.assoc(
           schemas.constants.SCHEMA_USER_DATA_KEY,
           _eventLog.userData,
           _standardEvent
         )
-      : assoc(schemas.constants.SCHEMA_USER_DATA_KEY, null, _standardEvent)
+      : R.assoc(schemas.constants.SCHEMA_USER_DATA_KEY, null, _standardEvent)
   )
 )
 
@@ -114,7 +106,7 @@ const addInfoFromParsedLog = (_parsedLog, _obj) =>
         _parsedLog.args,
         ['destinationAccount', 'to', 'underlyingAssetRecipient'],
         schemas.constants.SCHEMA_DESTINATION_ACCOUNT_KEY,
-        identity
+        R.identity
       )
     )
     .then(
@@ -122,7 +114,7 @@ const addInfoFromParsedLog = (_parsedLog, _obj) =>
         _parsedLog.args,
         ['destinationNetworkId', 'destinationChainId'],
         schemas.constants.SCHEMA_DESTINATION_NETWORK_ID_KEY,
-        identity
+        R.identity
       )
     )
     .then(
@@ -130,7 +122,7 @@ const addInfoFromParsedLog = (_parsedLog, _obj) =>
         _parsedLog.args,
         ['underlyingAssetName'],
         schemas.constants.SCHEMA_UNDERLYING_ASSET_NAME_KEY,
-        identity
+        R.identity
       )
     )
     .then(
@@ -138,7 +130,7 @@ const addInfoFromParsedLog = (_parsedLog, _obj) =>
         _parsedLog.args,
         ['underlyingAssetSymbol'],
         schemas.constants.SCHEMA_UNDERLYING_ASSET_SYMBOL_KEY,
-        identity
+        R.identity
       )
     )
     .then(
@@ -154,7 +146,7 @@ const addInfoFromParsedLog = (_parsedLog, _obj) =>
         _parsedLog.args,
         ['underlyingAssetTokenAddress'],
         schemas.constants.SCHEMA_UNDERLYING_ASSET_TOKEN_ADDRESS_KEY,
-        identity
+        R.identity
       )
     )
     .then(
@@ -162,7 +154,7 @@ const addInfoFromParsedLog = (_parsedLog, _obj) =>
         _parsedLog.args,
         ['underlyingAssetNetworkId'],
         schemas.constants.SCHEMA_UNDERLYING_ASSET_NETWORK_ID_KEY,
-        identity
+        R.identity
       )
     )
     .then(
@@ -170,7 +162,7 @@ const addInfoFromParsedLog = (_parsedLog, _obj) =>
         _parsedLog.args,
         ['assetTokenAddress', '_tokenAddress'],
         schemas.constants.SCHEMA_ASSET_TOKEN_ADDRESS_KEY,
-        identity
+        R.identity
       )
     )
     .then(
@@ -186,7 +178,7 @@ const addInfoFromParsedLog = (_parsedLog, _obj) =>
         _parsedLog.args,
         ['from'],
         schemas.constants.SCHEMA_ORIGINATING_ADDRESS_KEY,
-        identity
+        R.identity
       )
     )
     .then(
@@ -200,15 +192,15 @@ const addInfoFromParsedLog = (_parsedLog, _obj) =>
     .then(maybeAddUserData(_parsedLog.args))
 
 const addFieldFromLog = (_eventLog, _originKey, _destKey) =>
-  assoc(_destKey, _eventLog[_originKey])
+  R.assoc(_destKey, _eventLog[_originKey])
 
 const addWitnessedTimestamp = _obj =>
   Promise.resolve(new Date().toISOString()).then(_ts =>
-    assoc(schemas.constants.SCHEMA_WITNESSED_TS_KEY, _ts, _obj)
+    R.assoc(schemas.constants.SCHEMA_WITNESSED_TS_KEY, _ts, _obj)
   )
 
 const setId = _obj =>
-  utils.getEventId(_obj).then(_id => assoc('_id', _id, _obj))
+  utils.getEventId(_obj).then(_id => R.assoc('_id', _id, _obj))
 
 const parseLog = (_interface, _log) =>
   Promise.resolve(_interface.parseLog(_log)).then(
@@ -246,7 +238,9 @@ const parseLog = (_interface, _log) =>
 const buildStandardizedEvmEventObjectFromLog = (_chainId, _interface, _log) =>
   Promise.all([getEventWithAllRequiredSetToNull(), parseLog(_interface, _log)])
     .then(([_obj, _parsedLog]) => addInfoFromParsedLog(_parsedLog, _obj))
-    .then(assoc(schemas.constants.SCHEMA_ORIGINATING_NETWORK_ID_KEY, _chainId))
+    .then(
+      R.assoc(schemas.constants.SCHEMA_ORIGINATING_NETWORK_ID_KEY, _chainId)
+    )
     .then(
       addFieldFromLog(
         _log,
