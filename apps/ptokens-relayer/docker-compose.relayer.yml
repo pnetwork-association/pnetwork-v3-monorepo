@@ -1,20 +1,30 @@
 # TODO: maybe dynamically generated from a custom YAML file?
 version: '3'
 services:
-  listener:
+  sepolia-listener:
     image: ${IMAGE_EVM_LISTENER}:${VERSION_LISTENER:-latest}
     volumes:
-      - './listener.config.json:${APP_CONFIG_JSON}'
+      - './sepolia.listener.config.json:${APP_CONFIG_JSON}'
       - './logs:${APP_FOLDER_LOGS}'
     restart: unless-stopped
     depends_on: ['mongodb']
 
-  proposer:
+  sepolia-proposer:
     image: ${IMAGE_EVM_PROCESSOR}:${VERSION_PROCESSOR:-latest}
     volumes:
       - './private-key:${PRIVATE_KEY_FILE}'
-      - './processor.config.json:${APP_CONFIG_JSON}'
+      - './sepolia.processor.config.json:${APP_CONFIG_JSON}'
       - './logs:${APP_FOLDER_LOGS}'
     restart: unless-stopped
     command: ./index.js pollForRequestsAndPropose
+    depends_on: ['mongodb']
+
+  sepolia-finalizer:
+    image: ${IMAGE_EVM_PROCESSOR}:${VERSION_PROCESSOR:-latest}
+    volumes:
+      - './private-key:${PRIVATE_KEY_FILE}'
+      - './sepolia.processor.config.json:${APP_CONFIG_JSON}'
+      - './logs:${APP_FOLDER_LOGS}'
+    restart: unless-stopped
+    command: ./index.js processFinalTransactions
     depends_on: ['mongodb']
