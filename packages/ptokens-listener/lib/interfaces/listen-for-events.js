@@ -1,9 +1,8 @@
-const R = require('ramda')
-const { constants: ptokensUtilsConstants, utils, db } = require('ptokens-utils')
-const schemas = require('ptokens-schemas')
+const { constants: ptokensUtilsConstants, utils } = require('ptokens-utils')
 const constants = require('ptokens-constants')
-const { listenForEvmEvents } = require('../evm/listener-evm')
+const { listenForEvmEvents } = require('../evm/evm-listen-for-events')
 const { logger } = require('../get-logger')
+const { insertReportIntoDb } = require('../insert-report-into-db')
 
 const listenForEosioEvents = (_state, _callback) =>
   Promise.reject(new Error('To be implemented!'))
@@ -28,23 +27,15 @@ const getListenerForBlockchainType = _blockchainType => {
   }
 }
 
-const insertIntoDb = R.curry(
-  (_collection, _obj) =>
-    logger.info(
-      `Insert event object into db for transaction ${
-        _obj[schemas.constants.SCHEMA_ORIGINATING_TX_HASH_KEY]
-      }`
-    ) ||
-    logger.debug(`Object to be inserted ${JSON.stringify(_obj)}`) ||
-    db.insertReport(_collection, _obj)
-)
-
 const listenForEvents = _state =>
   utils
     .getBlockchainTypeFromChainId(_state[constants.state.STATE_KEY_CHAIN_ID])
     .then(getListenerForBlockchainType)
     .then(_listener =>
-      _listener(_state, insertIntoDb(_state[constants.state.STATE_KEY_DB]))
+      _listener(
+        _state,
+        insertReportIntoDb(_state[constants.state.STATE_KEY_DB])
+      )
     )
 
 module.exports = { listenForEvents }

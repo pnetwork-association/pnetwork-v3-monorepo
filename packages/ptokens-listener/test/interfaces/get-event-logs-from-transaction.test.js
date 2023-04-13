@@ -8,10 +8,10 @@ describe('Tests for the getEventLogsFromTransaction interface', () => {
     test.each([['0x005fe7f9'], ['0x00e4b170'], ['0x00f1918e'], ['0xf9b459a1']])(
       'Should get EVM event logs for chain id %p',
       async _chainId => {
-        const evmListener = require('../../lib/evm/listener-evm')
+        const getEventLogsModule = require('../../lib/evm/evm-get-event-logs-from-transaction')
 
         const listenForEvmEventsSpy = jest
-          .spyOn(evmListener, 'getEvmEventLogsFromTransaction')
+          .spyOn(getEventLogsModule, 'getEvmEventLogsFromTransaction')
           .mockResolvedValue()
 
         const getEventLogsFromTransactionInterface = require('../../lib/interfaces/get-event-logs-from-transaction')

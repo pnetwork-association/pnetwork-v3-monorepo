@@ -8,10 +8,10 @@ describe('Tests for the getEventReportsFromTransaction interface', () => {
     test.each([['0x005fe7f9'], ['0x00e4b170'], ['0x00f1918e'], ['0xf9b459a1']])(
       'Should get event reports from EVM events for chain id %p',
       async _chainId => {
-        const evmListener = require('../../lib/evm/listener-evm')
+        const getEventReportsModule = require('../../lib/evm/evm-get-event-reports-from-transaction')
 
-        const listenForEvmEventsSpy = jest
-          .spyOn(evmListener, 'getEvmEventReportsFromTransaction')
+        const getEvmEventReportsFromTransactionSpy = jest
+          .spyOn(getEventReportsModule, 'getEvmEventReportsFromTransaction')
           .mockResolvedValue()
 
         const getEventReportsFromTransactionInterface = require('../../lib/interfaces/get-event-reports-from-transaction')
@@ -23,8 +23,8 @@ describe('Tests for the getEventReportsFromTransaction interface', () => {
           'event'
         )
 
-        expect(listenForEvmEventsSpy).toHaveBeenCalledTimes(1)
-        expect(listenForEvmEventsSpy).toHaveBeenNthCalledWith(
+        expect(getEvmEventReportsFromTransactionSpy).toHaveBeenCalledTimes(1)
+        expect(getEvmEventReportsFromTransactionSpy).toHaveBeenNthCalledWith(
           1,
           'provider-url',
           _chainId,

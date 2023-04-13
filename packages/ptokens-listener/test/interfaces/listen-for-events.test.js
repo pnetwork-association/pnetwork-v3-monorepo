@@ -34,9 +34,9 @@ describe('Tests for the listener interface', () => {
       'Should listen to EVM events for chain id %p',
       async _chainId => {
         const { db } = require('ptokens-utils')
-        const evmListener = require('../../lib/evm/listener-evm')
+        const evmListener = require('../../lib/evm/evm-listen-for-events')
 
-        const insertIntoDbSpy = jest
+        const insertReportSpy = jest
           .spyOn(db, 'insertReport')
           .mockImplementation(() => Promise.resolve())
 
@@ -50,7 +50,7 @@ describe('Tests for the listener interface', () => {
             )
           )
 
-        const listenerInterface = require('../../lib/interfaces/listener')
+        const listenerInterface = require('../../lib/interfaces/listen-for-events')
         const state = getState(_chainId)
 
         await listenerInterface.listenForEvents(state)
@@ -61,8 +61,8 @@ describe('Tests for the listener interface', () => {
           state,
           expect.any(Function)
         )
-        expect(insertIntoDbSpy).toHaveBeenCalledTimes(4)
-        expect(insertIntoDbSpy).toHaveBeenNthCalledWith(
+        expect(insertReportSpy).toHaveBeenCalledTimes(4)
+        expect(insertReportSpy).toHaveBeenNthCalledWith(
           1,
           { database: 'database' },
           {
@@ -70,7 +70,7 @@ describe('Tests for the listener interface', () => {
             event: 'event1',
           }
         )
-        expect(insertIntoDbSpy).toHaveBeenNthCalledWith(
+        expect(insertReportSpy).toHaveBeenNthCalledWith(
           2,
           { database: 'database' },
           {
@@ -78,7 +78,7 @@ describe('Tests for the listener interface', () => {
             event: 'event1',
           }
         )
-        expect(insertIntoDbSpy).toHaveBeenNthCalledWith(
+        expect(insertReportSpy).toHaveBeenNthCalledWith(
           3,
           { database: 'database' },
           {
@@ -86,7 +86,7 @@ describe('Tests for the listener interface', () => {
             event: 'event2',
           }
         )
-        expect(insertIntoDbSpy).toHaveBeenNthCalledWith(
+        expect(insertReportSpy).toHaveBeenNthCalledWith(
           4,
           { database: 'database' },
           {
@@ -100,7 +100,7 @@ describe('Tests for the listener interface', () => {
     test.each([['0x03c38e67']])(
       'Should reject for the not-supported Algorand chain ID %p',
       async _chainId => {
-        const listenerInterface = require('../../lib/interfaces/listener')
+        const listenerInterface = require('../../lib/interfaces/listen-for-events')
         const state = getState(_chainId)
         expect(() => listenerInterface.listenForEvents(state)).rejects.toThrow(
           'To be implemented!'
@@ -111,7 +111,7 @@ describe('Tests for the listener interface', () => {
     test.each([['0x02e7261c']])(
       'Should reject for the not-supported EOSIO chain ID %p',
       async _chainId => {
-        const listenerInterface = require('../../lib/interfaces/listener')
+        const listenerInterface = require('../../lib/interfaces/listen-for-events')
         const state = getState(_chainId)
         expect(() => listenerInterface.listenForEvents(state)).rejects.toThrow(
           'To be implemented!'
@@ -122,7 +122,7 @@ describe('Tests for the listener interface', () => {
     test.each([['0x01ec97de']])(
       'Should reject for the not-supported UTXO chain ID %p',
       async _chainId => {
-        const listenerInterface = require('../../lib/interfaces/listener')
+        const listenerInterface = require('../../lib/interfaces/listen-for-events')
         const state = getState(_chainId)
         expect(() => listenerInterface.listenForEvents(state)).rejects.toThrow(
           'To be implemented!'
@@ -133,7 +133,7 @@ describe('Tests for the listener interface', () => {
     test.each([['0x12345678']])(
       'Should reject when using an unsupported chain ID',
       async _chainId => {
-        const listenerInterface = require('../../lib/interfaces/listener')
+        const listenerInterface = require('../../lib/interfaces/listen-for-events')
         const state = getState(_chainId)
         expect(() => listenerInterface.listenForEvents(state)).rejects.toThrow(
           'Unknown chain ID 0x12345678'

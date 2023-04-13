@@ -1,5 +1,7 @@
 const { constants: ptokensUtilsConstants, utils } = require('ptokens-utils')
-const { getEvmEventLogsFromTransaction } = require('../evm/listener-evm')
+const {
+  getEvmEventLogsFromTransaction,
+} = require('../evm/evm-get-event-logs-from-transaction')
 const { logger } = require('../get-logger')
 
 const getEosioEventLogsFromTransaction = (_state, _callback) =>

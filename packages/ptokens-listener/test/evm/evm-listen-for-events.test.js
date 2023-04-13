@@ -8,29 +8,12 @@ const { STATE_KEY_EVENTS } = require('../../lib/state/constants')
 const ISO_FORMAT_REGEX =
   /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2}(?:\.\d*)?)((-(\d{2}):(\d{2})|Z)?)$/
 
-describe('EVM listener', () => {
-  describe('getEthersProvider', () => {
-    afterEach(() => {
-      jest.restoreAllMocks()
-    })
-
-    it('Should get the correct provider', async () => {
-      const { getEthersProvider } = require('../../lib/evm/listener-evm')
-      const url = 'http://eth-node-1.ext.nu.p.network'
-
-      const getDefaultProviderSpy = jest.spyOn(ethers, 'getDefaultProvider')
-
-      const result = await getEthersProvider(url)
-
-      expect(getDefaultProviderSpy).toHaveBeenCalledTimes(1)
-      expect(result).toBeInstanceOf(ethers.JsonRpcProvider)
-    })
-  })
-
+describe('EVM listen for events', () => {
   describe('listenForEvmEvents', () => {
     afterEach(() => {
       jest.restoreAllMocks()
     })
+
     it('Should call callback with the standardized event', done => {
       const state = {
         [constants.state.STATE_KEY_CHAIN_ID]: '0xe15503e4',
@@ -81,7 +64,9 @@ describe('EVM listener', () => {
       const getDefaultProviderSpy = jest
         .spyOn(ethers, 'getDefaultProvider')
         .mockImplementation(_url => fakeProvider)
-      const { listenForEvmEvents } = require('../../lib/evm/listener-evm')
+      const {
+        listenForEvmEvents,
+      } = require('../../lib/evm/evm-listen-for-events')
       const callback = jest.fn()
 
       listenForEvmEvents(state, callback)
