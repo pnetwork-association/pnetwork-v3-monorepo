@@ -1,6 +1,6 @@
 const constants = require('ptokens-constants')
 const schemas = require('ptokens-schemas')
-const { assoc } = require('ramda')
+const R = require('ramda')
 const {
   STATE_DETECTED_DB_REPORTS_KEY,
   STATE_ONCHAIN_REQUESTS_KEY,
@@ -18,8 +18,8 @@ describe('Tests for already processed requests filtering', () => {
       const target = require('../../lib/evm/evm-filter-out-onchain-requests')
       const txSamples = require('../samples/detected-report-set.json')
       const onchainRequests = [
-        assoc(schemas.constants.SCHEMA_ID_KEY, txSamples[0]._id, {}),
-        assoc(schemas.constants.SCHEMA_ID_KEY, txSamples[1]._id, {}),
+        R.assoc(schemas.constants.SCHEMA_ID_KEY, txSamples[0]._id, {}),
+        R.assoc(schemas.constants.SCHEMA_ID_KEY, txSamples[1]._id, {}),
       ]
 
       const receivedRequests = [
@@ -40,7 +40,7 @@ describe('Tests for already processed requests filtering', () => {
       const _state = await target.filterOutOnChainRequestsAndPutInState(state)
 
       const expectedProposedDb = [
-        assoc(
+        R.assoc(
           schemas.constants.SCHEMA_STATUS_KEY,
           schemas.db.enums.txStatus.PROPOSED,
           txSamples[0]

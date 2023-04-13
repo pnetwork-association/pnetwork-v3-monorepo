@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 const config = require('./config')
-const { keys, equals } = require('ramda')
+const R = require('ramda')
 const { logger } = require('./lib/get-logger')
 const { validation } = require('ptokens-utils')
 const schemas = require('ptokens-schemas')
@@ -26,11 +26,11 @@ const commandToFunctionMapping = {
 
 const checkFlowIsValid = _cmd =>
   new Promise((resolve, reject) =>
-    keys(commandToFunctionMapping).some(equals(_cmd))
+    R.keys(commandToFunctionMapping).some(R.equals(_cmd))
       ? resolve()
       : reject(
           new Error(
-            `Invalid command submitted, they should be [${keys(
+            `Invalid command submitted, they should be [${R.keys(
               commandToFunctionMapping
             )}]`
           )

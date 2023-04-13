@@ -1,5 +1,5 @@
 const { jestMockContractConstructor } = require('./mock/jest-utils')
-const { curry, prop } = require('ramda')
+const R = require('ramda')
 const { db, logic } = require('ptokens-utils')
 const schemas = require('ptokens-schemas')
 const constants = require('ptokens-constants')
@@ -29,7 +29,7 @@ describe('Main EVM flow for transaction proposal tests', () => {
     })
 
     afterEach(async () => {
-      await Promise.all(detectedEvents.map(prop('_id'))).then(_ids =>
+      await Promise.all(detectedEvents.map(R.prop('_id'))).then(_ids =>
         Promise.all(_ids.map(db.deleteReport(collection)))
       )
     })
@@ -67,7 +67,7 @@ describe('Main EVM flow for transaction proposal tests', () => {
         .mockImplementation(_ => Promise.resolve())
       jest
         .spyOn(logic, 'sleepThenReturnArg')
-        .mockImplementation(curry((_, _r) => Promise.resolve(_r)))
+        .mockImplementation(R.curry((_, _r) => Promise.resolve(_r)))
 
       jest
         .spyOn(ethers, 'Contract')

@@ -4,12 +4,12 @@ const { logger } = require('../get-logger')
 const { validation } = require('ptokens-utils')
 const constants = require('ptokens-constants')
 const schemas = require('ptokens-schemas')
-const { curry, identity, memoizeWith } = require('ramda')
+const R = require('ramda')
 const {
   buildStandardizedEvmEventObjectFromLog,
 } = require('./evm-build-standardized-event.js')
 
-const getEthersProvider = memoizeWith(identity, _url =>
+const getEthersProvider = R.memoizeWith(R.identity, _url =>
   ethers.getDefaultProvider(_url)
 )
 
@@ -30,7 +30,7 @@ const getFilterObject = (_eventName, _tokenContract) =>
     topics: [keccak256(_frag.format())],
   }))
 
-const processEventLog = curry(
+const processEventLog = R.curry(
   (_chainId, _interface, _callback, _log) =>
     logger.info(`Received EVM event for transaction ${_log.transactionHash}`) ||
     buildStandardizedEvmEventObjectFromLog(_chainId, _interface, _log)

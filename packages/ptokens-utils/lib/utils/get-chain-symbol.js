@@ -2,19 +2,21 @@ const {
   ERROR_INVALID_BRIDGE_SIDE,
   ERROR_INVALID_SYMBOL_FOR_BRIDGE_TYPE,
 } = require('../errors')
-const { memoizeWith, identity, curry } = require('ramda')
+const R = require('ramda')
 const { SIDE_HOST, SIDE_NATIVE } = require('../constants')
 
-const extractHostSymbolFromBridgeType = memoizeWith(identity, _bridgeType =>
+const extractHostSymbolFromBridgeType = R.memoizeWith(R.identity, _bridgeType =>
   Promise.resolve(_bridgeType.split('-')[2])
 )
 
-const extractNativeSymboFromBridgeType = memoizeWith(identity, _bridgeType =>
-  Promise.resolve(_bridgeType.split('-')[0].slice(1).replace('erc20', 'eth'))
+const extractNativeSymboFromBridgeType = R.memoizeWith(
+  R.identity,
+  _bridgeType =>
+    Promise.resolve(_bridgeType.split('-')[0].slice(1).replace('erc20', 'eth'))
 )
 
 // TODO: memoize
-const getChainSymbolFromBridgeType = curry((_bridgeSide, _bridgeType) => {
+const getChainSymbolFromBridgeType = R.curry((_bridgeSide, _bridgeType) => {
   switch (_bridgeSide) {
     case SIDE_HOST:
       return extractHostSymbolFromBridgeType(_bridgeType)
@@ -33,7 +35,7 @@ const getNativeChainSymbolFromBridgeType =
   getChainSymbolFromBridgeType(SIDE_NATIVE)
 
 // TODO: memoize
-const getSubmissionChainSymbolFromOutputTxType = curry(
+const getSubmissionChainSymbolFromOutputTxType = R.curry(
   (_outputTxType, _bridgeType) => {
     // Note: this function here is used by syncers where output tx type
     // is defined as the type of output emitted by the enclave upon block submission.
@@ -53,7 +55,7 @@ const getSubmissionChainSymbolFromOutputTxType = curry(
 )
 
 // TODO: memoize
-const getBridgeSideForSymbol = curry((_bridgeType, _symbol) =>
+const getBridgeSideForSymbol = R.curry((_bridgeType, _symbol) =>
   Promise.all([
     getHostChainSymbolFromBridgeType(_bridgeType),
     getNativeChainSymbolFromBridgeType(_bridgeType),

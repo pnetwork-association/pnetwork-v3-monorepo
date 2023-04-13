@@ -1,4 +1,4 @@
-const { isNil, curry, prop } = require('ramda')
+const R = require('ramda')
 const { logger } = require('./get-logger')
 const { db, utils } = require('ptokens-utils')
 const schemas = require('ptokens-schemas')
@@ -7,13 +7,13 @@ const { ERROR_NIL_ARGUMENTS } = require('./errors')
 const extractReportsWithQuery = (_collection, _query) =>
   db.findReports(_collection, _query)
 
-const extractReportsWithChainIdAndStatus = curry(
+const extractReportsWithChainIdAndStatus = R.curry(
   (_collection, _chainId, _status) => {
     logger.info(
       `Getting events w/ status '${_status}' and chainId '${_chainId}' from db...`
     )
 
-    if (isNil(_chainId) || isNil(_status)) {
+    if (R.isNil(_chainId) || R.isNil(_status)) {
       return Promise.reject(
         new Error(
           `${ERROR_NIL_ARGUMENTS}: chainId: ${_chainId} status: ${_status}`
@@ -40,15 +40,15 @@ const getQueryForIdInArray = _possibleIds => ({
   },
 })
 
-const extractReportsFromOnChainRequests = curry(
+const extractReportsFromOnChainRequests = R.curry(
   (_collection, _onChainRequests) => {
     logger.info(
       `Getting events w/ transaction hash ${_onChainRequests.map(
-        prop(schemas.constants.SCHEMA_ORIGINATING_TX_HASH_KEY)
+        R.prop(schemas.constants.SCHEMA_ORIGINATING_TX_HASH_KEY)
       )} from db...`
     )
 
-    if (isNil(_onChainRequests)) {
+    if (R.isNil(_onChainRequests)) {
       return Promise.reject(
         new Error(`${ERROR_NIL_ARGUMENTS}: requests: ${_onChainRequests}`)
       )

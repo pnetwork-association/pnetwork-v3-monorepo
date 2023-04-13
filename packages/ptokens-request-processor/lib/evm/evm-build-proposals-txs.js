@@ -5,7 +5,7 @@ const schemas = require('ptokens-schemas')
 const { logger } = require('../get-logger')
 const { errors, logic } = require('ptokens-utils')
 const { ERROR_INVALID_EVENT_NAME } = require('../errors')
-const { curry, prop, values, includes, length } = require('ramda')
+const R = require('ramda')
 const { addProposalsReportsToState } = require('../state/state-operations.js')
 const { STATE_DETECTED_DB_REPORTS_KEY } = require('../state/constants')
 const {
@@ -22,7 +22,7 @@ const {
 } = require('./evm-abi-manager')
 
 // TODO: factor out (check evm-build-final-txs)
-const addProposedTxHashToEvent = curry(
+const addProposedTxHashToEvent = R.curry(
   (_event, _proposedTxHash) =>
     new Promise((resolve, _) => {
       // TODO: replace _id field
@@ -37,7 +37,7 @@ const addProposedTxHashToEvent = curry(
     })
 )
 
-const queueOperationErrorHandler = curry(
+const queueOperationErrorHandler = R.curry(
   (resolve, reject, _eventReport, _err) => {
     const originTxHash =
       _eventReport[schemas.constants.SCHEMA_ORIGINATING_TX_HASH_KEY]
@@ -52,13 +52,13 @@ const queueOperationErrorHandler = curry(
     }
   }
 )
-const makeProposalContractCall = curry(
+const makeProposalContractCall = R.curry(
   (_wallet, _managerContract, _txTimeout, _eventReport) =>
     new Promise((resolve, reject) => {
       const id = _eventReport[schemas.constants.SCHEMA_ID_KEY]
       const eventName = _eventReport[schemas.constants.SCHEMA_EVENT_NAME_KEY]
 
-      if (!includes(eventName, values(schemas.db.enums.eventNames))) {
+      if (!R.includes(eventName, R.values(schemas.db.enums.eventNames))) {
         return reject(new Error(`${ERROR_INVALID_EVENT_NAME}: ${eventName}`))
       }
 
@@ -76,14 +76,14 @@ const makeProposalContractCall = curry(
         contract,
         _txTimeout
       )
-        .then(prop(ETHERS_KEY_TX_HASH))
+        .then(R.prop(ETHERS_KEY_TX_HASH))
         .then(addProposedTxHashToEvent(_eventReport))
         .then(resolve)
         .catch(queueOperationErrorHandler(resolve, reject, _eventReport))
     })
 )
 
-const sendProposalTransactions = curry(
+const sendProposalTransactions = R.curry(
   (_eventReports, _manager, _timeOut, _wallet) =>
     logger.info(`Sending proposals w/ address ${_wallet.address}`) ||
     Promise.all(
@@ -128,7 +128,7 @@ const maybeBuildProposalsTxsAndPutInState = _state =>
   new Promise(resolve => {
     logger.info('Maybe building proposals txs...')
     const detectedEvents = _state[STATE_DETECTED_DB_REPORTS_KEY]
-    const detectedEventsNumber = length(detectedEvents)
+    const detectedEventsNumber = R.length(detectedEvents)
 
     return detectedEventsNumber === 0
       ? logger.info('No detected events found...') || resolve(_state)

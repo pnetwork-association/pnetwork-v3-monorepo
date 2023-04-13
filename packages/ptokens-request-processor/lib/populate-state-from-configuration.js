@@ -1,9 +1,9 @@
 const constants = require('ptokens-constants')
 const { db, utils } = require('ptokens-utils')
-const { curry, assoc } = require('ramda')
+const R = require('ramda')
 const schemas = require('ptokens-schemas')
 
-const getDbAndPutInState = curry((_config, _state) => {
+const getDbAndPutInState = R.curry((_config, _state) => {
   const url =
     _config[schemas.constants.SCHEMA_DB_KEY][schemas.constants.SCHEMA_URL_KEY]
   const dbName =
@@ -16,13 +16,13 @@ const getDbAndPutInState = curry((_config, _state) => {
   return db
     .getCollection(url, dbName, tableName)
     .then(_collection =>
-      assoc(constants.state.STATE_KEY_DB, _collection, _state)
+      R.assoc(constants.state.STATE_KEY_DB, _collection, _state)
     )
 })
 
-const getConfigPropertyAndPutInState = curry(
+const getConfigPropertyAndPutInState = R.curry(
   (_config, _configKey, _stateKey, _default, _state) =>
-    assoc(
+    R.assoc(
       _stateKey,
       utils.isNotNil(_config[_configKey]) ? _config[_configKey] : _default,
       _state

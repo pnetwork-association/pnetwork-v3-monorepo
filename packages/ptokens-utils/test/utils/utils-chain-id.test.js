@@ -1,5 +1,5 @@
 const assert = require('assert')
-const { values } = require('ramda')
+const R = require('ramda')
 const { utils, constants } = require('../..')
 
 describe('Chain ID utils tests', () => {
@@ -33,7 +33,7 @@ describe('Chain ID utils tests', () => {
         constants.blockchainType.EOSIO,
       ]
       return Promise.all(
-        values(constants.metadataChainIds).map((_val, _i) =>
+        R.values(constants.metadataChainIds).map((_val, _i) =>
           utils
             .getBlockchainTypeFromChainId(_val)
             .then(_ret => assert.strictEqual(_ret, expectedResults[_i]))

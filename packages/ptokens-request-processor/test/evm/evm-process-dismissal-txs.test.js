@@ -1,4 +1,4 @@
-const { assoc, curry } = require('ramda')
+const R = require('ramda')
 const constants = require('ptokens-constants')
 const schemas = require('ptokens-schemas')
 const { STATE_ONCHAIN_REQUESTS_KEY } = require('../../lib/state/constants')
@@ -22,7 +22,7 @@ describe('Tests for queued requests detection and dismissal', () => {
         .mockImplementation(_ => Promise.resolve())
       jest
         .spyOn(logic, 'sleepThenReturnArg')
-        .mockImplementation(curry((_, _r) => Promise.resolve(_r)))
+        .mockImplementation(R.curry((_, _r) => Promise.resolve(_r)))
 
       const getOnChainRequestsModule = require('../../lib/evm/evm-get-on-chain-queued-requests')
       const evmBBuildDismissalModule = require('../../lib/evm/evm-build-dismissal-txs')
@@ -110,7 +110,7 @@ describe('Tests for queued requests detection and dismissal', () => {
         )
         .mockImplementation(_state =>
           Promise.resolve(
-            assoc(STATE_ONCHAIN_REQUESTS_KEY, queuedRequests, _state)
+            R.assoc(STATE_ONCHAIN_REQUESTS_KEY, queuedRequests, _state)
           )
         )
       const maybeBuildDismissalTxsAndPutInStateSpy = jest

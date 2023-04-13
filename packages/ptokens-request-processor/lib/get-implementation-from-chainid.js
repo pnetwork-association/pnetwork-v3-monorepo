@@ -1,5 +1,5 @@
 const { logger } = require('./get-logger')
-const { keys, memoizeWith } = require('ramda')
+const R = require('ramda')
 const { utils } = require('ptokens-utils')
 
 /**
@@ -11,14 +11,14 @@ const { utils } = require('ptokens-utils')
  * @return {[type]}                the function defined in the _mapping object
  *                                 related to the given _chainId
  */
-const getImplementationFromChainId = memoizeWith(
+const getImplementationFromChainId = R.memoizeWith(
   (a, b, _) => a + b,
   (_chainId, _functionName, _mapping) =>
     utils.getBlockchainTypeFromChainId(_chainId).then(_blockChainType => {
       logger.info(
         `Getting implementation for '${_functionName}' for blockchain type ${_blockChainType}...`
       )
-      if (utils.doesNotInclude(_blockChainType, keys(_mapping))) {
+      if (utils.doesNotInclude(_blockChainType, R.keys(_mapping))) {
         return Promise.reject(
           new Error(
             `Implementation of ${_functionName} for ${_blockChainType} not found!`
