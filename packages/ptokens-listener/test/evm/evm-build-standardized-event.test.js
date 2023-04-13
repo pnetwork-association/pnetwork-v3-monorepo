@@ -365,6 +365,65 @@ describe('Event building for EVM', () => {
       expect(result).toStrictEqual(expected)
     })
 
+    it('Should build a standardized event object for a UserOperation event 7', async () => {
+      const {
+        buildStandardizedEvmEventObjectFromLog,
+      } = require('../../lib/evm/evm-build-standardized-event')
+      const chainId = '0xe15503e4'
+      const eventName =
+        'UserOperation(uint256 nonce,string destinationAccount,bytes4 destinationNetworkId,string underlyingAssetName,string underlyingAssetSymbol,uint256 underlyingAssetDecimals,address underlyingAssetTokenAddress,bytes4 underlyingAssetNetworkId,address assetTokenAddress,uint256 assetAmount,bytes userData,bytes32 optionsMask)'
+      const eventLog = logs[8]
+      const methodInterface = await getInterfaceFromEvent(eventName)
+      const result = await buildStandardizedEvmEventObjectFromLog(
+        chainId,
+        methodInterface,
+        eventLog
+      )
+
+      const expected = {
+        [schemas.constants.SCHEMA_ID_KEY]:
+          'useroperation_0x32fe2ff93d26184c87287d7b8d3d92f48f6224dd79b353eadeacf1e399378c08',
+        [schemas.constants.SCHEMA_STATUS_KEY]:
+          schemas.db.enums.txStatus.DETECTED,
+        [schemas.constants.SCHEMA_EVENT_NAME_KEY]:
+          schemas.db.enums.eventNames.USER_OPERATION,
+
+        [schemas.constants.SCHEMA_NONCE_KEY]: '6911',
+        [schemas.constants.SCHEMA_ASSET_AMOUNT_KEY]: '7000000000000000000',
+        [schemas.constants.SCHEMA_DESTINATION_ACCOUNT_KEY]:
+          '0xdDb5f4535123DAa5aE343c24006F4075aBAF5F7B',
+        [schemas.constants.SCHEMA_DESTINATION_NETWORK_ID_KEY]: '0xe15503e4',
+        [schemas.constants.SCHEMA_FINAL_TX_HASH_KEY]: null,
+        [schemas.constants.SCHEMA_FINAL_TX_TS_KEY]: null,
+        [schemas.constants.SCHEMA_UNDERLYING_ASSET_NAME_KEY]: 'Token',
+        [schemas.constants.SCHEMA_UNDERLYING_ASSET_SYMBOL_KEY]: 'TKN',
+        [schemas.constants.SCHEMA_UNDERLYING_ASSET_DECIMALS_KEY]: 18,
+        [schemas.constants.SCHEMA_UNDERLYING_ASSET_NETWORK_ID_KEY]:
+          '0xe15503e4',
+        [schemas.constants.SCHEMA_UNDERLYING_ASSET_TOKEN_ADDRESS_KEY]:
+          '0x49a5D1CF92772328Ad70f51894FD632a14dF12C9',
+        [schemas.constants.SCHEMA_OPTIONS_MASK]:
+          '0x0000000000000000000000000000000000000000000000000000000000000000',
+        [schemas.constants.SCHEMA_ORIGINATING_NETWORK_ID_KEY]: null,
+        [schemas.constants.SCHEMA_ORIGINATING_ADDRESS_KEY]: null,
+        [schemas.constants.SCHEMA_ORIGINATING_BLOCK_HASH_KEY]: null,
+        [schemas.constants.SCHEMA_ORIGINATING_TX_HASH_KEY]: null,
+        [schemas.constants.SCHEMA_NETWORK_ID_KEY]: '0xe15503e4',
+        [schemas.constants.SCHEMA_BLOCK_HASH_KEY]:
+          '0xf085786d855e220305a67f95653bd9345956b211095b7403e54da1b40699cb86',
+        [schemas.constants.SCHEMA_TX_HASH_KEY]:
+          '0x8ac05c2472b3a507f042557ee2c137d112a26d188fb267566b53c28975322452',
+        [schemas.constants.SCHEMA_PROPOSAL_TX_HASH_KEY]: null,
+        [schemas.constants.SCHEMA_PROPOSAL_TS_KEY]: null,
+        [schemas.constants.SCHEMA_ASSET_TOKEN_ADDRESS_KEY]:
+          '0x49a5D1CF92772328Ad70f51894FD632a14dF12C9',
+        [schemas.constants.SCHEMA_USER_DATA_KEY]: '0xc0ffee',
+        [schemas.constants.SCHEMA_WITNESSED_TS_KEY]: '2023-03-14T16:00:00.000Z',
+      }
+      await validation.validateJson(schemas.db.collections.events, expected)
+      expect(result).toStrictEqual(expected)
+    })
+
     it('Should build a standardized event object for a OperationQueued event 1', async () => {
       const {
         buildStandardizedEvmEventObjectFromLog,
@@ -419,6 +478,66 @@ describe('Event building for EVM', () => {
         [schemas.constants.SCHEMA_PROPOSAL_TS_KEY]: null,
         [schemas.constants.SCHEMA_ASSET_TOKEN_ADDRESS_KEY]: null,
         [schemas.constants.SCHEMA_USER_DATA_KEY]: '0x',
+        [schemas.constants.SCHEMA_WITNESSED_TS_KEY]: '2023-03-14T16:00:00.000Z',
+      }
+      await validation.validateJson(schemas.db.collections.events, expected)
+      expect(result).toStrictEqual(expected)
+    })
+
+    it('Should build a standardized event object for a OperationQueued event 2', async () => {
+      const {
+        buildStandardizedEvmEventObjectFromLog,
+      } = require('../../lib/evm/evm-build-standardized-event')
+      const chainId = '0xe15503e4'
+      const eventName =
+        'OperationQueued(tuple(bytes32 originBlockHash, bytes32 originTransactionHash, bytes32 optionsMask, uint256 nonce, uint256 underlyingAssetDecimals, uint256 amount, address underlyingAssetTokenAddress, bytes4 originNetworkId, bytes4 destinationNetworkId, bytes4 underlyingAssetNetworkId, string destinationAccount, string underlyingAssetName, string underlyingAssetSymbol, bytes userData) operation)'
+      const eventLog = logs[9]
+      const methodInterface = await getInterfaceFromEvent(eventName)
+      const result = await buildStandardizedEvmEventObjectFromLog(
+        chainId,
+        methodInterface,
+        eventLog
+      )
+
+      const expected = {
+        [schemas.constants.SCHEMA_ID_KEY]:
+          'operationqueued_0x32fe2ff93d26184c87287d7b8d3d92f48f6224dd79b353eadeacf1e399378c08',
+        [schemas.constants.SCHEMA_STATUS_KEY]:
+          schemas.db.enums.txStatus.DETECTED,
+        [schemas.constants.SCHEMA_EVENT_NAME_KEY]:
+          schemas.db.enums.eventNames.QUEUED_OPERATION,
+
+        [schemas.constants.SCHEMA_NONCE_KEY]: '6911',
+        [schemas.constants.SCHEMA_ASSET_AMOUNT_KEY]: '7000000000000000000',
+        [schemas.constants.SCHEMA_DESTINATION_ACCOUNT_KEY]:
+          '0xdDb5f4535123DAa5aE343c24006F4075aBAF5F7B',
+        [schemas.constants.SCHEMA_DESTINATION_NETWORK_ID_KEY]: '0xe15503e4',
+        [schemas.constants.SCHEMA_FINAL_TX_HASH_KEY]: null,
+        [schemas.constants.SCHEMA_FINAL_TX_TS_KEY]: null,
+        [schemas.constants.SCHEMA_UNDERLYING_ASSET_NAME_KEY]: 'Token',
+        [schemas.constants.SCHEMA_UNDERLYING_ASSET_SYMBOL_KEY]: 'TKN',
+        [schemas.constants.SCHEMA_UNDERLYING_ASSET_DECIMALS_KEY]: 18,
+        [schemas.constants.SCHEMA_UNDERLYING_ASSET_NETWORK_ID_KEY]:
+          '0xe15503e4',
+        [schemas.constants.SCHEMA_UNDERLYING_ASSET_TOKEN_ADDRESS_KEY]:
+          '0x49a5D1CF92772328Ad70f51894FD632a14dF12C9',
+        [schemas.constants.SCHEMA_OPTIONS_MASK]:
+          '0x0000000000000000000000000000000000000000000000000000000000000000',
+        [schemas.constants.SCHEMA_ORIGINATING_NETWORK_ID_KEY]: '0xe15503e4',
+        [schemas.constants.SCHEMA_ORIGINATING_ADDRESS_KEY]: null,
+        [schemas.constants.SCHEMA_ORIGINATING_BLOCK_HASH_KEY]:
+          '0xf085786d855e220305a67f95653bd9345956b211095b7403e54da1b40699cb86',
+        [schemas.constants.SCHEMA_ORIGINATING_TX_HASH_KEY]:
+          '0x8ac05c2472b3a507f042557ee2c137d112a26d188fb267566b53c28975322452',
+        [schemas.constants.SCHEMA_NETWORK_ID_KEY]: '0xe15503e4',
+        [schemas.constants.SCHEMA_BLOCK_HASH_KEY]:
+          '0x8e4479cd521acad9deae47ec04cfcd3d5c28ab30686b3a8581c7d88980bbf35b',
+        [schemas.constants.SCHEMA_TX_HASH_KEY]:
+          '0x153ad9b1613eeaf1234d8d430e2d3e22821f931d33d6f42de7e6ac0f95e87521',
+        [schemas.constants.SCHEMA_PROPOSAL_TX_HASH_KEY]: null,
+        [schemas.constants.SCHEMA_PROPOSAL_TS_KEY]: null,
+        [schemas.constants.SCHEMA_ASSET_TOKEN_ADDRESS_KEY]: null,
+        [schemas.constants.SCHEMA_USER_DATA_KEY]: '0xc0ffee',
         [schemas.constants.SCHEMA_WITNESSED_TS_KEY]: '2023-03-14T16:00:00.000Z',
       }
       await validation.validateJson(schemas.db.collections.events, expected)
