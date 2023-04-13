@@ -5,7 +5,7 @@ const {
   STATE_PROPOSED_DB_REPORTS_KEY,
   STATE_FINALIZED_DB_REPORTS_KEY,
 } = require('../../lib/state/constants')
-const { curry, prop } = require('ramda')
+const R = require('ramda')
 const { db, logic } = require('ptokens-utils')
 const constants = require('ptokens-constants')
 const schemas = require('ptokens-schemas')
@@ -31,7 +31,7 @@ describe('Main EVM flow for transaction proposal tests', () => {
     })
 
     afterEach(async () => {
-      await Promise.all(proposedEvents.map(prop('_id'))).then(_ids =>
+      await Promise.all(proposedEvents.map(R.prop('_id'))).then(_ids =>
         Promise.all(_ids.map(db.deleteReport(collection)))
       )
       jest.restoreAllMocks()
@@ -70,7 +70,7 @@ describe('Main EVM flow for transaction proposal tests', () => {
         .mockImplementation(_ => Promise.resolve())
       jest
         .spyOn(logic, 'sleepThenReturnArg')
-        .mockImplementation(curry((_, _r) => Promise.resolve(_r)))
+        .mockImplementation(R.curry((_, _r) => Promise.resolve(_r)))
 
       jest
         .spyOn(ethers, 'Contract')

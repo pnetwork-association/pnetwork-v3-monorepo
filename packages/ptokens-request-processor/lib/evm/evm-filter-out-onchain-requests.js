@@ -1,4 +1,4 @@
-const { assoc, curry, complement, any, identical } = require('ramda')
+const R = require('ramda')
 const { logger } = require('../get-logger')
 const {
   STATE_DETECTED_DB_REPORTS_KEY,
@@ -7,7 +7,7 @@ const {
 } = require('../state/constants')
 const schemas = require('ptokens-schemas')
 
-const areRequestsIdsEqual = curry(
+const areRequestsIdsEqual = R.curry(
   (_report, _request) =>
     logger.debug('Queued request:\n', _request) ||
     logger.debug('Matching db report:\n', _report) ||
@@ -15,13 +15,13 @@ const areRequestsIdsEqual = curry(
       _request[schemas.constants.SCHEMA_ID_KEY]
 )
 
-const isAlreadyProcessedTxs = curry((_onChainTxs, _requestedTx) => {
+const isAlreadyProcessedTxs = R.curry((_onChainTxs, _requestedTx) => {
   const list = _onChainTxs.map(areRequestsIdsEqual(_requestedTx))
-  return any(identical(true), list)
+  return R.any(R.identical(true), list)
 })
 
 const setRequestStatusToProposed = request =>
-  assoc(
+  R.assoc(
     schemas.constants.SCHEMA_STATUS_KEY,
     schemas.db.enums.txStatus.PROPOSED,
     request
@@ -39,14 +39,14 @@ const filterOutOnChainRequestsAndPutInState = _state =>
       setRequestStatusToProposed
     )
     const toProcessRequests = detectedTxs.filter(
-      complement(isAlreadyProcessedTxs(onChainRequests))
+      R.complement(isAlreadyProcessedTxs(onChainRequests))
     )
 
     return resolve(
-      assoc(
+      R.assoc(
         STATE_DETECTED_DB_REPORTS_KEY,
         toProcessRequests,
-        assoc(STATE_PROPOSED_DB_REPORTS_KEY, alreadyProposedRequests, _state)
+        R.assoc(STATE_PROPOSED_DB_REPORTS_KEY, alreadyProposedRequests, _state)
       )
     )
   })

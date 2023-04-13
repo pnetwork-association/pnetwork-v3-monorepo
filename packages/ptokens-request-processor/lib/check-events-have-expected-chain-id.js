@@ -1,8 +1,8 @@
-const { curry } = require('ramda')
+const R = require('ramda')
 const schemas = require('ptokens-schemas')
 const { ERROR_INVALID_CHAIN_ID } = require('./errors')
 
-const checkEventHaveExpectedChainId = curry(
+const checkEventHaveExpectedChainId = R.curry(
   (_reportChainIdKey, _expectedValue, _eventReport) =>
     new Promise((resolve, reject) => {
       const eventChainId = _eventReport[_reportChainIdKey]
@@ -19,7 +19,7 @@ const checkEventHaveExpectedChainId = curry(
     })
 )
 
-const checkEventsHaveExpectedChainId = curry(
+const checkEventsHaveExpectedChainId = R.curry(
   (_reportChainIdKey, _expectedValue, _eventReports) =>
     Promise.all(
       _eventReports.map(

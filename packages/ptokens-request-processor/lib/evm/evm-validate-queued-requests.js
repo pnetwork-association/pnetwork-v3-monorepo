@@ -1,4 +1,4 @@
-const { assoc, curry } = require('ramda')
+const R = require('ramda')
 const { logger } = require('../get-logger')
 const {
   STATE_DETECTED_DB_REPORTS_KEY,
@@ -25,7 +25,7 @@ const findMatchingReport = (_detectedTxs, _request) =>
     .getEventId(_request)
     .then(_id => _detectedTxs.find(_element => _element._id === _id))
 
-const isRequestInvalid = curry((_detectedTxs, _request) =>
+const isRequestInvalid = R.curry((_detectedTxs, _request) =>
   findMatchingReport(_detectedTxs, _request).then(_matchingReport =>
     utils.isNotNil(_matchingReport)
       ? logger.info(
@@ -45,7 +45,7 @@ const filterOutInvalidQueuedRequestsAndPutInState = _state => {
       onChainRequests.filter((_req, _i) => _invalidArray[_i])
     )
     .then(_invalidRequests =>
-      assoc(STATE_TO_BE_DISMISSED_REQUESTS_KEY, _invalidRequests, _state)
+      R.assoc(STATE_TO_BE_DISMISSED_REQUESTS_KEY, _invalidRequests, _state)
     )
 }
 

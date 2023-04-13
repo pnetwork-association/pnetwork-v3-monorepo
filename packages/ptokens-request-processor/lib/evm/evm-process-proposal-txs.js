@@ -1,4 +1,4 @@
-const { curry } = require('ramda')
+const R = require('ramda')
 const { logic } = require('ptokens-utils')
 const { logger } = require('../get-logger')
 const {
@@ -21,7 +21,7 @@ const {
 } = require('../state/state-operations')
 const constants = require('ptokens-constants')
 
-const pollForRequestsErrorHandler = curry((_pollForRequestsLoop, _err) => {
+const pollForRequestsErrorHandler = R.curry((_pollForRequestsLoop, _err) => {
   return Promise.reject(_err)
 })
 

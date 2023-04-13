@@ -1,5 +1,5 @@
 const schemas = require('ptokens-schemas')
-const { assoc, curry } = require('ramda')
+const R = require('ramda')
 const { logger } = require('./get-logger')
 const constants = require('ptokens-constants')
 const {
@@ -13,7 +13,7 @@ const {
   extractReportsFromOnChainRequests,
 } = require('./extract-reports-with-query')
 
-const getValidEventsWithStatusAndPutInState = curry(
+const getValidEventsWithStatusAndPutInState = R.curry(
   (_status, _stateKey, _state) =>
     extractReportsWithChainIdAndStatus(
       _state[constants.state.STATE_KEY_DB],
@@ -25,7 +25,7 @@ const getValidEventsWithStatusAndPutInState = curry(
         _reports =>
           logger.info(
             `Adding reports w/ status '${_status}' to state under '${_stateKey}' key`
-          ) || assoc(_stateKey, _reports, _state)
+          ) || R.assoc(_stateKey, _reports, _state)
       )
 )
 
@@ -50,7 +50,7 @@ const getValidMatchingEventsAndPutInState = _state =>
     .then(
       _reports =>
         logger.info('Adding detected reports to state...') ||
-        assoc(STATE_DETECTED_DB_REPORTS_KEY, _reports, _state)
+        R.assoc(STATE_DETECTED_DB_REPORTS_KEY, _reports, _state)
     )
 
 module.exports = {

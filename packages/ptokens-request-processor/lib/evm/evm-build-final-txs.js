@@ -5,7 +5,7 @@ const { logger } = require('../get-logger')
 const { readFile } = require('fs/promises')
 const { errors, logic } = require('ptokens-utils')
 const { ERROR_INVALID_EVENT_NAME } = require('../errors')
-const { curry, values, includes, length, prop } = require('ramda')
+const R = require('ramda')
 const { addFinalizedEventsToState } = require('../state/state-operations.js')
 const { STATE_PROPOSED_DB_REPORTS_KEY } = require('../state/constants')
 const {
@@ -22,7 +22,7 @@ const {
 } = require('./evm-abi-manager')
 
 // TODO: factor out (check evm-build-proposals-txs)
-const addFinalizedTxHashToEvent = curry((_event, _finalizedTxHash) => {
+const addFinalizedTxHashToEvent = R.curry((_event, _finalizedTxHash) => {
   // TODO: replace _id field
   const id = _event[schemas.constants.SCHEMA_ID_KEY]
   logger.debug(`Adding ${_finalizedTxHash} to ${id.slice(0, 20)}...`)
@@ -35,14 +35,16 @@ const addFinalizedTxHashToEvent = curry((_event, _finalizedTxHash) => {
   return Promise.resolve(_event)
 })
 
-const executeOperationErrorHandler = curry(
+const executeOperationErrorHandler = R.curry(
   (resolve, reject, _eventReport, _err) => {
     const originTxHash =
       _eventReport[schemas.constants.SCHEMA_ORIGINATING_TX_HASH_KEY]
-    if (_err.message.includes(errors.ERROR_TIMEOUT)) {
+    if (_err.message.R.includes(errors.ERROR_TIMEOUT)) {
       logger.error(`Tx for ${originTxHash} failed:`, _err.message)
       return resolve(_eventReport)
-    } else if (_err.message.includes(errors.ERROR_OPERATION_ALREADY_EXECUTED)) {
+    } else if (
+      _err.message.R.includes(errors.ERROR_OPERATION_ALREADY_EXECUTED)
+    ) {
       logger.error(`Tx for ${originTxHash} has already been executed`)
       return resolve(addFinalizedTxHashToEvent(_eventReport, '0x'))
     } else {
@@ -51,13 +53,13 @@ const executeOperationErrorHandler = curry(
   }
 )
 
-const makeFinalContractCall = curry(
+const makeFinalContractCall = R.curry(
   (_wallet, _stateManager, _txTimeout, _eventReport) =>
     new Promise((resolve, reject) => {
       const id = _eventReport[schemas.constants.SCHEMA_ID_KEY]
       const eventName = _eventReport[schemas.constants.SCHEMA_EVENT_NAME_KEY]
 
-      if (!includes(eventName, values(schemas.db.enums.eventNames))) {
+      if (!R.includes(eventName, R.values(schemas.db.enums.eventNames))) {
         return reject(new Error(`${ERROR_INVALID_EVENT_NAME}: ${eventName}`))
       }
 
@@ -76,14 +78,14 @@ const makeFinalContractCall = curry(
         contract,
         _txTimeout
       )
-        .then(prop(ETHERS_KEY_TX_HASH))
+        .then(R.prop(ETHERS_KEY_TX_HASH))
         .then(addFinalizedTxHashToEvent(_eventReport))
         .then(resolve)
         .catch(executeOperationErrorHandler(resolve, reject, _eventReport))
     })
 )
 
-const sendFinalTransactions = curry(
+const sendFinalTransactions = R.curry(
   (_eventReports, _stateManager, _timeOut, _wallet) =>
     logger.info(`Sending final txs w/ address ${_wallet.address}`) ||
     Promise.all(
@@ -133,7 +135,7 @@ const maybeBuildFinalTxsAndPutInState = _state =>
   new Promise(resolve => {
     logger.info('Maybe building final txs...')
     const proposedEvents = _state[STATE_PROPOSED_DB_REPORTS_KEY] || []
-    const proposedEventsNumber = length(proposedEvents)
+    const proposedEventsNumber = R.length(proposedEvents)
 
     return proposedEventsNumber === 0
       ? logger.info('No proposals found...') || resolve(_state)
