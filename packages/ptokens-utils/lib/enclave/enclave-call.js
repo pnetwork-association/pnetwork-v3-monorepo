@@ -2,7 +2,7 @@ const {
   ERROR_ENCLAVE_CALL_FAILED,
   ERROR_ENCLAVE_CALL_TIMEOUT,
 } = require('../errors')
-const { isNil } = require('ramda')
+const R = require('ramda')
 const { logger } = require('../logger')
 const { promisify } = require('node:util')
 const execFile = promisify(require('node:child_process').execFile)
@@ -11,7 +11,7 @@ const call = (_path, _executable, _args, _timeout = 0) =>
   logger.trace(`Executing enclave command ${_path}/${_executable} ${_args}`) ||
   execFile(_executable, _args, { cwd: _path, timeout: _timeout })
     .then(({ stdout, stderr }) =>
-      !isNil(stderr) && stderr.includes('✘')
+      !R.isNil(stderr) && stderr.includes('✘')
         ? Promise.reject(new Error(`${ERROR_ENCLAVE_CALL_FAILED} - ${stderr}`))
         : stdout.trim()
     )

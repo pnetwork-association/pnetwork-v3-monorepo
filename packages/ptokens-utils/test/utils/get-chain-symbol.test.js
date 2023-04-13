@@ -1,5 +1,5 @@
 const assert = require('assert')
-const { values } = require('ramda')
+const R = require('ramda')
 const { utils, errors, constants, bridgeTypes } = require('../..')
 
 describe('Get chain symbols tests', () => {
@@ -20,7 +20,7 @@ describe('Get chain symbols tests', () => {
         'int',
       ]
 
-      await values(bridgeTypes).map(async (_bridgeType, _i) => {
+      await R.values(bridgeTypes).map(async (_bridgeType, _i) => {
         const nativeSymbol = await utils.getNativeChainSymbolFromBridgeType(
           _bridgeType
         )
@@ -46,7 +46,7 @@ describe('Get chain symbols tests', () => {
         'algo',
       ]
 
-      await values(bridgeTypes).map(async (_bridgeType, _i) => {
+      await R.values(bridgeTypes).map(async (_bridgeType, _i) => {
         const hostSymbol = await utils.getHostChainSymbolFromBridgeType(
           _bridgeType
         )
@@ -87,7 +87,7 @@ describe('Get chain symbols tests', () => {
 
       const outputTxType = 'native'
 
-      await values(bridgeTypes).map(async (_bridgeType, _i) => {
+      await R.values(bridgeTypes).map(async (_bridgeType, _i) => {
         const hostSymbol = await utils.getSubmissionChainSymbolFromOutputTxType(
           outputTxType,
           _bridgeType
@@ -113,7 +113,7 @@ describe('Get chain symbols tests', () => {
       ]
       const outputTxType = 'host'
 
-      await values(bridgeTypes).map(async (_bridgeType, _i) => {
+      await R.values(bridgeTypes).map(async (_bridgeType, _i) => {
         const nativeSymbol =
           await utils.getSubmissionChainSymbolFromOutputTxType(
             outputTxType,
@@ -157,9 +157,9 @@ describe('Get chain symbols tests', () => {
       ]
 
       assert.equal(nativeSymbols.length, hostSymbols.length)
-      assert.equal(nativeSymbols.length, values(bridgeTypes).length)
+      assert.equal(nativeSymbols.length, R.values(bridgeTypes).length)
 
-      await values(bridgeTypes).map(async (bridgeType, i) => {
+      await R.values(bridgeTypes).map(async (bridgeType, i) => {
         const maybeNativeSide = await utils.getBridgeSideForSymbol(
           bridgeType,
           nativeSymbols[i]
@@ -204,11 +204,11 @@ describe('Get chain symbols tests', () => {
       ]
 
       const v2BridgesFilterRegexp = new RegExp('int')
-      const v2BridgeTypes = values(bridgeTypes).filter(_bridge =>
+      const v2BridgeTypes = R.values(bridgeTypes).filter(_bridge =>
         v2BridgesFilterRegexp.test(_bridge)
       )
 
-      await values(v2BridgeTypes).map(async (_bridgeType, _i) => {
+      await R.values(v2BridgeTypes).map(async (_bridgeType, _i) => {
         const side = await utils.getBridgeSideFromV2BridgeType(_bridgeType)
         assert.equal(side, expected[_i])
       })
@@ -216,11 +216,11 @@ describe('Get chain symbols tests', () => {
 
     it('Should reject with a non-v2 bridge', async () => {
       const v2BridgesFilterRegexp = new RegExp('^((?!int).)*$')
-      const v2BridgeTypes = values(bridgeTypes).filter(_bridge =>
+      const v2BridgeTypes = R.values(bridgeTypes).filter(_bridge =>
         v2BridgesFilterRegexp.test(_bridge)
       )
 
-      await values(v2BridgeTypes).map(async (_bridgeType, _i) => {
+      await R.values(v2BridgeTypes).map(async (_bridgeType, _i) => {
         try {
           await utils.getBridgeSideFromV2BridgeType(_bridgeType)
         } catch (err) {

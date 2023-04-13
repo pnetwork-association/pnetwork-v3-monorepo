@@ -1,4 +1,4 @@
-const { has } = require('ramda')
+const R = require('ramda')
 
 const stringifyAggregatedError = _errors =>
   _errors['errors'].reduce(
@@ -7,7 +7,7 @@ const stringifyAggregatedError = _errors =>
   )
 
 const stringifyErrors = _errors =>
-  _errors instanceof AggregateError && has('errors', _errors)
+  _errors instanceof AggregateError && R.has('errors', _errors)
     ? stringifyAggregatedError(_errors)
     : _errors
 

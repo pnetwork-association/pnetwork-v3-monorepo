@@ -5,10 +5,10 @@ const {
 } = require('../errors')
 const fetch = require('node-fetch')
 const jsonrpc = require('jsonrpc-lite')
-const { has, curry } = require('ramda')
+const R = require('ramda')
 const { logger } = require('../logger')
 
-const setControllerTimeout = curry((_millis, _controller) =>
+const setControllerTimeout = R.curry((_millis, _controller) =>
   Promise.resolve(
     setTimeout(() => {
       _controller.abort()
@@ -74,20 +74,20 @@ const fetchJsonByPost = (_url, _body, _headers = {}, _timeout = 5000) =>
     .then(checkStatus)
     .then(getJsonBody)
 
-const plainJsonResponse = curry((_res, _result) =>
+const plainJsonResponse = R.curry((_res, _result) =>
   _res.status(200).send(_result)
 )
 
-const jsonRpcSuccess = curry((_req, _res, _result) =>
+const jsonRpcSuccess = R.curry((_req, _res, _result) =>
   _res.send(jsonrpc.success(_req.body.id, _result))
 )
 
-const jsonRpcError = curry((_req, _res, _err) => {
+const jsonRpcError = R.curry((_req, _res, _err) => {
   const id = _req.body.id ? _req.body.id : 0
   return _res.send(
     _err instanceof jsonrpc.JsonRpcError
       ? jsonrpc.error(id, _err)
-      : has('code', _err) && has('message', _err)
+      : R.has('code', _err) && R.has('message', _err)
       ? jsonrpc.error(id, new jsonrpc.JsonRpcError(_err.message, _err.code))
       : jsonrpc.error(id, ERROR_SERVER_ERROR)
   )
