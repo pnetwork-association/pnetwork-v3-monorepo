@@ -10,6 +10,7 @@ describe('Chain ID utils tests', () => {
         constants.blockchainType.EVM,
         constants.blockchainType.EVM,
         constants.blockchainType.EVM,
+        constants.blockchainType.EVM,
         constants.blockchainType.UTXO,
         constants.blockchainType.UTXO,
         constants.blockchainType.EOSIO,
