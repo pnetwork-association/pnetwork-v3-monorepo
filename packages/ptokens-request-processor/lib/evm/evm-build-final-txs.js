@@ -42,9 +42,7 @@ const executeOperationErrorHandler = R.curry(
     if (_err.message.includes(errors.ERROR_TIMEOUT)) {
       logger.error(`Tx for ${originTxHash} failed:`, _err.message)
       return resolve(_eventReport)
-    } else if (
-      _err.message.includes(errors.ERROR_OPERATION_ALREADY_EXECUTED)
-    ) {
+    } else if (_err.message.includes(errors.ERROR_OPERATION_ALREADY_EXECUTED)) {
       logger.error(`Tx for ${originTxHash} has already been executed`)
       return resolve(addFinalizedTxHashToEvent(_eventReport, '0x'))
     } else {
