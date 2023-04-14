@@ -6,35 +6,15 @@ const {
   STATE_TO_BE_DISMISSED_REQUESTS_KEY,
 } = require('../state/constants')
 const schemas = require('ptokens-schemas')
-const { utils } = require('ptokens-utils')
 
-const checkRequestAgainstMatchingReport = (_report, _request) =>
-  logger.debug('Queued request:\n', _request) ||
-  logger.debug('Matching db report:\n', _report) ||
-  (_report[schemas.constants.SCHEMA_ASSET_AMOUNT_KEY] ===
-    _request[schemas.constants.SCHEMA_ASSET_AMOUNT_KEY] &&
-    _report[schemas.constants.SCHEMA_DESTINATION_ACCOUNT_KEY] ===
-      _request[schemas.constants.SCHEMA_DESTINATION_ACCOUNT_KEY] &&
-    (_request[schemas.constants.SCHEMA_USER_DATA_KEY]
-      ? _report[schemas.constants.SCHEMA_USER_DATA_KEY] ===
-        _request[schemas.constants.SCHEMA_USER_DATA_KEY]
-      : true))
-
-const findMatchingReport = (_detectedTxs, _request) =>
-  utils
-    .getEventId(_request)
-    .then(_id => _detectedTxs.find(_element => _element._id === _id))
-
-const isRequestInvalid = R.curry((_detectedTxs, _request) =>
-  findMatchingReport(_detectedTxs, _request).then(_matchingReport =>
-    utils.isNotNil(_matchingReport)
-      ? logger.info(
-          `Found a match for ${
-            _matchingReport[schemas.constants.SCHEMA_ID_KEY]
-          }...`
-        ) || !checkRequestAgainstMatchingReport(_matchingReport, _request)
-      : true
-  )
+const isRequestInvalid = R.curry(
+  (_detectedTxs, _request) =>
+    !_detectedTxs.some(
+      _detectedReport =>
+        // check event ID is the same
+        _detectedReport[schemas.constants.SCHEMA_ID_KEY].split('_')[1] ===
+        _request[schemas.constants.SCHEMA_ID_KEY].split('_')[1]
+    )
 )
 const filterOutInvalidQueuedRequestsAndPutInState = _state => {
   logger.info('Getting EVM on chain requests and putting in state...')
