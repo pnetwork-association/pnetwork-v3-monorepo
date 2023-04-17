@@ -1,5 +1,5 @@
-// TODO: rename module to get-event-id
 const ethers = require('ethers')
+const { logger } = require('../logger')
 const { blockchainType } = require('../constants')
 const { getBlockchainTypeFromChainId } = require('./utils-chain-id')
 
@@ -153,12 +153,17 @@ const getEventId = ({
           )
       }
     })
-    .catch(_ =>
-      fallbackEventId(
-        originatingNetworkId,
-        originatingBlockHash,
-        originatingTransactionHash
-      )
+    // This should handle cases where
+    //  - The ID is not defined in the metadataChainIds object
+    //  - The event does not have the expected properties
+    .catch(
+      _err =>
+        logger.error(_err) ||
+        fallbackEventId(
+          originatingNetworkId,
+          originatingBlockHash,
+          originatingTransactionHash
+        )
     )
 
 module.exports = { getEventId }
