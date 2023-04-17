@@ -24,6 +24,6 @@ module.exports = {
   ERROR_FILE_NOT_EXISTS: 'The specified file does not exist',
   ERROR_GPG_DECRYPTION_FAILED: 'Failed to decrypt file',
   ERROR_ESTIMATE_GAS: 'estimateGas',
-  ERROR_OPERATION_ALREADY_EXECUTED: 'Transaction has alredy been executed',
-  ERROR_OPERATION_ALREADY_QUEUED: 'Transaction has alredy been queued',
+  ERROR_OPERATION_ALREADY_EXECUTED: 'Transaction has already been executed',
+  ERROR_OPERATION_ALREADY_QUEUED: 'Transaction has already been queued',
 }
