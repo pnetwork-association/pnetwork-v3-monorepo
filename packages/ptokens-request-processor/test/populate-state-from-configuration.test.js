@@ -41,7 +41,7 @@ describe('State utilities tests', () => {
       assert.deepStrictEqual(ret, {
         [constants.state.STATE_KEY_DB]:
           'a-url/a-database-name/a-collection-name',
-        [constants.state.STATE_KEY_CHAIN_ID]: '0x005fe7f9',
+        [constants.state.STATE_KEY_NETWORK_ID]: '0x005fe7f9',
         [constants.state.STATE_KEY_PROVIDER_URL]: 'a-provider-url',
         [constants.state.STATE_KEY_STATE_MANAGER_ADDRESS]: '0x1',
         [constants.state.STATE_KEY_IDENTITY_FILE]: '/usr/src/app/private-key',

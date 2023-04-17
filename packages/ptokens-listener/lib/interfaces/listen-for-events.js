@@ -29,7 +29,7 @@ const getListenerForBlockchainType = _blockchainType => {
 
 const listenForEvents = _state =>
   utils
-    .getBlockchainTypeFromChainId(_state[constants.state.STATE_KEY_CHAIN_ID])
+    .getBlockchainTypeFromChainId(_state[constants.state.STATE_KEY_NETWORK_ID])
     .then(getListenerForBlockchainType)
     .then(_listener =>
       _listener(

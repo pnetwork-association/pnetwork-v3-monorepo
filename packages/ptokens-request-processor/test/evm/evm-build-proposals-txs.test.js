@@ -151,7 +151,7 @@ describe('Build proposals test for EVM', () => {
       const state = {
         [constants.state.STATE_KEY_TX_TIMEOUT]: txTimeout,
         [constants.state.STATE_KEY_PROVIDER_URL]: providerUrl,
-        [constants.state.STATE_KEY_CHAIN_ID]: destinationNetworkId,
+        [constants.state.STATE_KEY_NETWORK_ID]: destinationNetworkId,
         [constants.state.STATE_KEY_IDENTITY_FILE]: gpgEncryptedFile,
         [constants.state.STATE_KEY_STATE_MANAGER_ADDRESS]: stateManagerAddress,
         [STATE_DETECTED_DB_REPORTS_KEY]: [detectedEvents[0], detectedEvents[1]],
@@ -165,7 +165,7 @@ describe('Build proposals test for EVM', () => {
 
       expect(result).toHaveProperty(STATE_PROPOSED_DB_REPORTS_KEY)
       expect(result).toHaveProperty(STATE_DETECTED_DB_REPORTS_KEY)
-      expect(result).toHaveProperty(constants.state.STATE_KEY_CHAIN_ID)
+      expect(result).toHaveProperty(constants.state.STATE_KEY_NETWORK_ID)
       expect(result).toHaveProperty(constants.state.STATE_KEY_PROVIDER_URL)
       expect(result).toHaveProperty(constants.state.STATE_KEY_IDENTITY_FILE)
       expect(result).toHaveProperty(

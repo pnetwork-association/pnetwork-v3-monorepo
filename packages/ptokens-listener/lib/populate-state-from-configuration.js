@@ -32,7 +32,7 @@ const getEventFromConfigurationAndPutInState = R.curry((_config, _state) =>
 
 const getChainIdFromConfigurationAndPutInState = R.curry((_config, _state) =>
   R.assoc(
-    constants.state.STATE_KEY_CHAIN_ID,
+    constants.state.STATE_KEY_NETWORK_ID,
     _config[schemas.constants.SCHEMA_CHAIN_ID_KEY],
     _state
   )

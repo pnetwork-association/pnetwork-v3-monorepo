@@ -107,7 +107,7 @@ const buildFinalTxsAndPutInState = _state =>
   new Promise(resolve => {
     logger.info('Building final txs...')
     const proposedEvents = _state[STATE_PROPOSED_DB_REPORTS_KEY]
-    const destinationNetworkId = _state[constants.state.STATE_KEY_CHAIN_ID]
+    const destinationNetworkId = _state[constants.state.STATE_KEY_NETWORK_ID]
     const providerUrl = _state[constants.state.STATE_KEY_PROVIDER_URL]
     const identityGpgFile = _state[constants.state.STATE_KEY_IDENTITY_FILE]
     const provider = new ethers.JsonRpcProvider(providerUrl)

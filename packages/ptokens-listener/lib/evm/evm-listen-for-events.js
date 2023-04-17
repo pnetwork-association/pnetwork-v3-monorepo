@@ -66,7 +66,7 @@ const listenForEvmEvents = (_state, _callback) =>
     _state[STATE_KEY_EVENTS].map(_event =>
       startEvmListenerFromEventObject(
         _state[constants.state.STATE_KEY_PROVIDER_URL],
-        _state[constants.state.STATE_KEY_CHAIN_ID],
+        _state[constants.state.STATE_KEY_NETWORK_ID],
         _event,
         _callback
       )
