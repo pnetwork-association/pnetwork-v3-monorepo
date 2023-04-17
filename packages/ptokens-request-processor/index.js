@@ -1,6 +1,7 @@
 #!/usr/bin/env node
+const { Command } = require('commander')
+const program = new Command()
 const config = require('./config')
-const R = require('ramda')
 const { logger } = require('./lib/get-logger')
 const { validation } = require('ptokens-utils')
 const schemas = require('ptokens-schemas')
@@ -17,25 +18,19 @@ const {
 const {
   getInitialStateFromConfiguration,
 } = require('./lib/populate-state-from-configuration')
+const { version } = require('./package')
 
-const commandToFunctionMapping = {
-  processFinalTransactions: processFinalTransactions,
-  pollForRequestsAndPropose: pollForRequestsAndPropose,
-  pollForRequestsAndDismiss: pollForRequestsAndDismiss,
+const COMMANDS = {
+  PROCESS_FINAL_TRANSACTION: 'processFinalTransactions',
+  POLL_FOR_REQUESTS_AND_PROPOSE: 'pollForRequestsAndPropose',
+  POLL_FOR_REQUESTS_AND_DISMISS: 'pollForRequestsAndDismiss',
 }
 
-const checkFlowIsValid = _cmd =>
-  new Promise((resolve, reject) =>
-    R.keys(commandToFunctionMapping).some(R.equals(_cmd))
-      ? resolve()
-      : reject(
-          new Error(
-            `Invalid command submitted, they should be [${R.keys(
-              commandToFunctionMapping
-            )}]`
-          )
-        )
-  )
+const commandToFunctionMapping = {
+  [COMMANDS.PROCESS_FINAL_TRANSACTION]: processFinalTransactions,
+  [COMMANDS.POLL_FOR_REQUESTS_AND_PROPOSE]: pollForRequestsAndPropose,
+  [COMMANDS.POLL_FOR_REQUESTS_AND_DISMISS]: pollForRequestsAndDismiss,
+}
 
 const requestProcessor = (_config, _cmd) =>
   logger.info(_config) ||
@@ -43,8 +38,6 @@ const requestProcessor = (_config, _cmd) =>
     .then(_ =>
       validation.validateJson(schemas.configurations.requestProcessor, _config)
     )
-    .then(_ => checkFlowIsValid(_cmd))
-    .then(_ => logger.info(`Valid command selected: ${_cmd}`))
     .then(_ => getInitialStateFromConfiguration(_config))
     .then(commandToFunctionMapping[_cmd])
     .catch(
@@ -54,4 +47,34 @@ const requestProcessor = (_config, _cmd) =>
         process.exit(1)
     )
 
-requestProcessor(config, process.argv[2])
+const main = () => {
+  program
+    .name('ptokens-request-processor')
+    .description('pTokens Request Processor')
+    .version(version)
+
+  program
+    .command(COMMANDS.PROCESS_FINAL_TRANSACTION)
+    .description('Finalize proposed transactions')
+    .action(() => requestProcessor(config, COMMANDS.PROCESS_FINAL_TRANSACTION))
+
+  program
+    .command(COMMANDS.POLL_FOR_REQUESTS_AND_PROPOSE)
+    .description(
+      'Poll for user requests and propose in the destination blockchain'
+    )
+    .action(() =>
+      requestProcessor(config, COMMANDS.POLL_FOR_REQUESTS_AND_PROPOSE)
+    )
+
+  program
+    .command(COMMANDS.POLL_FOR_REQUESTS_AND_DISMISS)
+    .description('Poll for queued requests and dismiss them if invalid')
+    .action(() =>
+      requestProcessor(config, COMMANDS.POLL_FOR_REQUESTS_AND_DISMISS)
+    )
+
+  program.parse(process.argv)
+}
+
+main()
