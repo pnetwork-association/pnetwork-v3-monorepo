@@ -4,7 +4,7 @@ module.exports = {
   SCHEMA_URL_KEY: 'url',
   SCHEMA_TABLE_EVENTS_KEY: 'table-events',
   SCHEMA_PROVIDER_URL_KEY: 'provider-url',
-  SCHEMA_NETWORK_ID_KEY: 'chain-id',
+  SCHEMA_NETWORK_ID_KEY: 'network-id',
   SCHEMA_CHAIN_NAME_KEY: 'chain-name',
   SCHEMA_CHAIN_TYPE_KEY: 'chain-type',
   SCHEMA_TX_TIMEOUT: 'tx-timeout',
