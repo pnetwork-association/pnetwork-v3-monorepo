@@ -3,12 +3,18 @@ const { db } = require('ptokens-utils')
 const config = require('../config')
 const schemas = require('ptokens-schemas')
 
-const exitCleanly = _exitCode =>
-  logger.info('Clean exit...') ||
+const maybeCloseDbConnection = () =>
   db
     .closeConnection(
       config[schemas.constants.SCHEMA_DB_KEY][schemas.constants.SCHEMA_URL_KEY]
     )
+    .catch(() => {
+      logger.info('No database connection to close')
+    })
+
+const exitCleanly = _exitCode =>
+  logger.info('Clean exit...') ||
+  maybeCloseDbConnection()
     .then(shutDownLogging)
     // eslint-disable-next-line no-process-exit
     .then(_ => process.exit(_exitCode))

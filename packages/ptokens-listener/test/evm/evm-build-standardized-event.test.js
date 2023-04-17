@@ -1,5 +1,5 @@
 const { logs } = require('../mock/evm-logs')
-const { getInterfaceFromEvent } = require('../../lib/evm/listener-evm')
+const { getInterfaceFromEvent } = require('../../lib/evm/evm-utils')
 const schemas = require('ptokens-schemas')
 const { validation } = require('ptokens-utils')
 
