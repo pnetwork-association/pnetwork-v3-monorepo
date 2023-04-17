@@ -8,7 +8,7 @@ module.exports = {
     constants.SCHEMA_CHAIN_NAME_KEY,
     constants.SCHEMA_PROVIDER_URL_KEY,
     constants.SCHEMA_CHAIN_TYPE_KEY,
-    constants.SCHEMA_CHAIN_ID_KEY,
+    constants.SCHEMA_NETWORK_ID_KEY,
     constants.SCHEMA_EVENTS_KEY,
     constants.SCHEMA_DB_KEY,
   ],
@@ -22,7 +22,7 @@ module.exports = {
     [constants.SCHEMA_CHAIN_TYPE_KEY]: {
       type: 'string',
     },
-    [constants.SCHEMA_CHAIN_ID_KEY]: {
+    [constants.SCHEMA_NETWORK_ID_KEY]: {
       type: 'string',
     },
     [constants.SCHEMA_EVENTS_KEY]: {

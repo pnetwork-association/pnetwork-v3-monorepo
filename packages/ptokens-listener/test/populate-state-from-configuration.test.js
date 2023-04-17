@@ -16,7 +16,7 @@ describe('State utilities tests', () => {
           [schemas.constants.SCHEMA_NAME_KEY]: 'a-database-name',
           [schemas.constants.SCHEMA_TABLE_EVENTS_KEY]: 'a-collection-name',
         },
-        [schemas.constants.SCHEMA_CHAIN_ID_KEY]: '0x00112233',
+        [schemas.constants.SCHEMA_NETWORK_ID_KEY]: '0x00112233',
         [schemas.constants.SCHEMA_EVENTS_KEY]: [
           {
             [schemas.constants.SCHEMA_NAME_KEY]: 'redeem',

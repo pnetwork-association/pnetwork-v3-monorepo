@@ -37,7 +37,7 @@ const getInitialStateFromConfiguration = _config =>
     .then(
       getConfigPropertyAndPutInState(
         _config,
-        schemas.constants.SCHEMA_CHAIN_ID_KEY,
+        schemas.constants.SCHEMA_NETWORK_ID_KEY,
         constants.state.STATE_KEY_NETWORK_ID,
         null
       )

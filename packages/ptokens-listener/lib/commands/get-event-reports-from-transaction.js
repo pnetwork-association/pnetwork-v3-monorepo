@@ -32,7 +32,7 @@ const getEventReportsFromTransactionCommand = (
     .then(_config =>
       getEventReportsFromTransaction(
         _config[schemas.constants.SCHEMA_PROVIDER_URL_KEY],
-        _config[schemas.constants.SCHEMA_CHAIN_ID_KEY],
+        _config[schemas.constants.SCHEMA_NETWORK_ID_KEY],
         _hash,
         _eventName
       )

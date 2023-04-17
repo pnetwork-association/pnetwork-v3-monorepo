@@ -14,7 +14,7 @@ describe('State utilities tests', () => {
       const config = {
         [schemas.constants.SCHEMA_CHAIN_NAME_KEY]: 'Ethereum Mainnet',
         [schemas.constants.SCHEMA_CHAIN_TYPE_KEY]: 'EVM',
-        [schemas.constants.SCHEMA_CHAIN_ID_KEY]: '0x005fe7f9',
+        [schemas.constants.SCHEMA_NETWORK_ID_KEY]: '0x005fe7f9',
         [schemas.constants.SCHEMA_DB_KEY]: {
           [schemas.constants.SCHEMA_URL_KEY]: 'a-url',
           [schemas.constants.SCHEMA_NAME_KEY]: 'a-database-name',
