@@ -1,5 +1,6 @@
 const R = require('ramda')
 const { constants: ptokensUtilsConstants, utils, db } = require('ptokens-utils')
+const schemas = require('ptokens-schemas')
 const constants = require('ptokens-constants')
 const { listenForEvmEvents } = require('./evm/listener-evm')
 const { logger } = require('./get-logger')
@@ -30,7 +31,9 @@ const getListenerForBlockchainType = _blockchainType => {
 const insertIntoDb = R.curry(
   (_collection, _obj) =>
     logger.info(
-      `Insert event object into db for transaction ${_obj.originatingTxHash}`
+      `Insert event object into db for transaction ${
+        _obj[schemas.constants.SCHEMA_ORIGINATING_TX_HASH_KEY]
+      }`
     ) ||
     logger.debug(`Object to be inserted ${JSON.stringify(_obj)}`) ||
     db.insertReport(_collection, _obj)

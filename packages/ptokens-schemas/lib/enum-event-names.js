@@ -1,4 +1,3 @@
 module.exports = {
-  REDEEM: 'redeem',
-  PEGIN: 'pegin',
+  USER_OPERATION: 'UserOperation',
 }

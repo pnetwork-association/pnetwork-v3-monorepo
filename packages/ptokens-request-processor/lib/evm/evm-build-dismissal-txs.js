@@ -1,13 +1,17 @@
 const ethers = require('ethers')
 const constants = require('ptokens-constants')
-const { curry } = require('ramda')
+const R = require('ramda')
 const { readFile } = require('fs/promises')
 const { logger } = require('../get-logger')
-const { utils, constants: ptokensUtilsConstants } = require('ptokens-utils')
+const {
+  constants: ptokensUtilsConstants,
+  logic,
+  utils,
+} = require('ptokens-utils')
 const { addDismissedReportsToState } = require('../state/state-operations.js')
 const { STATE_TO_BE_DISMISSED_REQUESTS_KEY } = require('../state/constants')
 
-const makeDismissalContractCall = curry(
+const makeDismissalContractCall = R.curry(
   (_privateKey, _providerUrl, _destinationChainId, _request) =>
     new Promise(resolve => {
       const provider = new ethers.JsonRpcProvider(_providerUrl)
@@ -19,7 +23,7 @@ const makeDismissalContractCall = curry(
     })
 )
 
-const sendDismissalTransaction = curry(
+const sendDismissalTransaction = R.curry(
   (_identityGpgFile, _providerUrl, _destinationChainId, _request) =>
     // FIXME
     // utils
@@ -46,8 +50,12 @@ const buildDismissalTxsAndPutInState = _state =>
     logger.info(`Processing dismissals for ${blockChainName}...`)
 
     return Promise.all(
-      invalidRequests.map(
-        sendDismissalTransaction(identityGpgFile, providerUrl, chainId)
+      invalidRequests.map((_request, _i) =>
+        logic
+          .sleepForXMilliseconds(1000 * _i)
+          .then(_ =>
+            sendDismissalTransaction(identityGpgFile, providerUrl, chainId)
+          )
       )
     )
       .then(addDismissedReportsToState(_state))

@@ -1,5 +1,5 @@
 const assert = require('assert')
-const { all } = require('ramda')
+const R = require('ramda')
 const { utils } = require('../..')
 
 describe('RegeExp utils overall tests', () => {
@@ -35,7 +35,7 @@ describe('RegeExp utils overall tests', () => {
         errorMessages.map(utils.matchStringInsideListSync(list))
       )
 
-      assert(all(results))
+      assert(R.all(results))
     })
 
     it('Should find the right match', async () => {

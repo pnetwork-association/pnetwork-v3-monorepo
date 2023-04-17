@@ -3,21 +3,26 @@ const schemas = require('ptokens-schemas')
 const constants = require('ptokens-constants')
 const { logger } = require('../get-logger')
 const { readFile } = require('fs/promises')
-const { errors } = require('ptokens-utils')
+const { errors, logic } = require('ptokens-utils')
 const { ERROR_INVALID_EVENT_NAME } = require('../errors')
-const { curry, values, includes, length, prop } = require('ramda')
+const R = require('ramda')
 const { addFinalizedEventsToState } = require('../state/state-operations.js')
 const { STATE_PROPOSED_DB_REPORTS_KEY } = require('../state/constants')
 const {
   checkEventsHaveExpectedDestinationChainId,
 } = require('../check-events-have-expected-chain-id')
-const { callContractFunctionAndAwait } = require('./evm-call-contract-function')
-
-const ABI_CALL_ISSUE = ['function callIssue(string _requestId)']
-const ABI_CALL_REDEEM = ['function callRedeem(string _requestId)']
+const {
+  callContractFunctionAndAwait,
+  ETHERS_KEY_TX_HASH,
+} = require('./evm-call-contract-function')
+const {
+  logUserOperationFromAbiArgs,
+  getProtocolExecuteOperationAbi,
+  getUserOperationAbiArgsFromReport,
+} = require('./evm-abi-manager')
 
 // TODO: factor out (check evm-build-proposals-txs)
-const addFinalizedTxHashToEvent = curry((_event, _finalizedTxHash) => {
+const addFinalizedTxHashToEvent = R.curry((_event, _finalizedTxHash) => {
   // TODO: replace _id field
   const id = _event[schemas.constants.SCHEMA_ID_KEY]
   logger.debug(`Adding ${_finalizedTxHash} to ${id.slice(0, 20)}...`)
@@ -30,39 +35,40 @@ const addFinalizedTxHashToEvent = curry((_event, _finalizedTxHash) => {
   return Promise.resolve(_event)
 })
 
-const makeFinalContractCall = curry(
-  (_wallet, _issuanceManager, _redeemManager, _txTimeout, _eventReport) =>
-    new Promise((resolve, reject) => {
-      const eventName = _eventReport[schemas.constants.SCHEMA_EVENT_NAME_KEY]
-      const originTx =
-        _eventReport[schemas.constants.SCHEMA_ORIGINATING_TX_HASH_KEY]
+const executeOperationErrorHandler = R.curry(
+  (resolve, reject, _eventReport, _err) => {
+    const originTxHash =
+      _eventReport[schemas.constants.SCHEMA_ORIGINATING_TX_HASH_KEY]
+    if (_err.message.includes(errors.ERROR_TIMEOUT)) {
+      logger.error(`Tx for ${originTxHash} failed:`, _err.message)
+      return resolve(_eventReport)
+    } else if (_err.message.includes(errors.ERROR_OPERATION_ALREADY_EXECUTED)) {
+      logger.error(`Tx for ${originTxHash} has already been executed`)
+      return resolve(addFinalizedTxHashToEvent(_eventReport, '0x'))
+    } else {
+      return reject(_err)
+    }
+  }
+)
 
-      if (!includes(eventName, values(schemas.db.enums.eventNames))) {
+const makeFinalContractCall = R.curry(
+  (_wallet, _stateManager, _txTimeout, _eventReport) =>
+    new Promise((resolve, reject) => {
+      const id = _eventReport[schemas.constants.SCHEMA_ID_KEY]
+      const eventName = _eventReport[schemas.constants.SCHEMA_EVENT_NAME_KEY]
+
+      if (!R.includes(eventName, R.values(schemas.db.enums.eventNames))) {
         return reject(new Error(`${ERROR_INVALID_EVENT_NAME}: ${eventName}`))
       }
 
-      const abi =
-        eventName === schemas.db.enums.eventNames.PEGIN
-          ? ABI_CALL_ISSUE
-          : ABI_CALL_REDEEM
-
-      const args = [originTx]
-
-      const contractAddress =
-        eventName === schemas.db.enums.eventNames.PEGIN
-          ? _issuanceManager
-          : _redeemManager
-
-      const functionName =
-        eventName === schemas.db.enums.eventNames.PEGIN
-          ? 'callIssue'
-          : 'callRedeem'
-
+      const abi = getProtocolExecuteOperationAbi()
+      const contractAddress = _stateManager
+      const functionName = 'protocolExecuteOperation'
+      const args = getUserOperationAbiArgsFromReport(_eventReport)
       const contract = new ethers.Contract(contractAddress, abi, _wallet)
 
-      logger.info(`Processing final transaction ${eventName}:`)
-      logger.info(`  eventName: ${eventName}`)
-      logger.info(`  originTx: ${originTx}`)
+      logger.info(`Executing _id: ${id}`)
+      logUserOperationFromAbiArgs(functionName, args)
 
       return callContractFunctionAndAwait(
         functionName,
@@ -70,31 +76,28 @@ const makeFinalContractCall = curry(
         contract,
         _txTimeout
       )
-        .then(prop('transactionHash')) // TODO: store in a constant
+        .then(R.prop(ETHERS_KEY_TX_HASH))
         .then(addFinalizedTxHashToEvent(_eventReport))
         .then(resolve)
-        .catch(_err =>
-          _err.message.includes(errors.ERROR_TIMEOUT)
-            ? logger.error(
-                `Final transaction for ${originTx} failed:`,
-                _err.message
-              ) || resolve()
-            : reject(_err)
-        )
+        .catch(executeOperationErrorHandler(resolve, reject, _eventReport))
     })
 )
 
-const sendFinalTransactions = curry(
-  (_eventReports, _issuanceManager, _redeemManager, _timeOut, _wallet) =>
+const sendFinalTransactions = R.curry(
+  (_eventReports, _stateManager, _timeOut, _wallet) =>
     logger.info(`Sending final txs w/ address ${_wallet.address}`) ||
     Promise.all(
-      _eventReports.map(
-        makeFinalContractCall(
-          _wallet,
-          _issuanceManager,
-          _redeemManager,
-          _timeOut
-        )
+      _eventReports.map((_eventReport, _i) =>
+        logic
+          .sleepForXMilliseconds(1000 * _i)
+          .then(_ =>
+            makeFinalContractCall(
+              _wallet,
+              _stateManager,
+              _timeOut,
+              _eventReport
+            )
+          )
       )
     )
 )
@@ -104,34 +107,23 @@ const buildFinalTxsAndPutInState = _state =>
   new Promise(resolve => {
     logger.info('Building final txs...')
     const proposedEvents = _state[STATE_PROPOSED_DB_REPORTS_KEY]
-    const destinationChainId = _state[constants.state.STATE_KEY_CHAIN_ID]
+    const destinationNetworkId = _state[constants.state.STATE_KEY_CHAIN_ID]
     const providerUrl = _state[constants.state.STATE_KEY_PROVIDER_URL]
     const identityGpgFile = _state[constants.state.STATE_KEY_IDENTITY_FILE]
-    const provider = new ethers.providers.JsonRpcProvider(providerUrl)
+    const provider = new ethers.JsonRpcProvider(providerUrl)
     const txTimeout = _state[schemas.constants.SCHEMA_TX_TIMEOUT]
-
-    const issuanceManagerAddress =
-      _state[constants.state.STATE_KEY_ISSUANCE_MANAGER_ADDRESS]
-    const redeemManagerAddress =
-      _state[constants.state.STATE_KEY_REDEEM_MANAGER_ADDRESS]
+    const stateManager = _state[constants.state.STATE_KEY_STATE_MANAGER_ADDRESS]
 
     return (
       checkEventsHaveExpectedDestinationChainId(
-        destinationChainId,
+        destinationNetworkId,
         proposedEvents
       )
         // FIXME
         // .then(_ => utils.readGpgEncryptedFile(identityGpgFile))
         .then(_ => readFile(identityGpgFile, { encoding: 'utf8' }))
         .then(_privateKey => new ethers.Wallet(_privateKey, provider))
-        .then(
-          sendFinalTransactions(
-            proposedEvents,
-            issuanceManagerAddress,
-            redeemManagerAddress,
-            txTimeout
-          )
-        )
+        .then(sendFinalTransactions(proposedEvents, stateManager, txTimeout))
         .then(addFinalizedEventsToState(_state))
         .then(resolve)
     )
@@ -141,7 +133,7 @@ const maybeBuildFinalTxsAndPutInState = _state =>
   new Promise(resolve => {
     logger.info('Maybe building final txs...')
     const proposedEvents = _state[STATE_PROPOSED_DB_REPORTS_KEY] || []
-    const proposedEventsNumber = length(proposedEvents)
+    const proposedEventsNumber = R.length(proposedEvents)
 
     return proposedEventsNumber === 0
       ? logger.info('No proposals found...') || resolve(_state)

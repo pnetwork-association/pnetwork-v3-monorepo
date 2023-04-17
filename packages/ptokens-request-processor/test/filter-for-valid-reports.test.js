@@ -28,8 +28,8 @@ describe('Reports filtering tests', () => {
     it('Should get an array with only valid reports', async () => {
       const result = await filterForValidReports(reportsSet)
 
-      const expected = reportsSet.splice(0, 4)
-      expect(result).toHaveLength(4)
+      const expected = reportsSet.splice(0, 6)
+      expect(result).toHaveLength(6)
       expect(result).toStrictEqual(expected)
     })
   })

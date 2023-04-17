@@ -1,8 +1,8 @@
-const { type, curry } = require('ramda')
+const R = require('ramda')
 const { ERROR_INVALID_TYPE } = require('../errors')
 
-module.exports.checkType = curry((_valueType, _value) =>
-  type(_value) === _valueType
+module.exports.checkType = R.curry((_valueType, _value) =>
+  R.type(_value) === _valueType
     ? Promise.resolve(_value)
     : Promise.reject(
         new Error(

@@ -1,16 +1,16 @@
 const { SIDE_HOST, SIDE_NATIVE } = require('../constants')
 const { getChainSymbolFromBridgeType } = require('../utils')
 const { PBTC_ON_ETH, PBTC_ON_EOS } = require('../bridge-types')
-const { curry, toLower, identity, memoizeWith } = require('ramda')
+const R = require('ramda')
 
-const getLastProcessedBlockReportId = memoizeWith(
-  identity,
+const getLastProcessedBlockReportId = R.memoizeWith(
+  R.identity,
   _chainSymbol => `pbtc_enclave-last-processed-${_chainSymbol}-block`
 )
 
-const getLastSeenNonceReportId = memoizeWith(
-  identity,
-  _chainSymbol => `last-seen-${toLower(_chainSymbol)}-account-nonce`
+const getLastSeenNonceReportId = R.memoizeWith(
+  R.identity,
+  _chainSymbol => `last-seen-${R.toLower(_chainSymbol)}-account-nonce`
 )
 
 const getLegacyReportIdPrefix = (_bridgeSide, _bridgeType) =>
@@ -45,13 +45,13 @@ const getNonLegacyReportIdPrefix = (_bridgeSide, _bridgeType) =>
     return `${_bridgeType}-${_symbol}-`
   })
 
-const getReportIdPrefix = curry((_bridgeSide, _bridgeType, _isLegacy) =>
+const getReportIdPrefix = R.curry((_bridgeSide, _bridgeType, _isLegacy) =>
   _isLegacy
     ? getLegacyReportIdPrefix(_bridgeSide, _bridgeType)
     : getNonLegacyReportIdPrefix(_bridgeSide, _bridgeType)
 )
 
-const getReportIdFromNonce = curry(
+const getReportIdFromNonce = R.curry(
   (_bridgeSide, _bridgeType, _legacy, _nonce) =>
     getReportIdPrefix(_bridgeSide, _bridgeType, _legacy).then(
       _prefix => `${_prefix}${_nonce}`

@@ -1,5 +1,5 @@
 const assert = require('assert')
-const { has } = require('ramda')
+const R = require('ramda')
 const { utils } = require('../..')
 
 describe('Overall utils random tests', () => {
@@ -13,7 +13,7 @@ describe('Overall utils random tests', () => {
       for (let i = 0; i <= ROUNDS; i++) {
         const elem = utils.pickRandomElementFromArray(array)
 
-        frequencies[elem] = has(elem, frequencies) ? frequencies[elem] + 1 : 0
+        frequencies[elem] = R.has(elem, frequencies) ? frequencies[elem] + 1 : 0
       }
 
       for (const elem in frequencies) {

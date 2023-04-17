@@ -1,6 +1,6 @@
 const { existsSync } = require('fs')
 const { logger } = require('../logger')
-const { isNil, trim, curry } = require('ramda')
+const R = require('ramda')
 const { promisify } = require('node:util')
 const { isNotEmpty } = require('./utils-ramda-ext')
 const readdir = promisify(require('fs').readdir)
@@ -14,8 +14,8 @@ const {
 
 const listFilesInFolder = _folder => readdir(_folder)
 
-const writeThingToDisk = curry((_path, _thing) =>
-  isNil(_thing)
+const writeThingToDisk = R.curry((_path, _thing) =>
+  R.isNil(_thing)
     ? Promise.reject(new Error(`${ERROR_INVALID_OBJECT}: ${_thing}`))
     : writeFile(_path, JSON.stringify(_thing)).then(
         _ => logger.debug(`File ${_path} written successfully!`) || _path
@@ -42,7 +42,7 @@ const readGpgEncryptedFile = _gpgFile =>
       }
 
       logger.info(`File ${_gpgFile} successfully decrypted!`)
-      return trim(stdout)
+      return R.trim(stdout)
     })
 
 module.exports = {

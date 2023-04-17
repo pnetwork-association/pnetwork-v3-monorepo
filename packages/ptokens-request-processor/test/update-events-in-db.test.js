@@ -1,4 +1,4 @@
-const { prop } = require('ramda')
+const R = require('ramda')
 const { db } = require('ptokens-utils')
 const constants = require('ptokens-constants')
 const schemas = require('ptokens-schemas')
@@ -21,7 +21,7 @@ describe('General events report update tests', () => {
   })
 
   afterEach(async () => {
-    await Promise.all(detectedEvents.map(prop('_id'))).then(_ids =>
+    await Promise.all(detectedEvents.map(R.prop('_id'))).then(_ids =>
       Promise.all(_ids.map(db.deleteReport(collection)))
     )
   })

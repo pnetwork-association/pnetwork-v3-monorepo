@@ -1,12 +1,12 @@
 {
-  "provider-url": "...",
+  "provider-url": "",
   "challenge-period": 30,
   "tx-timeout": 200,
   "chain-name": "bsc",
   "chain-type": "evm",
   "chain-id": "0x00e4b170",
-  "issuanceManagerAddress": "0x102938…",
-  "redeemManagerAddress": "0x039485…",
+  "identity": "./identity.gpg",
+  "state-manager-address": "0x",
   "db": {
     "name": "ptokens",
     "table-events": "events",

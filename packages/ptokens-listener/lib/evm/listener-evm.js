@@ -4,31 +4,33 @@ const { logger } = require('../get-logger')
 const { validation } = require('ptokens-utils')
 const constants = require('ptokens-constants')
 const schemas = require('ptokens-schemas')
-const { curry, identity, memoizeWith } = require('ramda')
+const R = require('ramda')
 const {
   buildStandardizedEvmEventObjectFromLog,
 } = require('./evm-build-standardized-event.js')
 
-const getEthersProvider = memoizeWith(identity, _url =>
+const getEthersProvider = R.memoizeWith(R.identity, _url =>
   ethers.getDefaultProvider(_url)
 )
 
 const getEventFragment = _eventName =>
-  Promise.resolve(ethers.utils.EventFragment.from(_eventName))
+  Promise.resolve(ethers.EventFragment.from(_eventName))
 
 const createInterface = _fragments =>
-  Promise.resolve(new ethers.utils.Interface(_fragments))
+  Promise.resolve(new ethers.Interface(_fragments))
 
 const getInterfaceFromEvent = _eventName =>
   getEventFragment(_eventName).then(Array.of).then(createInterface)
 
+const keccak256 = _string => ethers.id(_string)
+
 const getFilterObject = (_eventName, _tokenContract) =>
   getEventFragment(_eventName).then(_frag => ({
     address: _tokenContract,
-    topics: [ethers.utils.id(_frag.format())],
+    topics: [keccak256(_frag.format())],
   }))
 
-const processEventLog = curry(
+const processEventLog = R.curry(
   (_chainId, _interface, _callback, _log) =>
     logger.info(`Received EVM event for transaction ${_log.transactionHash}`) ||
     buildStandardizedEvmEventObjectFromLog(_chainId, _interface, _log)
@@ -39,16 +41,18 @@ const processEventLog = curry(
 const listenFromFilter = (
   _providerUrl,
   _chainId,
-  _eventName,
+  _filter,
   _interface,
   _callback
 ) =>
-  logger.info(`Listening for event: ${_eventName}`) ||
+  logger.info(
+    `Listening for event from ${_filter.address} with topics [${_filter.topics}]`
+  ) ||
   validation
     .checkType('String', _providerUrl)
     .then(_ => getEthersProvider(_providerUrl))
     .then(_provider =>
-      _provider.on(_eventName, processEventLog(_chainId, _interface, _callback))
+      _provider.on(_filter, processEventLog(_chainId, _interface, _callback))
     )
 
 const listenForEvmEvent = (
@@ -98,8 +102,6 @@ const listenForEvmEvents = (_state, _callback) =>
   )
 
 module.exports = {
-  processEventLog,
-  listenFromFilter,
   getEthersProvider,
   listenForEvmEvents,
   getInterfaceFromEvent,

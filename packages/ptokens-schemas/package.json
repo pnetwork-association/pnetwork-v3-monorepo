@@ -1,12 +1,11 @@
 {
   "name": "ptokens-schemas",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "description": "Group all the shared schemas for the pTokens libraries'",
   "scripts": {
     "lint": "eslint .",
     "clean": "rm -rf $(pwd)/build",
-    "docker-build": "PROJECT_ROOT=$(pwd) ./docker-build.sh",
-    "test": "jest --config test/jest.config.js"
+    "docker-build": "PROJECT_ROOT=$(pwd) ./docker-build.sh"
   },
   "author": "gitmp01",
   "license": "MIT",

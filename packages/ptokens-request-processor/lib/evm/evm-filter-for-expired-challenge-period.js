@@ -2,12 +2,12 @@ const constants = require('ptokens-constants')
 const schemas = require('ptokens-schemas')
 const { utils } = require('ptokens-utils')
 const { logger } = require('../get-logger')
-const { prop, isNil, curry, assoc, length } = require('ramda')
+const R = require('ramda')
 const { STATE_PROPOSED_DB_REPORTS_KEY } = require('../state/constants')
 
 const ERROR_INVALID_PROPOSED_TIMESTAMP = 'Invalid proposed timestamp!'
 
-const getExpirationDate = curry(
+const getExpirationDate = R.curry(
   (_challengePeriod, _proposedEventTimestamp) =>
     new Promise((resolve, reject) =>
       utils.isNotNil(_proposedEventTimestamp)
@@ -22,11 +22,11 @@ const getExpirationDate = curry(
 )
 
 const getEventProposedTimestamp = _event =>
-  Promise.resolve(prop(schemas.constants.SCHEMA_PROPOSAL_TS_KEY, _event))
+  Promise.resolve(R.prop(schemas.constants.SCHEMA_PROPOSAL_TS_KEY, _event))
 
 const getCurrentDate = () => new Date()
 
-const isChallengePeriodExpired = curry((_challengePeriod, _proposedEvent) =>
+const isChallengePeriodExpired = R.curry((_challengePeriod, _proposedEvent) =>
   getEventProposedTimestamp(_proposedEvent)
     .then(getExpirationDate(_challengePeriod))
     .then(_expirationDate => {
@@ -53,10 +53,10 @@ const isChallengePeriodExpired = curry((_challengePeriod, _proposedEvent) =>
     )
 )
 
-const keepExpiredProposedEvents = curry(
+const keepExpiredProposedEvents = R.curry(
   (_challengePeriod, _proposedEvents) =>
     logger.info(
-      `Checking ${length(_proposedEvents)} events for expiration...`
+      `Checking ${R.length(_proposedEvents)} events for expiration...`
     ) ||
     Promise.all(
       _proposedEvents.map(isChallengePeriodExpired(_challengePeriod))
@@ -68,7 +68,7 @@ const filterForExpiredProposalsAndPutThemInState = _state =>
     const challengePeriod = _state[constants.state.STATE_KEY_CHALLENGE_PERIOD]
     const proposedEvents = _state[STATE_PROPOSED_DB_REPORTS_KEY] || []
 
-    if (isNil(challengePeriod)) {
+    if (R.isNil(challengePeriod)) {
       return reject(
         new Error(
           `Invalid value for '${constants.state.STATE_KEY_CHALLENGE_PERIOD}': ${challengePeriod}`
@@ -79,8 +79,9 @@ const filterForExpiredProposalsAndPutThemInState = _state =>
     return keepExpiredProposedEvents(challengePeriod, proposedEvents)
       .then(
         _filteredReports =>
-          logger.info(`Found ${length(_filteredReports)} expired events...`) ||
-          assoc(STATE_PROPOSED_DB_REPORTS_KEY, _filteredReports, _state)
+          logger.info(
+            `Found ${R.length(_filteredReports)} expired events...`
+          ) || R.assoc(STATE_PROPOSED_DB_REPORTS_KEY, _filteredReports, _state)
       )
       .then(resolve)
   })
@@ -88,7 +89,7 @@ const filterForExpiredProposalsAndPutThemInState = _state =>
 const maybefilterForExpiredProposalsAndPutThemInState = _state => {
   logger.info('Maybe filter for expired proposals...')
   const proposedEvents = _state[STATE_PROPOSED_DB_REPORTS_KEY] || []
-  const proposedEventsLength = length(proposedEvents)
+  const proposedEventsLength = R.length(proposedEvents)
 
   return proposedEventsLength === 0
     ? logger.info(

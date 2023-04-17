@@ -1,9 +1,9 @@
 const { logger } = require('../logger')
 const { ERROR_DB_CLIENT, ERROR_NO_UPDATE_FOR_REPORT } = require('../errors')
 const { MongoClient, MongoServerError } = require('mongodb')
-const { curry, prop, equals, identity, memoizeWith } = require('ramda')
+const R = require('ramda')
 
-const createConnection = memoizeWith(identity, _url =>
+const createConnection = R.memoizeWith(R.identity, _url =>
   MongoClient.connect(_url, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
@@ -16,13 +16,13 @@ const getClient = _url =>
     _err => logger.error(ERROR_DB_CLIENT) || Promise.reject(_err)
   )
 
-const getDatabase = memoizeWith(
+const getDatabase = R.memoizeWith(
   (_url, _databaseName) => `${_url}/${_databaseName}`,
   (_url, _databaseName) =>
     getClient(_url).then(_client => _client.db(_databaseName))
 )
 
-const getCollection = memoizeWith(
+const getCollection = R.memoizeWith(
   (_url, _databaseName, _collectionName) =>
     `${_url}/${_databaseName}/${_collectionName}`,
   (_url, _databaseName, _collectionName) =>
@@ -45,14 +45,14 @@ const handleDatabaseError = _err =>
     }
   })
 
-const insertReport = curry((_collection, _report) =>
+const insertReport = R.curry((_collection, _report) =>
   _collection
     .insertOne(_report)
     .then(_ => _report)
     .catch(handleDatabaseError)
 )
 
-const insertReports = curry((_collection, _reports) =>
+const insertReports = R.curry((_collection, _reports) =>
   _collection
     .insertMany(_reports)
     .then(_output =>
@@ -61,7 +61,7 @@ const insertReports = curry((_collection, _reports) =>
     .catch(handleDatabaseError)
 )
 
-const deleteReportByQuery = curry((_collection, _query) => {
+const deleteReportByQuery = R.curry((_collection, _query) => {
   _collection
     .deleteOne(_query)
     .then(_result =>
@@ -70,17 +70,17 @@ const deleteReportByQuery = curry((_collection, _query) => {
     .catch(handleDatabaseError)
 })
 
-const deleteReport = curry((_collection, _reportId) =>
+const deleteReport = R.curry((_collection, _reportId) =>
   _collection
     .deleteOne({ _id: _reportId })
     .then(_ => _reportId)
     .catch(handleDatabaseError)
 )
 
-const updateReportOrReject = curry((_collection, _operations, _query) =>
+const updateReportOrReject = R.curry((_collection, _operations, _query) =>
   updateReport(_collection, _operations, _query)
-    .then(prop('modifiedCount'))
-    .then(equals(0))
+    .then(R.prop('modifiedCount'))
+    .then(R.equals(0))
     .then(_equalsZero =>
       _equalsZero
         ? Promise.reject(
@@ -92,33 +92,33 @@ const updateReportOrReject = curry((_collection, _operations, _query) =>
     )
 )
 
-const updateReport = curry(
+const updateReport = R.curry(
   (_collection, _operations, _query) =>
     logger.debug(`Updating report with query ${_query}...`) ||
     _collection.updateOne(_query, _operations).catch(handleDatabaseError)
 )
 
-const updateReportById = curry((_collection, _operations, _id) =>
+const updateReportById = R.curry((_collection, _operations, _id) =>
   updateReport(_collection, _operations, { _id: _id }).then(_ => _id)
 )
 
-const findReport = curry((_collection, _query, _options = {}) =>
+const findReport = R.curry((_collection, _query, _options = {}) =>
   _collection.findOne(_query, _options)
 )
 
-const findReportById = curry((_collection, _id, _options = {}) =>
+const findReportById = R.curry((_collection, _id, _options = {}) =>
   findReport(_collection, { _id: _id }, _options)
 )
 
-const findReports = curry((_collection, _query, _options = {}) =>
+const findReports = R.curry((_collection, _query, _options = {}) =>
   _collection.find(_query, _options).toArray()
 )
 
-const editReportField = curry((_collection, _field, _value, _id) =>
+const editReportField = R.curry((_collection, _field, _value, _id) =>
   updateReportById(_collection, { $set: { [_field]: _value } }, _id)
 )
 
-const copyFromField = curry((_collection, _fromField, _toField, _id) =>
+const copyFromField = R.curry((_collection, _fromField, _toField, _id) =>
   updateReportById(
     _collection,
     [{ $set: { [_fromField]: `$${_toField}` } }],
@@ -126,13 +126,13 @@ const copyFromField = curry((_collection, _fromField, _toField, _id) =>
   )
 )
 
-const renameField = curry((_collection, _actualName, _newName, _id) =>
+const renameField = R.curry((_collection, _actualName, _newName, _id) =>
   _collection
     .updateOne({ _id: _id }, { $rename: { [_actualName]: _newName } })
     .then(_output => logger.info(`Updated ${_output.modifiedCount} documents!`))
 )
 
-const renameReportsField = curry(
+const renameReportsField = R.curry(
   (_collection, _actualName, _newName, _idRegExp) =>
     _collection
       .updateMany({ _id: _idRegExp }, { $rename: { [_actualName]: _newName } })

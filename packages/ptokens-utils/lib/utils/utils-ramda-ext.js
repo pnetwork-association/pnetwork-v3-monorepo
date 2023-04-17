@@ -1,15 +1,15 @@
-const { has, not, isNil, isEmpty, curry, includes, filter } = require('ramda')
+const R = require('ramda')
 
-const hasNot = _something => not(has(_something))
+const hasNot = _something => R.not(R.has(_something))
 
-const isNotNil = _something => not(isNil(_something))
+const isNotNil = _something => R.not(R.isNil(_something))
 
-const isNotEmpty = _something => not(isEmpty(_something))
+const isNotEmpty = _something => R.not(R.isEmpty(_something))
 
-const removeNilsFromList = _list => filter(isNotNil, _list)
+const removeNilsFromList = _list => R.filter(isNotNil, _list)
 
-const doesNotInclude = curry((_something, _list) =>
-  not(includes(_something, _list))
+const doesNotInclude = R.curry((_something, _list) =>
+  R.not(R.includes(_something, _list))
 )
 
 module.exports = {

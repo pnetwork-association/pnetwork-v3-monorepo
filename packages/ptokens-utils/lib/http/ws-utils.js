@@ -1,4 +1,4 @@
-const { curry, identity, memoizeWith } = require('ramda')
+const R = require('ramda')
 const {
   ERROR_TIMEOUT,
   ERROR_WEBSOCKET_REQUEST_TIMEOUT,
@@ -39,7 +39,7 @@ const handleWebSocketError = _err =>
     }
   })
 
-const getWebSocketConnection = memoizeWith(identity, _endpoint =>
+const getWebSocketConnection = R.memoizeWith(R.identity, _endpoint =>
   Promise.resolve(new WebSocket(_endpoint))
     .then(defineOpenEventHandler)
     .catch(handleWebSocketError)
@@ -59,7 +59,7 @@ const webSocketSend = (_ws, _body, _timeout = 500) =>
         : Promise.reject(_err)
     )
 
-const webSocketFetch = curry((_endpoint, _body, _timeout = 500) =>
+const webSocketFetch = R.curry((_endpoint, _body, _timeout = 500) =>
   getWebSocketConnection(_endpoint).then(_ws =>
     webSocketSend(_ws, _body, _timeout)
   )

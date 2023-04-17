@@ -1,13 +1,13 @@
 const { checkType } = require('../validation')
 const { isNotNil } = require('./utils-ramda-ext')
 const { ERROR_KEY_NOT_FOUND, ERROR_UNABLE_TO_FIND_PATHS } = require('../errors')
-const { has, path, isNil, prop, curry } = require('ramda')
+const R = require('ramda')
 
-const getKeyFromObj = curry(
+const getKeyFromObj = R.curry(
   (_key, _object) =>
     new Promise((resolve, reject) =>
-      has(_key, _object)
-        ? resolve(prop(_key, _object))
+      R.has(_key, _object)
+        ? resolve(R.prop(_key, _object))
         : reject(
             new Error(
               `${ERROR_KEY_NOT_FOUND} ('${_key}' not found in ${JSON.stringify(
@@ -18,12 +18,12 @@ const getKeyFromObj = curry(
     )
 )
 
-const getKeyFromObjThroughPath = curry((_path, _object) =>
+const getKeyFromObjThroughPath = R.curry((_path, _object) =>
   checkType('Array', _path)
     .then(_ => checkType('Object', _object))
-    .then(_ => path(_path, _object))
+    .then(_ => R.path(_path, _object))
     .then(_value =>
-      isNil(_value)
+      R.isNil(_value)
         ? Promise.reject(
             new Error(
               `${ERROR_KEY_NOT_FOUND} - Path '[${_path}]' not found in ${JSON.stringify(
@@ -35,8 +35,8 @@ const getKeyFromObjThroughPath = curry((_path, _object) =>
     )
 )
 
-const getKeyFromObjThroughPossiblePaths = curry((_paths, _object) =>
-  Promise.all(_paths.map(_path => path(_path, _object)))
+const getKeyFromObjThroughPossiblePaths = R.curry((_paths, _object) =>
+  Promise.all(_paths.map(_path => R.path(_path, _object)))
     .then(_possibleValues => _possibleValues.filter(isNotNil))
     .then(_filteredValues =>
       _filteredValues.length === 0

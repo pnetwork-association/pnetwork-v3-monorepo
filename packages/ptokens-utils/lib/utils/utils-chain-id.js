@@ -6,6 +6,8 @@ const getBlockchainTypeFromChainId = _chainId =>
       case constants.metadataChainIds.ETHEREUM_MAINNET:
       case constants.metadataChainIds.ETHEREUM_ROPSTEN:
       case constants.metadataChainIds.ETHEREUM_RINKEBY:
+      case constants.metadataChainIds.ETHEREUM_SEPOLIA:
+      case constants.metadataChainIds.ETHEREUM_GOERLI:
       case constants.metadataChainIds.BSC_MAINNET:
       case constants.metadataChainIds.XDAI_MAINNET:
       case constants.metadataChainIds.INTERIM_CHAIN:

@@ -1,7 +1,7 @@
 const Ajv = require('ajv')
 const addFormats = require('ajv-formats')
 const { logger } = require('../logger')
-const { curry, memoizeWith } = require('ramda')
+const R = require('ramda')
 const { ERROR_SCHEMA_VALIDATION_FAILED } = require('../errors')
 
 // Keep it global for efficiency reasons
@@ -9,7 +9,7 @@ const { ERROR_SCHEMA_VALIDATION_FAILED } = require('../errors')
 const ajv = new Ajv()
 addFormats(ajv)
 
-const getValidationFunction = memoizeWith(JSON.stringify, _schema =>
+const getValidationFunction = R.memoizeWith(JSON.stringify, _schema =>
   Promise.resolve(ajv.compile(_schema))
 )
 
@@ -21,13 +21,13 @@ const handleValidationError = _validationError => {
   return Promise.reject(new Error(ERROR_SCHEMA_VALIDATION_FAILED))
 }
 
-const validateJsonAsyncSchema = curry((_validationFunction, _json) =>
+const validateJsonAsyncSchema = R.curry((_validationFunction, _json) =>
   _validationFunction(_json)
     .then(_ => _json)
     .catch(handleValidationError)
 )
 
-const validateJsonSyncSchema = curry((_validationFunction, _json) =>
+const validateJsonSyncSchema = R.curry((_validationFunction, _json) =>
   Promise.resolve(_validationFunction(_json))
     .then(_valid =>
       _valid
@@ -37,7 +37,7 @@ const validateJsonSyncSchema = curry((_validationFunction, _json) =>
     .catch(handleValidationError)
 )
 
-const validateJson = curry((_schema, _json) =>
+const validateJson = R.curry((_schema, _json) =>
   getValidationFunction(_schema).then(_validate => {
     return _schema['$async']
       ? validateJsonAsyncSchema(_validate, _json)

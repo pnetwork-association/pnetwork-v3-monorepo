@@ -1,7 +1,7 @@
-const { curry } = require('ramda')
+const R = require('ramda')
 const inquirer = require('inquirer')
 
-const askUserToSelectOption = curry((_promptTxt, _options) =>
+const askUserToSelectOption = R.curry((_promptTxt, _options) =>
   inquirer
     .prompt({
       type: 'list',
@@ -12,7 +12,7 @@ const askUserToSelectOption = curry((_promptTxt, _options) =>
     .then(({ selection }) => selection)
 )
 
-const maybeAskUserToSelectOption = curry(
+const maybeAskUserToSelectOption = R.curry(
   (_promptTxt, _errIfNotFoundAny, _options) =>
     _options.length === 0
       ? Promise.reject(new Error(_errIfNotFoundAny))

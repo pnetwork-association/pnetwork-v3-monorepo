@@ -1,7 +1,6 @@
 const EventEmitter = require('events')
 const ethers = require('ethers')
 const { logs } = require('../mock/evm-logs')
-const { identity } = require('ramda')
 const constants = require('ptokens-constants')
 const schemas = require('ptokens-schemas')
 const { STATE_KEY_EVENTS } = require('../../lib/state/constants')
@@ -24,114 +23,7 @@ describe('EVM listener', () => {
       const result = await getEthersProvider(url)
 
       expect(getDefaultProviderSpy).toHaveBeenCalledTimes(1)
-      expect(result).toBeInstanceOf(ethers.providers.JsonRpcProvider)
-    })
-  })
-
-  describe('processEventLog', () => {
-    afterEach(() => {
-      jest.restoreAllMocks()
-    })
-
-    it('Should process the event as expected', async () => {
-      const {
-        processEventLog,
-        getInterfaceFromEvent,
-      } = require('../../lib/evm/listener-evm')
-      const chainId = '0x1234'
-      const eventName =
-        'Redeem(address indexed redeemer, uint256 value, string underlyingAssetRecipient, bytes userData, bytes4 originChainId, bytes4 destinationChainId)'
-      const methodInterface = await getInterfaceFromEvent(eventName)
-      const callback = identity
-
-      const result = await processEventLog(
-        chainId,
-        methodInterface,
-        callback,
-        logs[2]
-      )
-
-      const expected = {
-        [schemas.constants.SCHEMA_STATUS_KEY]:
-          schemas.db.enums.txStatus.DETECTED,
-        [schemas.constants.SCHEMA_AMOUNT_KEY]: '2065832100000000000',
-        [schemas.constants.SCHEMA_USER_DATA_KEY]: null,
-        [schemas.constants.SCHEMA_EVENT_NAME_KEY]: 'redeem',
-        [schemas.constants.SCHEMA_TOKEN_ADDRESS_KEY]: null,
-        [schemas.constants.SCHEMA_PROPOSAL_TS_KEY]: null,
-        [schemas.constants.SCHEMA_PROPOSAL_TX_HASH_KEY]: null,
-        [schemas.constants.SCHEMA_WITNESSED_TS_KEY]:
-          expect.stringMatching(ISO_FORMAT_REGEX),
-        [schemas.constants.SCHEMA_FINAL_TX_HASH_KEY]: null,
-        [schemas.constants.SCHEMA_FINAL_TX_TS_KEY]: null,
-        [schemas.constants.SCHEMA_DESTINATION_ADDRESS_KEY]:
-          '35eXzETyUxiQPXwU2udtVFQFrFjgRhhvPj',
-        [schemas.constants.SCHEMA_DESTINATION_CHAIN_ID_KEY]: '0x01ec97de',
-        [schemas.constants.SCHEMA_ORIGINATING_ADDRESS_KEY]: null,
-        [schemas.constants.SCHEMA_ORIGINATING_CHAIN_ID_KEY]: '0x005fe7f9',
-        [schemas.constants.SCHEMA_ORIGINATING_TX_HASH_KEY]:
-          '0x9488dee8cb5c6b2f6299e45e48bba580f46dbd496cfaa70a182060fd5dc81cb4',
-        _id: '0x005fe7f9_0x9488dee8cb5c6b2f6299e45e48bba580f46dbd496cfaa70a182060fd5dc81cb4',
-      }
-
-      expect(result).toStrictEqual(expected)
-    })
-  })
-
-  describe('listenFromFilter', () => {
-    afterEach(() => {
-      jest.restoreAllMocks()
-    })
-    it('Should filter for the correct event and call the callback', async () => {
-      const fakeProvider = new EventEmitter()
-      fakeProvider._on = fakeProvider.on
-
-      jest
-        .spyOn(ethers, 'getDefaultProvider')
-        .mockImplementation(_url => fakeProvider)
-
-      const {
-        listenFromFilter,
-        getInterfaceFromEvent,
-      } = require('../../lib/evm/listener-evm')
-
-      const callback = jest.fn()
-      const url = 'http://url.io'
-      const chainId = '0x1234'
-      const eventName =
-        'Redeem(address indexed redeemer, uint256 value, string underlyingAssetRecipient, bytes userData, bytes4 originChainId, bytes4 destinationChainId)'
-      const methodInterface = await getInterfaceFromEvent(eventName)
-
-      listenFromFilter(url, chainId, eventName, methodInterface, callback)
-
-      const expected = {
-        [schemas.constants.SCHEMA_STATUS_KEY]:
-          schemas.db.enums.txStatus.DETECTED,
-        [schemas.constants.SCHEMA_AMOUNT_KEY]: '2065832100000000000',
-        [schemas.constants.SCHEMA_USER_DATA_KEY]: null,
-        [schemas.constants.SCHEMA_EVENT_NAME_KEY]: 'redeem',
-        [schemas.constants.SCHEMA_TOKEN_ADDRESS_KEY]: null,
-        [schemas.constants.SCHEMA_PROPOSAL_TS_KEY]: null,
-        [schemas.constants.SCHEMA_PROPOSAL_TX_HASH_KEY]: null,
-        [schemas.constants.SCHEMA_WITNESSED_TS_KEY]:
-          expect.stringMatching(ISO_FORMAT_REGEX),
-        [schemas.constants.SCHEMA_FINAL_TX_HASH_KEY]: null,
-        [schemas.constants.SCHEMA_FINAL_TX_TS_KEY]: null,
-        [schemas.constants.SCHEMA_DESTINATION_ADDRESS_KEY]:
-          '35eXzETyUxiQPXwU2udtVFQFrFjgRhhvPj',
-        [schemas.constants.SCHEMA_DESTINATION_CHAIN_ID_KEY]: '0x01ec97de',
-        [schemas.constants.SCHEMA_ORIGINATING_ADDRESS_KEY]: null,
-        [schemas.constants.SCHEMA_ORIGINATING_CHAIN_ID_KEY]: '0x005fe7f9',
-        [schemas.constants.SCHEMA_ORIGINATING_TX_HASH_KEY]:
-          '0x9488dee8cb5c6b2f6299e45e48bba580f46dbd496cfaa70a182060fd5dc81cb4',
-        _id: '0x005fe7f9_0x9488dee8cb5c6b2f6299e45e48bba580f46dbd496cfaa70a182060fd5dc81cb4',
-      }
-      const assertions = () => {
-        expect(callback).toHaveBeenNthCalledWith(1, expected)
-      }
-
-      setTimeout(() => fakeProvider.emit(eventName, logs[2]), 100)
-      setTimeout(assertions, 400)
+      expect(result).toBeInstanceOf(ethers.JsonRpcProvider)
     })
   })
 
@@ -141,7 +33,7 @@ describe('EVM listener', () => {
     })
     it('Should call callback with the standardized event', done => {
       const state = {
-        [constants.state.STATE_KEY_CHAIN_ID]: '0x005fe7f9',
+        [constants.state.STATE_KEY_CHAIN_ID]: '0xe15503e4',
         [constants.state.STATE_KEY_PROVIDER_URL]: 'provider-url',
         [STATE_KEY_EVENTS]: [
           {
@@ -153,16 +45,9 @@ describe('EVM listener', () => {
           },
           {
             [schemas.constants.SCHEMA_NAME_KEY]:
-              'PegIn(address _tokenAddress, address _tokenSender, uint256 _tokenAmount, string _destinationAddress, bytes _userData, bytes4 _originChainId, bytes4 _destinationChainId)',
+              'UserOperation(uint256 nonce,string destinationAccount,bytes4 destinationNetworkId,string underlyingAssetName,string underlyingAssetSymbol,uint256 underlyingAssetDecimals,address underlyingAssetTokenAddress,bytes4 underlyingAssetNetworkId,address assetTokenAddress,uint256 assetAmount,bytes userData,bytes32 optionsMask)',
             [schemas.constants.SCHEMA_TOKEN_CONTRACTS_KEY]: [
-              '0xe396757ec7e6ac7c8e5abe7285dde47b98f22db8',
-            ],
-          },
-          {
-            [schemas.constants.SCHEMA_NAME_KEY]:
-              'Redeem(address indexed redeemer, uint256 value, string underlyingAssetRecipient, bytes userData, bytes4 originChainId, bytes4 destinationChainId)',
-            [schemas.constants.SCHEMA_TOKEN_CONTRACTS_KEY]: [
-              '0x62199b909fb8b8cf870f97bef2ce6783493c4908',
+              '0xEFcD9f9eE77A79A6E2536cb3759Ed3c00107a398',
             ],
           },
         ],
@@ -184,10 +69,9 @@ describe('EVM listener', () => {
         )
 
       scheduleEvent('0xdac17f958d2ee523a2206206994597c13d831ec7', logs[0], 100)
-      scheduleEvent('0xe396757ec7e6ac7c8e5abe7285dde47b98f22db8', logs[1], 200)
-      scheduleEvent('0x45bc7Bc558FcCaA7674310254798A968D9190fd7', logs[1], 300) // malicious attempt
-      scheduleEvent('0x62199b909fb8b8cf870f97bef2ce6783493c4908', logs[2], 400)
-      scheduleEvent('0x45bc7Bc558FcCaA7674310254798A968D9190fd7', logs[2], 500) // malicious attempt
+      scheduleEvent('0x45bc7Bc558FcCaA7674310254798A968D9190fd7', logs[0], 300) // malicious attempt
+      scheduleEvent('0xEFcD9f9eE77A79A6E2536cb3759Ed3c00107a398', logs[1], 400)
+      scheduleEvent('0x45bc7Bc558FcCaA7674310254798A968D9190fd7', logs[1], 500) // malicious attempt
 
       const onListenerSpy = jest
         .spyOn(fakeProvider, 'on')
@@ -204,6 +88,7 @@ describe('EVM listener', () => {
 
       setTimeout(() => {
         expect(getDefaultProviderSpy).toHaveBeenNthCalledWith(1, 'provider-url')
+        expect(onListenerSpy).toHaveBeenCalledTimes(2)
         expect(onListenerSpy).toHaveBeenNthCalledWith(
           1,
           {
@@ -217,88 +102,87 @@ describe('EVM listener', () => {
         expect(onListenerSpy).toHaveBeenNthCalledWith(
           2,
           {
-            address: '0xe396757ec7e6ac7c8e5abe7285dde47b98f22db8',
+            address: '0xEFcD9f9eE77A79A6E2536cb3759Ed3c00107a398',
             topics: [
-              '0xc03be660a5421fb17c93895da9db564bd4485d475f0d8b3175f7d55ed421bebb',
+              '0xba98a314fb19bf102109515e22a4e48acbbe8f5610a657a9ed6cb3327afbc2e2',
             ],
           },
           expect.anything()
         )
-        expect(onListenerSpy).toHaveBeenNthCalledWith(
-          3,
-          {
-            address: '0x62199b909fb8b8cf870f97bef2ce6783493c4908',
-            topics: [
-              '0xdd56da0e6e7b301867b3632876d707f60c7cbf4b06f9ae191c67ea016cc5bf31',
-            ],
-          },
-          expect.anything()
-        )
-        expect(callback).toHaveBeenCalledTimes(3)
+        expect(callback).toHaveBeenCalledTimes(2)
         expect(callback).toHaveBeenNthCalledWith(1, {
+          [schemas.constants.SCHEMA_ID_KEY]:
+            '0x37eeb55eab329c73aeac6a172faa6c77e7013cd0cda0fc472274c5faf0df7003',
           [schemas.constants.SCHEMA_STATUS_KEY]:
             schemas.db.enums.txStatus.DETECTED,
-          [schemas.constants.SCHEMA_AMOUNT_KEY]: '200000000',
+          [schemas.constants.SCHEMA_ASSET_AMOUNT_KEY]: '200000000',
           [schemas.constants.SCHEMA_USER_DATA_KEY]: null,
-          [schemas.constants.SCHEMA_EVENT_NAME_KEY]: 'transfer',
-          [schemas.constants.SCHEMA_TOKEN_ADDRESS_KEY]: null,
+          [schemas.constants.SCHEMA_EVENT_NAME_KEY]: 'Transfer',
+          [schemas.constants.SCHEMA_ASSET_TOKEN_ADDRESS_KEY]: null,
           [schemas.constants.SCHEMA_PROPOSAL_TS_KEY]: null,
           [schemas.constants.SCHEMA_PROPOSAL_TX_HASH_KEY]: null,
           [schemas.constants.SCHEMA_WITNESSED_TS_KEY]:
             expect.stringMatching(ISO_FORMAT_REGEX),
           [schemas.constants.SCHEMA_FINAL_TX_HASH_KEY]: null,
           [schemas.constants.SCHEMA_FINAL_TX_TS_KEY]: null,
-          [schemas.constants.SCHEMA_DESTINATION_ADDRESS_KEY]: null,
-          [schemas.constants.SCHEMA_DESTINATION_CHAIN_ID_KEY]: null,
-          [schemas.constants.SCHEMA_ORIGINATING_ADDRESS_KEY]: null,
-          [schemas.constants.SCHEMA_ORIGINATING_CHAIN_ID_KEY]: '0x005fe7f9',
+          [schemas.constants.SCHEMA_OPTIONS_MASK]: null,
+          [schemas.constants.SCHEMA_NONCE_KEY]: null,
+          [schemas.constants.SCHEMA_DESTINATION_ACCOUNT_KEY]:
+            '0x31c43E2be5BCd4EDb512aD47A0F1A93aA22941b9',
+          [schemas.constants.SCHEMA_DESTINATION_NETWORK_ID_KEY]: null,
+          [schemas.constants.SCHEMA_UNDERLYING_ASSET_NAME_KEY]: null,
+          [schemas.constants.SCHEMA_UNDERLYING_ASSET_SYMBOL_KEY]: null,
+          [schemas.constants.SCHEMA_UNDERLYING_ASSET_DECIMALS_KEY]: null,
+          [schemas.constants.SCHEMA_UNDERLYING_ASSET_TOKEN_ADDRESS_KEY]: null,
+          [schemas.constants.SCHEMA_UNDERLYING_ASSET_NETWORK_ID_KEY]: null,
+          [schemas.constants.SCHEMA_ORIGINATING_ADDRESS_KEY]:
+            '0xd8a7346Ffef357542857aB5fCF7ed1baED08680f',
+          [schemas.constants.SCHEMA_ORIGINATING_NETWORK_ID_KEY]: '0xe15503e4',
           [schemas.constants.SCHEMA_ORIGINATING_TX_HASH_KEY]:
             '0x37eeb55eab329c73aeac6a172faa6c77e7013cd0cda0fc472274c5faf0df7003',
-          _id: '0x005fe7f9_0x37eeb55eab329c73aeac6a172faa6c77e7013cd0cda0fc472274c5faf0df7003',
+          [schemas.constants.SCHEMA_ORIGINATING_BLOCK_HASH_KEY]:
+            '0x460635ecc1efa7230644fe6c2c01635f873663e81afc8c727947da5560ed12e5',
+          [schemas.constants.SCHEMA_ID_KEY]:
+            '0x36f48a80848eeb2b49d59aac077aedf775f75463ed7d34b531750329dceaa8b5',
         })
         expect(callback).toHaveBeenNthCalledWith(2, {
+          [schemas.constants.SCHEMA_ID_KEY]:
+            '0xbe8b7571ab50cc63da7f1d9f6b22802922aa2e242a5c7400c493ba9c831b24aa',
           [schemas.constants.SCHEMA_STATUS_KEY]:
             schemas.db.enums.txStatus.DETECTED,
-          [schemas.constants.SCHEMA_AMOUNT_KEY]: '1001000000',
-          [schemas.constants.SCHEMA_USER_DATA_KEY]: null,
-          [schemas.constants.SCHEMA_EVENT_NAME_KEY]: 'pegin',
-          [schemas.constants.SCHEMA_TOKEN_ADDRESS_KEY]:
-            '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
-          [schemas.constants.SCHEMA_PROPOSAL_TS_KEY]: null,
-          [schemas.constants.SCHEMA_PROPOSAL_TX_HASH_KEY]: null,
-          [schemas.constants.SCHEMA_WITNESSED_TS_KEY]:
-            expect.stringMatching(ISO_FORMAT_REGEX),
+          [schemas.constants.SCHEMA_EVENT_NAME_KEY]:
+            schemas.db.enums.eventNames.USER_OPERATION,
+
+          [schemas.constants.SCHEMA_NONCE_KEY]: '6648',
+          [schemas.constants.SCHEMA_ASSET_AMOUNT_KEY]: '1000000000000000000',
+          [schemas.constants.SCHEMA_DESTINATION_ACCOUNT_KEY]:
+            '0xdDb5f4535123DAa5aE343c24006F4075aBAF5F7B',
+          [schemas.constants.SCHEMA_DESTINATION_NETWORK_ID_KEY]: '0xe15503e4',
+
           [schemas.constants.SCHEMA_FINAL_TX_HASH_KEY]: null,
           [schemas.constants.SCHEMA_FINAL_TX_TS_KEY]: null,
-          [schemas.constants.SCHEMA_DESTINATION_ADDRESS_KEY]: '770102986',
-          [schemas.constants.SCHEMA_DESTINATION_CHAIN_ID_KEY]: '0x03c38e67',
+          [schemas.constants.SCHEMA_UNDERLYING_ASSET_NAME_KEY]: 'Token',
+          [schemas.constants.SCHEMA_UNDERLYING_ASSET_SYMBOL_KEY]: 'TKN',
+          [schemas.constants.SCHEMA_UNDERLYING_ASSET_DECIMALS_KEY]: 18,
+          [schemas.constants.SCHEMA_UNDERLYING_ASSET_NETWORK_ID_KEY]:
+            '0xe15503e4',
+          [schemas.constants.SCHEMA_UNDERLYING_ASSET_TOKEN_ADDRESS_KEY]:
+            '0x49a5D1CF92772328Ad70f51894FD632a14dF12C9',
+          [schemas.constants.SCHEMA_OPTIONS_MASK]:
+            '0x0000000000000000000000000000000000000000000000000000000000000000',
+          [schemas.constants.SCHEMA_ORIGINATING_NETWORK_ID_KEY]: '0xe15503e4',
           [schemas.constants.SCHEMA_ORIGINATING_ADDRESS_KEY]: null,
-          [schemas.constants.SCHEMA_ORIGINATING_CHAIN_ID_KEY]: '0x005fe7f9',
+          [schemas.constants.SCHEMA_ORIGINATING_BLOCK_HASH_KEY]:
+            '0xbaa9e89896c03366c3578a4568a6defd4b127e4b09bb06b67a12cb1a4c332376',
           [schemas.constants.SCHEMA_ORIGINATING_TX_HASH_KEY]:
-            '0x0f53438f23bd61bcee616d4f4d0f70a80dcd1d10dc8b0796774cb4afa6340305',
-          _id: '0x005fe7f9_0x0f53438f23bd61bcee616d4f4d0f70a80dcd1d10dc8b0796774cb4afa6340305',
-        })
-        expect(callback).toHaveBeenNthCalledWith(3, {
-          [schemas.constants.SCHEMA_STATUS_KEY]:
-            schemas.db.enums.txStatus.DETECTED,
-          [schemas.constants.SCHEMA_AMOUNT_KEY]: '2065832100000000000',
-          [schemas.constants.SCHEMA_USER_DATA_KEY]: null,
-          [schemas.constants.SCHEMA_EVENT_NAME_KEY]: 'redeem',
-          [schemas.constants.SCHEMA_TOKEN_ADDRESS_KEY]: null,
-          [schemas.constants.SCHEMA_PROPOSAL_TS_KEY]: null,
+            '0x0907eefad58dfcb2cbfad66d29accd4d6ddc345851ec1d180b23122084fa2834',
           [schemas.constants.SCHEMA_PROPOSAL_TX_HASH_KEY]: null,
+          [schemas.constants.SCHEMA_PROPOSAL_TS_KEY]: null,
+          [schemas.constants.SCHEMA_ASSET_TOKEN_ADDRESS_KEY]:
+            '0x49a5D1CF92772328Ad70f51894FD632a14dF12C9',
+          [schemas.constants.SCHEMA_USER_DATA_KEY]: '0x',
           [schemas.constants.SCHEMA_WITNESSED_TS_KEY]:
             expect.stringMatching(ISO_FORMAT_REGEX),
-          [schemas.constants.SCHEMA_FINAL_TX_HASH_KEY]: null,
-          [schemas.constants.SCHEMA_FINAL_TX_TS_KEY]: null,
-          [schemas.constants.SCHEMA_DESTINATION_ADDRESS_KEY]:
-            '35eXzETyUxiQPXwU2udtVFQFrFjgRhhvPj',
-          [schemas.constants.SCHEMA_DESTINATION_CHAIN_ID_KEY]: '0x01ec97de',
-          [schemas.constants.SCHEMA_ORIGINATING_ADDRESS_KEY]: null,
-          [schemas.constants.SCHEMA_ORIGINATING_CHAIN_ID_KEY]: '0x005fe7f9',
-          [schemas.constants.SCHEMA_ORIGINATING_TX_HASH_KEY]:
-            '0x9488dee8cb5c6b2f6299e45e48bba580f46dbd496cfaa70a182060fd5dc81cb4',
-          _id: '0x005fe7f9_0x9488dee8cb5c6b2f6299e45e48bba580f46dbd496cfaa70a182060fd5dc81cb4',
         })
         done()
       }, 600)

@@ -1,5 +1,5 @@
 const schemas = require('ptokens-schemas')
-const { assoc, curry, prop } = require('ramda')
+const R = require('ramda')
 const { logger } = require('./get-logger')
 const constants = require('ptokens-constants')
 const {
@@ -10,10 +10,10 @@ const {
 const { filterForValidReports } = require('./filter-for-valid-reports')
 const {
   extractReportsWithChainIdAndStatus,
-  extractReportsWithChainIdAndTxHash,
+  extractReportsFromOnChainRequests,
 } = require('./extract-reports-with-query')
 
-const getValidEventsWithStatusAndPutInState = curry(
+const getValidEventsWithStatusAndPutInState = R.curry(
   (_status, _stateKey, _state) =>
     extractReportsWithChainIdAndStatus(
       _state[constants.state.STATE_KEY_DB],
@@ -25,7 +25,7 @@ const getValidEventsWithStatusAndPutInState = curry(
         _reports =>
           logger.info(
             `Adding reports w/ status '${_status}' to state under '${_stateKey}' key`
-          ) || assoc(_stateKey, _reports, _state)
+          ) || R.assoc(_stateKey, _reports, _state)
       )
 )
 
@@ -42,18 +42,15 @@ const getProposedEventsFromDbAndPutInState =
   )
 
 const getValidMatchingEventsAndPutInState = _state =>
-  extractReportsWithChainIdAndTxHash(
+  extractReportsFromOnChainRequests(
     _state[constants.state.STATE_KEY_DB],
-    _state[constants.state.STATE_KEY_CHAIN_ID],
-    _state[STATE_ONCHAIN_REQUESTS_KEY].map(
-      prop(schemas.constants.SCHEMA_ORIGINATING_TX_HASH_KEY)
-    ) // TODO: create constant once the on-chain interface has been defined
+    _state[STATE_ONCHAIN_REQUESTS_KEY]
   )
     .then(filterForValidReports)
     .then(
       _reports =>
         logger.info('Adding detected reports to state...') ||
-        assoc(STATE_DETECTED_DB_REPORTS_KEY, _reports, _state)
+        R.assoc(STATE_DETECTED_DB_REPORTS_KEY, _reports, _state)
     )
 
 module.exports = {

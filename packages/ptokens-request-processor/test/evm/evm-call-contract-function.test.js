@@ -1,7 +1,4 @@
-const {
-  jestMockEthers,
-  jestMockContractConstructor,
-} = require('./mock/jest-utils')
+const { jestMockContractConstructor } = require('./mock/jest-utils')
 
 describe('General EVM contract function tests', () => {
   describe('callContractFunctionAndAwait', () => {
@@ -10,7 +7,7 @@ describe('General EVM contract function tests', () => {
     })
 
     it('Should call a contract function', async () => {
-      const ethers = jestMockEthers()
+      const ethers = require('ethers')
 
       const expectedObject = {
         transactionHash:
@@ -21,7 +18,9 @@ describe('General EVM contract function tests', () => {
         wait: jest.fn().mockResolvedValue(expectedObject),
       })
 
-      ethers.Contract = jestMockContractConstructor('mint', mockCallMint)
+      jest
+        .spyOn(ethers, 'Contract')
+        .mockImplementation(jestMockContractConstructor('mint', mockCallMint))
 
       const contract = new ethers.Contract()
 
