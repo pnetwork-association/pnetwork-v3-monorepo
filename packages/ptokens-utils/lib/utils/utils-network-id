@@ -14,6 +14,7 @@ const getBlockchainTypeFromChainId = _networkId =>
       case constants.networkIds.FANTOM_MAINNET:
       case constants.networkIds.LUXOCHAIN_MAINNET:
       case constants.networkIds.POLYGON_MAINNET:
+      case constants.networkIds.POLYGON_MUMBAI:
       case constants.networkIds.ARBITRUM_MAINNET:
       case constants.networkIds.ETH_UNKNOWN:
         return resolve(constants.blockchainType.EVM)
