@@ -8,7 +8,7 @@ require('hardhat-spdx-license-identifier')
 require('hardhat-log-remover')
 require('solidity-coverage')
 
-const getEnvironmentVariable = (_envVar) => process.env[_envVar]
+const getEnvironmentVariable = _envVar => process.env[_envVar] || ""
 
 /**
  * @type import('hardhat/config').HardhatUserConfig
@@ -22,10 +22,10 @@ module.exports = {
         enabled: true,
         runs: 200,
         details: {
-          yul: true
-        }
-      }
-    }
+          yul: true,
+        },
+      },
+    },
   },
   networks: {
     hardhat: {
@@ -35,32 +35,32 @@ module.exports = {
       }*/
     },
     local: {
-      url: 'http://localhost:8545'
+      url: 'http://localhost:8545',
     },
     mainnet: {
       url: getEnvironmentVariable('MAINNET_NODE'),
       accounts: [getEnvironmentVariable('PK')],
-      gasPrice: 20e9
+      gasPrice: 20e9,
     },
     polygon: {
       url: getEnvironmentVariable('POLYGON_NODE'),
       accounts: [getEnvironmentVariable('PK')],
-      gasPrice: 400e9
+      gasPrice: 400e9,
     },
     bsc: {
       url: getEnvironmentVariable('BSC_NODE'),
       accounts: [getEnvironmentVariable('PK')],
-      gasPrice: 5e9
+      gasPrice: 5e9,
     },
     sepolia: {
       url: getEnvironmentVariable('SEPOLIA_NODE'),
-      accounts: [getEnvironmentVariable('PK')]
-    }
+      accounts: [getEnvironmentVariable('PK')],
+    },
   },
   etherscan: {
     apiKey: {
       mainnet: getEnvironmentVariable('ETHERSCAN_API_KEY'),
-      polygon: getEnvironmentVariable('POLYGONSCAN_API_KEY')
+      polygon: getEnvironmentVariable('POLYGONSCAN_API_KEY'),
     },
     customChains: [
       {
@@ -68,25 +68,25 @@ module.exports = {
         chainId: 137,
         urls: {
           apiURL: 'https://api.polygonscan.com/api',
-          browserURL: 'https://polygonscan.com'
+          browserURL: 'https://polygonscan.com',
         },
         network: 'sepolia',
         chainId: 11155111,
         urls: {
           apiURL: 'https://api.sepolia.etherscan.io/api',
-          browserURL: 'https://sepolia.etherscan.io'
-        }
-      }
-    ]
+          browserURL: 'https://sepolia.etherscan.io',
+        },
+      },
+    ],
   },
   gasReporter: {
-    enabled: true
+    enabled: true,
   },
   spdxLicenseIdentifier: {
     overwrite: false,
-    runOnCompile: false
+    runOnCompile: false,
   },
   mocha: {
-    timeout: 100000000
-  }
+    timeout: 100000000,
+  },
 }
