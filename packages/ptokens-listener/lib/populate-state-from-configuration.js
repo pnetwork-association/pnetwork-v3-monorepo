@@ -30,7 +30,7 @@ const getEventFromConfigurationAndPutInState = R.curry((_config, _state) =>
   )
 )
 
-const getChainIdFromConfigurationAndPutInState = R.curry((_config, _state) =>
+const getNetworkIdFromConfigurationAndPutInState = R.curry((_config, _state) =>
   R.assoc(
     constants.state.STATE_KEY_NETWORK_ID,
     _config[schemas.constants.SCHEMA_NETWORK_ID_KEY],
@@ -51,7 +51,7 @@ const getInitialStateFromConfiguration = _config =>
   Promise.resolve({})
     .then(getDbAndPutInState(_config))
     .then(getEventFromConfigurationAndPutInState(_config))
-    .then(getChainIdFromConfigurationAndPutInState(_config))
+    .then(getNetworkIdFromConfigurationAndPutInState(_config))
     .then(getProviderUrlFromConfigurationAndPutInState(_config))
 
 module.exports = {

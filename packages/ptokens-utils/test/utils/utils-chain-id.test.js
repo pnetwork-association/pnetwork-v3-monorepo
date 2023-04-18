@@ -34,7 +34,7 @@ describe('Chain ID utils tests', () => {
         constants.blockchainType.EOSIO,
       ]
       return Promise.all(
-        R.values(constants.metadataChainIds).map((_val, _i) =>
+        R.values(constants.networkIds).map((_val, _i) =>
           utils
             .getBlockchainTypeFromChainId(_val)
             .then(_ret => assert.strictEqual(_ret, expectedResults[_i]))

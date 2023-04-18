@@ -29,15 +29,15 @@ const getImplementationForBlockchainType = _blockchainType => {
 
 const getEventReportsFromTransaction = (
   _providerUrl,
-  _chainId,
+  _networkId,
   _hash,
   _eventName
 ) =>
   utils
-    .getBlockchainTypeFromChainId(_chainId)
+    .getBlockchainTypeFromChainId(_networkId)
     .then(getImplementationForBlockchainType)
     .then(_implementation =>
-      _implementation(_providerUrl, _chainId, _hash, _eventName)
+      _implementation(_providerUrl, _networkId, _hash, _eventName)
     )
 
 module.exports = { getEventReportsFromTransaction }

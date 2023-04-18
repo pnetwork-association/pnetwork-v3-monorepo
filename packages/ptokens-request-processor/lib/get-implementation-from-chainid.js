@@ -5,16 +5,16 @@ const { utils } = require('ptokens-utils')
 /**
  * Select the implementation from the given mapping
  * base on the given chain id.
- * @param  {[type]} _chainId       metadata chain id
+ * @param  {[type]} _networkId       metadata chain id
  * @param  {[type]} _functionName  name of the function (for logging purposes)
  * @param  {[type]} _mapping       map blockChainType => function
  * @return {[type]}                the function defined in the _mapping object
- *                                 related to the given _chainId
+ *                                 related to the given _networkId
  */
 const getImplementationFromChainId = R.memoizeWith(
   (a, b, _) => a + b,
-  (_chainId, _functionName, _mapping) =>
-    utils.getBlockchainTypeFromChainId(_chainId).then(_blockChainType => {
+  (_networkId, _functionName, _mapping) =>
+    utils.getBlockchainTypeFromChainId(_networkId).then(_blockChainType => {
       logger.info(
         `Getting implementation for '${_functionName}' for blockchain type ${_blockChainType}...`
       )

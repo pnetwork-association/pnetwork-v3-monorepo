@@ -33,10 +33,10 @@ describe('General get events from db tests', () => {
     })
 
     it('Should get the detected events with the chain id 0x00e4b170', async () => {
-      const chainId = '0xe15503e4'
+      const networkId = '0xe15503e4'
       const state = {
         [constants.state.STATE_KEY_DB]: collection,
-        [constants.state.STATE_KEY_NETWORK_ID]: chainId,
+        [constants.state.STATE_KEY_NETWORK_ID]: networkId,
       }
 
       const result = await getDetectedEventsFromDbAndPutInState(state)

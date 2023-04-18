@@ -40,10 +40,10 @@ const sendDismissalTransaction = R.curry(
 
 const buildDismissalTxsAndPutInState = _state =>
   new Promise(resolve => {
-    const blockChainName = utils.flipObjectPropertiesSync(
-      constants.metadataChainIds
-    )[chainId]
-    const chainId = _state[constants.state.STATE_KEY_NETWORK_ID]
+    const blockChainName = utils.flipObjectPropertiesSync(constants.networkIds)[
+      networkId
+    ]
+    const networkId = _state[constants.state.STATE_KEY_NETWORK_ID]
     const invalidRequests = _state[STATE_TO_BE_DISMISSED_REQUESTS_KEY]
     const providerUrl = _state[constants.state.STATE_KEY_PROVIDER_URL]
     const identityGpgFile = _state[constants.state.STATE_KEY_IDENTITY_FILE]
@@ -54,7 +54,7 @@ const buildDismissalTxsAndPutInState = _state =>
         logic
           .sleepForXMilliseconds(1000 * _i)
           .then(_ =>
-            sendDismissalTransaction(identityGpgFile, providerUrl, chainId)
+            sendDismissalTransaction(identityGpgFile, providerUrl, networkId)
           )
       )
     )
@@ -64,10 +64,10 @@ const buildDismissalTxsAndPutInState = _state =>
 
 const maybeBuildDismissalTxsAndPutInState = _state =>
   new Promise(resolve => {
-    const chainId = _state[constants.state.STATE_KEY_NETWORK_ID]
+    const networkId = _state[constants.state.STATE_KEY_NETWORK_ID]
     const blockChainName = utils.flipObjectPropertiesSync(
-      ptokensUtilsConstants.metadataChainIds
-    )[chainId]
+      ptokensUtilsConstants.networkIds
+    )[networkId]
     const invalidRequests = _state[STATE_TO_BE_DISMISSED_REQUESTS_KEY] || []
 
     return invalidRequests.length > 0
