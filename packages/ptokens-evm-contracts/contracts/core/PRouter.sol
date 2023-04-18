@@ -17,6 +17,7 @@ contract PRouter is IPRouter, Context {
         factory = _factory;
     }
 
+    // @inheritdoc IPRouter
     function userSend(
         string calldata destinationAccount,
         bytes4 destinationNetworkId,

@@ -73,10 +73,12 @@ contract PToken is IPToken, ERC20 {
         stateManager = _stateManager;
     }
 
+    /// @inheritdoc IPToken
     function burn(uint256 amount) external {
         _burnAndRelease(_msgSender(), amount);
     }
 
+    /// @inheritdoc IPToken
     function mint(uint256 amount) external {
         address account = _msgSender();
         _takeCollateral(account, amount);
@@ -84,12 +86,14 @@ contract PToken is IPToken, ERC20 {
         _mint(account, effectiveAmount);
     }
 
+    /// @inheritdoc IPToken
     function routedUserMint(address account, uint256 amount) external onlyRouter {
         _takeCollateral(account, amount);
         uint256 effectiveAmount = Utils.normalizeAmount(amount, _underlyingAssetDecimals, true);
         _mint(account, effectiveAmount);
     }
 
+    /// @inheritdoc IPToken
     function routedUserMintAndBurn(address account, uint256 amount) external onlyRouter {
         _takeCollateral(account, amount);
         uint256 effectiveAmount = Utils.normalizeAmount(amount, _underlyingAssetDecimals, true);
@@ -97,15 +101,18 @@ contract PToken is IPToken, ERC20 {
         emit Transfer(account, address(0), effectiveAmount);
     }
 
+    /// @inheritdoc IPToken
     function routedUserBurn(address account, uint256 amount) external onlyRouter {
         _burn(account, amount);
     }
 
+    /// @inheritdoc IPToken
     function stateManagedProtocolMint(address account, uint256 amount) external onlyStateManager {
         uint256 effectiveAmount = Utils.normalizeAmount(amount, _underlyingAssetDecimals, true);
         _mint(account, effectiveAmount);
     }
 
+    /// @inheritdoc IPToken
     function stateManagedProtocolBurn(address account, uint256 amount) external onlyStateManager {
         _burnAndRelease(account, amount);
     }
