@@ -14,7 +14,7 @@ describe('State utilities tests', () => {
       const config = {
         [schemas.constants.SCHEMA_CHAIN_NAME_KEY]: 'Ethereum Mainnet',
         [schemas.constants.SCHEMA_CHAIN_TYPE_KEY]: 'EVM',
-        [schemas.constants.SCHEMA_CHAIN_ID_KEY]: '0x005fe7f9',
+        [schemas.constants.SCHEMA_NETWORK_ID_KEY]: '0x005fe7f9',
         [schemas.constants.SCHEMA_DB_KEY]: {
           [schemas.constants.SCHEMA_URL_KEY]: 'a-url',
           [schemas.constants.SCHEMA_NAME_KEY]: 'a-database-name',
@@ -41,7 +41,7 @@ describe('State utilities tests', () => {
       assert.deepStrictEqual(ret, {
         [constants.state.STATE_KEY_DB]:
           'a-url/a-database-name/a-collection-name',
-        [constants.state.STATE_KEY_CHAIN_ID]: '0x005fe7f9',
+        [constants.state.STATE_KEY_NETWORK_ID]: '0x005fe7f9',
         [constants.state.STATE_KEY_PROVIDER_URL]: 'a-provider-url',
         [constants.state.STATE_KEY_STATE_MANAGER_ADDRESS]: '0x1',
         [constants.state.STATE_KEY_IDENTITY_FILE]: '/usr/src/app/private-key',

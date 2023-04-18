@@ -6,7 +6,7 @@ const config = require('../config')
 const loggingParams = {
   stdoutLevel: 'debug',
   logFileRelativePath: `./logs/listener-${
-    config[schemas.constants.SCHEMA_CHAIN_ID_KEY]
+    config[schemas.constants.SCHEMA_NETWORK_ID_KEY]
   }.log`,
 }
 

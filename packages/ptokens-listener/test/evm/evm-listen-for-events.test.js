@@ -16,7 +16,7 @@ describe('EVM listen for events', () => {
 
     it('Should call callback with the standardized event', done => {
       const state = {
-        [constants.state.STATE_KEY_CHAIN_ID]: '0xe15503e4',
+        [constants.state.STATE_KEY_NETWORK_ID]: '0xe15503e4',
         [constants.state.STATE_KEY_PROVIDER_URL]: 'provider-url',
         [STATE_KEY_EVENTS]: [
           {

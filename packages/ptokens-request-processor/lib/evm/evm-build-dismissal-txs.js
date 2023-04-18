@@ -43,7 +43,7 @@ const buildDismissalTxsAndPutInState = _state =>
     const blockChainName = utils.flipObjectPropertiesSync(
       constants.metadataChainIds
     )[chainId]
-    const chainId = _state[constants.state.STATE_KEY_CHAIN_ID]
+    const chainId = _state[constants.state.STATE_KEY_NETWORK_ID]
     const invalidRequests = _state[STATE_TO_BE_DISMISSED_REQUESTS_KEY]
     const providerUrl = _state[constants.state.STATE_KEY_PROVIDER_URL]
     const identityGpgFile = _state[constants.state.STATE_KEY_IDENTITY_FILE]
@@ -64,7 +64,7 @@ const buildDismissalTxsAndPutInState = _state =>
 
 const maybeBuildDismissalTxsAndPutInState = _state =>
   new Promise(resolve => {
-    const chainId = _state[constants.state.STATE_KEY_CHAIN_ID]
+    const chainId = _state[constants.state.STATE_KEY_NETWORK_ID]
     const blockChainName = utils.flipObjectPropertiesSync(
       ptokensUtilsConstants.metadataChainIds
     )[chainId]

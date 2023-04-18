@@ -36,14 +36,14 @@ describe('General get events from db tests', () => {
       const chainId = '0xe15503e4'
       const state = {
         [constants.state.STATE_KEY_DB]: collection,
-        [constants.state.STATE_KEY_CHAIN_ID]: chainId,
+        [constants.state.STATE_KEY_NETWORK_ID]: chainId,
       }
 
       const result = await getDetectedEventsFromDbAndPutInState(state)
       const expectedReports = [detectedEvents[0], detectedEvents[1]]
 
       expect(result).toHaveProperty(constants.state.STATE_KEY_DB)
-      expect(result).toHaveProperty(constants.state.STATE_KEY_CHAIN_ID)
+      expect(result).toHaveProperty(constants.state.STATE_KEY_NETWORK_ID)
       expect(result).toEqual(
         expect.objectContaining({
           [STATE_DETECTED_DB_REPORTS_KEY]: expectedReports,

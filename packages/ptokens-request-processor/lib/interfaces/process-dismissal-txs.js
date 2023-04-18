@@ -13,7 +13,7 @@ const blockchainTypeImplementationMapping = {
 
 const pollForRequestsAndDismiss = _state =>
   getImplementationFromChainId(
-    _state[constants.state.STATE_KEY_CHAIN_ID],
+    _state[constants.state.STATE_KEY_NETWORK_ID],
     'pollForRequestsAndDismiss',
     blockchainTypeImplementationMapping
   ).then(_implementedMethod => _implementedMethod(_state))

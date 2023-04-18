@@ -1,6 +1,6 @@
 const R = require('ramda')
 const schemas = require('ptokens-schemas')
-const { ERROR_INVALID_CHAIN_ID } = require('./errors')
+const { ERROR_INVALID_NETWORK_ID } = require('./errors')
 
 const checkEventHaveExpectedChainId = R.curry(
   (_reportChainIdKey, _expectedValue, _eventReport) =>
@@ -10,7 +10,7 @@ const checkEventHaveExpectedChainId = R.curry(
       return eventChainId !== _expectedValue
         ? reject(
             new Error(
-              `${ERROR_INVALID_CHAIN_ID} ${eventChainId} on report ${JSON.stringify(
+              `${ERROR_INVALID_NETWORK_ID} ${eventChainId} on report ${JSON.stringify(
                 _eventReport
               )}, should be ${_expectedValue}`
             )

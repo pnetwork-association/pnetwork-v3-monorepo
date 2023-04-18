@@ -6,7 +6,7 @@ module.exports = {
   type: 'object',
   required: [
     constants.SCHEMA_DB_KEY,
-    constants.SCHEMA_CHAIN_ID_KEY,
+    constants.SCHEMA_NETWORK_ID_KEY,
     constants.SCHEMA_CHAIN_NAME_KEY,
     constants.SCHEMA_CHAIN_TYPE_KEY,
     constants.SCHEMA_CHALLENGE_PERIOD,
@@ -19,7 +19,7 @@ module.exports = {
       type: 'integer',
     },
     [constants.SCHEMA_DB_KEY]: configDbSchema,
-    [constants.SCHEMA_CHAIN_ID_KEY]: {
+    [constants.SCHEMA_NETWORK_ID_KEY]: {
       type: 'string',
     },
     [constants.SCHEMA_CHAIN_NAME_KEY]: {

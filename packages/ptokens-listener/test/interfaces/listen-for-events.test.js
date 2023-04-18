@@ -10,7 +10,7 @@ describe('Tests for the listener interface', () => {
     })
 
     const getState = _chainId => ({
-      [constants.state.STATE_KEY_CHAIN_ID]: _chainId,
+      [constants.state.STATE_KEY_NETWORK_ID]: _chainId,
       [stateConstants.STATE_KEY_EVENTS]: [
         {
           [schemas.constants.SCHEMA_NAME_KEY]: 'event1',

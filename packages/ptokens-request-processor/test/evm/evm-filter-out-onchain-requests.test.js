@@ -30,7 +30,7 @@ describe('Tests for already processed requests filtering', () => {
       ]
 
       const state = {
-        [constants.state.STATE_KEY_CHAIN_ID]: '0x005fe7f9',
+        [constants.state.STATE_KEY_NETWORK_ID]: '0x005fe7f9',
         [STATE_DETECTED_DB_REPORTS_KEY]: receivedRequests,
         [STATE_ONCHAIN_REQUESTS_KEY]: onchainRequests,
         [STATE_PROPOSED_DB_REPORTS_KEY]: [],

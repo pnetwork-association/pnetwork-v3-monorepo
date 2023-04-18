@@ -17,7 +17,7 @@ const getValidEventsWithStatusAndPutInState = R.curry(
   (_status, _stateKey, _state) =>
     extractReportsWithChainIdAndStatus(
       _state[constants.state.STATE_KEY_DB],
-      _state[constants.state.STATE_KEY_CHAIN_ID],
+      _state[constants.state.STATE_KEY_NETWORK_ID],
       _status
     )
       .then(filterForValidReports)

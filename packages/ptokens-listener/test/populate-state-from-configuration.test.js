@@ -16,7 +16,7 @@ describe('State utilities tests', () => {
           [schemas.constants.SCHEMA_NAME_KEY]: 'a-database-name',
           [schemas.constants.SCHEMA_TABLE_EVENTS_KEY]: 'a-collection-name',
         },
-        [schemas.constants.SCHEMA_CHAIN_ID_KEY]: '0x00112233',
+        [schemas.constants.SCHEMA_NETWORK_ID_KEY]: '0x00112233',
         [schemas.constants.SCHEMA_EVENTS_KEY]: [
           {
             [schemas.constants.SCHEMA_NAME_KEY]: 'redeem',
@@ -42,7 +42,7 @@ describe('State utilities tests', () => {
       assert.deepStrictEqual(ret, {
         [constants.state.STATE_KEY_DB]:
           'a-url/a-database-name/a-collection-name',
-        [constants.state.STATE_KEY_CHAIN_ID]: '0x00112233',
+        [constants.state.STATE_KEY_NETWORK_ID]: '0x00112233',
         [stateConstants.STATE_KEY_EVENTS]: [
           {
             [schemas.constants.SCHEMA_NAME_KEY]: 'redeem',
