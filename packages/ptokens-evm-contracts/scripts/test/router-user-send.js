@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 const { ethers } = require('hardhat')
 const { PNETWORK_NETWORK_IDS } = require('../config')
 
@@ -32,15 +33,19 @@ const main = async () => {
     '0x',
     '0x'.padEnd(66, '0'),
     {
-      gasLimit: 200000
+      gasLimit: 200000,
     }
   )
   await tx.wait(1)
 }
 
 main()
+  // eslint-disable-next-line no-process-exit
   .then(() => process.exit(0))
-  .catch((error) => {
+  .catch(error => {
     console.error(error)
+    // eslint-disable-next-line no-process-exit
     process.exit(1)
   })
+
+/* eslint-enable no-console */
