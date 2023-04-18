@@ -66,14 +66,17 @@ const getProtocolCancelOperationAbi = () =>
 
 const getUserOperationAbiArgsFromReport = _eventReport => [
   [
-    _eventReport[schemas.constants.SCHEMA_ORIGINATING_BLOCK_HASH_KEY],
-    _eventReport[schemas.constants.SCHEMA_ORIGINATING_TX_HASH_KEY],
+    _eventReport[schemas.constants.SCHEMA_ORIGINATING_BLOCK_HASH_KEY] ||
+      _eventReport[schemas.constants.SCHEMA_BLOCK_HASH_KEY],
+    _eventReport[schemas.constants.SCHEMA_ORIGINATING_TX_HASH_KEY] ||
+      _eventReport[schemas.constants.SCHEMA_TX_HASH_KEY],
     _eventReport[schemas.constants.SCHEMA_OPTIONS_MASK],
     _eventReport[schemas.constants.SCHEMA_NONCE_KEY],
     _eventReport[schemas.constants.SCHEMA_UNDERLYING_ASSET_DECIMALS_KEY],
     _eventReport[schemas.constants.SCHEMA_ASSET_AMOUNT_KEY],
     _eventReport[schemas.constants.SCHEMA_UNDERLYING_ASSET_TOKEN_ADDRESS_KEY],
-    _eventReport[schemas.constants.SCHEMA_ORIGINATING_NETWORK_ID_KEY],
+    _eventReport[schemas.constants.SCHEMA_ORIGINATING_NETWORK_ID_KEY] ||
+      _eventReport[schemas.constants.SCHEMA_NETWORK_ID_KEY],
     _eventReport[schemas.constants.SCHEMA_DESTINATION_NETWORK_ID_KEY],
     _eventReport[schemas.constants.SCHEMA_UNDERLYING_ASSET_NETWORK_ID_KEY],
     _eventReport[schemas.constants.SCHEMA_DESTINATION_ACCOUNT_KEY],
