@@ -1,34 +1,47 @@
 const R = require('ramda')
 const constants = require('ptokens-constants')
+const { db } = require('ptokens-utils')
+const schemas = require('ptokens-schemas')
+const {
+  STATE_ONCHAIN_REQUESTS_KEY,
+  STATE_DETECTED_DB_REPORTS_KEY,
+  STATE_PROPOSED_DB_REPORTS_KEY,
+  STATE_FINALIZED_DB_REPORTS_KEY,
+  STATE_TO_BE_DISMISSED_REQUESTS_KEY,
+  STATE_DISMISSED_DB_REPORTS_KEY,
+} = require('../../lib/state/constants')
 const queuedReports = require('../samples/queued-report-set.json')
 const requestsReports = require('../samples/detected-report-set.json')
 const reports = [...queuedReports, ...requestsReports]
 
 describe('Tests for queued requests detection and dismissal', () => {
   describe('maybeProcessNewRequestsAndDismiss', () => {
-    beforeEach(() => {
-      jest.resetAllMocks()
-      jest.resetModules()
+    let collection = null
+    const uri = global.__MONGO_URI__
+    const dbName = global.__MONGO_DB_NAME__
+    const table = 'test'
+
+    beforeAll(async () => {
+      collection = await db.getCollection(uri, dbName, table)
+    })
+
+    beforeEach(async () => {
+      await collection.insertMany(reports)
+    })
+
+    afterEach(async () => {
+      await Promise.all(reports.map(R.prop('_id'))).then(_ids =>
+        Promise.all(_ids.map(db.deleteReport(collection)))
+      )
+      jest.restoreAllMocks()
+    })
+
+    afterAll(async () => {
+      await db.closeConnection(uri)
     })
 
     it('Should put invalid transactions to be dismissed into state', async () => {
-      const { db, logic } = require('ptokens-utils')
-      const findReportsSpy = jest
-        .spyOn(db, 'findReports')
-        .mockImplementationOnce((_collection, _query, _options) =>
-          Promise.resolve(
-            reports.filter(
-              _r =>
-                _r.status === _query.status &&
-                _r.eventName === _query.eventName &&
-                _r.originatingNetworkId === _query.originatingNetworkId
-            )
-          )
-        )
-        .mockImplementationOnce((_collection, _query, _options) =>
-          Promise.resolve(reports.filter(_r => _query._id.$in.includes(_r._id)))
-        )
-        .mockResolvedValue([])
+      const { logic } = require('ptokens-utils')
 
       jest
         .spyOn(logic, 'sleepForXMilliseconds')
@@ -37,62 +50,69 @@ describe('Tests for queued requests detection and dismissal', () => {
         .spyOn(logic, 'sleepThenReturnArg')
         .mockImplementation(R.curry((_, _r) => Promise.resolve(_r)))
 
-      const evmBBuildDismissalModule = require('../../lib/evm/evm-build-dismissal-txs')
+      const evmBuildDismissalModule = require('../../lib/evm/evm-build-dismissal-txs')
 
-      const maybeBuildDismissalTxsAndPutInStateSpy = jest
-        .spyOn(evmBBuildDismissalModule, 'maybeBuildDismissalTxsAndPutInState')
-        .mockImplementation(_ => _)
+      jest
+        .spyOn(evmBuildDismissalModule, 'maybeBuildDismissalTxsAndPutInState')
+        .mockImplementation(
+          R.assoc(STATE_DISMISSED_DB_REPORTS_KEY, [
+            {
+              ...queuedReports[0],
+              [schemas.constants.SCHEMA_STATUS_KEY]:
+                schemas.db.enums.txStatus.CANCELLED,
+            },
+            {
+              ...queuedReports[1],
+              [schemas.constants.SCHEMA_STATUS_KEY]:
+                schemas.db.enums.txStatus.CANCELLED,
+            },
+            {
+              ...queuedReports[2],
+              [schemas.constants.SCHEMA_STATUS_KEY]:
+                schemas.db.enums.txStatus.CANCELLED,
+            },
+          ])
+        )
+
       const {
         maybeProcessNewRequestsAndDismiss,
       } = require('../../lib/evm/evm-process-dismissal-txs')
       const state = {
         [constants.state.STATE_KEY_LOOP_SLEEP_TIME]: 1,
         [constants.state.STATE_KEY_NETWORK_ID]: '0xe15503e4',
-        [constants.state.STATE_KEY_DB]: { collection: 'collection' },
+        [constants.state.STATE_KEY_DB]: collection,
+        [constants.state.STATE_KEY_IDENTITY_FILE]: 'identity-file',
       }
 
-      await maybeProcessNewRequestsAndDismiss(state)
+      expect(
+        await db.findReports(collection, {
+          [schemas.constants.SCHEMA_STATUS_KEY]:
+            schemas.db.enums.txStatus.CANCELLED,
+        })
+      ).toStrictEqual([])
 
-      expect(findReportsSpy).toHaveBeenNthCalledWith(
-        1,
-        { collection: 'collection' },
-        {
-          eventName: 'OperationQueued',
-          originatingNetworkId: '0xe15503e4',
-          status: 'detected',
-        }
-      )
-      expect(findReportsSpy).toHaveBeenNthCalledWith(
-        2,
-        { collection: 'collection' },
-        {
-          _id: {
-            $in: [
-              'useroperation_0x472a0730ed6fee11afda30c2701e8c5a0b8559f17b576c5c6447861e94146f31',
-              'useroperation_0x09ef065ad6793a8f76d0cf3e02af4fead0b859d5eb196d1d172570916fd047dd',
-              'useroperation_0x0373cb2ceeafd11a18902d21a0edbd7f3651ee3cea09442a12c060115a97bda1',
-              'useroperation_0x32fe2ff93d26184c87287d7b8d3d92f48f6224dd79b353eadeacf1e399378c08',
-            ],
-          },
-        }
-      )
-      expect(maybeBuildDismissalTxsAndPutInStateSpy).toHaveBeenNthCalledWith(
-        1,
-        {
-          ...state,
-          queuedDbReports: [
-            queuedReports[0],
-            queuedReports[1],
-            queuedReports[2],
-            queuedReports[3],
-          ],
-          toBeDismissedRequests: [
-            queuedReports[0],
-            queuedReports[1],
-            queuedReports[2],
-          ],
-        }
-      )
+      const result = await maybeProcessNewRequestsAndDismiss(state)
+
+      const cancelledReports = await db.findReports(collection, {
+        [schemas.constants.SCHEMA_STATUS_KEY]:
+          schemas.db.enums.txStatus.CANCELLED,
+      })
+
+      expect(
+        cancelledReports.map(R.prop(schemas.constants.SCHEMA_ID_KEY))
+      ).toStrictEqual([
+        queuedReports[0][schemas.constants.SCHEMA_ID_KEY],
+        queuedReports[1][schemas.constants.SCHEMA_ID_KEY],
+        queuedReports[2][schemas.constants.SCHEMA_ID_KEY],
+      ])
+      expect(result).toHaveProperty(constants.state.STATE_KEY_DB)
+      expect(result).not.toHaveProperty(STATE_ONCHAIN_REQUESTS_KEY)
+      expect(result).not.toHaveProperty(STATE_DETECTED_DB_REPORTS_KEY)
+      expect(result).not.toHaveProperty(STATE_PROPOSED_DB_REPORTS_KEY)
+      expect(result).not.toHaveProperty(STATE_FINALIZED_DB_REPORTS_KEY)
+      expect(result).not.toHaveProperty(STATE_TO_BE_DISMISSED_REQUESTS_KEY)
+      expect(result).not.toHaveProperty(STATE_DISMISSED_DB_REPORTS_KEY)
+      expect(result).toHaveProperty(constants.state.STATE_KEY_IDENTITY_FILE)
     })
   })
 })

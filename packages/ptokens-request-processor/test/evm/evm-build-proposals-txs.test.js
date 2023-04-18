@@ -56,6 +56,23 @@ describe('Build proposals test for EVM', () => {
         eventReport
       )
 
+      expect(mockQueueOperation).toHaveBeenCalledTimes(1)
+      expect(mockQueueOperation).toHaveBeenCalledWith([
+        '0xbaa9e89896c03366c3578a4568a6defd4b127e4b09bb06b67a12cb1a4c332376',
+        '0x0907eefad58dfcb2cbfad66d29accd4d6ddc345851ec1d180b23122084fa2834',
+        '0x0000000000000000000000000000000000000000000000000000000000000000',
+        '6648',
+        18,
+        '1000000000000000000',
+        '0x49a5D1CF92772328Ad70f51894FD632a14dF12C9',
+        '0xe15503e4',
+        '0xe15503e4',
+        '0xe15503e4',
+        '0xdDb5f4535123DAa5aE343c24006F4075aBAF5F7B',
+        'Token',
+        'TKN',
+        '0x',
+      ])
       expect(result).toStrictEqual({
         ...eventReport,
         [schemas.constants.SCHEMA_STATUS_KEY]:
@@ -138,7 +155,7 @@ describe('Build proposals test for EVM', () => {
 
       const callContractFunctionModule = require('../../lib/evm/evm-call-contract-function')
 
-      jest
+      const callContractFunctionAndAwaitSpy = jest
         .spyOn(callContractFunctionModule, 'callContractFunctionAndAwait')
         .mockResolvedValueOnce(expecteCallResult[0])
         .mockResolvedValueOnce(expecteCallResult[1])
@@ -163,6 +180,55 @@ describe('Build proposals test for EVM', () => {
 
       const result = await buildProposalsTxsAndPutInState(state)
 
+      expect(callContractFunctionAndAwaitSpy).toHaveBeenCalledTimes(2)
+      expect(callContractFunctionAndAwaitSpy).toHaveBeenNthCalledWith(
+        1,
+        'protocolQueueOperation',
+        [
+          [
+            '0xbaa9e89896c03366c3578a4568a6defd4b127e4b09bb06b67a12cb1a4c332376',
+            '0x0907eefad58dfcb2cbfad66d29accd4d6ddc345851ec1d180b23122084fa2834',
+            '0x0000000000000000000000000000000000000000000000000000000000000000',
+            '6648',
+            18,
+            '1000000000000000000',
+            '0x49a5D1CF92772328Ad70f51894FD632a14dF12C9',
+            '0xe15503e4',
+            '0xe15503e4',
+            '0xe15503e4',
+            '0xdDb5f4535123DAa5aE343c24006F4075aBAF5F7B',
+            'Token',
+            'TKN',
+            '0x',
+          ],
+        ],
+        expect.anything(),
+        1000
+      )
+      expect(callContractFunctionAndAwaitSpy).toHaveBeenNthCalledWith(
+        2,
+        'protocolQueueOperation',
+        [
+          [
+            '0xbfed1379abf5ebce29b4f74a4159a0795f42f97b260199d05acdcb567d0b0b85',
+            '0xed4fc787108745e0414cdcd24fe82afd82bbbb60d4976feefb6687253d558be8',
+            '0x0000000000000000000000000000000000000000000000000000000000000000',
+            '6648',
+            18,
+            '2000000000000000000',
+            '0x49a5D1CF92772328Ad70f51894FD632a14dF12C9',
+            '0xe15503e4',
+            '0xe15503e4',
+            '0xe15503e4',
+            '0xdDb5f4535123DAa5aE343c24006F4075aBAF5F7B',
+            'Token',
+            'TKN',
+            '0x',
+          ],
+        ],
+        expect.anything(),
+        1000
+      )
       expect(result).toHaveProperty(STATE_PROPOSED_DB_REPORTS_KEY)
       expect(result).toHaveProperty(STATE_DETECTED_DB_REPORTS_KEY)
       expect(result).toHaveProperty(constants.state.STATE_KEY_NETWORK_ID)
