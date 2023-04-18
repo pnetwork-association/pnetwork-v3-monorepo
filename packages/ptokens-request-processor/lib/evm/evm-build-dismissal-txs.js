@@ -40,9 +40,9 @@ const sendDismissalTransaction = R.curry(
 
 const buildDismissalTxsAndPutInState = _state =>
   new Promise(resolve => {
-    const blockChainName = utils.flipObjectPropertiesSync(
-      constants.metadataChainIds
-    )[chainId]
+    const blockChainName = utils.flipObjectPropertiesSync(constants.networkIds)[
+      chainId
+    ]
     const chainId = _state[constants.state.STATE_KEY_NETWORK_ID]
     const invalidRequests = _state[STATE_TO_BE_DISMISSED_REQUESTS_KEY]
     const providerUrl = _state[constants.state.STATE_KEY_PROVIDER_URL]
@@ -66,7 +66,7 @@ const maybeBuildDismissalTxsAndPutInState = _state =>
   new Promise(resolve => {
     const chainId = _state[constants.state.STATE_KEY_NETWORK_ID]
     const blockChainName = utils.flipObjectPropertiesSync(
-      ptokensUtilsConstants.metadataChainIds
+      ptokensUtilsConstants.networkIds
     )[chainId]
     const invalidRequests = _state[STATE_TO_BE_DISMISSED_REQUESTS_KEY] || []
 

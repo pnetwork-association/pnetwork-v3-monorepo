@@ -154,7 +154,7 @@ const getEventId = ({
       }
     })
     // This should handle cases where
-    //  - The ID is not defined in the metadataChainIds object
+    //  - The ID is not defined in the networkIds object
     //  - The event does not have the expected properties
     .catch(
       _err =>
