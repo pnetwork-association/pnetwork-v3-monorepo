@@ -61,6 +61,8 @@ const getProtocolQueueOperationAbi = () =>
   getProtocolOperationAbi('protocolQueueOperation')
 const getProtocolExecuteOperationAbi = () =>
   getProtocolOperationAbi('protocolExecuteOperation')
+const getProtocolCancelOperationAbi = () =>
+  getProtocolOperationAbi('protocolCancelOperation')
 
 const getUserOperationAbiArgsFromReport = _eventReport => [
   [
@@ -85,5 +87,6 @@ module.exports = {
   logUserOperationFromAbiArgs,
   getProtocolQueueOperationAbi,
   getProtocolExecuteOperationAbi,
+  getProtocolCancelOperationAbi,
   getUserOperationAbiArgsFromReport,
 }
