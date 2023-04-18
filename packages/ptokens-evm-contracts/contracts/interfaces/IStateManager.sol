@@ -32,9 +32,57 @@ interface IStateManager {
         bytes1 status;
     }
 
+    /**
+     * @dev Emitted when an operation is queued.
+     *
+     * @param operation The queued operation
+     */
     event OperationQueued(Operation operation);
 
+    /**
+     * @dev Emitted when an operation is executed.
+     *
+     * @param operation The executed operation
+     */
     event OperationExecuted(Operation operation);
 
+    /**
+     * @dev Emitted when an operation is cancelled.
+     *
+     * @param operation The cancelled operation
+     */
     event OperationCancelled(Operation operation);
+
+    /*
+     * @notice Calculates the operation id.
+     *
+     * @param operation
+     *
+     * @return the operation id.
+     */
+    function operationIdOf(Operation memory operation) external pure returns (bytes32);
+
+    /*
+     * @notice Cancel an operation that has been queued.
+     *
+     * @param operation
+     *
+     */
+    function protocolCancelOperation(Operation calldata operation) external;
+
+    /*
+     * @notice Execute an operation that has been queued.
+     *
+     * @param operation
+     *
+     */
+    function protocolExecuteOperation(Operation calldata operation) external;
+
+    /*
+     * @notice Queue an operation.
+     *
+     * @param operation
+     *
+     */
+    function protocolQueueOperation(Operation calldata operation) external;
 }

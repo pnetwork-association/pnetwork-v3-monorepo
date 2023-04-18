@@ -24,6 +24,7 @@ contract StateManager is IStateManager, Context, ReentrancyGuard {
         queueTime = _queueTime;
     }
 
+    /// @inheritdoc IStateManager
     function operationIdOf(Operation memory operation) public pure returns (bytes32) {
         return
             keccak256(
@@ -46,6 +47,7 @@ contract StateManager is IStateManager, Context, ReentrancyGuard {
             );
     }
 
+    /// @inheritdoc IStateManager
     function protocolCancelOperation(Operation calldata operation) external {
         bytes32 operationId = operationIdOf(operation);
 
@@ -59,6 +61,7 @@ contract StateManager is IStateManager, Context, ReentrancyGuard {
         emit OperationCancelled(operation);
     }
 
+    /// @inheritdoc IStateManager
     function protocolExecuteOperation(Operation calldata operation) external nonReentrant {
         bytes32 operationId = operationIdOf(operation);
 
@@ -112,11 +115,8 @@ contract StateManager is IStateManager, Context, ReentrancyGuard {
         emit OperationExecuted(operation);
     }
 
+    /// @inheritdoc IStateManager
     function protocolQueueOperation(Operation calldata operation) external {
-        _queueOperation(_msgSender(), operation);
-    }
-
-    function _queueOperation(address relayer, Operation calldata operation) internal {
         bytes32 operationId = operationIdOf(operation);
 
         if (_operationsData[operationId].status != Constants.OPERATION_NULL) {
@@ -124,7 +124,7 @@ contract StateManager is IStateManager, Context, ReentrancyGuard {
         }
 
         _operationsData[operationId] = OperationData(
-            relayer,
+            _msgSender(),
             uint64(block.timestamp + queueTime),
             Constants.OPERATION_QUEUED
         );
