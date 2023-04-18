@@ -230,16 +230,16 @@ const parseLog = (_interface, _log) =>
  *    blockHash: '0x0fc80f64b06f1de7e0025968e1acea1c8098e99da995654bc8f28b86a5efc8be'
  * }
  *
- * @param  {string} _chainId,  [metadata chain id]
+ * @param  {string} _networkId,  [metadata chain id]
  * @param  {object} _interface,  [ethers.js interface object]
  * @param  {object} _log [on chain event log]
  * @return {object}            [the standard event object]
  */
-const buildStandardizedEvmEventObjectFromLog = (_chainId, _interface, _log) =>
+const buildStandardizedEvmEventObjectFromLog = (_networkId, _interface, _log) =>
   Promise.all([getEventWithAllRequiredSetToNull(), parseLog(_interface, _log)])
     .then(([_obj, _parsedLog]) => addInfoFromParsedLog(_parsedLog, _obj))
     .then(
-      R.assoc(schemas.constants.SCHEMA_ORIGINATING_NETWORK_ID_KEY, _chainId)
+      R.assoc(schemas.constants.SCHEMA_ORIGINATING_NETWORK_ID_KEY, _networkId)
     )
     .then(
       addFieldFromLog(

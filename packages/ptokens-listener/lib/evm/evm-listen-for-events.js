@@ -11,7 +11,7 @@ const {
 
 const listenFromFilter = (
   _providerUrl,
-  _chainId,
+  _networkId,
   _filter,
   _interface,
   _callback
@@ -20,12 +20,12 @@ const listenFromFilter = (
     `Listening for event from ${_filter.address} with topics [${_filter.topics}]`
   ) ||
   getEthersProvider(_providerUrl).then(_provider =>
-    _provider.on(_filter, processEventLog(_chainId, _interface, _callback))
+    _provider.on(_filter, processEventLog(_networkId, _interface, _callback))
   )
 
 const listenForEvmEvent = (
   _providerUrl,
-  _chainId,
+  _networkId,
   _eventName,
   _contractAddress,
   _callback
@@ -36,12 +36,12 @@ const listenForEvmEvent = (
   ]).then(
     ([_filter, _interface]) =>
       logger.info(`Listening to ${_eventName} @ ${_contractAddress}`) ||
-      listenFromFilter(_providerUrl, _chainId, _filter, _interface, _callback)
+      listenFromFilter(_providerUrl, _networkId, _filter, _interface, _callback)
   )
 
 const startEvmListenerFromEventObject = (
   _providerUrl,
-  _chainId,
+  _networkId,
   _event,
   _callback
 ) =>
@@ -49,7 +49,7 @@ const startEvmListenerFromEventObject = (
     _event[schemas.constants.SCHEMA_TOKEN_CONTRACTS_KEY].map(_tokenContract =>
       listenForEvmEvent(
         _providerUrl,
-        _chainId,
+        _networkId,
         _event.name,
         _tokenContract,
         _callback

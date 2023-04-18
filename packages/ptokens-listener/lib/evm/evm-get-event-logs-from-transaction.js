@@ -7,7 +7,7 @@ const {
 
 const getEvmEventLogsFromTransaction = (
   _providerUrl,
-  _chainId,
+  _networkId,
   _hash,
   _eventName = null
 ) =>

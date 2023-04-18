@@ -1,8 +1,8 @@
 const constants = require('../constants')
 
-const getBlockchainTypeFromChainId = _chainId =>
+const getBlockchainTypeFromChainId = _networkId =>
   new Promise((resolve, reject) => {
-    switch (_chainId) {
+    switch (_networkId) {
       case constants.networkIds.ETHEREUM_MAINNET:
       case constants.networkIds.ETHEREUM_ROPSTEN:
       case constants.networkIds.ETHEREUM_RINKEBY:
@@ -34,7 +34,7 @@ const getBlockchainTypeFromChainId = _chainId =>
       case constants.networkIds.ALGORAND_MAINNET:
         return resolve(constants.blockchainType.ALGORAND)
       default:
-        return reject(new Error(`Unknown chain ID ${_chainId}`))
+        return reject(new Error(`Unknown chain ID ${_networkId}`))
     }
   })
 

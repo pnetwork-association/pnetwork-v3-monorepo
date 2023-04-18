@@ -46,9 +46,9 @@ const {
 } = require('./evm-build-standardized-event.js')
 
 const processEventLog = R.curry(
-  (_chainId, _interface, _callback, _log) =>
+  (_networkId, _interface, _callback, _log) =>
     logger.info(`Received EVM event for transaction ${_log.transactionHash}`) ||
-    buildStandardizedEvmEventObjectFromLog(_chainId, _interface, _log)
+    buildStandardizedEvmEventObjectFromLog(_networkId, _interface, _log)
       // TODO: Validate event schema before inserting
       .then(_callback)
 )

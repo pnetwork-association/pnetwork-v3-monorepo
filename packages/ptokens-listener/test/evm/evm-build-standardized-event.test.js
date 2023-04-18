@@ -15,13 +15,13 @@ describe('Event building for EVM', () => {
       const {
         buildStandardizedEvmEventObjectFromLog,
       } = require('../../lib/evm/evm-build-standardized-event')
-      const chainId = '0xe15503e4'
+      const networkId = '0xe15503e4'
       const eventName =
         'UserOperation(uint256 nonce,string destinationAccount,bytes4 destinationNetworkId,string underlyingAssetName,string underlyingAssetSymbol,uint256 underlyingAssetDecimals,address underlyingAssetTokenAddress,bytes4 underlyingAssetNetworkId,address assetTokenAddress,uint256 assetAmount,bytes userData,bytes32 optionsMask)'
       const eventLog = logs[1]
       const methodInterface = await getInterfaceFromEvent(eventName)
       const result = await buildStandardizedEvmEventObjectFromLog(
-        chainId,
+        networkId,
         methodInterface,
         eventLog
       )
@@ -71,13 +71,13 @@ describe('Event building for EVM', () => {
       const {
         buildStandardizedEvmEventObjectFromLog,
       } = require('../../lib/evm/evm-build-standardized-event')
-      const chainId = '0xe15503e4'
+      const networkId = '0xe15503e4'
       const eventName =
         'UserOperation(uint256 nonce,string destinationAccount,bytes4 destinationNetworkId,string underlyingAssetName,string underlyingAssetSymbol,uint256 underlyingAssetDecimals,address underlyingAssetTokenAddress,bytes4 underlyingAssetNetworkId,address assetTokenAddress,uint256 assetAmount,bytes userData,bytes32 optionsMask)'
       const eventLog = logs[2]
       const methodInterface = await getInterfaceFromEvent(eventName)
       const result = await buildStandardizedEvmEventObjectFromLog(
-        chainId,
+        networkId,
         methodInterface,
         eventLog
       )
@@ -127,13 +127,13 @@ describe('Event building for EVM', () => {
       const {
         buildStandardizedEvmEventObjectFromLog,
       } = require('../../lib/evm/evm-build-standardized-event')
-      const chainId = '0xe15503e4'
+      const networkId = '0xe15503e4'
       const eventName =
         'UserOperation(uint256 nonce,string destinationAccount,bytes4 destinationNetworkId,string underlyingAssetName,string underlyingAssetSymbol,uint256 underlyingAssetDecimals,address underlyingAssetTokenAddress,bytes4 underlyingAssetNetworkId,address assetTokenAddress,uint256 assetAmount,bytes userData,bytes32 optionsMask)'
       const eventLog = logs[3]
       const methodInterface = await getInterfaceFromEvent(eventName)
       const result = await buildStandardizedEvmEventObjectFromLog(
-        chainId,
+        networkId,
         methodInterface,
         eventLog
       )
@@ -183,13 +183,13 @@ describe('Event building for EVM', () => {
       const {
         buildStandardizedEvmEventObjectFromLog,
       } = require('../../lib/evm/evm-build-standardized-event')
-      const chainId = '0xe15503e4'
+      const networkId = '0xe15503e4'
       const eventName =
         'UserOperation(uint256 nonce,string destinationAccount,bytes4 destinationNetworkId,string underlyingAssetName,string underlyingAssetSymbol,uint256 underlyingAssetDecimals,address underlyingAssetTokenAddress,bytes4 underlyingAssetNetworkId,address assetTokenAddress,uint256 assetAmount,bytes userData,bytes32 optionsMask)'
       const eventLog = logs[4]
       const methodInterface = await getInterfaceFromEvent(eventName)
       const result = await buildStandardizedEvmEventObjectFromLog(
-        chainId,
+        networkId,
         methodInterface,
         eventLog
       )
@@ -239,13 +239,13 @@ describe('Event building for EVM', () => {
       const {
         buildStandardizedEvmEventObjectFromLog,
       } = require('../../lib/evm/evm-build-standardized-event')
-      const chainId = '0xe15503e4'
+      const networkId = '0xe15503e4'
       const eventName =
         'UserOperation(uint256 nonce,string destinationAccount,bytes4 destinationNetworkId,string underlyingAssetName,string underlyingAssetSymbol,uint256 underlyingAssetDecimals,address underlyingAssetTokenAddress,bytes4 underlyingAssetNetworkId,address assetTokenAddress,uint256 assetAmount,bytes userData,bytes32 optionsMask)'
       const eventLog = logs[5]
       const methodInterface = await getInterfaceFromEvent(eventName)
       const result = await buildStandardizedEvmEventObjectFromLog(
-        chainId,
+        networkId,
         methodInterface,
         eventLog
       )
@@ -295,13 +295,13 @@ describe('Event building for EVM', () => {
       const {
         buildStandardizedEvmEventObjectFromLog,
       } = require('../../lib/evm/evm-build-standardized-event')
-      const chainId = '0xe15503e4'
+      const networkId = '0xe15503e4'
       const eventName =
         'UserOperation(uint256 nonce,string destinationAccount,bytes4 destinationNetworkId,string underlyingAssetName,string underlyingAssetSymbol,uint256 underlyingAssetDecimals,address underlyingAssetTokenAddress,bytes4 underlyingAssetNetworkId,address assetTokenAddress,uint256 assetAmount,bytes userData,bytes32 optionsMask)'
       const eventLog = logs[6]
       const methodInterface = await getInterfaceFromEvent(eventName)
       const result = await buildStandardizedEvmEventObjectFromLog(
-        chainId,
+        networkId,
         methodInterface,
         eventLog
       )

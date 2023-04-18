@@ -8,22 +8,22 @@ const extractReportsWithQuery = (_collection, _query) =>
   db.findReports(_collection, _query)
 
 const extractReportsWithChainIdAndStatus = R.curry(
-  (_collection, _chainId, _status) => {
+  (_collection, _networkId, _status) => {
     logger.info(
-      `Getting events w/ status '${_status}' and chainId '${_chainId}' from db...`
+      `Getting events w/ status '${_status}' and networkId '${_networkId}' from db...`
     )
 
-    if (R.isNil(_chainId) || R.isNil(_status)) {
+    if (R.isNil(_networkId) || R.isNil(_status)) {
       return Promise.reject(
         new Error(
-          `${ERROR_NIL_ARGUMENTS}: chainId: ${_chainId} status: ${_status}`
+          `${ERROR_NIL_ARGUMENTS}: networkId: ${_networkId} status: ${_status}`
         )
       )
     }
 
     const query = {
       [schemas.constants.SCHEMA_STATUS_KEY]: _status,
-      [schemas.constants.SCHEMA_DESTINATION_NETWORK_ID_KEY]: _chainId,
+      [schemas.constants.SCHEMA_DESTINATION_NETWORK_ID_KEY]: _networkId,
     }
     return extractReportsWithQuery(_collection, query).then(
       _reports =>
