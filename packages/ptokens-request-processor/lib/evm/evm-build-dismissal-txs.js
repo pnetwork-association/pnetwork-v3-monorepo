@@ -205,7 +205,7 @@ const buildDismissalTxsAndPutInState = _state =>
     const providerUrl = _state[constants.state.STATE_KEY_PROVIDER_URL]
     const identityGpgFile = _state[constants.state.STATE_KEY_IDENTITY_FILE]
     const provider = new ethers.JsonRpcProvider(providerUrl)
-    const txTimeout = _state[schemas.constants.SCHEMA_TX_TIMEOUT]
+    const txTimeout = _state[constants.state.STATE_KEY_TX_TIMEOUT]
     const stateManager = _state[constants.state.STATE_KEY_STATE_MANAGER_ADDRESS]
 
     return readFile(identityGpgFile, { encoding: 'utf8' })
