@@ -6,7 +6,7 @@ const regexpUtils = require('./utils-regexp')
 const randomUtils = require('./utils-random')
 const objectUtils = require('./utils-objects')
 const getChainSymbol = require('./get-chain-symbol')
-const networkIdUtils = require('./utils-chain-id')
+const networkIdUtils = require('./utils-network-id')
 const getEventId = require('./get-event-id')
 
 module.exports = {

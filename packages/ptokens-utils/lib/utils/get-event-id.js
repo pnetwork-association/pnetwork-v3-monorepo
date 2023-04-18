@@ -1,7 +1,7 @@
 const ethers = require('ethers')
 const { logger } = require('../logger')
 const { blockchainType } = require('../constants')
-const { getBlockchainTypeFromChainId } = require('./utils-chain-id')
+const { getBlockchainTypeFromChainId } = require('./utils-network-id')
 
 const getEventIdEvm = ({
   originatingBlockHash,
