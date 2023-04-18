@@ -6,7 +6,7 @@ import {Context} from "@openzeppelin/contracts/utils/Context.sol";
 import {IPRouter} from "../interfaces/IPRouter.sol";
 import {IPToken} from "../interfaces/IPToken.sol";
 import {IPFactory} from "../interfaces/IPFactory.sol";
-import {Utils} from "../libraries/Utils.sol";
+import {Network} from "../libraries/Network.sol";
 import {Roles} from "../libraries/Roles.sol";
 import {Errors} from "../libraries/Errors.sol";
 
@@ -52,15 +52,15 @@ contract PRouter is IPRouter, Context {
 
             address msgSender = _msgSender();
 
-            if (underlyingAssetTokenAddress == assetTokenAddress && Utils.isCurrentNetwork(destinationNetworkId)) {
+            if (underlyingAssetTokenAddress == assetTokenAddress && Network.isCurrentNetwork(destinationNetworkId)) {
                 IPToken(pTokenAddress).routedUserMint(msgSender, assetAmount);
             } else if (
-                underlyingAssetTokenAddress == assetTokenAddress && !Utils.isCurrentNetwork(destinationNetworkId)
+                underlyingAssetTokenAddress == assetTokenAddress && !Network.isCurrentNetwork(destinationNetworkId)
             ) {
                 IPToken(pTokenAddress).routedUserMintAndBurn(msgSender, assetAmount);
-            } else if (pTokenAddress == assetTokenAddress && !Utils.isCurrentNetwork(destinationNetworkId)) {
+            } else if (pTokenAddress == assetTokenAddress && !Network.isCurrentNetwork(destinationNetworkId)) {
                 IPToken(pTokenAddress).routedUserBurn(msgSender, assetAmount);
-            } else if (pTokenAddress == assetTokenAddress && Utils.isCurrentNetwork(destinationNetworkId)) {
+            } else if (pTokenAddress == assetTokenAddress && Network.isCurrentNetwork(destinationNetworkId)) {
                 revert Errors.NoUserOperation();
             } else {
                 revert Errors.InvalidUserOperation();

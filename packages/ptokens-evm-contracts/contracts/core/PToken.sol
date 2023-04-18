@@ -8,6 +8,7 @@ import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {IPToken} from "../interfaces/IPToken.sol";
 import {Utils} from "../libraries/Utils.sol";
+import {Network} from "../libraries/Network.sol";
 import {Errors} from "../libraries/Errors.sol";
 
 contract PToken is IPToken, ERC20 {
@@ -42,7 +43,7 @@ contract PToken is IPToken, ERC20 {
         address _router,
         address _stateManager
     ) ERC20(string.concat("p", underlyingAssetName), string.concat("p", underlyingAssetSymbol)) {
-        if (Utils.isCurrentNetwork(_underlyingAssetNetworkId)) {
+        if (Network.isCurrentNetwork(_underlyingAssetNetworkId)) {
             string memory expectedUnderlyingAssetName = IERC20Metadata(_underlyingAssetTokenAddress).name();
             if (
                 keccak256(abi.encodePacked(underlyingAssetName)) !=
@@ -110,13 +111,12 @@ contract PToken is IPToken, ERC20 {
     }
 
     function _takeCollateral(address account, uint256 amount) internal {
-        if (!Utils.isCurrentNetwork(underlyingAssetNetworkId)) revert Errors.InvalidNetwork(underlyingAssetNetworkId);
-
+        if (!Network.isCurrentNetwork(underlyingAssetNetworkId)) revert Errors.InvalidNetwork(underlyingAssetNetworkId);
         IERC20Metadata(underlyingAssetTokenAddress).safeTransferFrom(account, address(this), amount);
     }
 
     function _burnAndRelease(address account, uint256 amount) internal {
-        if (!Utils.isCurrentNetwork(underlyingAssetNetworkId)) revert Errors.InvalidNetwork(underlyingAssetNetworkId);
+        if (!Network.isCurrentNetwork(underlyingAssetNetworkId)) revert Errors.InvalidNetwork(underlyingAssetNetworkId);
         _burn(account, amount);
         uint256 effectiveAmount = Utils.normalizeAmount(amount, _underlyingAssetDecimals, false);
         IERC20Metadata(underlyingAssetTokenAddress).safeTransfer(account, effectiveAmount);

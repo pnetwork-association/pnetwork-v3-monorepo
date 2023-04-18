@@ -12,6 +12,7 @@ import {Roles} from "../libraries/Roles.sol";
 import {Errors} from "../libraries/Errors.sol";
 import {Constants} from "../libraries/Constants.sol";
 import {Utils} from "../libraries/Utils.sol";
+import {Network} from "../libraries/Network.sol";
 
 contract StateManager is IStateManager, Context, ReentrancyGuard {
     mapping(bytes32 => OperationData) private _operationsData;
@@ -95,7 +96,7 @@ contract StateManager is IStateManager, Context, ReentrancyGuard {
             IPToken(pTokenAddress).stateManagedProtocolMint(destinationAddress, operation.amount);
 
             if (Utils.isBitSet(operation.optionsMask, 1)) {
-                if (!Utils.isCurrentNetwork(operation.underlyingAssetNetworkId)) {
+                if (!Network.isCurrentNetwork(operation.underlyingAssetNetworkId)) {
                     revert Errors.InvalidNetwork(operation.underlyingAssetNetworkId);
                 }
                 IPToken(pTokenAddress).stateManagedProtocolBurn(destinationAddress, operation.amount);
