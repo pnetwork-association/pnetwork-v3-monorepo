@@ -67,8 +67,11 @@ contract StateManager is IStateManager, Context, ReentrancyGuard {
         if (operationStatus == Constants.OPERATION_EXECUTED) {
             revert Errors.OperationAlreadyExecuted(operationId);
         }
-        if (operationStatus == Constants.OPERATION_EXECUTED) {
+        if (operationStatus == Constants.OPERATION_CANCELLED) {
             revert Errors.OperationCancelled(operationId);
+        }
+        if (operationStatus != Constants.OPERATION_QUEUED) {
+            revert Errors.OperationNotQueued(operationId);
         }
 
         uint64 executeTimestamp = operationData.executeTimestamp;
