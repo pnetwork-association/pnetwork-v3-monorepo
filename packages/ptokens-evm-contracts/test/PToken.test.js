@@ -3,9 +3,9 @@ const { ethers } = require('hardhat')
 const { time } = require('@nomicfoundation/hardhat-network-helpers')
 
 const { QUEUE_TIME, PNETWORK_NETWORK_IDS } = require('./constants')
-const { deployPToken, getAddressSalt } = require('./utils')
+const { deployPToken } = require('./utils')
 
-let token, owner, pToken, pFactory, stateManager
+let token, owner, pToken, pRouter, pFactory, stateManager
 
 describe('PToken', () => {
   beforeEach(async () => {
@@ -16,21 +16,32 @@ describe('PToken', () => {
 
     const signers = await ethers.getSigners()
     owner = signers[0]
-    relayer = signers[1]
+    // relayer = signers[1]
 
     // H A R D H A T
     pFactory = await PFactory.deploy()
     pRouter = await PRouter.deploy(pFactory.address)
     stateManager = await StateManager.deploy(pFactory.address, QUEUE_TIME)
-    token = await StandardToken.deploy('Token', 'TKN', ethers.utils.parseEther('100000000'))
+    token = await StandardToken.deploy(
+      'Token',
+      'TKN',
+      ethers.utils.parseEther('100000000')
+    )
 
     await pFactory.setRouter(pRouter.address)
     await pFactory.setStateManager(stateManager.address)
     await pFactory.renounceOwnership()
 
-    pToken = await deployPToken(await token.name(), await token.symbol(), await token.decimals(), token.address, PNETWORK_NETWORK_IDS.hardhat, {
-      pFactory
-    })
+    pToken = await deployPToken(
+      await token.name(),
+      await token.symbol(),
+      await token.decimals(),
+      token.address,
+      PNETWORK_NETWORK_IDS.hardhat,
+      {
+        pFactory,
+      }
+    )
   })
 
   it('should be able to handle an operation', async () => {
@@ -69,12 +80,18 @@ describe('PToken', () => {
       owner.address,
       await token.name(),
       await token.symbol(),
-      '0x'
+      '0x',
     ]
 
     // simulate relayer
-    await expect(stateManager.protocolQueueOperation(operation)).to.emit(stateManager, 'OperationQueued')
+    await expect(stateManager.protocolQueueOperation(operation)).to.emit(
+      stateManager,
+      'OperationQueued'
+    )
     await time.increase(QUEUE_TIME)
-    await expect(stateManager.protocolExecuteOperation(operation)).to.emit(stateManager, 'OperationExecuted')
+    await expect(stateManager.protocolExecuteOperation(operation)).to.emit(
+      stateManager,
+      'OperationExecuted'
+    )
   })
 })

@@ -8,7 +8,7 @@ require('hardhat-spdx-license-identifier')
 require('hardhat-log-remover')
 require('solidity-coverage')
 
-const getEnvironmentVariable = _envVar => process.env[_envVar] || ""
+const getEnvironmentVariable = _envVar => process.env[_envVar] || ''
 
 /**
  * @type import('hardhat/config').HardhatUserConfig
@@ -70,6 +70,8 @@ module.exports = {
           apiURL: 'https://api.polygonscan.com/api',
           browserURL: 'https://polygonscan.com',
         },
+      },
+      {
         network: 'sepolia',
         chainId: 11155111,
         urls: {
