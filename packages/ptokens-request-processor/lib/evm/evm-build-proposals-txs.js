@@ -42,13 +42,12 @@ const addProposedTxHashToEvent = R.curry(
 
 const queueOperationErrorHandler = R.curry(
   (resolve, reject, _eventReport, _err) => {
-    const originTxHash =
-      _eventReport[schemas.constants.SCHEMA_ORIGINATING_TX_HASH_KEY]
+    const reportId = _eventReport[schemas.constants.SCHEMA_ID_KEY]
     if (_err.message.includes(errors.ERROR_TIMEOUT)) {
-      logger.error(`Tx for ${originTxHash} failed:`, _err.message)
+      logger.error(`Tx for ${reportId} failed:`, _err.message)
       return resolve(_eventReport)
     } else if (_err.message.includes(ERROR_OPERATION_ALREADY_QUEUED)) {
-      logger.error(`Tx for ${originTxHash} has already been queued`)
+      logger.error(`Tx for ${reportId} has already been queued`)
       return addProposedTxHashToEvent(_eventReport, '0x').then(resolve)
     } else {
       return reject(_err)

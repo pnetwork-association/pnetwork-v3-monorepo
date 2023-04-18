@@ -40,13 +40,12 @@ const addFinalizedTxHashToEvent = R.curry((_event, _finalizedTxHash) => {
 
 const executeOperationErrorHandler = R.curry(
   (resolve, reject, _eventReport, _err) => {
-    const originTxHash =
-      _eventReport[schemas.constants.SCHEMA_ORIGINATING_TX_HASH_KEY]
+    const reportId = _eventReport[schemas.constants.SCHEMA_ID_KEY]
     if (_err.message.includes(errors.ERROR_TIMEOUT)) {
-      logger.error(`Tx for ${originTxHash} failed:`, _err.message)
+      logger.error(`Tx for ${reportId} failed:`, _err.message)
       return resolve(_eventReport)
     } else if (_err.message.includes(ERROR_OPERATION_ALREADY_EXECUTED)) {
-      logger.error(`Tx for ${originTxHash} has already been executed`)
+      logger.error(`Tx for ${reportId} has already been executed`)
       return resolve(addFinalizedTxHashToEvent(_eventReport, '0x'))
     } else {
       return reject(_err)

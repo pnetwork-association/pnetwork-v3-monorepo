@@ -66,11 +66,12 @@ const makeDismissalContractCall = R.curry(
         .then(addCancelledTxHashToEvent(_eventReport))
         .then(resolve)
         .catch(_err => {
+          const reportId = _eventReport[schemas.constants.SCHEMA_ID_KEY]
           if (_err.message.includes(errors.ERROR_TIMEOUT)) {
-            logger.error(`Tx for ${originatingTxHash} failed:`, _err.message)
+            logger.error(`Tx for ${reportId} failed:`, _err.message)
             return resolve(_eventReport)
           } else if (_err.message.includes(ERROR_OPERATION_NOT_QUEUED)) {
-            logger.error(`Tx for ${originatingTxHash} is not in the queue`)
+            logger.error(`Tx for ${reportId} is not in the queue`)
             return resolve(addCancelledTxHashToEvent(_eventReport, '0x'))
           } else {
             return reject(_err)
