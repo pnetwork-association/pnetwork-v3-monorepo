@@ -16,9 +16,9 @@ const { description, version } = require('./package')
 const printErrorAndExit = _err =>
   logger.error('Halting due to \n', _err) || exitCleanly(1)
 
-const setLoggersLevelToError = _ => {
+const disableLoggingForCLICommand = _ => {
   logger.level = 'error'
-  utilsLogger.logger.level = 'error'
+  utilsLogger.logger.level = 'off'
 }
 
 const main = async () => {
@@ -44,7 +44,7 @@ $ node index.js getEventReportsFromTransaction 0x2b948164aad1517cdcd11e22c3f96d5
     )
     .action(
       (_hash, _event, _options) =>
-        setLoggersLevelToError() ||
+        disableLoggingForCLICommand() ||
         getEventReportsFromTransactionCommand(
           config,
           _hash,
@@ -70,7 +70,7 @@ $ node index.js getEventLogsFromTransaction 0x2b948164aad1517cdcd11e22c3f96d58b1
     )
     .action(
       (_hash, _event) =>
-        setLoggersLevelToError() ||
+        disableLoggingForCLICommand() ||
         getEventLogsFromTransactionCommand(config, _hash, _event)
     )
 
@@ -89,7 +89,7 @@ $ node index.js getUserOperation 0x2b948164aad1517cdcd11e22c3f96d58b146fdee233ab
     )
     .action(
       (_hash, _options) =>
-        setLoggersLevelToError() ||
+        disableLoggingForCLICommand() ||
         getEventReportsFromTransactionCommand(
           config,
           _hash,
