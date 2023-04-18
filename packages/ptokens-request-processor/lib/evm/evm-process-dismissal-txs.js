@@ -19,6 +19,7 @@ const {
   removeOnChainRequestsFromState,
   removeDismissedEventsFromState,
   removeDetectedEventsFromState,
+  removeToBeDismissedEventsFromState,
 } = require('../state/state-operations')
 const constants = require('ptokens-constants')
 
@@ -36,6 +37,7 @@ const maybeProcessNewRequestsAndDismiss = _state =>
     .then(removeDetectedEventsFromState)
     .then(maybeBuildDismissalTxsAndPutInState)
     .then(maybeUpdateDismissedEventsInDb)
+    .then(removeToBeDismissedEventsFromState)
     .then(removeDismissedEventsFromState)
     .then(
       logic.sleepThenReturnArg(
