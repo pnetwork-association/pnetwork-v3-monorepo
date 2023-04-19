@@ -101,10 +101,9 @@ contract StateManager is IStateManager, Context, ReentrancyGuard {
             IPToken(pTokenAddress).stateManagedProtocolMint(destinationAddress, operation.assetAmount);
 
             if (Utils.isBitSet(operation.optionsMask, 0)) {
-                // TODO: do we need it?
-                /*if (!Network.isCurrentNetwork(operation.underlyingAssetNetworkId)) {
+                if (!Network.isCurrentNetwork(operation.underlyingAssetNetworkId)) {
                     revert Errors.InvalidNetwork(operation.underlyingAssetNetworkId);
-                }*/
+                }
                 IPToken(pTokenAddress).stateManagedProtocolBurn(destinationAddress, operation.assetAmount);
             }
         }
