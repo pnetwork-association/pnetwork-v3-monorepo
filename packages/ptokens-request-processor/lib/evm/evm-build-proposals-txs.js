@@ -1,5 +1,4 @@
 const ethers = require('ethers')
-const { readFile } = require('fs/promises')
 const constants = require('ptokens-constants')
 const schemas = require('ptokens-schemas')
 const { logger } = require('../get-logger')
@@ -17,6 +16,7 @@ const {
   getProtocolQueueOperationAbi,
   getUserOperationAbiArgsFromReport,
 } = require('./evm-abi-manager')
+const { readIdentityFile } = require('../read-identity-file')
 
 // TODO: factor out (check evm-build-final-txs)
 const addProposedTxHashToEvent = R.curry(
@@ -96,7 +96,7 @@ const buildProposalsTxsAndPutInState = _state =>
     return (
       checkEventsHaveExpectedDestinationChainId(destinationNetworkId, detectedEvents)
         // FIXME: use gpg decrypt
-        .then(_ => readFile(identityGpgFile, { encoding: 'utf8' }))
+        .then(_ => readIdentityFile(identityGpgFile))
         .then(_privateKey => new ethers.Wallet(_privateKey, provider))
         .then(sendProposalTransactions(detectedEvents, managerAddress, txTimeout))
         .then(addProposalsReportsToState(_state))

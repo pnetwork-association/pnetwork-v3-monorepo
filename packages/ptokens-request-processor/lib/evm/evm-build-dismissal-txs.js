@@ -3,7 +3,6 @@ const schemas = require('ptokens-schemas')
 const constants = require('ptokens-constants')
 const R = require('ramda')
 const { ERROR_INVALID_EVENT_NAME, ERROR_OPERATION_NOT_QUEUED } = require('../errors')
-const { readFile } = require('fs/promises')
 const { logger } = require('../get-logger')
 const { constants: ptokensUtilsConstants, errors, logic, utils } = require('ptokens-utils')
 const { addDismissedReportsToState } = require('../state/state-operations.js')
@@ -14,6 +13,7 @@ const {
   getProtocolCancelOperationAbi,
   getUserOperationAbiArgsFromReport,
 } = require('./evm-abi-manager')
+const { readIdentityFile } = require('../read-identity-file')
 
 // TODO: factor out (check evm-build-proposals-txs)
 const addCancelledTxHashToEvent = R.curry((_event, _finalizedTxHash) => {
@@ -89,7 +89,7 @@ const buildDismissalTxsAndPutInState = _state =>
     const txTimeout = _state[constants.state.STATE_KEY_TX_TIMEOUT]
     const stateManager = _state[constants.state.STATE_KEY_STATE_MANAGER_ADDRESS]
 
-    return readFile(identityGpgFile, { encoding: 'utf8' })
+    return readIdentityFile(identityGpgFile)
       .then(_privateKey => new ethers.Wallet(_privateKey, provider))
       .then(sendDismissalTransaction(invalidRequests, stateManager, txTimeout))
       .then(addDismissedReportsToState(_state))
