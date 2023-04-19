@@ -140,7 +140,7 @@ contract StateManager is IStateManager, Context, ReentrancyGuard {
             revert Errors.OperationNotQueued(operation);
         }
         if (operationStatus != Constants.OPERATION_QUEUED) {
-            revert Errors.OperationNotQueued(operationId);
+            revert Errors.OperationNotQueued(operation);
         }
 
         (uint64 startTimestamp, uint64 endTimestamp) = _challengePeriodOf(operationId, operationStatus);
