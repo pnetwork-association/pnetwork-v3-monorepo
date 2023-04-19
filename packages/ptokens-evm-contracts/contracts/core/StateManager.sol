@@ -41,7 +41,7 @@ contract StateManager is IStateManager, Context, ReentrancyGuard {
                     operation.underlyingAssetDecimals,
                     operation.underlyingAssetTokenAddress,
                     operation.underlyingAssetNetworkId,
-                    operation.amount,
+                    operation.assetAmount,
                     operation.userData,
                     operation.optionsMask
                 )
@@ -53,9 +53,14 @@ contract StateManager is IStateManager, Context, ReentrancyGuard {
         bytes32 operationId = operationIdOf(operation);
 
         OperationData storage operationData = _operationsData[operationId];
+        uint64 executeTimestamp = operationData.executeTimestamp;
 
         if (operationData.status != Constants.OPERATION_QUEUED) {
-            revert Errors.OperationNotQueued(operationId);
+            revert Errors.OperationNotQueued(operation);
+        }
+
+        if (uint64(block.timestamp) >= executeTimestamp) {
+            revert Errors.ExecuteTimestampAlreadyReached(executeTimestamp);
         }
 
         operationData.status = Constants.OPERATION_CANCELLED;
@@ -69,13 +74,13 @@ contract StateManager is IStateManager, Context, ReentrancyGuard {
         OperationData storage operationData = _operationsData[operationId];
         bytes1 operationStatus = operationData.status;
         if (operationStatus == Constants.OPERATION_EXECUTED) {
-            revert Errors.OperationAlreadyExecuted(operationId);
+            revert Errors.OperationAlreadyExecuted(operation);
         }
         if (operationStatus == Constants.OPERATION_CANCELLED) {
-            revert Errors.OperationCancelled(operationId);
+            revert Errors.OperationCancelled(operation);
         }
         if (operationStatus != Constants.OPERATION_QUEUED) {
-            revert Errors.OperationNotQueued(operationId);
+            revert Errors.OperationNotQueued(operation);
         }
 
         uint64 executeTimestamp = operationData.executeTimestamp;
@@ -83,7 +88,7 @@ contract StateManager is IStateManager, Context, ReentrancyGuard {
             revert Errors.ExecuteTimestampNotReached(executeTimestamp);
         }
 
-        if (operation.amount > 0) {
+        if (operation.assetAmount > 0) {
             address pTokenAddress = IPFactory(factory).getPTokenAddress(
                 operation.underlyingAssetName,
                 operation.underlyingAssetSymbol,
@@ -93,13 +98,14 @@ contract StateManager is IStateManager, Context, ReentrancyGuard {
             );
 
             address destinationAddress = Utils.parseAddress(operation.destinationAccount);
-            IPToken(pTokenAddress).stateManagedProtocolMint(destinationAddress, operation.amount);
+            IPToken(pTokenAddress).stateManagedProtocolMint(destinationAddress, operation.assetAmount);
 
-            if (Utils.isBitSet(operation.optionsMask, 1)) {
-                if (!Network.isCurrentNetwork(operation.underlyingAssetNetworkId)) {
+            if (Utils.isBitSet(operation.optionsMask, 0)) {
+                // TODO: do we need it?
+                /*if (!Network.isCurrentNetwork(operation.underlyingAssetNetworkId)) {
                     revert Errors.InvalidNetwork(operation.underlyingAssetNetworkId);
-                }
-                IPToken(pTokenAddress).stateManagedProtocolBurn(destinationAddress, operation.amount);
+                }*/
+                IPToken(pTokenAddress).stateManagedProtocolBurn(destinationAddress, operation.assetAmount);
             }
         }
 
@@ -121,7 +127,7 @@ contract StateManager is IStateManager, Context, ReentrancyGuard {
         bytes32 operationId = operationIdOf(operation);
 
         if (_operationsData[operationId].status != Constants.OPERATION_NULL) {
-            revert Errors.OperationAlreadyQueued(operationId);
+            revert Errors.OperationAlreadyQueued(operation);
         }
 
         _operationsData[operationId] = OperationData(

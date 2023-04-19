@@ -3,8 +3,8 @@
 pragma solidity ^0.8.17;
 
 library Utils {
-    function isBitSet(bytes32 b, uint pos) internal pure returns (bool) {
-        return (bytes32(b) & bytes32(1 << (pos + 64))) != 0;
+    function isBitSet(bytes32 data, uint position) internal pure returns (bool) {
+        return (uint256(data) & (uint256(1) << position)) != 0;
     }
 
     function normalizeAmount(uint256 amount, uint256 decimals, bool use) internal pure returns (uint256) {

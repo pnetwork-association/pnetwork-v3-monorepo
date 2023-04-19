@@ -82,23 +82,23 @@ contract PToken is IPToken, ERC20 {
     function mint(uint256 amount) external {
         address account = _msgSender();
         _takeCollateral(account, amount);
-        uint256 effectiveAmount = Utils.normalizeAmount(amount, _underlyingAssetDecimals, true);
-        _mint(account, effectiveAmount);
+        uint256 normalizedAmount = Utils.normalizeAmount(amount, _underlyingAssetDecimals, true);
+        _mint(account, normalizedAmount);
     }
 
     /// @inheritdoc IPToken
     function routedUserMint(address account, uint256 amount) external onlyRouter {
         _takeCollateral(account, amount);
-        uint256 effectiveAmount = Utils.normalizeAmount(amount, _underlyingAssetDecimals, true);
-        _mint(account, effectiveAmount);
+        uint256 normalizedAmount = Utils.normalizeAmount(amount, _underlyingAssetDecimals, true);
+        _mint(account, normalizedAmount);
     }
 
     /// @inheritdoc IPToken
     function routedUserMintAndBurn(address account, uint256 amount) external onlyRouter {
         _takeCollateral(account, amount);
-        uint256 effectiveAmount = Utils.normalizeAmount(amount, _underlyingAssetDecimals, true);
-        emit Transfer(address(0), account, effectiveAmount);
-        emit Transfer(account, address(0), effectiveAmount);
+        uint256 normalizedAmount = Utils.normalizeAmount(amount, _underlyingAssetDecimals, true);
+        emit Transfer(address(0), account, normalizedAmount);
+        emit Transfer(account, address(0), normalizedAmount);
     }
 
     /// @inheritdoc IPToken
@@ -108,8 +108,8 @@ contract PToken is IPToken, ERC20 {
 
     /// @inheritdoc IPToken
     function stateManagedProtocolMint(address account, uint256 amount) external onlyStateManager {
-        uint256 effectiveAmount = Utils.normalizeAmount(amount, _underlyingAssetDecimals, true);
-        _mint(account, effectiveAmount);
+        uint256 normalizedAmount = Utils.normalizeAmount(amount, _underlyingAssetDecimals, true);
+        _mint(account, normalizedAmount);
     }
 
     /// @inheritdoc IPToken
@@ -125,7 +125,7 @@ contract PToken is IPToken, ERC20 {
     function _burnAndRelease(address account, uint256 amount) internal {
         if (!Network.isCurrentNetwork(underlyingAssetNetworkId)) revert Errors.InvalidNetwork(underlyingAssetNetworkId);
         _burn(account, amount);
-        uint256 effectiveAmount = Utils.normalizeAmount(amount, _underlyingAssetDecimals, false);
-        IERC20Metadata(underlyingAssetTokenAddress).safeTransfer(account, effectiveAmount);
+        uint256 normalizedAmount = Utils.normalizeAmount(amount, _underlyingAssetDecimals, false);
+        IERC20Metadata(underlyingAssetTokenAddress).safeTransfer(account, normalizedAmount);
     }
 }

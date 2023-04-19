@@ -15,7 +15,7 @@ interface IStateManager {
         bytes32 optionsMask;
         uint256 nonce;
         uint256 underlyingAssetDecimals;
-        uint256 amount;
+        uint256 assetAmount;
         address underlyingAssetTokenAddress;
         bytes4 originNetworkId;
         bytes4 destinationNetworkId;
