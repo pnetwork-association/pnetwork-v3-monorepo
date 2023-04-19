@@ -8,6 +8,7 @@ import {IPRouter} from "../interfaces/IPRouter.sol";
 import {IPToken} from "../interfaces/IPToken.sol";
 import {IPFactory} from "../interfaces/IPFactory.sol";
 import {IStateManager} from "../interfaces/IStateManager.sol";
+import {IPReceiver} from "../interfaces/IPReceiver.sol";
 import {Roles} from "../libraries/Roles.sol";
 import {Errors} from "../libraries/Errors.sol";
 import {Constants} from "../libraries/Constants.sol";
@@ -88,6 +89,8 @@ contract StateManager is IStateManager, Context, ReentrancyGuard {
             revert Errors.ExecuteTimestampNotReached(executeTimestamp);
         }
 
+        address destinationAddress = Utils.parseAddress(operation.destinationAccount);
+
         if (operation.assetAmount > 0) {
             address pTokenAddress = IPFactory(factory).getPTokenAddress(
                 operation.underlyingAssetName,
@@ -96,8 +99,6 @@ contract StateManager is IStateManager, Context, ReentrancyGuard {
                 operation.underlyingAssetTokenAddress,
                 operation.underlyingAssetNetworkId
             );
-
-            address destinationAddress = Utils.parseAddress(operation.destinationAccount);
             IPToken(pTokenAddress).stateManagedProtocolMint(destinationAddress, operation.assetAmount);
 
             if (Utils.isBitSet(operation.optionsMask, 0)) {
@@ -109,15 +110,11 @@ contract StateManager is IStateManager, Context, ReentrancyGuard {
         }
 
         if (operation.userData.length > 0) {
-            /*
-            try {
-                (destinationAccount)._receiveUserData(userData)
-            } catch() {}  
-            */
+            if (!Utils.isContract(destinationAddress)) revert Errors.NotContract(destinationAddress);
+            try IPReceiver(destinationAddress).receiveUserData(operation.userData) {} catch {}
         }
 
         operationData.status = Constants.OPERATION_EXECUTED;
-
         emit OperationExecuted(operation);
     }
 

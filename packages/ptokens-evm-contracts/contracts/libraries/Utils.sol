@@ -7,6 +7,14 @@ library Utils {
         return (uint256(data) & (uint256(1) << position)) != 0;
     }
 
+    function isContract(address addr) internal view returns (bool) {
+        uint32 size;
+        assembly {
+            size := extcodesize(addr)
+        }
+        return (size > 0);
+    }
+
     function normalizeAmount(uint256 amount, uint256 decimals, bool use) internal pure returns (uint256) {
         uint256 difference = (10 ** (18 - decimals));
         return use ? amount * difference : amount / difference;

@@ -13,7 +13,16 @@ const {
 } = require('./utils')
 const Operation = require('./utils/Operation')
 
-let token, owner, pToken, pRouter, pFactory, stateManager, relayer
+let token,
+  owner,
+  pToken,
+  pRouter,
+  pFactory,
+  stateManager,
+  relayer,
+  testReceiver,
+  testNotReceiver,
+  user1
 
 describe('StateManager', () => {
   const generateOperation = async (_opts = {}) => {
@@ -73,12 +82,17 @@ describe('StateManager', () => {
     const PRouter = await ethers.getContractFactory('PRouter')
     const StateManager = await ethers.getContractFactory('StateManager')
     const StandardToken = await ethers.getContractFactory('StandardToken')
+    const TestReceiver = await ethers.getContractFactory('TestReceiver')
+    const TestNotReceiver = await ethers.getContractFactory('TestNotReceiver')
 
     const signers = await ethers.getSigners()
     owner = signers[0]
     relayer = signers[1]
+    user1 = signers[2]
 
     // H A R D H A T
+    testReceiver = await TestReceiver.deploy()
+    testNotReceiver = await TestNotReceiver.deploy()
     pFactory = await PFactory.deploy()
     pRouter = await PRouter.deploy(pFactory.address)
     stateManager = await StateManager.deploy(pFactory.address, QUEUE_TIME)
@@ -226,7 +240,7 @@ describe('StateManager', () => {
       )
   })
 
-  it('should be able to execute the same operation twice', async () => {
+  it('should not be able to execute the same operation twice', async () => {
     const operation = await generateOperation()
     await stateManager.connect(relayer).protocolQueueOperation(operation)
     await time.increase(QUEUE_TIME)
@@ -234,5 +248,48 @@ describe('StateManager', () => {
     await expect(
       stateManager.connect(relayer).protocolExecuteOperation(operation)
     ).to.be.revertedWithCustomError(stateManager, 'OperationAlreadyExecuted')
+  })
+
+  it('should be able to execute an operation that contains user data', async () => {
+    const expectedUserData = '0x01'
+    const operation = await generateOperation({
+      userData: expectedUserData,
+      destinationAccount: testReceiver.address,
+    })
+    await stateManager.connect(relayer).protocolQueueOperation(operation)
+    await time.increase(QUEUE_TIME)
+    await expect(
+      stateManager.connect(relayer).protocolExecuteOperation(operation)
+    )
+      .to.emit(stateManager, 'OperationExecuted')
+      .withArgs(operation.serialize())
+      .and.to.emit(testReceiver, 'UserDataReceived')
+      .withArgs(expectedUserData)
+  })
+
+  it('should be able to execute an operation that contains user data despite the receiver is a contract that does extends from PReceiver', async () => {
+    const operation = await generateOperation({
+      userData: '0x01',
+      destinationAccount: testNotReceiver.address,
+    })
+    await stateManager.connect(relayer).protocolQueueOperation(operation)
+    await time.increase(QUEUE_TIME)
+    await expect(
+      stateManager.connect(relayer).protocolExecuteOperation(operation)
+    )
+      .to.emit(stateManager, 'OperationExecuted')
+      .withArgs(operation.serialize())
+  })
+
+  it('should not be able to execute an operation that contains user data and the receiver is an EOA', async () => {
+    const operation = await generateOperation({
+      userData: '0x01',
+      destinationAccount: user1.address,
+    })
+    await stateManager.connect(relayer).protocolQueueOperation(operation)
+    await time.increase(QUEUE_TIME)
+    await expect(
+      stateManager.connect(relayer).protocolExecuteOperation(operation)
+    ).to.be.revertedWithCustomError(stateManager, 'NotContract')
   })
 })
