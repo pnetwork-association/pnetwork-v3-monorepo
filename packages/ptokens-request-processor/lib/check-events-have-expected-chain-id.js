@@ -30,10 +30,10 @@ const checkEventsHaveExpectedChainId = R.curry(
 
 const checkEventsHaveExpectedDestinationChainId =
   checkEventsHaveExpectedChainId(
-    schemas.constants.SCHEMA_DESTINATION_NETWORK_ID_KEY
+    schemas.constants.reportFields.SCHEMA_DESTINATION_NETWORK_ID_KEY
   )
 const checkEventsHaveExpectedOriginChainId = checkEventsHaveExpectedChainId(
-  schemas.constants.SCHEMA_UNDERLYING_ASSET_NETWORK_ID_KEY
+  schemas.constants.reportFields.SCHEMA_UNDERLYING_ASSET_NETWORK_ID_KEY
 )
 
 module.exports = {

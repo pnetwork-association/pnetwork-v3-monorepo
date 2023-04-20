@@ -6,7 +6,9 @@ const schemas = require('ptokens-schemas')
 const maybeCloseDbConnection = () =>
   db
     .closeConnection(
-      config[schemas.constants.SCHEMA_DB_KEY][schemas.constants.SCHEMA_URL_KEY]
+      config[schemas.constants.configurationFields.SCHEMA_DB_KEY][
+        schemas.constants.configurationFields.SCHEMA_URL_KEY
+      ]
     )
     .catch(() => {
       logger.info('No database connection to close')

@@ -12,7 +12,7 @@ const constants = require('ptokens-constants')
 const updateEventInDb = R.curry(
   (_table, _eventReport) =>
     new Promise(resolve => {
-      const id = _eventReport[schemas.constants.SCHEMA_ID_KEY]
+      const id = _eventReport[schemas.constants.reportFields.SCHEMA_ID_KEY]
       // Should update just the new fields
       const update = { $set: _eventReport }
       logger.debug(`Updating report ${id}`)

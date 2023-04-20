@@ -3,18 +3,18 @@ const schemas = require('ptokens-schemas')
 const constants = require('ptokens-constants')
 const { logger } = require('../get-logger')
 const { readFile } = require('fs/promises')
-const { errors, logic } = require('ptokens-utils')
-const { ERROR_INVALID_EVENT_NAME } = require('../errors')
+const { logic, errors } = require('ptokens-utils')
+const {
+  ERROR_INVALID_EVENT_NAME,
+  ERROR_OPERATION_ALREADY_EXECUTED,
+} = require('../errors')
 const R = require('ramda')
 const { addFinalizedEventsToState } = require('../state/state-operations.js')
 const { STATE_PROPOSED_DB_REPORTS_KEY } = require('../state/constants')
 const {
   checkEventsHaveExpectedDestinationChainId,
 } = require('../check-events-have-expected-chain-id')
-const {
-  callContractFunctionAndAwait,
-  ETHERS_KEY_TX_HASH,
-} = require('./evm-call-contract-function')
+const { callContractFunctionAndAwait } = require('./evm-call-contract-function')
 const {
   logUserOperationFromAbiArgs,
   getProtocolExecuteOperationAbi,
@@ -24,12 +24,14 @@ const {
 // TODO: factor out (check evm-build-proposals-txs)
 const addFinalizedTxHashToEvent = R.curry((_event, _finalizedTxHash) => {
   // TODO: replace _id field
-  const id = _event[schemas.constants.SCHEMA_ID_KEY]
+  const id = _event[schemas.constants.reportFields.SCHEMA_ID_KEY]
   logger.debug(`Adding ${_finalizedTxHash} to ${id.slice(0, 20)}...`)
   const finalizedTimestamp = new Date().toISOString()
-  _event[schemas.constants.SCHEMA_FINAL_TX_TS_KEY] = finalizedTimestamp
-  _event[schemas.constants.SCHEMA_FINAL_TX_HASH_KEY] = _finalizedTxHash
-  _event[schemas.constants.SCHEMA_STATUS_KEY] =
+  _event[schemas.constants.reportFields.SCHEMA_FINAL_TX_TS_KEY] =
+    finalizedTimestamp
+  _event[schemas.constants.reportFields.SCHEMA_FINAL_TX_HASH_KEY] =
+    _finalizedTxHash
+  _event[schemas.constants.reportFields.SCHEMA_STATUS_KEY] =
     schemas.db.enums.txStatus.FINALIZED
 
   return Promise.resolve(_event)
@@ -37,13 +39,12 @@ const addFinalizedTxHashToEvent = R.curry((_event, _finalizedTxHash) => {
 
 const executeOperationErrorHandler = R.curry(
   (resolve, reject, _eventReport, _err) => {
-    const originTxHash =
-      _eventReport[schemas.constants.SCHEMA_ORIGINATING_TX_HASH_KEY]
+    const reportId = _eventReport[schemas.constants.reportFields.SCHEMA_ID_KEY]
     if (_err.message.includes(errors.ERROR_TIMEOUT)) {
-      logger.error(`Tx for ${originTxHash} failed:`, _err.message)
+      logger.error(`Tx for ${reportId} failed:`, _err.message)
       return resolve(_eventReport)
-    } else if (_err.message.includes(errors.ERROR_OPERATION_ALREADY_EXECUTED)) {
-      logger.error(`Tx for ${originTxHash} has already been executed`)
+    } else if (_err.message.includes(ERROR_OPERATION_ALREADY_EXECUTED)) {
+      logger.error(`Tx for ${reportId} has already been executed`)
       return resolve(addFinalizedTxHashToEvent(_eventReport, '0x'))
     } else {
       return reject(_err)
@@ -54,8 +55,9 @@ const executeOperationErrorHandler = R.curry(
 const makeFinalContractCall = R.curry(
   (_wallet, _stateManager, _txTimeout, _eventReport) =>
     new Promise((resolve, reject) => {
-      const id = _eventReport[schemas.constants.SCHEMA_ID_KEY]
-      const eventName = _eventReport[schemas.constants.SCHEMA_EVENT_NAME_KEY]
+      const id = _eventReport[schemas.constants.reportFields.SCHEMA_ID_KEY]
+      const eventName =
+        _eventReport[schemas.constants.reportFields.SCHEMA_EVENT_NAME_KEY]
 
       if (!R.includes(eventName, R.values(schemas.db.enums.eventNames))) {
         return reject(new Error(`${ERROR_INVALID_EVENT_NAME}: ${eventName}`))
@@ -76,7 +78,7 @@ const makeFinalContractCall = R.curry(
         contract,
         _txTimeout
       )
-        .then(R.prop(ETHERS_KEY_TX_HASH))
+        .then(R.prop(constants.misc.ETHERS_KEY_TX_HASH))
         .then(addFinalizedTxHashToEvent(_eventReport))
         .then(resolve)
         .catch(executeOperationErrorHandler(resolve, reject, _eventReport))
@@ -111,7 +113,7 @@ const buildFinalTxsAndPutInState = _state =>
     const providerUrl = _state[constants.state.STATE_KEY_PROVIDER_URL]
     const identityGpgFile = _state[constants.state.STATE_KEY_IDENTITY_FILE]
     const provider = new ethers.JsonRpcProvider(providerUrl)
-    const txTimeout = _state[schemas.constants.SCHEMA_TX_TIMEOUT]
+    const txTimeout = _state[constants.state.STATE_KEY_TX_TIMEOUT]
     const stateManager = _state[constants.state.STATE_KEY_STATE_MANAGER_ADDRESS]
 
     return (

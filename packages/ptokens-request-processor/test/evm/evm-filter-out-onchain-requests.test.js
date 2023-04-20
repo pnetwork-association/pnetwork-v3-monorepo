@@ -18,8 +18,16 @@ describe('Tests for already processed requests filtering', () => {
       const target = require('../../lib/evm/evm-filter-out-onchain-requests')
       const txSamples = require('../samples/detected-report-set.json')
       const onchainRequests = [
-        R.assoc(schemas.constants.SCHEMA_ID_KEY, txSamples[0]._id, {}),
-        R.assoc(schemas.constants.SCHEMA_ID_KEY, txSamples[1]._id, {}),
+        R.assoc(
+          schemas.constants.reportFields.SCHEMA_ID_KEY,
+          txSamples[0]._id,
+          {}
+        ),
+        R.assoc(
+          schemas.constants.reportFields.SCHEMA_ID_KEY,
+          txSamples[1]._id,
+          {}
+        ),
       ]
 
       const receivedRequests = [
@@ -41,7 +49,7 @@ describe('Tests for already processed requests filtering', () => {
 
       const expectedProposedDb = [
         R.assoc(
-          schemas.constants.SCHEMA_STATUS_KEY,
+          schemas.constants.reportFields.SCHEMA_STATUS_KEY,
           schemas.db.enums.txStatus.PROPOSED,
           txSamples[0]
         ),

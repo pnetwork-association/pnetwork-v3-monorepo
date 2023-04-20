@@ -45,18 +45,20 @@ describe('General events report update tests', () => {
         [STATE_PROPOSED_DB_REPORTS_KEY]: [
           {
             ...detectedEvents[0],
-            [schemas.constants.SCHEMA_PROPOSAL_TS_KEY]: proposedTimestamps[0],
-            [schemas.constants.SCHEMA_PROPOSAL_TX_HASH_KEY]:
+            [schemas.constants.reportFields.SCHEMA_PROPOSAL_TS_KEY]:
+              proposedTimestamps[0],
+            [schemas.constants.reportFields.SCHEMA_PROPOSAL_TX_HASH_KEY]:
               proposedTxHashes[0],
-            [schemas.constants.SCHEMA_STATUS_KEY]:
+            [schemas.constants.reportFields.SCHEMA_STATUS_KEY]:
               schemas.db.enums.txStatus.PROPOSED,
           },
           {
             ...detectedEvents[1],
-            [schemas.constants.SCHEMA_PROPOSAL_TS_KEY]: proposedTimestamps[1],
-            [schemas.constants.SCHEMA_PROPOSAL_TX_HASH_KEY]:
+            [schemas.constants.reportFields.SCHEMA_PROPOSAL_TS_KEY]:
+              proposedTimestamps[1],
+            [schemas.constants.reportFields.SCHEMA_PROPOSAL_TX_HASH_KEY]:
               proposedTxHashes[1],
-            [schemas.constants.SCHEMA_STATUS_KEY]:
+            [schemas.constants.reportFields.SCHEMA_STATUS_KEY]:
               schemas.db.enums.txStatus.PROPOSED,
           },
         ],
@@ -68,7 +70,7 @@ describe('General events report update tests', () => {
       expect(result).toHaveProperty(STATE_PROPOSED_DB_REPORTS_KEY)
 
       const query = {
-        [schemas.constants.SCHEMA_STATUS_KEY]:
+        [schemas.constants.reportFields.SCHEMA_STATUS_KEY]:
           schemas.db.enums.txStatus.PROPOSED,
       }
 

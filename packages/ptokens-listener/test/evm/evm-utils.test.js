@@ -2,7 +2,7 @@ const ethers = require('ethers')
 
 describe('EVM utils', () => {
   describe('getEthersProvider', () => {
-    afterEach(() => {
+    beforeEach(() => {
       jest.restoreAllMocks()
     })
 

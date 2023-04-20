@@ -4,17 +4,17 @@ const constants = require('ptokens-constants')
 const schemas = require('ptokens-schemas')
 const { logger } = require('../get-logger')
 const { errors, logic } = require('ptokens-utils')
-const { ERROR_INVALID_EVENT_NAME } = require('../errors')
+const {
+  ERROR_INVALID_EVENT_NAME,
+  ERROR_OPERATION_ALREADY_QUEUED,
+} = require('../errors')
 const R = require('ramda')
 const { addProposalsReportsToState } = require('../state/state-operations.js')
 const { STATE_DETECTED_DB_REPORTS_KEY } = require('../state/constants')
 const {
   checkEventsHaveExpectedDestinationChainId,
 } = require('../check-events-have-expected-chain-id')
-const {
-  callContractFunctionAndAwait,
-  ETHERS_KEY_TX_HASH,
-} = require('./evm-call-contract-function')
+const { callContractFunctionAndAwait } = require('./evm-call-contract-function')
 const {
   logUserOperationFromAbiArgs,
   getProtocolQueueOperationAbi,
@@ -28,9 +28,11 @@ const addProposedTxHashToEvent = R.curry(
       // TODO: replace _id field
       logger.debug(`Adding ${_proposedTxHash} to ${_event._id.slice(0, 20)}...`)
       const proposedTimestamp = new Date().toISOString()
-      _event[schemas.constants.SCHEMA_PROPOSAL_TS_KEY] = proposedTimestamp
-      _event[schemas.constants.SCHEMA_PROPOSAL_TX_HASH_KEY] = _proposedTxHash
-      _event[schemas.constants.SCHEMA_STATUS_KEY] =
+      _event[schemas.constants.reportFields.SCHEMA_PROPOSAL_TS_KEY] =
+        proposedTimestamp
+      _event[schemas.constants.reportFields.SCHEMA_PROPOSAL_TX_HASH_KEY] =
+        _proposedTxHash
+      _event[schemas.constants.reportFields.SCHEMA_STATUS_KEY] =
         schemas.db.enums.txStatus.PROPOSED
 
       return resolve(_event)
@@ -39,13 +41,12 @@ const addProposedTxHashToEvent = R.curry(
 
 const queueOperationErrorHandler = R.curry(
   (resolve, reject, _eventReport, _err) => {
-    const originTxHash =
-      _eventReport[schemas.constants.SCHEMA_ORIGINATING_TX_HASH_KEY]
+    const reportId = _eventReport[schemas.constants.reportFields.SCHEMA_ID_KEY]
     if (_err.message.includes(errors.ERROR_TIMEOUT)) {
-      logger.error(`Tx for ${originTxHash} failed:`, _err.message)
+      logger.error(`Tx for ${reportId} failed:`, _err.message)
       return resolve(_eventReport)
-    } else if (_err.message.includes(errors.ERROR_OPERATION_ALREADY_QUEUED)) {
-      logger.error(`Tx for ${originTxHash} has already been queued`)
+    } else if (_err.message.includes(ERROR_OPERATION_ALREADY_QUEUED)) {
+      logger.error(`Tx for ${reportId} has already been queued`)
       return addProposedTxHashToEvent(_eventReport, '0x').then(resolve)
     } else {
       return reject(_err)
@@ -55,8 +56,9 @@ const queueOperationErrorHandler = R.curry(
 const makeProposalContractCall = R.curry(
   (_wallet, _managerContract, _txTimeout, _eventReport) =>
     new Promise((resolve, reject) => {
-      const id = _eventReport[schemas.constants.SCHEMA_ID_KEY]
-      const eventName = _eventReport[schemas.constants.SCHEMA_EVENT_NAME_KEY]
+      const id = _eventReport[schemas.constants.reportFields.SCHEMA_ID_KEY]
+      const eventName =
+        _eventReport[schemas.constants.reportFields.SCHEMA_EVENT_NAME_KEY]
 
       if (!R.includes(eventName, R.values(schemas.db.enums.eventNames))) {
         return reject(new Error(`${ERROR_INVALID_EVENT_NAME}: ${eventName}`))
@@ -76,7 +78,7 @@ const makeProposalContractCall = R.curry(
         contract,
         _txTimeout
       )
-        .then(R.prop(ETHERS_KEY_TX_HASH))
+        .then(R.prop(constants.misc.ETHERS_KEY_TX_HASH))
         .then(addProposedTxHashToEvent(_eventReport))
         .then(resolve)
         .catch(queueOperationErrorHandler(resolve, reject, _eventReport))

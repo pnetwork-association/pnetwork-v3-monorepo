@@ -98,7 +98,7 @@ describe('Main EVM flow for transaction proposal tests', () => {
       expect(result).toHaveProperty(constants.state.STATE_KEY_IDENTITY_FILE)
 
       const proposedEvents = await db.findReports(collection, {
-        [schemas.constants.SCHEMA_STATUS_KEY]:
+        [schemas.constants.reportFields.SCHEMA_STATUS_KEY]:
           schemas.db.enums.txStatus.PROPOSED,
       })
 

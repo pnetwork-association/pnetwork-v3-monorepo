@@ -17,8 +17,8 @@ const addProposalsReportsToState = R.curry((_state, _proposals) => {
   return R.assoc(STATE_PROPOSED_DB_REPORTS_KEY, allProposedTxs, _state)
 })
 
-const addDismissedReportsToState = R.curry((_state, _proposals) =>
-  R.assoc(STATE_DISMISSED_DB_REPORTS_KEY, _proposals, _state)
+const addDismissedReportsToState = R.curry((_state, _dismissals) =>
+  R.assoc(STATE_DISMISSED_DB_REPORTS_KEY, _dismissals, _state)
 )
 
 const addFinalizedEventsToState = R.curry((_state, _finalTxs) =>

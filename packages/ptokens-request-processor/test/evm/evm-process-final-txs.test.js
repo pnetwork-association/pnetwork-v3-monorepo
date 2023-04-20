@@ -51,10 +51,10 @@ describe('Main EVM flow for transaction proposal tests', () => {
       ]
       const expectedCallResults = [
         {
-          hash: finalizedTxHashes[0],
+          [constants.misc.ETHERS_KEY_TX_HASH]: finalizedTxHashes[0],
         },
         {
-          hash: finalizedTxHashes[1],
+          [constants.misc.ETHERS_KEY_TX_HASH]: finalizedTxHashes[1],
         },
       ]
 
@@ -107,7 +107,7 @@ describe('Main EVM flow for transaction proposal tests', () => {
       expect(result).toHaveProperty(constants.state.STATE_KEY_IDENTITY_FILE)
 
       const finalizedEvents = await db.findReports(collection, {
-        [schemas.constants.SCHEMA_STATUS_KEY]:
+        [schemas.constants.reportFields.SCHEMA_STATUS_KEY]:
           schemas.db.enums.txStatus.FINALIZED,
       })
 

@@ -16,9 +16,9 @@ const { description, version } = require('./package')
 const printErrorAndExit = _err =>
   logger.error('Halting due to \n', _err) || exitCleanly(1)
 
-const setLoggersLevelToError = _ => {
+const disableLoggingForCLICommand = _ => {
   logger.level = 'error'
-  utilsLogger.logger.level = 'error'
+  utilsLogger.logger.level = 'off'
 }
 
 const main = async () => {
@@ -44,7 +44,7 @@ $ node index.js getEventReportsFromTransaction 0x2b948164aad1517cdcd11e22c3f96d5
     )
     .action(
       (_hash, _event, _options) =>
-        setLoggersLevelToError() ||
+        disableLoggingForCLICommand() ||
         getEventReportsFromTransactionCommand(
           config,
           _hash,
@@ -70,7 +70,7 @@ $ node index.js getEventLogsFromTransaction 0x2b948164aad1517cdcd11e22c3f96d58b1
     )
     .action(
       (_hash, _event) =>
-        setLoggersLevelToError() ||
+        disableLoggingForCLICommand() ||
         getEventLogsFromTransactionCommand(config, _hash, _event)
     )
 
@@ -89,11 +89,35 @@ $ node index.js getUserOperation 0x2b948164aad1517cdcd11e22c3f96d58b146fdee233ab
     )
     .action(
       (_hash, _options) =>
-        setLoggersLevelToError() ||
+        disableLoggingForCLICommand() ||
         getEventReportsFromTransactionCommand(
           config,
           _hash,
           constants.events.USER_OPERATION_EVENT_SIGNATURE,
+          _options.save
+        )
+    )
+
+  program
+    .command('getOperationQueued')
+    .description('Get OperationQueued event reports in a specific transaction')
+    .argument('<tx–hash>', 'transaction hash')
+    .option('-s, --save', 'save report into database')
+    .addHelpText(
+      'after',
+      `
+Example calls:
+
+$ node index.js getOperationQueued 0x261229b0af24a5caaf24edc96a0e4ccafa801ef873ab4dff2277538232b38e79
+`
+    )
+    .action(
+      (_hash, _options) =>
+        disableLoggingForCLICommand() ||
+        getEventReportsFromTransactionCommand(
+          config,
+          _hash,
+          constants.events.OPERATION_QUEUED_EVENT_SIGNATURE,
           _options.save
         )
     )
