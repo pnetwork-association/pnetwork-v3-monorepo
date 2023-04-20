@@ -99,6 +99,7 @@ describe('StateManager', () => {
     token = await StandardToken.deploy(
       'Token',
       'TKN',
+      18,
       ethers.utils.parseEther('100000000')
     )
 
