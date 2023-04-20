@@ -5,7 +5,7 @@ const errors = require('../errors')
 
 const callContractFunction = (_fxnName, _fxnArgs, _contract) =>
   _contract[_fxnName](..._fxnArgs).catch(_err => {
-    if (_err.message.includes(errors.ERROR_ESTIMATE_GAS)) {
+    if (_err.message.includes(constants.misc.ETHERS_ESTIMATE_GAS_ERROR)) {
       const revertData = _err.data
       const decodedError = _contract.interface.parseError(revertData)
       if (decodedError) {
