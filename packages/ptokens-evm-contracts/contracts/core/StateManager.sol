@@ -110,7 +110,7 @@ contract StateManager is IStateManager, Context, ReentrancyGuard {
         }
 
         if (operation.userData.length > 0) {
-            if (!Utils.isContract(destinationAddress)) revert Errors.NotContract(destinationAddress);
+            if (destinationAddress.code.length == 0) revert Errors.NotContract(destinationAddress);
             try IPReceiver(destinationAddress).receiveUserData(operation.userData) {} catch {}
         }
 
