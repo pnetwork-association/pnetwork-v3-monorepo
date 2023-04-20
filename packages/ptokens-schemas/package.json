@@ -1,0 +1,15 @@
+{
+  "name": "ptokens-schemas",
+  "version": "0.8.0",
+  "description": "Group all the shared schemas for the pTokens libraries'",
+  "scripts": {
+    "lint": "eslint .",
+    "clean": "rm -rf $(pwd)/build",
+    "docker-build": "PROJECT_ROOT=$(pwd) ./docker-build.sh"
+  },
+  "author": "gitmp01",
+  "license": "MIT",
+  "dependencies": {
+    "ramda": "^0.28.0"
+  }
+}
