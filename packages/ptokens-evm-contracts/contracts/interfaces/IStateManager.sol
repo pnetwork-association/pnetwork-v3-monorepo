@@ -9,6 +9,12 @@ pragma solidity 0.8.17;
  * @notice
  */
 interface IStateManager {
+    enum Actor {
+        Governance,
+        Guardian,
+        Sentinel
+    }
+
     struct Operation {
         bytes32 originBlockHash;
         bytes32 originTransactionHash;
@@ -26,10 +32,9 @@ interface IStateManager {
         bytes userData;
     }
 
-    struct OperationData {
-        address relayer;
-        uint64 executeTimestamp;
-        bytes1 status;
+    struct Action {
+        address actor;
+        uint64 timestamp;
     }
 
     /**
@@ -53,6 +58,10 @@ interface IStateManager {
      */
     event OperationCancelled(Operation operation);
 
+    event GovernanceOperationCancelled(Operation operation);
+    event GuardianOperationCancelled(Operation operation);
+    event SentinelOperationCancelled(Operation operation);
+
     /*
      * @notice Calculates the operation id.
      *
@@ -68,7 +77,7 @@ interface IStateManager {
      * @param operation
      *
      */
-    function protocolCancelOperation(Operation calldata operation) external;
+    // function protocolCancelOperation(Operation calldata operation) external;
 
     /*
      * @notice Execute an operation that has been queued.

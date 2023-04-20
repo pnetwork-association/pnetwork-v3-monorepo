@@ -16,18 +16,45 @@ import {Utils} from "../libraries/Utils.sol";
 import {Network} from "../libraries/Network.sol";
 
 contract StateManager is IStateManager, Context, ReentrancyGuard {
-    mapping(bytes32 => OperationData) private _operationsData;
+    mapping(bytes32 => Action) private _operationsRelayerQueueAction;
+    mapping(bytes32 => Action) private _operationsGovernanceCancelAction;
+    mapping(bytes32 => Action) private _operationsGuardianCancelAction;
+    mapping(bytes32 => Action) private _operationsSentinelCancelAction;
+    mapping(bytes32 => Action) private _operationsExecuteAction;
+    mapping(bytes32 => uint8) private _operationsTotalCancelActions;
+    mapping(bytes32 => bytes1) private _operationsStatus;
 
     address public immutable factory;
-    uint32 public immutable queueTime;
+    uint32 private immutable _baseChallengePeriodDuration;
 
-    constructor(address _factory, uint32 _queueTime) {
+    modifier onlySentinel() {
+        // TODO: check if msg.sender is a sentinel
+        _;
+    }
+
+    modifier onlyGuardian() {
+        // TODO: check if msg.sender is a guardian
+        _;
+    }
+
+    modifier onlyGovernance() {
+        // TODO: check if msg.sender is a governance
+        _;
+    }
+
+    constructor(address _factory, uint32 baseChallengePeriodDuration) {
         factory = _factory;
-        queueTime = _queueTime;
+        _baseChallengePeriodDuration = baseChallengePeriodDuration;
+    }
+
+    function challengePeriodOf(Operation calldata operation) public view returns (uint64, uint64) {
+        bytes32 operationId = operationIdOf(operation);
+        bytes1 operationStatus = _operationsStatus[operationId];
+        return _challengePeriodOf(operationId, operationStatus);
     }
 
     /// @inheritdoc IStateManager
-    function operationIdOf(Operation memory operation) public pure returns (bytes32) {
+    function operationIdOf(Operation calldata operation) public pure returns (bytes32) {
         return
             keccak256(
                 abi.encode(
@@ -49,48 +76,40 @@ contract StateManager is IStateManager, Context, ReentrancyGuard {
             );
     }
 
-    /// @inheritdoc IStateManager
-    function protocolCancelOperation(Operation calldata operation) external {
-        bytes32 operationId = operationIdOf(operation);
+    function protocolGuardianCancelOperation(Operation calldata operation) external onlyGuardian {
+        _protocolCancelOperation(operation, Actor.Guardian);
+    }
 
-        OperationData storage operationData = _operationsData[operationId];
-        uint64 executeTimestamp = operationData.executeTimestamp;
+    function protocolGovernanceCancelOperation(Operation calldata operation) external onlyGovernance {
+        _protocolCancelOperation(operation, Actor.Governance);
+    }
 
-        if (operationData.status != Constants.OPERATION_QUEUED) {
-            revert Errors.OperationNotQueued(operation);
-        }
-
-        if (uint64(block.timestamp) >= executeTimestamp) {
-            revert Errors.ExecuteTimestampAlreadyReached(executeTimestamp);
-        }
-
-        operationData.status = Constants.OPERATION_CANCELLED;
-        emit OperationCancelled(operation);
+    function protocolSentinelCancelOperation(Operation calldata operation) external onlySentinel {
+        _protocolCancelOperation(operation, Actor.Sentinel);
     }
 
     /// @inheritdoc IStateManager
     function protocolExecuteOperation(Operation calldata operation) external nonReentrant {
         bytes32 operationId = operationIdOf(operation);
 
-        OperationData storage operationData = _operationsData[operationId];
-        bytes1 operationStatus = operationData.status;
+        bytes1 operationStatus = _operationsStatus[operationId];
         if (operationStatus == Constants.OPERATION_EXECUTED) {
             revert Errors.OperationAlreadyExecuted(operation);
         }
+        // NOTE: OPERATION_CANCELLED = _operationsTotalCancelActions >= 2
         if (operationStatus == Constants.OPERATION_CANCELLED) {
-            revert Errors.OperationCancelled(operation);
+            revert Errors.OperationAlreadyCancelled(operation);
         }
         if (operationStatus != Constants.OPERATION_QUEUED) {
             revert Errors.OperationNotQueued(operation);
         }
 
-        uint64 executeTimestamp = operationData.executeTimestamp;
-        if (uint64(block.timestamp) < executeTimestamp) {
-            revert Errors.ExecuteTimestampNotReached(executeTimestamp);
+        (uint64 startTimestamp, uint64 endTimestamp) = _challengePeriodOf(operationId, operationStatus);
+        if (uint64(block.timestamp) >= endTimestamp) {
+            revert Errors.ChallengePeriodTerminated(startTimestamp, endTimestamp);
         }
 
         address destinationAddress = Utils.parseAddress(operation.destinationAccount);
-
         if (operation.assetAmount > 0) {
             address pTokenAddress = IPFactory(factory).getPTokenAddress(
                 operation.underlyingAssetName,
@@ -114,7 +133,8 @@ contract StateManager is IStateManager, Context, ReentrancyGuard {
             try IPReceiver(destinationAddress).receiveUserData(operation.userData) {} catch {}
         }
 
-        operationData.status = Constants.OPERATION_EXECUTED;
+        _operationsStatus[operationId] = Constants.OPERATION_EXECUTED;
+        _operationsExecuteAction[operationId] = Action(_msgSender(), uint64(block.timestamp));
         emit OperationExecuted(operation);
     }
 
@@ -122,16 +142,98 @@ contract StateManager is IStateManager, Context, ReentrancyGuard {
     function protocolQueueOperation(Operation calldata operation) external {
         bytes32 operationId = operationIdOf(operation);
 
-        if (_operationsData[operationId].status != Constants.OPERATION_NULL) {
+        if (_operationsStatus[operationId] != Constants.OPERATION_NULL) {
             revert Errors.OperationAlreadyQueued(operation);
         }
 
-        _operationsData[operationId] = OperationData(
-            _msgSender(),
-            uint64(block.timestamp + queueTime),
-            Constants.OPERATION_QUEUED
-        );
+        _operationsRelayerQueueAction[operationId] = Action(_msgSender(), uint64(block.timestamp));
+        _operationsStatus[operationId] = Constants.OPERATION_QUEUED;
 
         emit OperationQueued(operation);
+    }
+
+    function _challengePeriodOf(bytes32 operationId, bytes1 operationStatus) internal view returns (uint64, uint64) {
+        // TODO: What is the challenge period of an already executed/cancelled operation
+        if (operationStatus != Constants.OPERATION_QUEUED) return (0, 0);
+
+        Action storage queueAction = _operationsRelayerQueueAction[operationId];
+        // NOTE: no need to check if queueAction valid since if operationStatus = Constants.OPERATION_QUEUED we are sure that is valid
+        uint64 startTimestamp = queueAction.timestamp;
+        uint64 endTimestamp = startTimestamp + _baseChallengePeriodDuration;
+        if (_operationsTotalCancelActions[operationId] == 0) {
+            return (startTimestamp, endTimestamp);
+        }
+
+        // TODO: Is it usefull to check _operationsGovernanceCancelAction? if _operationsTotalCancelActions = 1 it's impossible that
+        // the cancellation action comes from the governance since a vote lasts more than baseChallengePeriodDuration
+        // if _operationsTotalCancelActions = 2 the _challengePeriodOf is useless since 2 means that the operation must be cancelled.abi
+        /*if (_operationsGovernanceCancelAction[operationId].actor != address(0)) {
+            endTimestamp += 432000; // +5days
+        }*/
+
+        // NOTE: Is the increasing value equal for both actors? if it is we can avoid to read from storage and just endTimestamp += _operationsTotalCancelActions * 432000
+        if (_operationsGuardianCancelAction[operationId].actor != address(0)) {
+            endTimestamp += 432000; // +5days
+        }
+
+        if (_operationsSentinelCancelAction[operationId].actor != address(0)) {
+            endTimestamp += 432000; // +5days
+        }
+
+        return (startTimestamp, endTimestamp);
+    }
+
+    function _protocolCancelOperation(Operation calldata operation, Actor actor) internal {
+        bytes32 operationId = operationIdOf(operation);
+
+        bytes1 operationStatus = _operationsStatus[operationId];
+        if (operationStatus == Constants.OPERATION_CANCELLED) {
+            revert Errors.OperationAlreadyCancelled(operation);
+        }
+        if (operationStatus == Constants.OPERATION_EXECUTED) {
+            revert Errors.OperationAlreadyExecuted(operation);
+        }
+        if (operationStatus != Constants.OPERATION_QUEUED) {
+            revert Errors.OperationNotQueued(operation);
+        }
+
+        (uint64 startTimestamp, uint64 endTimestamp) = _challengePeriodOf(operationId, operationStatus);
+        if (uint64(block.timestamp) >= endTimestamp) {
+            revert Errors.ChallengePeriodTerminated(startTimestamp, endTimestamp);
+        }
+
+        Action memory action = Action(_msgSender(), uint64(block.timestamp));
+        if (actor == Actor.Governance) {
+            if (_operationsGovernanceCancelAction[operationId].actor != address(0)) {
+                revert Errors.GovernanceOperationAlreadyCancelled(operation);
+            }
+
+            _operationsGovernanceCancelAction[operationId];
+            emit GovernanceOperationCancelled(operation);
+        }
+        if (actor == Actor.Guardian) {
+            if (_operationsGuardianCancelAction[operationId].actor != address(0)) {
+                revert Errors.GuardianOperationAlreadyCancelled(operation);
+            }
+
+            _operationsGuardianCancelAction[operationId] = action;
+            emit GuardianOperationCancelled(operation);
+        }
+        if (actor == Actor.Sentinel) {
+            if (_operationsSentinelCancelAction[operationId].actor != address(0)) {
+                revert Errors.SentinelOperationAlreadyCancelled(operation);
+            }
+
+            _operationsSentinelCancelAction[operationId] = action;
+            emit SentinelOperationCancelled(operation);
+        }
+
+        unchecked {
+            ++_operationsTotalCancelActions[operationId];
+        }
+        if (_operationsTotalCancelActions[operationId] >= 2) {
+            _operationsStatus[operationId] = Constants.OPERATION_CANCELLED;
+            emit OperationCancelled(operation);
+        }
     }
 }
