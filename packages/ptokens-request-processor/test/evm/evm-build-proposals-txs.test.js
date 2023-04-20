@@ -7,9 +7,6 @@ const schemas = require('ptokens-schemas')
 const { validation } = require('ptokens-utils')
 const constants = require('ptokens-constants')
 const detectedEvents = require('../samples/detected-report-set')
-const {
-  ETHERS_KEY_TX_HASH,
-} = require('../../lib/evm/evm-call-contract-function')
 
 describe('Build proposals test for EVM', () => {
   describe('makeProposalContractCall', () => {
@@ -24,7 +21,9 @@ describe('Build proposals test for EVM', () => {
       const ethers = require('ethers')
       const proposedTxHash =
         '0xd656ffac17b71e2ea2e24f72cd4c15c909a0ebe1696f8ead388eb268268f1cbf'
-      const expectedObject = { [ETHERS_KEY_TX_HASH]: proposedTxHash }
+      const expectedObject = {
+        [constants.misc.ETHERS_KEY_TX_HASH]: proposedTxHash,
+      }
 
       const mockQueueOperation = jest.fn().mockResolvedValue({
         wait: jest.fn().mockResolvedValue(expectedObject),
@@ -146,10 +145,10 @@ describe('Build proposals test for EVM', () => {
 
       const expecteCallResult = [
         {
-          [ETHERS_KEY_TX_HASH]: proposedTxHashes[0],
+          [constants.misc.ETHERS_KEY_TX_HASH]: proposedTxHashes[0],
         },
         {
-          [ETHERS_KEY_TX_HASH]: proposedTxHashes[1],
+          [constants.misc.ETHERS_KEY_TX_HASH]: proposedTxHashes[1],
         },
       ]
 

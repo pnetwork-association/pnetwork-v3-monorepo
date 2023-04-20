@@ -1,8 +1,7 @@
+const constants = require('ptokens-constants')
 const { logger } = require('../get-logger')
 const errors = require('../errors')
 // const { logic } = require('ptokens-utils')
-
-const ETHERS_KEY_TX_HASH = 'hash'
 
 const callContractFunction = (_fxnName, _fxnArgs, _contract) =>
   _contract[_fxnName](..._fxnArgs).catch(_err => {
@@ -43,11 +42,12 @@ const callContractFunctionAndAwait = (
     .then(
       _tx =>
         logger.info(
-          `${_fxnName} call mined successfully ${_tx[ETHERS_KEY_TX_HASH]}`
+          `${_fxnName} call mined successfully ${
+            _tx[constants.misc.ETHERS_KEY_TX_HASH]
+          }`
         ) || _tx
     )
 
 module.exports = {
-  ETHERS_KEY_TX_HASH,
   callContractFunctionAndAwait,
 }

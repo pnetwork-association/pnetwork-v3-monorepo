@@ -4,10 +4,6 @@ const {
   STATE_PROPOSED_DB_REPORTS_KEY,
   STATE_FINALIZED_DB_REPORTS_KEY,
 } = require('../../lib/state/constants')
-
-const {
-  ETHERS_KEY_TX_HASH,
-} = require('../../lib/evm/evm-call-contract-function')
 const { jestMockContractConstructor } = require('./mock/jest-utils')
 const proposedEvents = require('../samples/proposed-report-set')
 
@@ -100,10 +96,10 @@ describe('General final txs testing', () => {
 
       const expecteCallResult = [
         {
-          [ETHERS_KEY_TX_HASH]: finalizeTxHashes[0],
+          [constants.misc.ETHERS_KEY_TX_HASH]: finalizeTxHashes[0],
         },
         {
-          [ETHERS_KEY_TX_HASH]: finalizeTxHashes[1],
+          [constants.misc.ETHERS_KEY_TX_HASH]: finalizeTxHashes[1],
         },
       ]
 

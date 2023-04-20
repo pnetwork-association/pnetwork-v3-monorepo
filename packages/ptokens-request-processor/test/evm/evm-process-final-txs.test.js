@@ -51,10 +51,10 @@ describe('Main EVM flow for transaction proposal tests', () => {
       ]
       const expectedCallResults = [
         {
-          hash: finalizedTxHashes[0],
+          [constants.misc.ETHERS_KEY_TX_HASH]: finalizedTxHashes[0],
         },
         {
-          hash: finalizedTxHashes[1],
+          [constants.misc.ETHERS_KEY_TX_HASH]: finalizedTxHashes[1],
         },
       ]
 

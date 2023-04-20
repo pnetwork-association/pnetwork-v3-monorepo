@@ -5,9 +5,6 @@ const {
 const schemas = require('ptokens-schemas')
 const constants = require('ptokens-constants')
 const queuedReports = require('../samples/queued-report-set')
-const {
-  ETHERS_KEY_TX_HASH,
-} = require('../../lib/evm/evm-call-contract-function')
 
 describe('Build proposals test for EVM', () => {
   describe('maybeBuildDismissalTxsAndPutInState', () => {
@@ -36,10 +33,10 @@ describe('Build proposals test for EVM', () => {
 
       const expecteCallResult = [
         {
-          [ETHERS_KEY_TX_HASH]: cancelTxHashes[0],
+          [constants.misc.ETHERS_KEY_TX_HASH]: cancelTxHashes[0],
         },
         {
-          [ETHERS_KEY_TX_HASH]: cancelTxHashes[1],
+          [constants.misc.ETHERS_KEY_TX_HASH]: cancelTxHashes[1],
         },
       ]
 

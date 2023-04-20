@@ -14,10 +14,7 @@ const { STATE_PROPOSED_DB_REPORTS_KEY } = require('../state/constants')
 const {
   checkEventsHaveExpectedDestinationChainId,
 } = require('../check-events-have-expected-chain-id')
-const {
-  callContractFunctionAndAwait,
-  ETHERS_KEY_TX_HASH,
-} = require('./evm-call-contract-function')
+const { callContractFunctionAndAwait } = require('./evm-call-contract-function')
 const {
   logUserOperationFromAbiArgs,
   getProtocolExecuteOperationAbi,
@@ -78,7 +75,7 @@ const makeFinalContractCall = R.curry(
         contract,
         _txTimeout
       )
-        .then(R.prop(ETHERS_KEY_TX_HASH))
+        .then(R.prop(constants.misc.ETHERS_KEY_TX_HASH))
         .then(addFinalizedTxHashToEvent(_eventReport))
         .then(resolve)
         .catch(executeOperationErrorHandler(resolve, reject, _eventReport))

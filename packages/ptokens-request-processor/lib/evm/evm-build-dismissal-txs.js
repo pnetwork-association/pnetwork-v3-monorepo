@@ -62,7 +62,7 @@ const makeDismissalContractCall = R.curry(
         contract,
         _txTimeout
       )
-        .then(R.prop('hash')) // TODO: store in a constant
+        .then(R.prop(constants.misc.ETHERS_KEY_TX_HASH))
         .then(addCancelledTxHashToEvent(_eventReport))
         .then(resolve)
         .catch(_err => {
