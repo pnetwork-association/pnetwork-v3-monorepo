@@ -38,13 +38,13 @@ contract PToken is IPToken, ERC20 {
         string memory underlyingAssetName,
         string memory underlyingAssetSymbol,
         uint256 underlyingAssetDecimals,
-        address _underlyingAssetTokenAddress,
-        bytes4 _underlyingAssetNetworkId,
-        address _router,
-        address _stateManager
+        address underlyingAssetTokenAddress_,
+        bytes4 underlyingAssetNetworkId_,
+        address router_,
+        address stateManager_
     ) ERC20(string.concat("p", underlyingAssetName), string.concat("p", underlyingAssetSymbol)) {
-        if (Network.isCurrentNetwork(_underlyingAssetNetworkId)) {
-            string memory expectedUnderlyingAssetName = IERC20Metadata(_underlyingAssetTokenAddress).name();
+        if (Network.isCurrentNetwork(underlyingAssetNetworkId_)) {
+            string memory expectedUnderlyingAssetName = IERC20Metadata(underlyingAssetTokenAddress_).name();
             if (
                 keccak256(abi.encodePacked(underlyingAssetName)) !=
                 keccak256(abi.encodePacked(expectedUnderlyingAssetName))
@@ -52,7 +52,7 @@ contract PToken is IPToken, ERC20 {
                 revert Errors.InvalidUnderlyingAssetName(underlyingAssetName, expectedUnderlyingAssetName);
             }
 
-            string memory expectedUnderlyingAssetSymbol = IERC20Metadata(_underlyingAssetTokenAddress).symbol();
+            string memory expectedUnderlyingAssetSymbol = IERC20Metadata(underlyingAssetTokenAddress_).symbol();
             if (
                 keccak256(abi.encodePacked(underlyingAssetSymbol)) !=
                 keccak256(abi.encodePacked(expectedUnderlyingAssetSymbol))
@@ -60,37 +60,32 @@ contract PToken is IPToken, ERC20 {
                 revert Errors.InvalidUnderlyingAssetSymbol(underlyingAssetName, expectedUnderlyingAssetName);
             }
 
-            uint256 expectedUnderliyngAssetDecimals = IERC20Metadata(_underlyingAssetTokenAddress).decimals();
+            uint256 expectedUnderliyngAssetDecimals = IERC20Metadata(underlyingAssetTokenAddress_).decimals();
             if (underlyingAssetDecimals != expectedUnderliyngAssetDecimals || expectedUnderliyngAssetDecimals > 18) {
                 revert Errors.InvalidUnderlyingAssetDecimals(underlyingAssetDecimals, expectedUnderliyngAssetDecimals);
             }
         }
 
-        underlyingAssetNetworkId = _underlyingAssetNetworkId;
-        underlyingAssetTokenAddress = _underlyingAssetTokenAddress;
+        underlyingAssetNetworkId = underlyingAssetNetworkId_;
+        underlyingAssetTokenAddress = underlyingAssetTokenAddress_;
         _underlyingAssetDecimals = underlyingAssetDecimals;
-        router = _router;
-        stateManager = _stateManager;
+        router = router_;
+        stateManager = stateManager_;
     }
 
     /// @inheritdoc IPToken
     function burn(uint256 amount) external {
-        _burnAndRelease(_msgSender(), amount);
+        _burnAndReleaseCollateral(_msgSender(), amount);
     }
 
     /// @inheritdoc IPToken
     function mint(uint256 amount) external {
-        address account = _msgSender();
-        _takeCollateral(account, amount);
-        uint256 normalizedAmount = Utils.normalizeAmount(amount, _underlyingAssetDecimals, true);
-        _mint(account, normalizedAmount);
+        _takeCollateralAndMint(_msgSender(), amount);
     }
 
     /// @inheritdoc IPToken
     function routedUserMint(address account, uint256 amount) external onlyRouter {
-        _takeCollateral(account, amount);
-        uint256 normalizedAmount = Utils.normalizeAmount(amount, _underlyingAssetDecimals, true);
-        _mint(account, normalizedAmount);
+        _takeCollateralAndMint(account, amount);
     }
 
     /// @inheritdoc IPToken
@@ -108,13 +103,21 @@ contract PToken is IPToken, ERC20 {
 
     /// @inheritdoc IPToken
     function stateManagedProtocolMint(address account, uint256 amount) external onlyStateManager {
-        uint256 normalizedAmount = Utils.normalizeAmount(amount, _underlyingAssetDecimals, true);
-        _mint(account, normalizedAmount);
+        _mint(account, Utils.normalizeAmount(amount, _underlyingAssetDecimals, true));
     }
 
     /// @inheritdoc IPToken
     function stateManagedProtocolBurn(address account, uint256 amount) external onlyStateManager {
-        _burnAndRelease(account, amount);
+        _burnAndReleaseCollateral(account, amount);
+    }
+
+    function _burnAndReleaseCollateral(address account, uint256 amount) internal {
+        if (!Network.isCurrentNetwork(underlyingAssetNetworkId)) revert Errors.InvalidNetwork(underlyingAssetNetworkId);
+        _burn(account, amount);
+        IERC20Metadata(underlyingAssetTokenAddress).safeTransfer(
+            account,
+            Utils.normalizeAmount(amount, _underlyingAssetDecimals, false)
+        );
     }
 
     function _takeCollateral(address account, uint256 amount) internal {
@@ -122,10 +125,8 @@ contract PToken is IPToken, ERC20 {
         IERC20Metadata(underlyingAssetTokenAddress).safeTransferFrom(account, address(this), amount);
     }
 
-    function _burnAndRelease(address account, uint256 amount) internal {
-        if (!Network.isCurrentNetwork(underlyingAssetNetworkId)) revert Errors.InvalidNetwork(underlyingAssetNetworkId);
-        _burn(account, amount);
-        uint256 normalizedAmount = Utils.normalizeAmount(amount, _underlyingAssetDecimals, false);
-        IERC20Metadata(underlyingAssetTokenAddress).safeTransfer(account, normalizedAmount);
+    function _takeCollateralAndMint(address account, uint256 amount) internal {
+        _takeCollateral(account, amount);
+        _mint(account, Utils.normalizeAmount(amount, _underlyingAssetDecimals, true));
     }
 }

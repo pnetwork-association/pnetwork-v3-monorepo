@@ -8,7 +8,7 @@ module.exports.deployPToken = async (
   _underlyingAssetChainId,
   { pFactory }
 ) => {
-  const ERC20 = await ethers.getContractFactory('ERC20')
+  const PToken = await ethers.getContractFactory('PToken')
   const transaction = await pFactory.deploy(
     _underlyingAssetName,
     _underlyingAssetSymbol,
@@ -19,7 +19,7 @@ module.exports.deployPToken = async (
   const receipt = await transaction.wait()
   const event = receipt.events.find(({ event }) => event === 'PTokenDeployed')
   const { pTokenAddress } = event.args
-  return await ERC20.attach(pTokenAddress)
+  return await PToken.attach(pTokenAddress)
 }
 
 module.exports.getOptionMaskWithOptionEnabledForBit = (
