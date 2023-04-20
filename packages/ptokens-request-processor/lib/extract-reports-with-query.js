@@ -27,8 +27,8 @@ const extractReportsWithNameAndChainIdAndStatus = R.curry(
     }
 
     const query = {
-      [schemas.constants.SCHEMA_EVENT_NAME_KEY]: _eventName,
-      [schemas.constants.SCHEMA_STATUS_KEY]: _status,
+      [schemas.constants.reportFields.SCHEMA_EVENT_NAME_KEY]: _eventName,
+      [schemas.constants.reportFields.SCHEMA_STATUS_KEY]: _status,
       [_networkIdKey]: _networkId,
     }
     return extractReportsWithQuery(_collection, query).then(
@@ -50,7 +50,7 @@ const extractReportsFromOnChainRequests = R.curry(
   (_collection, _onChainRequests) => {
     logger.info(
       `Getting events w/ transaction hash ${_onChainRequests.map(
-        R.prop(schemas.constants.SCHEMA_ORIGINATING_TX_HASH_KEY)
+        R.prop(schemas.constants.reportFields.SCHEMA_ORIGINATING_TX_HASH_KEY)
       )} from db...`
     )
 

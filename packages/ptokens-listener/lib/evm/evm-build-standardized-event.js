@@ -4,42 +4,43 @@ const R = require('ramda')
 const schemas = require('ptokens-schemas')
 
 const getEventWithAllRequiredSetToNull = _ => ({
-  [schemas.constants.SCHEMA_STATUS_KEY]: null,
-  [schemas.constants.SCHEMA_EVENT_NAME_KEY]: null,
-  [schemas.constants.SCHEMA_NONCE_KEY]: null,
-  [schemas.constants.SCHEMA_DESTINATION_ACCOUNT_KEY]: null,
-  [schemas.constants.SCHEMA_DESTINATION_NETWORK_ID_KEY]: null,
-  [schemas.constants.SCHEMA_UNDERLYING_ASSET_NAME_KEY]: null,
-  [schemas.constants.SCHEMA_UNDERLYING_ASSET_SYMBOL_KEY]: null,
-  [schemas.constants.SCHEMA_UNDERLYING_ASSET_DECIMALS_KEY]: null,
-  [schemas.constants.SCHEMA_UNDERLYING_ASSET_TOKEN_ADDRESS_KEY]: null,
-  [schemas.constants.SCHEMA_UNDERLYING_ASSET_NETWORK_ID_KEY]: null,
-  [schemas.constants.SCHEMA_ASSET_TOKEN_ADDRESS_KEY]: null,
-  [schemas.constants.SCHEMA_ASSET_AMOUNT_KEY]: null,
-  [schemas.constants.SCHEMA_USER_DATA_KEY]: null,
-  [schemas.constants.SCHEMA_OPTIONS_MASK]: null,
-  [schemas.constants.SCHEMA_ORIGINATING_BLOCK_HASH_KEY]: null,
-  [schemas.constants.SCHEMA_ORIGINATING_ADDRESS_KEY]: null,
-  [schemas.constants.SCHEMA_ORIGINATING_NETWORK_ID_KEY]: null,
-  [schemas.constants.SCHEMA_ORIGINATING_TX_HASH_KEY]: null,
-  [schemas.constants.SCHEMA_BLOCK_HASH_KEY]: null,
-  [schemas.constants.SCHEMA_NETWORK_ID_KEY]: null,
-  [schemas.constants.SCHEMA_TX_HASH_KEY]: null,
-  [schemas.constants.SCHEMA_PROPOSAL_TS_KEY]: null,
-  [schemas.constants.SCHEMA_PROPOSAL_TX_HASH_KEY]: null,
-  [schemas.constants.SCHEMA_WITNESSED_TS_KEY]: null,
-  [schemas.constants.SCHEMA_FINAL_TX_HASH_KEY]: null,
-  [schemas.constants.SCHEMA_FINAL_TX_TS_KEY]: null,
+  [schemas.constants.reportFields.SCHEMA_STATUS_KEY]: null,
+  [schemas.constants.reportFields.SCHEMA_EVENT_NAME_KEY]: null,
+  [schemas.constants.reportFields.SCHEMA_NONCE_KEY]: null,
+  [schemas.constants.reportFields.SCHEMA_DESTINATION_ACCOUNT_KEY]: null,
+  [schemas.constants.reportFields.SCHEMA_DESTINATION_NETWORK_ID_KEY]: null,
+  [schemas.constants.reportFields.SCHEMA_UNDERLYING_ASSET_NAME_KEY]: null,
+  [schemas.constants.reportFields.SCHEMA_UNDERLYING_ASSET_SYMBOL_KEY]: null,
+  [schemas.constants.reportFields.SCHEMA_UNDERLYING_ASSET_DECIMALS_KEY]: null,
+  [schemas.constants.reportFields.SCHEMA_UNDERLYING_ASSET_TOKEN_ADDRESS_KEY]:
+    null,
+  [schemas.constants.reportFields.SCHEMA_UNDERLYING_ASSET_NETWORK_ID_KEY]: null,
+  [schemas.constants.reportFields.SCHEMA_ASSET_TOKEN_ADDRESS_KEY]: null,
+  [schemas.constants.reportFields.SCHEMA_ASSET_AMOUNT_KEY]: null,
+  [schemas.constants.reportFields.SCHEMA_USER_DATA_KEY]: null,
+  [schemas.constants.reportFields.SCHEMA_OPTIONS_MASK]: null,
+  [schemas.constants.reportFields.SCHEMA_ORIGINATING_BLOCK_HASH_KEY]: null,
+  [schemas.constants.reportFields.SCHEMA_ORIGINATING_ADDRESS_KEY]: null,
+  [schemas.constants.reportFields.SCHEMA_ORIGINATING_NETWORK_ID_KEY]: null,
+  [schemas.constants.reportFields.SCHEMA_ORIGINATING_TX_HASH_KEY]: null,
+  [schemas.constants.reportFields.SCHEMA_BLOCK_HASH_KEY]: null,
+  [schemas.constants.reportFields.SCHEMA_NETWORK_ID_KEY]: null,
+  [schemas.constants.reportFields.SCHEMA_TX_HASH_KEY]: null,
+  [schemas.constants.reportFields.SCHEMA_PROPOSAL_TS_KEY]: null,
+  [schemas.constants.reportFields.SCHEMA_PROPOSAL_TX_HASH_KEY]: null,
+  [schemas.constants.reportFields.SCHEMA_WITNESSED_TS_KEY]: null,
+  [schemas.constants.reportFields.SCHEMA_FINAL_TX_HASH_KEY]: null,
+  [schemas.constants.reportFields.SCHEMA_FINAL_TX_TS_KEY]: null,
 })
 
 const bigIntToNumber = R.tryCatch(_n => Number(_n) || null, R.always(null))
 const bitIntToString = R.tryCatch(_n => _n.toString(), R.always(null))
 
 const addEventName = _eventLog =>
-  R.assoc(schemas.constants.SCHEMA_EVENT_NAME_KEY, _eventLog.name)
+  R.assoc(schemas.constants.reportFields.SCHEMA_EVENT_NAME_KEY, _eventLog.name)
 
 const setStatusToDetected = R.assoc(
-  schemas.constants.SCHEMA_STATUS_KEY,
+  schemas.constants.reportFields.SCHEMA_STATUS_KEY,
   schemas.db.enums.txStatus.DETECTED
 )
 
@@ -88,7 +89,7 @@ const addInfoFromParsedLog = (_parsedLog, _obj) =>
       maybeAddFieldFromEventArgs(
         _parsedLog.args,
         ['nonce'],
-        schemas.constants.SCHEMA_NONCE_KEY,
+        schemas.constants.reportFields.SCHEMA_NONCE_KEY,
         bitIntToString
       )
     )
@@ -96,7 +97,7 @@ const addInfoFromParsedLog = (_parsedLog, _obj) =>
       maybeAddFieldFromEventArgs(
         _parsedLog.args,
         ['destinationAccount', 'to', 'underlyingAssetRecipient'],
-        schemas.constants.SCHEMA_DESTINATION_ACCOUNT_KEY,
+        schemas.constants.reportFields.SCHEMA_DESTINATION_ACCOUNT_KEY,
         R.identity
       )
     )
@@ -104,7 +105,7 @@ const addInfoFromParsedLog = (_parsedLog, _obj) =>
       maybeAddFieldFromEventArgs(
         _parsedLog.args,
         ['destinationNetworkId', 'destinationChainId'],
-        schemas.constants.SCHEMA_DESTINATION_NETWORK_ID_KEY,
+        schemas.constants.reportFields.SCHEMA_DESTINATION_NETWORK_ID_KEY,
         R.identity
       )
     )
@@ -112,7 +113,7 @@ const addInfoFromParsedLog = (_parsedLog, _obj) =>
       maybeAddFieldFromEventArgs(
         _parsedLog.args,
         ['underlyingAssetName'],
-        schemas.constants.SCHEMA_UNDERLYING_ASSET_NAME_KEY,
+        schemas.constants.reportFields.SCHEMA_UNDERLYING_ASSET_NAME_KEY,
         R.identity
       )
     )
@@ -120,7 +121,7 @@ const addInfoFromParsedLog = (_parsedLog, _obj) =>
       maybeAddFieldFromEventArgs(
         _parsedLog.args,
         ['underlyingAssetSymbol'],
-        schemas.constants.SCHEMA_UNDERLYING_ASSET_SYMBOL_KEY,
+        schemas.constants.reportFields.SCHEMA_UNDERLYING_ASSET_SYMBOL_KEY,
         R.identity
       )
     )
@@ -128,7 +129,7 @@ const addInfoFromParsedLog = (_parsedLog, _obj) =>
       maybeAddFieldFromEventArgs(
         _parsedLog.args,
         ['underlyingAssetDecimals'],
-        schemas.constants.SCHEMA_UNDERLYING_ASSET_DECIMALS_KEY,
+        schemas.constants.reportFields.SCHEMA_UNDERLYING_ASSET_DECIMALS_KEY,
         bigIntToNumber
       )
     )
@@ -136,7 +137,8 @@ const addInfoFromParsedLog = (_parsedLog, _obj) =>
       maybeAddFieldFromEventArgs(
         _parsedLog.args,
         ['underlyingAssetTokenAddress'],
-        schemas.constants.SCHEMA_UNDERLYING_ASSET_TOKEN_ADDRESS_KEY,
+        schemas.constants.reportFields
+          .SCHEMA_UNDERLYING_ASSET_TOKEN_ADDRESS_KEY,
         R.identity
       )
     )
@@ -144,7 +146,7 @@ const addInfoFromParsedLog = (_parsedLog, _obj) =>
       maybeAddFieldFromEventArgs(
         _parsedLog.args,
         ['underlyingAssetNetworkId'],
-        schemas.constants.SCHEMA_UNDERLYING_ASSET_NETWORK_ID_KEY,
+        schemas.constants.reportFields.SCHEMA_UNDERLYING_ASSET_NETWORK_ID_KEY,
         R.identity
       )
     )
@@ -152,7 +154,7 @@ const addInfoFromParsedLog = (_parsedLog, _obj) =>
       maybeAddFieldFromEventArgs(
         _parsedLog.args,
         ['assetTokenAddress', '_tokenAddress'],
-        schemas.constants.SCHEMA_ASSET_TOKEN_ADDRESS_KEY,
+        schemas.constants.reportFields.SCHEMA_ASSET_TOKEN_ADDRESS_KEY,
         R.identity
       )
     )
@@ -160,7 +162,7 @@ const addInfoFromParsedLog = (_parsedLog, _obj) =>
       maybeAddFieldFromEventArgs(
         _parsedLog.args,
         ['assetAmount', 'amount', '_tokenAmount', 'value'],
-        schemas.constants.SCHEMA_ASSET_AMOUNT_KEY,
+        schemas.constants.reportFields.SCHEMA_ASSET_AMOUNT_KEY,
         bitIntToString
       )
     )
@@ -168,7 +170,7 @@ const addInfoFromParsedLog = (_parsedLog, _obj) =>
       maybeAddFieldFromEventArgs(
         _parsedLog.args,
         ['from'],
-        schemas.constants.SCHEMA_ORIGINATING_ADDRESS_KEY,
+        schemas.constants.reportFields.SCHEMA_ORIGINATING_ADDRESS_KEY,
         R.identity
       )
     )
@@ -176,7 +178,7 @@ const addInfoFromParsedLog = (_parsedLog, _obj) =>
       maybeAddFieldFromEventArgs(
         _parsedLog.args,
         ['optionsMask'],
-        schemas.constants.SCHEMA_OPTIONS_MASK,
+        schemas.constants.reportFields.SCHEMA_OPTIONS_MASK,
         bitIntToString
       )
     )
@@ -184,7 +186,7 @@ const addInfoFromParsedLog = (_parsedLog, _obj) =>
       maybeAddFieldFromEventArgs(
         _parsedLog.args,
         ['originBlockHash'],
-        schemas.constants.SCHEMA_ORIGINATING_BLOCK_HASH_KEY,
+        schemas.constants.reportFields.SCHEMA_ORIGINATING_BLOCK_HASH_KEY,
         bitIntToString
       )
     )
@@ -192,7 +194,7 @@ const addInfoFromParsedLog = (_parsedLog, _obj) =>
       maybeAddFieldFromEventArgs(
         _parsedLog.args,
         ['originTransactionHash'],
-        schemas.constants.SCHEMA_ORIGINATING_TX_HASH_KEY,
+        schemas.constants.reportFields.SCHEMA_ORIGINATING_TX_HASH_KEY,
         bitIntToString
       )
     )
@@ -200,7 +202,7 @@ const addInfoFromParsedLog = (_parsedLog, _obj) =>
       maybeAddFieldFromEventArgs(
         _parsedLog.args,
         ['originNetworkId'],
-        schemas.constants.SCHEMA_ORIGINATING_NETWORK_ID_KEY,
+        schemas.constants.reportFields.SCHEMA_ORIGINATING_NETWORK_ID_KEY,
         bitIntToString
       )
     )
@@ -208,7 +210,7 @@ const addInfoFromParsedLog = (_parsedLog, _obj) =>
       maybeAddFieldFromEventArgs(
         _parsedLog.args,
         ['userData'],
-        schemas.constants.SCHEMA_USER_DATA_KEY,
+        schemas.constants.reportFields.SCHEMA_USER_DATA_KEY,
         R.identity
       )
     )
@@ -218,7 +220,7 @@ const addFieldFromLog = (_eventLog, _originKey, _destKey) =>
 
 const addWitnessedTimestamp = _obj =>
   Promise.resolve(new Date().toISOString()).then(_ts =>
-    R.assoc(schemas.constants.SCHEMA_WITNESSED_TS_KEY, _ts, _obj)
+    R.assoc(schemas.constants.reportFields.SCHEMA_WITNESSED_TS_KEY, _ts, _obj)
   )
 
 const setId = _obj =>
@@ -227,7 +229,9 @@ const setId = _obj =>
     .then(_id =>
       R.assoc(
         '_id',
-        `${_obj[schemas.constants.SCHEMA_EVENT_NAME_KEY]}_${_id}`.toLowerCase(),
+        `${
+          _obj[schemas.constants.reportFields.SCHEMA_EVENT_NAME_KEY]
+        }_${_id}`.toLowerCase(),
         _obj
       )
     )
@@ -268,19 +272,21 @@ const parseLog = (_interface, _log) =>
 const buildStandardizedEvmEventObjectFromLog = (_networkId, _interface, _log) =>
   Promise.all([getEventWithAllRequiredSetToNull(), parseLog(_interface, _log)])
     .then(([_obj, _parsedLog]) => addInfoFromParsedLog(_parsedLog, _obj))
-    .then(R.assoc(schemas.constants.SCHEMA_NETWORK_ID_KEY, _networkId))
+    .then(
+      R.assoc(schemas.constants.reportFields.SCHEMA_NETWORK_ID_KEY, _networkId)
+    )
     .then(
       addFieldFromLog(
         _log,
         'blockHash',
-        schemas.constants.SCHEMA_BLOCK_HASH_KEY
+        schemas.constants.reportFields.SCHEMA_BLOCK_HASH_KEY
       )
     )
     .then(
       addFieldFromLog(
         _log,
         'transactionHash',
-        schemas.constants.SCHEMA_TX_HASH_KEY
+        schemas.constants.reportFields.SCHEMA_TX_HASH_KEY
       )
     )
     .then(addWitnessedTimestamp)

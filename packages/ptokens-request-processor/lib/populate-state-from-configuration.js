@@ -5,12 +5,16 @@ const schemas = require('ptokens-schemas')
 
 const getDbAndPutInState = R.curry((_config, _state) => {
   const url =
-    _config[schemas.constants.SCHEMA_DB_KEY][schemas.constants.SCHEMA_URL_KEY]
+    _config[schemas.constants.configurationFields.SCHEMA_DB_KEY][
+      schemas.constants.configurationFields.SCHEMA_URL_KEY
+    ]
   const dbName =
-    _config[schemas.constants.SCHEMA_DB_KEY][schemas.constants.SCHEMA_NAME_KEY]
+    _config[schemas.constants.configurationFields.SCHEMA_DB_KEY][
+      schemas.constants.configurationFields.SCHEMA_NAME_KEY
+    ]
   const tableName =
-    _config[schemas.constants.SCHEMA_DB_KEY][
-      schemas.constants.SCHEMA_TABLE_EVENTS_KEY
+    _config[schemas.constants.configurationFields.SCHEMA_DB_KEY][
+      schemas.constants.configurationFields.SCHEMA_TABLE_EVENTS_KEY
     ]
 
   return db
@@ -37,7 +41,7 @@ const getInitialStateFromConfiguration = _config =>
     .then(
       getConfigPropertyAndPutInState(
         _config,
-        schemas.constants.SCHEMA_NETWORK_ID_KEY,
+        schemas.constants.configurationFields.SCHEMA_NETWORK_ID_KEY,
         constants.state.STATE_KEY_NETWORK_ID,
         null
       )
@@ -45,7 +49,7 @@ const getInitialStateFromConfiguration = _config =>
     .then(
       getConfigPropertyAndPutInState(
         _config,
-        schemas.constants.SCHEMA_PROVIDER_URL_KEY,
+        schemas.constants.configurationFields.SCHEMA_PROVIDER_URL_KEY,
         constants.state.STATE_KEY_PROVIDER_URL,
         null
       )
@@ -53,7 +57,7 @@ const getInitialStateFromConfiguration = _config =>
     .then(
       getConfigPropertyAndPutInState(
         _config,
-        schemas.constants.SCHEMA_STATE_MANAGER_KEY,
+        schemas.constants.configurationFields.SCHEMA_STATE_MANAGER_KEY,
         constants.state.STATE_KEY_STATE_MANAGER_ADDRESS,
         null
       )
@@ -61,7 +65,7 @@ const getInitialStateFromConfiguration = _config =>
     .then(
       getConfigPropertyAndPutInState(
         _config,
-        schemas.constants.SCHEMA_IDENTITY_GPG_KEY,
+        schemas.constants.configurationFields.SCHEMA_IDENTITY_GPG_KEY,
         constants.state.STATE_KEY_IDENTITY_FILE,
         null
       )
@@ -69,7 +73,7 @@ const getInitialStateFromConfiguration = _config =>
     .then(
       getConfigPropertyAndPutInState(
         _config,
-        schemas.constants.SCHEMA_CHALLENGE_PERIOD,
+        schemas.constants.configurationFields.SCHEMA_CHALLENGE_PERIOD,
         constants.state.STATE_KEY_CHALLENGE_PERIOD,
         null
       )
@@ -77,7 +81,7 @@ const getInitialStateFromConfiguration = _config =>
     .then(
       getConfigPropertyAndPutInState(
         _config,
-        schemas.constants.SCHEMA_TX_TIMEOUT,
+        schemas.constants.configurationFields.SCHEMA_TX_TIMEOUT,
         constants.state.STATE_KEY_TX_TIMEOUT,
         DEFAULT_TX_TIMEOUT
       )
@@ -85,7 +89,7 @@ const getInitialStateFromConfiguration = _config =>
     .then(
       getConfigPropertyAndPutInState(
         _config,
-        schemas.constants.SCHEMA_LOOP_SLEEP_TIME,
+        schemas.constants.configurationFields.SCHEMA_LOOP_SLEEP_TIME,
         constants.state.STATE_KEY_LOOP_SLEEP_TIME,
         DEFAULT_LOOP_SLEEP_TIME
       )

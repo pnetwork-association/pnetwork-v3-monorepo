@@ -17,8 +17,8 @@ const getEventLogsFromTransactionCommand = (
   checkConfiguration(_config)
     .then(_ =>
       getEventLogsFromTransaction(
-        _config[schemas.constants.SCHEMA_PROVIDER_URL_KEY],
-        _config[schemas.constants.SCHEMA_NETWORK_ID_KEY],
+        _config[schemas.constants.configurationFields.SCHEMA_PROVIDER_URL_KEY],
+        _config[schemas.constants.configurationFields.SCHEMA_NETWORK_ID_KEY],
         _hash,
         _eventSignature
       )

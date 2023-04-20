@@ -12,8 +12,10 @@ const isRequestInvalid = R.curry(
     !_detectedTxs.some(
       _detectedReport =>
         // check event ID is the same
-        _detectedReport[schemas.constants.SCHEMA_ID_KEY].split('_')[1] ===
-        _request[schemas.constants.SCHEMA_ID_KEY].split('_')[1]
+        _detectedReport[schemas.constants.reportFields.SCHEMA_ID_KEY].split(
+          '_'
+        )[1] ===
+        _request[schemas.constants.reportFields.SCHEMA_ID_KEY].split('_')[1]
     )
 )
 const filterOutInvalidQueuedRequestsAndPutInState = _state => {

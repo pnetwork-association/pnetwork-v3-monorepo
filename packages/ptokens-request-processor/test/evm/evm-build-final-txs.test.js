@@ -62,9 +62,11 @@ describe('General final txs testing', () => {
         '0x',
       ])
       expect(result).toMatchObject({
-        [schemas.constants.SCHEMA_FINAL_TX_TS_KEY]: expect.any(String),
-        [schemas.constants.SCHEMA_FINAL_TX_HASH_KEY]: finalizedTxHash,
-        [schemas.constants.SCHEMA_STATUS_KEY]:
+        [schemas.constants.reportFields.SCHEMA_FINAL_TX_TS_KEY]:
+          expect.any(String),
+        [schemas.constants.reportFields.SCHEMA_FINAL_TX_HASH_KEY]:
+          finalizedTxHash,
+        [schemas.constants.reportFields.SCHEMA_STATUS_KEY]:
           schemas.db.enums.txStatus.FINALIZED,
       })
     })
@@ -192,19 +194,23 @@ describe('General final txs testing', () => {
 
       expect(result[STATE_FINALIZED_DB_REPORTS_KEY][0]).toEqual(
         expect.objectContaining({
-          [schemas.constants.SCHEMA_STATUS_KEY]:
+          [schemas.constants.reportFields.SCHEMA_STATUS_KEY]:
             schemas.db.enums.txStatus.FINALIZED,
-          [schemas.constants.SCHEMA_FINAL_TX_HASH_KEY]: finalizeTxHashes[0],
-          [schemas.constants.SCHEMA_FINAL_TX_TS_KEY]: expect.any(String),
+          [schemas.constants.reportFields.SCHEMA_FINAL_TX_HASH_KEY]:
+            finalizeTxHashes[0],
+          [schemas.constants.reportFields.SCHEMA_FINAL_TX_TS_KEY]:
+            expect.any(String),
         })
       )
 
       expect(result[STATE_FINALIZED_DB_REPORTS_KEY][1]).toEqual(
         expect.objectContaining({
-          [schemas.constants.SCHEMA_STATUS_KEY]:
+          [schemas.constants.reportFields.SCHEMA_STATUS_KEY]:
             schemas.db.enums.txStatus.FINALIZED,
-          [schemas.constants.SCHEMA_FINAL_TX_HASH_KEY]: finalizeTxHashes[1],
-          [schemas.constants.SCHEMA_FINAL_TX_TS_KEY]: expect.any(String),
+          [schemas.constants.reportFields.SCHEMA_FINAL_TX_HASH_KEY]:
+            finalizeTxHashes[1],
+          [schemas.constants.reportFields.SCHEMA_FINAL_TX_TS_KEY]:
+            expect.any(String),
         })
       )
     })

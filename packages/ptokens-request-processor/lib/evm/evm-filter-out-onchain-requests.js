@@ -11,8 +11,8 @@ const areRequestsIdsEqual = R.curry(
   (_report, _request) =>
     logger.debug('Queued request:\n', _request) ||
     logger.debug('Matching db report:\n', _report) ||
-    _report[schemas.constants.SCHEMA_ID_KEY] ===
-      _request[schemas.constants.SCHEMA_ID_KEY]
+    _report[schemas.constants.reportFields.SCHEMA_ID_KEY] ===
+      _request[schemas.constants.reportFields.SCHEMA_ID_KEY]
 )
 
 const isAlreadyProcessedTxs = R.curry((_onChainTxs, _requestedTx) => {
@@ -22,7 +22,7 @@ const isAlreadyProcessedTxs = R.curry((_onChainTxs, _requestedTx) => {
 
 const setRequestStatusToProposed = request =>
   R.assoc(
-    schemas.constants.SCHEMA_STATUS_KEY,
+    schemas.constants.reportFields.SCHEMA_STATUS_KEY,
     schemas.db.enums.txStatus.PROPOSED,
     request
   )

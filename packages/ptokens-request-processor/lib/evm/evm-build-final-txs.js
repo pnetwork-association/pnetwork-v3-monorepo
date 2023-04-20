@@ -24,12 +24,14 @@ const {
 // TODO: factor out (check evm-build-proposals-txs)
 const addFinalizedTxHashToEvent = R.curry((_event, _finalizedTxHash) => {
   // TODO: replace _id field
-  const id = _event[schemas.constants.SCHEMA_ID_KEY]
+  const id = _event[schemas.constants.reportFields.SCHEMA_ID_KEY]
   logger.debug(`Adding ${_finalizedTxHash} to ${id.slice(0, 20)}...`)
   const finalizedTimestamp = new Date().toISOString()
-  _event[schemas.constants.SCHEMA_FINAL_TX_TS_KEY] = finalizedTimestamp
-  _event[schemas.constants.SCHEMA_FINAL_TX_HASH_KEY] = _finalizedTxHash
-  _event[schemas.constants.SCHEMA_STATUS_KEY] =
+  _event[schemas.constants.reportFields.SCHEMA_FINAL_TX_TS_KEY] =
+    finalizedTimestamp
+  _event[schemas.constants.reportFields.SCHEMA_FINAL_TX_HASH_KEY] =
+    _finalizedTxHash
+  _event[schemas.constants.reportFields.SCHEMA_STATUS_KEY] =
     schemas.db.enums.txStatus.FINALIZED
 
   return Promise.resolve(_event)
@@ -37,7 +39,7 @@ const addFinalizedTxHashToEvent = R.curry((_event, _finalizedTxHash) => {
 
 const executeOperationErrorHandler = R.curry(
   (resolve, reject, _eventReport, _err) => {
-    const reportId = _eventReport[schemas.constants.SCHEMA_ID_KEY]
+    const reportId = _eventReport[schemas.constants.reportFields.SCHEMA_ID_KEY]
     if (_err.message.includes(errors.ERROR_TIMEOUT)) {
       logger.error(`Tx for ${reportId} failed:`, _err.message)
       return resolve(_eventReport)
@@ -53,8 +55,9 @@ const executeOperationErrorHandler = R.curry(
 const makeFinalContractCall = R.curry(
   (_wallet, _stateManager, _txTimeout, _eventReport) =>
     new Promise((resolve, reject) => {
-      const id = _eventReport[schemas.constants.SCHEMA_ID_KEY]
-      const eventName = _eventReport[schemas.constants.SCHEMA_EVENT_NAME_KEY]
+      const id = _eventReport[schemas.constants.reportFields.SCHEMA_ID_KEY]
+      const eventName =
+        _eventReport[schemas.constants.reportFields.SCHEMA_EVENT_NAME_KEY]
 
       if (!R.includes(eventName, R.values(schemas.db.enums.eventNames))) {
         return reject(new Error(`${ERROR_INVALID_EVENT_NAME}: ${eventName}`))

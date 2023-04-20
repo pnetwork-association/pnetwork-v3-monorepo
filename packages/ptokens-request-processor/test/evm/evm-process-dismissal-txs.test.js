@@ -58,17 +58,17 @@ describe('Tests for queued requests detection and dismissal', () => {
           R.assoc(STATE_DISMISSED_DB_REPORTS_KEY, [
             {
               ...queuedReports[0],
-              [schemas.constants.SCHEMA_STATUS_KEY]:
+              [schemas.constants.reportFields.SCHEMA_STATUS_KEY]:
                 schemas.db.enums.txStatus.CANCELLED,
             },
             {
               ...queuedReports[1],
-              [schemas.constants.SCHEMA_STATUS_KEY]:
+              [schemas.constants.reportFields.SCHEMA_STATUS_KEY]:
                 schemas.db.enums.txStatus.CANCELLED,
             },
             {
               ...queuedReports[2],
-              [schemas.constants.SCHEMA_STATUS_KEY]:
+              [schemas.constants.reportFields.SCHEMA_STATUS_KEY]:
                 schemas.db.enums.txStatus.CANCELLED,
             },
           ])
@@ -86,7 +86,7 @@ describe('Tests for queued requests detection and dismissal', () => {
 
       expect(
         await db.findReports(collection, {
-          [schemas.constants.SCHEMA_STATUS_KEY]:
+          [schemas.constants.reportFields.SCHEMA_STATUS_KEY]:
             schemas.db.enums.txStatus.CANCELLED,
         })
       ).toStrictEqual([])
@@ -94,16 +94,18 @@ describe('Tests for queued requests detection and dismissal', () => {
       const result = await maybeProcessNewRequestsAndDismiss(state)
 
       const cancelledReports = await db.findReports(collection, {
-        [schemas.constants.SCHEMA_STATUS_KEY]:
+        [schemas.constants.reportFields.SCHEMA_STATUS_KEY]:
           schemas.db.enums.txStatus.CANCELLED,
       })
 
       expect(
-        cancelledReports.map(R.prop(schemas.constants.SCHEMA_ID_KEY))
+        cancelledReports.map(
+          R.prop(schemas.constants.reportFields.SCHEMA_ID_KEY)
+        )
       ).toStrictEqual([
-        queuedReports[0][schemas.constants.SCHEMA_ID_KEY],
-        queuedReports[1][schemas.constants.SCHEMA_ID_KEY],
-        queuedReports[2][schemas.constants.SCHEMA_ID_KEY],
+        queuedReports[0][schemas.constants.reportFields.SCHEMA_ID_KEY],
+        queuedReports[1][schemas.constants.reportFields.SCHEMA_ID_KEY],
+        queuedReports[2][schemas.constants.reportFields.SCHEMA_ID_KEY],
       ])
       expect(result).toHaveProperty(constants.state.STATE_KEY_DB)
       expect(result).not.toHaveProperty(STATE_ONCHAIN_REQUESTS_KEY)

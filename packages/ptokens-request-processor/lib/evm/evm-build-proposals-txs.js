@@ -28,9 +28,11 @@ const addProposedTxHashToEvent = R.curry(
       // TODO: replace _id field
       logger.debug(`Adding ${_proposedTxHash} to ${_event._id.slice(0, 20)}...`)
       const proposedTimestamp = new Date().toISOString()
-      _event[schemas.constants.SCHEMA_PROPOSAL_TS_KEY] = proposedTimestamp
-      _event[schemas.constants.SCHEMA_PROPOSAL_TX_HASH_KEY] = _proposedTxHash
-      _event[schemas.constants.SCHEMA_STATUS_KEY] =
+      _event[schemas.constants.reportFields.SCHEMA_PROPOSAL_TS_KEY] =
+        proposedTimestamp
+      _event[schemas.constants.reportFields.SCHEMA_PROPOSAL_TX_HASH_KEY] =
+        _proposedTxHash
+      _event[schemas.constants.reportFields.SCHEMA_STATUS_KEY] =
         schemas.db.enums.txStatus.PROPOSED
 
       return resolve(_event)
@@ -39,7 +41,7 @@ const addProposedTxHashToEvent = R.curry(
 
 const queueOperationErrorHandler = R.curry(
   (resolve, reject, _eventReport, _err) => {
-    const reportId = _eventReport[schemas.constants.SCHEMA_ID_KEY]
+    const reportId = _eventReport[schemas.constants.reportFields.SCHEMA_ID_KEY]
     if (_err.message.includes(errors.ERROR_TIMEOUT)) {
       logger.error(`Tx for ${reportId} failed:`, _err.message)
       return resolve(_eventReport)
@@ -54,8 +56,9 @@ const queueOperationErrorHandler = R.curry(
 const makeProposalContractCall = R.curry(
   (_wallet, _managerContract, _txTimeout, _eventReport) =>
     new Promise((resolve, reject) => {
-      const id = _eventReport[schemas.constants.SCHEMA_ID_KEY]
-      const eventName = _eventReport[schemas.constants.SCHEMA_EVENT_NAME_KEY]
+      const id = _eventReport[schemas.constants.reportFields.SCHEMA_ID_KEY]
+      const eventName =
+        _eventReport[schemas.constants.reportFields.SCHEMA_EVENT_NAME_KEY]
 
       if (!R.includes(eventName, R.values(schemas.db.enums.eventNames))) {
         return reject(new Error(`${ERROR_INVALID_EVENT_NAME}: ${eventName}`))

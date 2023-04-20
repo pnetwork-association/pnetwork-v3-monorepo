@@ -22,7 +22,9 @@ const getExpirationDate = R.curry(
 )
 
 const getEventProposedTimestamp = _event =>
-  Promise.resolve(R.prop(schemas.constants.SCHEMA_PROPOSAL_TS_KEY, _event))
+  Promise.resolve(
+    R.prop(schemas.constants.reportFields.SCHEMA_PROPOSAL_TS_KEY, _event)
+  )
 
 const getCurrentDate = () => new Date()
 
@@ -32,7 +34,7 @@ const isChallengePeriodExpired = R.curry((_challengePeriod, _proposedEvent) =>
     .then(_expirationDate => {
       const now = getCurrentDate()
       const slicedTxHash = _proposedEvent[
-        schemas.constants.SCHEMA_TX_HASH_KEY
+        schemas.constants.reportFields.SCHEMA_TX_HASH_KEY
       ].slice(0, 10)
       logger.debug(
         '%s: %s > %s => %s',

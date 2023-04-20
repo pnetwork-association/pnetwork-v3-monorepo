@@ -46,14 +46,15 @@ const startEvmListenerFromEventObject = (
   _callback
 ) =>
   Promise.all(
-    _event[schemas.constants.SCHEMA_TOKEN_CONTRACTS_KEY].map(_tokenContract =>
-      listenForEvmEvent(
-        _providerUrl,
-        _networkId,
-        _event.name,
-        _tokenContract,
-        _callback
-      )
+    _event[schemas.constants.configurationFields.SCHEMA_CONTRACTS_KEY].map(
+      _tokenContract =>
+        listenForEvmEvent(
+          _providerUrl,
+          _networkId,
+          _event.name,
+          _tokenContract,
+          _callback
+        )
     )
   )
 

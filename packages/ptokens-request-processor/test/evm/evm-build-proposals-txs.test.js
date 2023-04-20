@@ -74,10 +74,12 @@ describe('Build proposals test for EVM', () => {
       ])
       expect(result).toStrictEqual({
         ...eventReport,
-        [schemas.constants.SCHEMA_STATUS_KEY]:
+        [schemas.constants.reportFields.SCHEMA_STATUS_KEY]:
           schemas.db.enums.txStatus.PROPOSED,
-        [schemas.constants.SCHEMA_PROPOSAL_TX_HASH_KEY]: proposedTxHash,
-        [schemas.constants.SCHEMA_PROPOSAL_TS_KEY]: expect.any(String),
+        [schemas.constants.reportFields.SCHEMA_PROPOSAL_TX_HASH_KEY]:
+          proposedTxHash,
+        [schemas.constants.reportFields.SCHEMA_PROPOSAL_TS_KEY]:
+          expect.any(String),
       })
     })
 
@@ -241,19 +243,23 @@ describe('Build proposals test for EVM', () => {
 
       expect(result[STATE_PROPOSED_DB_REPORTS_KEY][0]).toEqual(
         expect.objectContaining({
-          [schemas.constants.SCHEMA_STATUS_KEY]:
+          [schemas.constants.reportFields.SCHEMA_STATUS_KEY]:
             schemas.db.enums.txStatus.PROPOSED,
-          [schemas.constants.SCHEMA_PROPOSAL_TX_HASH_KEY]: proposedTxHashes[0],
-          [schemas.constants.SCHEMA_PROPOSAL_TS_KEY]: expect.any(String),
+          [schemas.constants.reportFields.SCHEMA_PROPOSAL_TX_HASH_KEY]:
+            proposedTxHashes[0],
+          [schemas.constants.reportFields.SCHEMA_PROPOSAL_TS_KEY]:
+            expect.any(String),
         })
       )
 
       expect(result[STATE_PROPOSED_DB_REPORTS_KEY][1]).toEqual(
         expect.objectContaining({
-          [schemas.constants.SCHEMA_STATUS_KEY]:
+          [schemas.constants.reportFields.SCHEMA_STATUS_KEY]:
             schemas.db.enums.txStatus.PROPOSED,
-          [schemas.constants.SCHEMA_PROPOSAL_TX_HASH_KEY]: proposedTxHashes[1],
-          [schemas.constants.SCHEMA_PROPOSAL_TS_KEY]: expect.any(String),
+          [schemas.constants.reportFields.SCHEMA_PROPOSAL_TX_HASH_KEY]:
+            proposedTxHashes[1],
+          [schemas.constants.reportFields.SCHEMA_PROPOSAL_TS_KEY]:
+            expect.any(String),
         })
       )
     })
