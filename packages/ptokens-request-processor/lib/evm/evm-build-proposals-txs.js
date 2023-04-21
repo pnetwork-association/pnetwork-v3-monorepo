@@ -51,7 +51,7 @@ const makeProposalContractCall = R.curry(
       const id = _eventReport[schemas.constants.reportFields.SCHEMA_ID_KEY]
       const eventName = _eventReport[schemas.constants.reportFields.SCHEMA_EVENT_NAME_KEY]
 
-      if (!R.includes(eventName, R.values(schemas.db.enums.eventNames))) {
+      if (!R.includes(eventName, R.values(constants.db.eventNames))) {
         return reject(new Error(`${ERROR_INVALID_EVENT_NAME}: ${eventName}`))
       }
 

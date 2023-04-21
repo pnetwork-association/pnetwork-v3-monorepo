@@ -116,7 +116,7 @@ describe('EVM listen for events', () => {
               'useroperation_0xbe8b7571ab50cc63da7f1d9f6b22802922aa2e242a5c7400c493ba9c831b24aa',
             [schemas.constants.reportFields.SCHEMA_STATUS_KEY]: schemas.db.enums.txStatus.DETECTED,
             [schemas.constants.reportFields.SCHEMA_EVENT_NAME_KEY]:
-              schemas.db.enums.eventNames.USER_OPERATION,
+              constants.db.eventNames.USER_OPERATION,
 
             [schemas.constants.reportFields.SCHEMA_NONCE_KEY]: '6648',
             [schemas.constants.reportFields.SCHEMA_ASSET_AMOUNT_KEY]: '1000000000000000000',

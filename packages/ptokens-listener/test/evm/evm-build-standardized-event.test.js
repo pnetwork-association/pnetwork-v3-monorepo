@@ -35,7 +35,7 @@ describe('Event building for EVM', () => {
           'useroperation_0xbe8b7571ab50cc63da7f1d9f6b22802922aa2e242a5c7400c493ba9c831b24aa',
         [schemas.constants.reportFields.SCHEMA_STATUS_KEY]: schemas.db.enums.txStatus.DETECTED,
         [schemas.constants.reportFields.SCHEMA_EVENT_NAME_KEY]:
-          schemas.db.enums.eventNames.USER_OPERATION,
+          constants.db.eventNames.USER_OPERATION,
 
         [schemas.constants.reportFields.SCHEMA_NONCE_KEY]: '6648',
         [schemas.constants.reportFields.SCHEMA_ASSET_AMOUNT_KEY]: '1000000000000000000',
@@ -92,7 +92,7 @@ describe('Event building for EVM', () => {
           'useroperation_0x62be3b1256761376f7ad4bbedd59b853a734e01b77520e6bc7d27efc10758864',
         [schemas.constants.reportFields.SCHEMA_STATUS_KEY]: schemas.db.enums.txStatus.DETECTED,
         [schemas.constants.reportFields.SCHEMA_EVENT_NAME_KEY]:
-          schemas.db.enums.eventNames.USER_OPERATION,
+          constants.db.eventNames.USER_OPERATION,
 
         [schemas.constants.reportFields.SCHEMA_NONCE_KEY]: '6648',
         [schemas.constants.reportFields.SCHEMA_ASSET_AMOUNT_KEY]: '2000000000000000000',
@@ -149,7 +149,7 @@ describe('Event building for EVM', () => {
           'useroperation_0xb3b4f34d53bcc3cb942d2582b740189e4027dbb7bd5c92757f8452f448c2bbb9',
         [schemas.constants.reportFields.SCHEMA_STATUS_KEY]: schemas.db.enums.txStatus.DETECTED,
         [schemas.constants.reportFields.SCHEMA_EVENT_NAME_KEY]:
-          schemas.db.enums.eventNames.USER_OPERATION,
+          constants.db.eventNames.USER_OPERATION,
 
         [schemas.constants.reportFields.SCHEMA_NONCE_KEY]: '6648',
         [schemas.constants.reportFields.SCHEMA_ASSET_AMOUNT_KEY]: '3000000000000000000',
@@ -206,7 +206,7 @@ describe('Event building for EVM', () => {
           'useroperation_0x7794b69ee042872159e5c4810addb698e4032ed6f4a3e1bdb94e38021d2f5146',
         [schemas.constants.reportFields.SCHEMA_STATUS_KEY]: schemas.db.enums.txStatus.DETECTED,
         [schemas.constants.reportFields.SCHEMA_EVENT_NAME_KEY]:
-          schemas.db.enums.eventNames.USER_OPERATION,
+          constants.db.eventNames.USER_OPERATION,
 
         [schemas.constants.reportFields.SCHEMA_NONCE_KEY]: '6648',
         [schemas.constants.reportFields.SCHEMA_ASSET_AMOUNT_KEY]: '4000000000000000000',
@@ -263,7 +263,7 @@ describe('Event building for EVM', () => {
           'useroperation_0xcf021d05f8a70b96146067ba8f21cf26d00ad28fd7dc72fda247b4b87144459a',
         [schemas.constants.reportFields.SCHEMA_STATUS_KEY]: schemas.db.enums.txStatus.DETECTED,
         [schemas.constants.reportFields.SCHEMA_EVENT_NAME_KEY]:
-          schemas.db.enums.eventNames.USER_OPERATION,
+          constants.db.eventNames.USER_OPERATION,
 
         [schemas.constants.reportFields.SCHEMA_NONCE_KEY]: '6648',
         [schemas.constants.reportFields.SCHEMA_ASSET_AMOUNT_KEY]: '5000000000000000000',
@@ -320,7 +320,7 @@ describe('Event building for EVM', () => {
           'useroperation_0x2ca0c7c469fbee9866b12c9c28b682d832782a3ee515832ad1e195953bc94d26',
         [schemas.constants.reportFields.SCHEMA_STATUS_KEY]: schemas.db.enums.txStatus.DETECTED,
         [schemas.constants.reportFields.SCHEMA_EVENT_NAME_KEY]:
-          schemas.db.enums.eventNames.USER_OPERATION,
+          constants.db.eventNames.USER_OPERATION,
 
         [schemas.constants.reportFields.SCHEMA_NONCE_KEY]: '6649',
         [schemas.constants.reportFields.SCHEMA_ASSET_AMOUNT_KEY]: '6000000000000000000',
@@ -377,7 +377,7 @@ describe('Event building for EVM', () => {
           'useroperation_0x32fe2ff93d26184c87287d7b8d3d92f48f6224dd79b353eadeacf1e399378c08',
         [schemas.constants.reportFields.SCHEMA_STATUS_KEY]: schemas.db.enums.txStatus.DETECTED,
         [schemas.constants.reportFields.SCHEMA_EVENT_NAME_KEY]:
-          schemas.db.enums.eventNames.USER_OPERATION,
+          constants.db.eventNames.USER_OPERATION,
 
         [schemas.constants.reportFields.SCHEMA_NONCE_KEY]: '6911',
         [schemas.constants.reportFields.SCHEMA_ASSET_AMOUNT_KEY]: '7000000000000000000',
@@ -434,7 +434,7 @@ describe('Event building for EVM', () => {
           'operationqueued_0x0373cb2ceeafd11a18902d21a0edbd7f3651ee3cea09442a12c060115a97bda1',
         [schemas.constants.reportFields.SCHEMA_STATUS_KEY]: schemas.db.enums.txStatus.DETECTED,
         [schemas.constants.reportFields.SCHEMA_EVENT_NAME_KEY]:
-          schemas.db.enums.eventNames.QUEUED_OPERATION,
+          constants.db.eventNames.QUEUED_OPERATION,
 
         [schemas.constants.reportFields.SCHEMA_NONCE_KEY]: '6648',
         [schemas.constants.reportFields.SCHEMA_ASSET_AMOUNT_KEY]: '1000000000000000000',
@@ -492,7 +492,7 @@ describe('Event building for EVM', () => {
           'operationqueued_0x32fe2ff93d26184c87287d7b8d3d92f48f6224dd79b353eadeacf1e399378c08',
         [schemas.constants.reportFields.SCHEMA_STATUS_KEY]: schemas.db.enums.txStatus.DETECTED,
         [schemas.constants.reportFields.SCHEMA_EVENT_NAME_KEY]:
-          schemas.db.enums.eventNames.QUEUED_OPERATION,
+          constants.db.eventNames.QUEUED_OPERATION,
 
         [schemas.constants.reportFields.SCHEMA_NONCE_KEY]: '6911',
         [schemas.constants.reportFields.SCHEMA_ASSET_AMOUNT_KEY]: '7000000000000000000',
