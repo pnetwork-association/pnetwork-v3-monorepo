@@ -21,7 +21,7 @@ describe('Build proposals test for EVM', () => {
       const ethers = require('ethers')
       const proposedTxHash = '0xd656ffac17b71e2ea2e24f72cd4c15c909a0ebe1696f8ead388eb268268f1cbf'
       const expectedObject = {
-        [constants.misc.ETHERS_KEY_TX_HASH]: proposedTxHash,
+        [constants.evm.ethers.KEY_TX_HASH]: proposedTxHash,
       }
 
       const mockQueueOperation = jest.fn().mockResolvedValue({
@@ -137,10 +137,10 @@ describe('Build proposals test for EVM', () => {
 
       const expecteCallResult = [
         {
-          [constants.misc.ETHERS_KEY_TX_HASH]: proposedTxHashes[0],
+          [constants.evm.ethers.KEY_TX_HASH]: proposedTxHashes[0],
         },
         {
-          [constants.misc.ETHERS_KEY_TX_HASH]: proposedTxHashes[1],
+          [constants.evm.ethers.KEY_TX_HASH]: proposedTxHashes[1],
         },
       ]
 

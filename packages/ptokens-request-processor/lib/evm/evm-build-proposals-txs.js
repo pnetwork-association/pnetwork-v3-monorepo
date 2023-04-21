@@ -64,7 +64,7 @@ const makeProposalContractCall = R.curry(
       logUserOperationFromAbiArgs(functionName, args)
 
       return callContractFunctionAndAwait(functionName, args, contract, _txTimeout)
-        .then(R.prop(constants.misc.ETHERS_KEY_TX_HASH))
+        .then(R.prop(constants.evm.ethers.KEY_TX_HASH))
         .then(addProposedTxHashToEvent(_eventReport))
         .then(resolve)
         .catch(queueOperationErrorHandler(resolve, reject, _eventReport))

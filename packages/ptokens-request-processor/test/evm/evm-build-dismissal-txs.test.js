@@ -32,10 +32,10 @@ describe('Build proposals test for EVM', () => {
 
       const expecteCallResult = [
         {
-          [constants.misc.ETHERS_KEY_TX_HASH]: cancelTxHashes[0],
+          [constants.evm.ethers.KEY_TX_HASH]: cancelTxHashes[0],
         },
         {
-          [constants.misc.ETHERS_KEY_TX_HASH]: cancelTxHashes[1],
+          [constants.evm.ethers.KEY_TX_HASH]: cancelTxHashes[1],
         },
       ]
 

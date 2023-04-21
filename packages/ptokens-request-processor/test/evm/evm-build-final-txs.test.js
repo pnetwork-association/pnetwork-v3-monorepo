@@ -83,10 +83,10 @@ describe('General final txs testing', () => {
 
       const expecteCallResult = [
         {
-          [constants.misc.ETHERS_KEY_TX_HASH]: finalizeTxHashes[0],
+          [constants.evm.ethers.KEY_TX_HASH]: finalizeTxHashes[0],
         },
         {
-          [constants.misc.ETHERS_KEY_TX_HASH]: finalizeTxHashes[1],
+          [constants.evm.ethers.KEY_TX_HASH]: finalizeTxHashes[1],
         },
       ]
 

@@ -64,7 +64,7 @@ const makeFinalContractCall = R.curry(
       logUserOperationFromAbiArgs(functionName, args)
 
       return callContractFunctionAndAwait(functionName, args, contract, _txTimeout)
-        .then(R.prop(constants.misc.ETHERS_KEY_TX_HASH))
+        .then(R.prop(constants.evm.ethers.KEY_TX_HASH))
         .then(addFinalizedTxHashToEvent(_eventReport))
         .then(resolve)
         .catch(executeOperationErrorHandler(resolve, reject, _eventReport))
