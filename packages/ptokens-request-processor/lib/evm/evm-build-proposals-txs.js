@@ -27,7 +27,7 @@ const addProposedTxHashToEvent = R.curry(
       const proposedTimestamp = new Date().toISOString()
       _event[schemas.constants.reportFields.SCHEMA_PROPOSAL_TS_KEY] = proposedTimestamp
       _event[schemas.constants.reportFields.SCHEMA_PROPOSAL_TX_HASH_KEY] = _proposedTxHash
-      _event[schemas.constants.reportFields.SCHEMA_STATUS_KEY] = schemas.db.enums.txStatus.PROPOSED
+      _event[schemas.constants.reportFields.SCHEMA_STATUS_KEY] = constants.db.txStatus.PROPOSED
 
       return resolve(_event)
     })

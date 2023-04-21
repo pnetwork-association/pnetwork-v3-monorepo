@@ -23,7 +23,7 @@ const addCancelledTxHashToEvent = R.curry((_event, _finalizedTxHash) => {
   const cancelledTimestamp = new Date().toISOString()
   _event[schemas.constants.reportFields.SCHEMA_FINAL_TX_TS_KEY] = cancelledTimestamp
   _event[schemas.constants.reportFields.SCHEMA_FINAL_TX_HASH_KEY] = _finalizedTxHash
-  _event[schemas.constants.reportFields.SCHEMA_STATUS_KEY] = schemas.db.enums.txStatus.CANCELLED
+  _event[schemas.constants.reportFields.SCHEMA_STATUS_KEY] = constants.db.txStatus.CANCELLED
 
   return Promise.resolve(_event)
 })

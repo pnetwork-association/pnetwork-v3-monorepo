@@ -40,7 +40,7 @@ const addEventName = _eventLog =>
 
 const setStatusToDetected = R.assoc(
   schemas.constants.reportFields.SCHEMA_STATUS_KEY,
-  schemas.db.enums.txStatus.DETECTED
+  constants.db.txStatus.DETECTED
 )
 
 const addFieldFromEventArgs = (_eventValue, _destKey, _conversionFunction, _standardEvent) =>

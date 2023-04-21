@@ -126,7 +126,7 @@ describe('Build proposals test for EVM', () => {
 
       expect(result[STATE_DISMISSED_DB_REPORTS_KEY][0]).toEqual(
         expect.objectContaining({
-          [schemas.constants.reportFields.SCHEMA_STATUS_KEY]: schemas.db.enums.txStatus.CANCELLED,
+          [schemas.constants.reportFields.SCHEMA_STATUS_KEY]: constants.db.txStatus.CANCELLED,
           [schemas.constants.reportFields.SCHEMA_FINAL_TX_HASH_KEY]: cancelTxHashes[0],
           [schemas.constants.reportFields.SCHEMA_FINAL_TX_TS_KEY]: expect.any(String),
         })
@@ -134,7 +134,7 @@ describe('Build proposals test for EVM', () => {
 
       expect(result[STATE_DISMISSED_DB_REPORTS_KEY][1]).toEqual(
         expect.objectContaining({
-          [schemas.constants.reportFields.SCHEMA_STATUS_KEY]: schemas.db.enums.txStatus.CANCELLED,
+          [schemas.constants.reportFields.SCHEMA_STATUS_KEY]: constants.db.txStatus.CANCELLED,
           [schemas.constants.reportFields.SCHEMA_FINAL_TX_HASH_KEY]: cancelTxHashes[1],
           [schemas.constants.reportFields.SCHEMA_FINAL_TX_TS_KEY]: expect.any(String),
         })

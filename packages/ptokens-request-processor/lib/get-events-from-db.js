@@ -32,7 +32,7 @@ const getValidEventsWithStatusAndPutInState = R.curry(
 
 const getDetectedEventsFromDbAndPutInState = _state =>
   getValidEventsWithStatusAndPutInState(
-    schemas.db.enums.txStatus.DETECTED,
+    constants.db.txStatus.DETECTED,
     STATE_DETECTED_DB_REPORTS_KEY,
     schemas.constants.reportFields.SCHEMA_DESTINATION_NETWORK_ID_KEY,
     'UserOperation',
@@ -41,7 +41,7 @@ const getDetectedEventsFromDbAndPutInState = _state =>
 
 const getQueuedEventsFromDbAndPutInState = _state =>
   getValidEventsWithStatusAndPutInState(
-    schemas.db.enums.txStatus.DETECTED,
+    constants.db.txStatus.DETECTED,
     STATE_QUEUED_DB_REPORTS_KEY,
     schemas.constants.reportFields.SCHEMA_ORIGINATING_NETWORK_ID_KEY,
     'OperationQueued',
@@ -50,7 +50,7 @@ const getQueuedEventsFromDbAndPutInState = _state =>
 
 const getProposedEventsFromDbAndPutInState = _state =>
   getValidEventsWithStatusAndPutInState(
-    schemas.db.enums.txStatus.PROPOSED,
+    constants.db.txStatus.PROPOSED,
     STATE_PROPOSED_DB_REPORTS_KEY,
     schemas.constants.reportFields.SCHEMA_DESTINATION_NETWORK_ID_KEY,
     'UserOperation',

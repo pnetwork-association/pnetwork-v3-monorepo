@@ -37,7 +37,7 @@ describe('Tests for already processed requests filtering', () => {
       const expectedProposedDb = [
         R.assoc(
           schemas.constants.reportFields.SCHEMA_STATUS_KEY,
-          schemas.db.enums.txStatus.PROPOSED,
+          constants.db.txStatus.PROPOSED,
           txSamples[0]
         ),
       ]

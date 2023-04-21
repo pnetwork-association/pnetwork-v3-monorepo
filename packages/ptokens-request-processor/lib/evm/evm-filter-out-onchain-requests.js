@@ -23,7 +23,7 @@ const isAlreadyProcessedTxs = R.curry((_onChainTxs, _requestedTx) => {
 const setRequestStatusToProposed = request =>
   R.assoc(
     schemas.constants.reportFields.SCHEMA_STATUS_KEY,
-    schemas.db.enums.txStatus.PROPOSED,
+    constants.db.txStatus.PROPOSED,
     request
   )
 

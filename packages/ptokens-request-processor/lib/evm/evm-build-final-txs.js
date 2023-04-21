@@ -26,7 +26,7 @@ const addFinalizedTxHashToEvent = R.curry((_event, _finalizedTxHash) => {
   const finalizedTimestamp = new Date().toISOString()
   _event[schemas.constants.reportFields.SCHEMA_FINAL_TX_TS_KEY] = finalizedTimestamp
   _event[schemas.constants.reportFields.SCHEMA_FINAL_TX_HASH_KEY] = _finalizedTxHash
-  _event[schemas.constants.reportFields.SCHEMA_STATUS_KEY] = schemas.db.enums.txStatus.FINALIZED
+  _event[schemas.constants.reportFields.SCHEMA_STATUS_KEY] = constants.db.txStatus.FINALIZED
 
   return Promise.resolve(_event)
 })

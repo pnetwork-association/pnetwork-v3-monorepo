@@ -54,15 +54,15 @@ describe('Tests for queued requests detection and dismissal', () => {
         R.assoc(STATE_DISMISSED_DB_REPORTS_KEY, [
           {
             ...queuedReports[0],
-            [schemas.constants.reportFields.SCHEMA_STATUS_KEY]: schemas.db.enums.txStatus.CANCELLED,
+            [schemas.constants.reportFields.SCHEMA_STATUS_KEY]: constants.db.txStatus.CANCELLED,
           },
           {
             ...queuedReports[1],
-            [schemas.constants.reportFields.SCHEMA_STATUS_KEY]: schemas.db.enums.txStatus.CANCELLED,
+            [schemas.constants.reportFields.SCHEMA_STATUS_KEY]: constants.db.txStatus.CANCELLED,
           },
           {
             ...queuedReports[2],
-            [schemas.constants.reportFields.SCHEMA_STATUS_KEY]: schemas.db.enums.txStatus.CANCELLED,
+            [schemas.constants.reportFields.SCHEMA_STATUS_KEY]: constants.db.txStatus.CANCELLED,
           },
         ])
       )
@@ -79,14 +79,14 @@ describe('Tests for queued requests detection and dismissal', () => {
 
       expect(
         await db.findReports(collection, {
-          [schemas.constants.reportFields.SCHEMA_STATUS_KEY]: schemas.db.enums.txStatus.CANCELLED,
+          [schemas.constants.reportFields.SCHEMA_STATUS_KEY]: constants.db.txStatus.CANCELLED,
         })
       ).toStrictEqual([])
 
       const result = await maybeProcessNewRequestsAndDismiss(state)
 
       const cancelledReports = await db.findReports(collection, {
-        [schemas.constants.reportFields.SCHEMA_STATUS_KEY]: schemas.db.enums.txStatus.CANCELLED,
+        [schemas.constants.reportFields.SCHEMA_STATUS_KEY]: constants.db.txStatus.CANCELLED,
       })
 
       expect(
