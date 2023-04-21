@@ -58,9 +58,7 @@ const filterForExpiredProposalsAndPutThemInState = _state =>
 
     if (R.isNil(challengePeriod)) {
       return reject(
-        new Error(
-          `Invalid value for '${constants.state.KEY_CHALLENGE_PERIOD}': ${challengePeriod}`
-        )
+        new Error(`Invalid value for '${constants.state.KEY_CHALLENGE_PERIOD}': ${challengePeriod}`)
       )
     }
 

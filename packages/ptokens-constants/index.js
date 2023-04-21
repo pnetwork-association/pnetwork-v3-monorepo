@@ -1,9 +1,9 @@
-const state = require('./lib/state')
-const evmEvents = require('./lib/evm-events')
+const evm = require('./lib/evm')
 const misc = require('./lib/misc')
+const state = require('./lib/state')
 
 module.exports = {
-  state,
-  events: { ...evmEvents },
+  evm,
   misc,
+  state,
 }
