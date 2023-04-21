@@ -27,7 +27,6 @@ contract StateManager is IStateManager, Context, ReentrancyGuard {
     mapping(bytes32 => bytes1) private _operationsStatus;
 
     address public immutable factory;
-    // address public immutable epochsManager;
     uint32 private immutable _baseChallengePeriodDuration;
 
     modifier onlySentinel(
@@ -50,31 +49,12 @@ contract StateManager is IStateManager, Context, ReentrancyGuard {
         _;
     }
 
-    modifier onlyFarFromClosingAndOpeningEpoch() {
-        // uint256 currentEpoch = 1; //IEpochsManager(epochsManager).currentEpoch();
-        // uint256 epochDuration = 86400; //IEpochsManager(epochsManager).epochDuration();
-        // uint256 startFirstEpochTimestamp = 0; //IEpochsManager(epochsManager).startFirstEpochTimestamp();
-
-        // uint256 currentEpochStartTimestamp = startFirstEpochTimestamp + (currentEpoch * epochDuration);
-        // uint256 currentEpochEndTimestamp = startFirstEpochTimestamp + ((currentEpoch + 1) * epochDuration);
-
-        // if (
-        //     block.timestamp <= currentEpochStartTimestamp + 3600 || block.timestamp >= currentEpochEndTimestamp - 3600
-        // ) {
-        //     revert Errors.Paused();
-        // }
-        _;
-    }
-
-    constructor(address factory_, uint32 baseChallengePeriodDuration) {
-        // address epochsManager_,
-        factory = factory_;
-        // epochsManager = epochsManager_;
+    constructor(address _factory, uint32 baseChallengePeriodDuration) {
+        factory = _factory;
         _baseChallengePeriodDuration = baseChallengePeriodDuration;
     }
 
-    /// @inheritdoc IStateManager
-    function challengePeriodOf(Operation calldata operation) external view returns (uint64, uint64) {
+    function challengePeriodOf(Operation calldata operation) public view returns (uint64, uint64) {
         bytes32 operationId = operationIdOf(operation);
         bytes1 operationStatus = _operationsStatus[operationId];
         return _challengePeriodOf(operationId, operationStatus);
@@ -103,10 +83,7 @@ contract StateManager is IStateManager, Context, ReentrancyGuard {
             );
     }
 
-    /// @inheritdoc IStateManager
-    function protocolGuardianCancelOperation(
-        Operation calldata operation
-    ) external onlyFarFromClosingAndOpeningEpoch onlyGuardian("cancel") {
+    function protocolGuardianCancelOperation(Operation calldata operation) external onlyGuardian {
         _protocolCancelOperation(operation, Actor.Guardian);
     }
 
@@ -118,18 +95,12 @@ contract StateManager is IStateManager, Context, ReentrancyGuard {
         _protocolCancelOperation(operation, Actor.Governance);
     }
 
-    /// @inheritdoc IStateManager
-    function protocolSentinelCancelOperation(
-        Operation calldata operation,
-        bytes calldata proof
-    ) external onlyFarFromClosingAndOpeningEpoch onlySentinel(operation, proof, "cancel") {
+    function protocolSentinelCancelOperation(Operation calldata operation) external onlySentinel {
         _protocolCancelOperation(operation, Actor.Sentinel);
     }
 
     /// @inheritdoc IStateManager
-    function protocolExecuteOperation(
-        Operation calldata operation
-    ) external onlyFarFromClosingAndOpeningEpoch nonReentrant {
+    function protocolExecuteOperation(Operation calldata operation) external nonReentrant {
         bytes32 operationId = operationIdOf(operation);
 
         bytes1 operationStatus = _operationsStatus[operationId];
@@ -137,8 +108,6 @@ contract StateManager is IStateManager, Context, ReentrancyGuard {
             revert Errors.OperationAlreadyExecuted(operation);
         } else if (operationStatus == Constants.OPERATION_CANCELLED) {
             revert Errors.OperationAlreadyCancelled(operation);
-        } else if (operationStatus == Constants.OPERATION_NULL) {
-            revert Errors.OperationNotQueued(operation);
         }
         if (operationStatus != Constants.OPERATION_QUEUED) {
             revert Errors.OperationNotQueued(operation);
@@ -179,7 +148,7 @@ contract StateManager is IStateManager, Context, ReentrancyGuard {
     }
 
     /// @inheritdoc IStateManager
-    function protocolQueueOperation(Operation calldata operation) external onlyFarFromClosingAndOpeningEpoch {
+    function protocolQueueOperation(Operation calldata operation) external {
         bytes32 operationId = operationIdOf(operation);
 
         bytes1 operationStatus = _operationsStatus[operationId];
