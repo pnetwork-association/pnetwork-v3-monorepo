@@ -26,4 +26,5 @@ library Errors {
     error PTokenNotCreated(address pTokenAddress);
     error InvalidNetwork(bytes4 networkId);
     error NotContract(address addr);
+    error Paused();
 }

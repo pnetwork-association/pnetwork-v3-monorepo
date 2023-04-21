@@ -58,26 +58,68 @@ interface IStateManager {
      */
     event OperationCancelled(Operation operation);
 
+    /**
+     * @dev Emitted when the Governance instruct an cancel action on an operation.
+     *
+     * @param operation The cancelled operation
+     */
     event GovernanceOperationCancelled(Operation operation);
+
+    /**
+     * @dev Emitted when a Guardian instruct an cancel action on an operation.
+     *
+     * @param operation The cancelled operation
+     */
     event GuardianOperationCancelled(Operation operation);
+
+    /**
+     * @dev Emitted when a Sentinel instruct an cancel action on an operation.
+     *
+     * @param operation The cancelled operation
+     */
     event SentinelOperationCancelled(Operation operation);
+
+    /*
+     * @notice Calculates the operation challenge period.
+     *
+     * @param operation
+     *
+     * @return (uint64, uin64) representing the start and end timestamp of an operation challenge period.
+     */
+    function challengePeriodOf(Operation calldata operation) public view returns (uint64, uint64);
 
     /*
      * @notice Calculates the operation id.
      *
      * @param operation
      *
-     * @return the operation id.
+     * @return (bytes32) the operation id.
      */
     function operationIdOf(Operation memory operation) external pure returns (bytes32);
 
     /*
-     * @notice Cancel an operation that has been queued.
+     * @notice A Guardian instruct a cancel action. If 2 actors agree on it the operation is cancelled.
      *
      * @param operation
      *
      */
-    // function protocolCancelOperation(Operation calldata operation) external;
+    function protocolGuardianCancelOperation(Operation calldata operation) external;
+
+    /*
+     * @notice The Governance instruct a cancel action. If 2 actors agree on it the operation is cancelled.
+     *
+     * @param operation
+     *
+     */
+    function protocolGovernanceCancelOperation(Operation calldata operation, bytes calldata proof) external;
+
+    /*
+     * @notice A Sentinel instruct a cancel action. If 2 actors agree on it the operation is cancelled.
+     *
+     * @param operation
+     *
+     */
+    function protocolSentinelCancelOperation(Operation calldata operation, bytes calldata proof) external;
 
     /*
      * @notice Execute an operation that has been queued.

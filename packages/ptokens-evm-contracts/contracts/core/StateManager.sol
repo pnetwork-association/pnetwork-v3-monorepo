@@ -4,6 +4,8 @@ pragma solidity 0.8.17;
 
 import {ReentrancyGuard} from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import {Context} from "@openzeppelin/contracts/utils/Context.sol";
+import {ECDSA} from "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
+import {IEpochsManager} from "@pnetwork/dao-v2-contracts/contracts/interfaces/IEpochsManager.sol";
 import {IPRouter} from "../interfaces/IPRouter.sol";
 import {IPToken} from "../interfaces/IPToken.sol";
 import {IPFactory} from "../interfaces/IPFactory.sol";
@@ -25,28 +27,52 @@ contract StateManager is IStateManager, Context, ReentrancyGuard {
     mapping(bytes32 => bytes1) private _operationsStatus;
 
     address public immutable factory;
+    address public immutable epochsManager;
     uint32 private immutable _baseChallengePeriodDuration;
 
-    modifier onlySentinel() {
+    modifier onlySentinel(
+        Operation calldata operation,
+        bytes calldata proof,
+        string memory action
+    ) {
         // TODO: check if msg.sender is a sentinel
+        address sentinel = ECDSA.recover(sha256(abi.encode(action, operationIdOf(operation))), proof);
         _;
     }
 
-    modifier onlyGuardian() {
+    modifier onlyGuardian(string memory action) {
         // TODO: check if msg.sender is a guardian
         _;
     }
 
-    modifier onlyGovernance() {
+    modifier onlyGovernance(bytes calldata proof, string memory action) {
         // TODO: check if msg.sender is a governance
         _;
     }
 
-    constructor(address _factory, uint32 baseChallengePeriodDuration) {
-        factory = _factory;
+    modifier onlyFarFromClosingAndOpeningCurrentEpoch() {
+        uint256 currentEpoch = IEpochsManager(epochsManager).currentEpoch();
+        uint256 epochDuration = IEpochsManager(epochsManager).epochDuration();
+        uint256 startFirstEpochTimestamp = IEpochsManager(epochsManager).startFirstEpochTimestamp();
+
+        uint256 currentEpochStartTimestamp = startFirstEpochTimestamp + ((currentEpoch - 1) * epochDuration) + 1;
+        uint256 currentEpochEndTimestamp = startFirstEpochTimestamp + (currentEpoch * epochDuration);
+
+        if (
+            block.timestamp <= currentEpochStartTimestamp + 3600 || block.timestamp >= currentEpochEndTimestamp + 3600
+        ) {
+            revert Errors.Paused();
+        }
+        _;
+    }
+
+    constructor(address factory_, address epochsManager_, uint32 baseChallengePeriodDuration) {
+        factory = factory_;
+        epochsManager = epochsManager_;
         _baseChallengePeriodDuration = baseChallengePeriodDuration;
     }
 
+    /// @inheritdoc IStateManager
     function challengePeriodOf(Operation calldata operation) public view returns (uint64, uint64) {
         bytes32 operationId = operationIdOf(operation);
         bytes1 operationStatus = _operationsStatus[operationId];
@@ -56,7 +82,7 @@ contract StateManager is IStateManager, Context, ReentrancyGuard {
     /// @inheritdoc IStateManager
     function operationIdOf(Operation calldata operation) public pure returns (bytes32) {
         return
-            keccak256(
+            sha256(
                 abi.encode(
                     operation.originBlockHash,
                     operation.originTransactionHash,
@@ -76,37 +102,47 @@ contract StateManager is IStateManager, Context, ReentrancyGuard {
             );
     }
 
-    function protocolGuardianCancelOperation(Operation calldata operation) external onlyGuardian {
+    /// @inheritdoc IStateManager
+    function protocolGuardianCancelOperation(
+        Operation calldata operation
+    ) external onlyFarFromClosingAndOpeningCurrentEpoch onlyGuardian("cancel") {
         _protocolCancelOperation(operation, Actor.Guardian);
     }
 
-    function protocolGovernanceCancelOperation(Operation calldata operation) external onlyGovernance {
+    /// @inheritdoc IStateManager
+    function protocolGovernanceCancelOperation(
+        Operation calldata operation,
+        bytes calldata proof
+    ) external onlyGovernance(proof, "cancel") {
         _protocolCancelOperation(operation, Actor.Governance);
     }
 
-    function protocolSentinelCancelOperation(Operation calldata operation) external onlySentinel {
+    /// @inheritdoc IStateManager
+    function protocolSentinelCancelOperation(
+        Operation calldata operation,
+        bytes calldata proof
+    ) external onlyFarFromClosingAndOpeningCurrentEpoch onlySentinel(operation, proof, "cancel") {
         _protocolCancelOperation(operation, Actor.Sentinel);
     }
 
     /// @inheritdoc IStateManager
-    function protocolExecuteOperation(Operation calldata operation) external nonReentrant {
+    function protocolExecuteOperation(
+        Operation calldata operation
+    ) external onlyFarFromClosingAndOpeningCurrentEpoch nonReentrant {
         bytes32 operationId = operationIdOf(operation);
 
         bytes1 operationStatus = _operationsStatus[operationId];
         if (operationStatus == Constants.OPERATION_EXECUTED) {
             revert Errors.OperationAlreadyExecuted(operation);
-        }
-        // NOTE: OPERATION_CANCELLED = _operationsTotalCancelActions >= 2
-        if (operationStatus == Constants.OPERATION_CANCELLED) {
+        } else if (operationStatus == Constants.OPERATION_CANCELLED) {
             revert Errors.OperationAlreadyCancelled(operation);
-        }
-        if (operationStatus != Constants.OPERATION_QUEUED) {
+        } else if (operationStatus == Constants.OPERATION_NULL) {
             revert Errors.OperationNotQueued(operation);
         }
 
         (uint64 startTimestamp, uint64 endTimestamp) = _challengePeriodOf(operationId, operationStatus);
-        if (uint64(block.timestamp) >= endTimestamp) {
-            revert Errors.ChallengePeriodTerminated(startTimestamp, endTimestamp);
+        if (uint64(block.timestamp) < endTimestamp) {
+            revert Errors.ChallengePeriodNotTerminated(startTimestamp, endTimestamp);
         }
 
         address destinationAddress = Utils.parseAddress(operation.destinationAccount);
@@ -139,10 +175,15 @@ contract StateManager is IStateManager, Context, ReentrancyGuard {
     }
 
     /// @inheritdoc IStateManager
-    function protocolQueueOperation(Operation calldata operation) external {
+    function protocolQueueOperation(Operation calldata operation) external onlyFarFromClosingAndOpeningCurrentEpoch {
         bytes32 operationId = operationIdOf(operation);
 
-        if (_operationsStatus[operationId] != Constants.OPERATION_NULL) {
+        bytes1 operationStatus = _operationsStatus[operationId];
+        if (operationStatus == Constants.OPERATION_EXECUTED) {
+            revert Errors.OperationAlreadyExecuted(operation);
+        } else if (operationStatus == Constants.OPERATION_CANCELLED) {
+            revert Errors.OperationAlreadyCancelled(operation);
+        } else if (operationStatus == Constants.OPERATION_QUEUED) {
             revert Errors.OperationAlreadyQueued(operation);
         }
 
@@ -187,13 +228,11 @@ contract StateManager is IStateManager, Context, ReentrancyGuard {
         bytes32 operationId = operationIdOf(operation);
 
         bytes1 operationStatus = _operationsStatus[operationId];
-        if (operationStatus == Constants.OPERATION_CANCELLED) {
-            revert Errors.OperationAlreadyCancelled(operation);
-        }
         if (operationStatus == Constants.OPERATION_EXECUTED) {
             revert Errors.OperationAlreadyExecuted(operation);
-        }
-        if (operationStatus != Constants.OPERATION_QUEUED) {
+        } else if (operationStatus == Constants.OPERATION_CANCELLED) {
+            revert Errors.OperationAlreadyCancelled(operation);
+        } else if (operationStatus == Constants.OPERATION_NULL) {
             revert Errors.OperationNotQueued(operation);
         }
 
@@ -231,7 +270,7 @@ contract StateManager is IStateManager, Context, ReentrancyGuard {
         unchecked {
             ++_operationsTotalCancelActions[operationId];
         }
-        if (_operationsTotalCancelActions[operationId] >= 2) {
+        if (_operationsTotalCancelActions[operationId] == 2) {
             _operationsStatus[operationId] = Constants.OPERATION_CANCELLED;
             emit OperationCancelled(operation);
         }
