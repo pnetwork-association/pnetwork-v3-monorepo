@@ -3,32 +3,28 @@ const { db } = require('ptokens-utils')
 const { getInitialStateFromConfiguration } = require('../lib/populate-state-from-configuration')
 const stateConstants = require('../lib/state/constants')
 const constants = require('ptokens-constants')
-const schemas = require('ptokens-schemas')
 
 describe('State utilities tests', () => {
   describe('getInitialStateFromConfiguration', () => {
     it('Should populate the state from the configuration', async () => {
       const config = {
-        [schemas.constants.configurationFields.SCHEMA_DB_KEY]: {
-          [schemas.constants.configurationFields.SCHEMA_URL_KEY]: 'a-url',
-          [schemas.constants.configurationFields.SCHEMA_NAME_KEY]: 'a-database-name',
-          [schemas.constants.configurationFields.SCHEMA_TABLE_EVENTS_KEY]: 'a-collection-name',
+        [constants.config.KEY_DB]: {
+          [constants.config.KEY_URL]: 'a-url',
+          [constants.config.KEY_NAME]: 'a-database-name',
+          [constants.config.KEY_TABLE_EVENTS]: 'a-collection-name',
         },
-        [schemas.constants.configurationFields.SCHEMA_NETWORK_ID_KEY]: '0x00112233',
-        [schemas.constants.configurationFields.SCHEMA_EVENTS_KEY]: [
+        [constants.config.KEY_NETWORK_ID]: '0x00112233',
+        [constants.config.KEY_EVENTS]: [
           {
-            [schemas.constants.configurationFields.SCHEMA_NAME_KEY]: 'redeem',
-            [schemas.constants.configurationFields.SCHEMA_CONTRACTS_KEY]: [
-              'btc.ptokens',
-              'ltc.ptokens',
-            ],
+            [constants.config.KEY_NAME]: 'redeem',
+            [constants.config.KEY_CONTRACTS]: ['btc.ptokens', 'ltc.ptokens'],
           },
           {
-            [schemas.constants.configurationFields.SCHEMA_NAME_KEY]: 'pegin',
-            [schemas.constants.configurationFields.SCHEMA_CONTRACTS_KEY]: ['xbsc.ptokens'],
+            [constants.config.KEY_NAME]: 'pegin',
+            [constants.config.KEY_CONTRACTS]: ['xbsc.ptokens'],
           },
         ],
-        [schemas.constants.configurationFields.SCHEMA_PROVIDER_URL_KEY]: 'provider-url',
+        [constants.config.KEY_PROVIDER_URL]: 'provider-url',
       }
       jest
         .spyOn(db, 'getCollection')
@@ -42,15 +38,12 @@ describe('State utilities tests', () => {
         [constants.state.KEY_NETWORK_ID]: '0x00112233',
         [stateConstants.STATE_KEY_EVENTS]: [
           {
-            [schemas.constants.configurationFields.SCHEMA_NAME_KEY]: 'redeem',
-            [schemas.constants.configurationFields.SCHEMA_CONTRACTS_KEY]: [
-              'btc.ptokens',
-              'ltc.ptokens',
-            ],
+            [constants.config.KEY_NAME]: 'redeem',
+            [constants.config.KEY_CONTRACTS]: ['btc.ptokens', 'ltc.ptokens'],
           },
           {
-            [schemas.constants.configurationFields.SCHEMA_NAME_KEY]: 'pegin',
-            [schemas.constants.configurationFields.SCHEMA_CONTRACTS_KEY]: ['xbsc.ptokens'],
+            [constants.config.KEY_NAME]: 'pegin',
+            [constants.config.KEY_CONTRACTS]: ['xbsc.ptokens'],
           },
         ],
         [constants.state.KEY_PROVIDER_URL]: 'provider-url',
@@ -59,8 +52,8 @@ describe('State utilities tests', () => {
 
     it('Should reject there is an error populating the state', async () => {
       const config = {
-        [schemas.constants.configurationFields.SCHEMA_DB_KEY]: {
-          [schemas.constants.configurationFields.SCHEMA_URL_KEY]: 'url',
+        [constants.config.KEY_DB]: {
+          [constants.config.KEY_URL]: 'url',
         },
       }
       jest.spyOn(db, 'getCollection').mockRejectedValue(new Error('getCollection error'))

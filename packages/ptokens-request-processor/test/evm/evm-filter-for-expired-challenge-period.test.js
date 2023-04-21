@@ -1,5 +1,5 @@
 const constants = require('ptokens-constants')
-const { STATE_PROPOSED_DB_REPORTS_KEY } = require('../../lib/state/constants')
+const { STATE_PROPOSED_DB_REPORTS } = require('../../lib/state/constants')
 const proposedReports = require('../samples/proposed-report-set')
 
 describe('Challenge period expired report filtering', () => {
@@ -15,7 +15,7 @@ describe('Challenge period expired report filtering', () => {
 
       const state = {
         [constants.state.KEY_CHALLENGE_PERIOD]: 20, // 20mins
-        [STATE_PROPOSED_DB_REPORTS_KEY]: proposedReports,
+        [STATE_PROPOSED_DB_REPORTS]: proposedReports,
       }
 
       const {
@@ -26,11 +26,7 @@ describe('Challenge period expired report filtering', () => {
 
       expect(result).toStrictEqual({
         ...state,
-        [STATE_PROPOSED_DB_REPORTS_KEY]: [
-          proposedReports[0],
-          proposedReports[1],
-          proposedReports[2],
-        ],
+        [STATE_PROPOSED_DB_REPORTS]: [proposedReports[0], proposedReports[1], proposedReports[2]],
       })
     })
   })

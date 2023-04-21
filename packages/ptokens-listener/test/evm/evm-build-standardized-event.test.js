@@ -1,6 +1,7 @@
 const { logs } = require('../mock/evm-logs')
+const constants = require('ptokens-constants')
 const { getInterfaceFromEvent } = require('../../lib/evm/evm-utils')
-const schemas = require('ptokens-schemas')
+
 const { validation } = require('ptokens-utils')
 
 describe('Event building for EVM', () => {
@@ -31,44 +32,41 @@ describe('Event building for EVM', () => {
       )
 
       const expected = {
-        [schemas.constants.reportFields.SCHEMA_ID_KEY]:
+        [constants.db.KEY_ID]:
           'useroperation_0xbe8b7571ab50cc63da7f1d9f6b22802922aa2e242a5c7400c493ba9c831b24aa',
-        [schemas.constants.reportFields.SCHEMA_STATUS_KEY]: constants.db.txStatus.DETECTED,
-        [schemas.constants.reportFields.SCHEMA_EVENT_NAME_KEY]:
-          constants.db.eventNames.USER_OPERATION,
+        [constants.db.KEY_STATUS]: constants.db.txStatus.DETECTED,
+        [constants.db.KEY_EVENT_NAME]: constants.db.eventNames.USER_OPERATION,
 
-        [schemas.constants.reportFields.SCHEMA_NONCE_KEY]: '6648',
-        [schemas.constants.reportFields.SCHEMA_ASSET_AMOUNT_KEY]: '1000000000000000000',
-        [schemas.constants.reportFields.SCHEMA_DESTINATION_ACCOUNT_KEY]:
-          '0xdDb5f4535123DAa5aE343c24006F4075aBAF5F7B',
-        [schemas.constants.reportFields.SCHEMA_DESTINATION_NETWORK_ID_KEY]: '0xe15503e4',
-        [schemas.constants.reportFields.SCHEMA_FINAL_TX_HASH_KEY]: null,
-        [schemas.constants.reportFields.SCHEMA_FINAL_TX_TS_KEY]: null,
-        [schemas.constants.reportFields.SCHEMA_UNDERLYING_ASSET_NAME_KEY]: 'Token',
-        [schemas.constants.reportFields.SCHEMA_UNDERLYING_ASSET_SYMBOL_KEY]: 'TKN',
-        [schemas.constants.reportFields.SCHEMA_UNDERLYING_ASSET_DECIMALS_KEY]: 18,
-        [schemas.constants.reportFields.SCHEMA_UNDERLYING_ASSET_NETWORK_ID_KEY]: '0xe15503e4',
-        [schemas.constants.reportFields.SCHEMA_UNDERLYING_ASSET_TOKEN_ADDRESS_KEY]:
+        [constants.db.KEY_NONCE]: '6648',
+        [constants.db.KEY_ASSET_AMOUNT]: '1000000000000000000',
+        [constants.db.KEY_DESTINATION_ACCOUNT]: '0xdDb5f4535123DAa5aE343c24006F4075aBAF5F7B',
+        [constants.db.KEY_DESTINATION_NETWORK_ID]: '0xe15503e4',
+        [constants.db.KEY_FINAL_TX_HASH]: null,
+        [constants.db.KEY_FINAL_TX_TS]: null,
+        [constants.db.KEY_UNDERLYING_ASSET_NAME]: 'Token',
+        [constants.db.KEY_UNDERLYING_ASSET_SYMBOL]: 'TKN',
+        [constants.db.KEY_UNDERLYING_ASSET_DECIMALS]: 18,
+        [constants.db.KEY_UNDERLYING_ASSET_NETWORK_ID]: '0xe15503e4',
+        [constants.db.KEY_UNDERLYING_ASSET_TOKEN_ADDRESS]:
           '0x49a5D1CF92772328Ad70f51894FD632a14dF12C9',
-        [schemas.constants.reportFields.SCHEMA_OPTIONS_MASK]:
+        [constants.db.KEY_OPTIONS_MASK]:
           '0x0000000000000000000000000000000000000000000000000000000000000000',
-        [schemas.constants.reportFields.SCHEMA_ORIGINATING_NETWORK_ID_KEY]: null,
-        [schemas.constants.reportFields.SCHEMA_ORIGINATING_ADDRESS_KEY]: null,
-        [schemas.constants.reportFields.SCHEMA_ORIGINATING_BLOCK_HASH_KEY]: null,
-        [schemas.constants.reportFields.SCHEMA_ORIGINATING_TX_HASH_KEY]: null,
-        [schemas.constants.reportFields.SCHEMA_NETWORK_ID_KEY]: '0xe15503e4',
-        [schemas.constants.reportFields.SCHEMA_BLOCK_HASH_KEY]:
+        [constants.db.KEY_ORIGINATING_NETWORK_ID]: null,
+        [constants.db.KEY_ORIGINATING_ADDRESS]: null,
+        [constants.db.KEY_ORIGINATING_BLOCK_HASH]: null,
+        [constants.db.KEY_ORIGINATING_TX_HASH]: null,
+        [constants.db.KEY_NETWORK_ID]: '0xe15503e4',
+        [constants.db.KEY_BLOCK_HASH]:
           '0xbaa9e89896c03366c3578a4568a6defd4b127e4b09bb06b67a12cb1a4c332376',
-        [schemas.constants.reportFields.SCHEMA_TX_HASH_KEY]:
+        [constants.db.KEY_TX_HASH]:
           '0x0907eefad58dfcb2cbfad66d29accd4d6ddc345851ec1d180b23122084fa2834',
-        [schemas.constants.reportFields.SCHEMA_PROPOSAL_TX_HASH_KEY]: null,
-        [schemas.constants.reportFields.SCHEMA_PROPOSAL_TS_KEY]: null,
-        [schemas.constants.reportFields.SCHEMA_ASSET_TOKEN_ADDRESS_KEY]:
-          '0x49a5D1CF92772328Ad70f51894FD632a14dF12C9',
-        [schemas.constants.reportFields.SCHEMA_USER_DATA_KEY]: '0x',
-        [schemas.constants.reportFields.SCHEMA_WITNESSED_TS_KEY]: '2023-03-14T16:00:00.000Z',
+        [constants.db.KEY_PROPOSAL_TX_HASH]: null,
+        [constants.db.KEY_PROPOSAL_TS]: null,
+        [constants.db.KEY_ASSET_TOKEN_ADDRESS]: '0x49a5D1CF92772328Ad70f51894FD632a14dF12C9',
+        [constants.db.KEY_USER_DATA]: '0x',
+        [constants.db.KEY_WITNESSED_TS]: '2023-03-14T16:00:00.000Z',
       }
-      await validation.validateJson(schemas.db.collections.events, expected)
+      await validation.validateJson(constants.db.schemas.eventReport, expected)
       expect(result).toStrictEqual(expected)
     })
 
@@ -88,44 +86,41 @@ describe('Event building for EVM', () => {
       )
 
       const expected = {
-        [schemas.constants.reportFields.SCHEMA_ID_KEY]:
+        [constants.db.KEY_ID]:
           'useroperation_0x62be3b1256761376f7ad4bbedd59b853a734e01b77520e6bc7d27efc10758864',
-        [schemas.constants.reportFields.SCHEMA_STATUS_KEY]: constants.db.txStatus.DETECTED,
-        [schemas.constants.reportFields.SCHEMA_EVENT_NAME_KEY]:
-          constants.db.eventNames.USER_OPERATION,
+        [constants.db.KEY_STATUS]: constants.db.txStatus.DETECTED,
+        [constants.db.KEY_EVENT_NAME]: constants.db.eventNames.USER_OPERATION,
 
-        [schemas.constants.reportFields.SCHEMA_NONCE_KEY]: '6648',
-        [schemas.constants.reportFields.SCHEMA_ASSET_AMOUNT_KEY]: '2000000000000000000',
-        [schemas.constants.reportFields.SCHEMA_DESTINATION_ACCOUNT_KEY]:
-          '0xdDb5f4535123DAa5aE343c24006F4075aBAF5F7B',
-        [schemas.constants.reportFields.SCHEMA_DESTINATION_NETWORK_ID_KEY]: '0xe15503e4',
-        [schemas.constants.reportFields.SCHEMA_FINAL_TX_HASH_KEY]: null,
-        [schemas.constants.reportFields.SCHEMA_FINAL_TX_TS_KEY]: null,
-        [schemas.constants.reportFields.SCHEMA_UNDERLYING_ASSET_NAME_KEY]: 'Token',
-        [schemas.constants.reportFields.SCHEMA_UNDERLYING_ASSET_SYMBOL_KEY]: 'TKN',
-        [schemas.constants.reportFields.SCHEMA_UNDERLYING_ASSET_DECIMALS_KEY]: 18,
-        [schemas.constants.reportFields.SCHEMA_UNDERLYING_ASSET_NETWORK_ID_KEY]: '0xe15503e4',
-        [schemas.constants.reportFields.SCHEMA_UNDERLYING_ASSET_TOKEN_ADDRESS_KEY]:
+        [constants.db.KEY_NONCE]: '6648',
+        [constants.db.KEY_ASSET_AMOUNT]: '2000000000000000000',
+        [constants.db.KEY_DESTINATION_ACCOUNT]: '0xdDb5f4535123DAa5aE343c24006F4075aBAF5F7B',
+        [constants.db.KEY_DESTINATION_NETWORK_ID]: '0xe15503e4',
+        [constants.db.KEY_FINAL_TX_HASH]: null,
+        [constants.db.KEY_FINAL_TX_TS]: null,
+        [constants.db.KEY_UNDERLYING_ASSET_NAME]: 'Token',
+        [constants.db.KEY_UNDERLYING_ASSET_SYMBOL]: 'TKN',
+        [constants.db.KEY_UNDERLYING_ASSET_DECIMALS]: 18,
+        [constants.db.KEY_UNDERLYING_ASSET_NETWORK_ID]: '0xe15503e4',
+        [constants.db.KEY_UNDERLYING_ASSET_TOKEN_ADDRESS]:
           '0x49a5D1CF92772328Ad70f51894FD632a14dF12C9',
-        [schemas.constants.reportFields.SCHEMA_OPTIONS_MASK]:
+        [constants.db.KEY_OPTIONS_MASK]:
           '0x0000000000000000000000000000000000000000000000000000000000000000',
-        [schemas.constants.reportFields.SCHEMA_ORIGINATING_NETWORK_ID_KEY]: null,
-        [schemas.constants.reportFields.SCHEMA_ORIGINATING_ADDRESS_KEY]: null,
-        [schemas.constants.reportFields.SCHEMA_ORIGINATING_BLOCK_HASH_KEY]: null,
-        [schemas.constants.reportFields.SCHEMA_ORIGINATING_TX_HASH_KEY]: null,
-        [schemas.constants.reportFields.SCHEMA_NETWORK_ID_KEY]: '0xe15503e4',
-        [schemas.constants.reportFields.SCHEMA_BLOCK_HASH_KEY]:
+        [constants.db.KEY_ORIGINATING_NETWORK_ID]: null,
+        [constants.db.KEY_ORIGINATING_ADDRESS]: null,
+        [constants.db.KEY_ORIGINATING_BLOCK_HASH]: null,
+        [constants.db.KEY_ORIGINATING_TX_HASH]: null,
+        [constants.db.KEY_NETWORK_ID]: '0xe15503e4',
+        [constants.db.KEY_BLOCK_HASH]:
           '0xbfed1379abf5ebce29b4f74a4159a0795f42f97b260199d05acdcb567d0b0b85',
-        [schemas.constants.reportFields.SCHEMA_TX_HASH_KEY]:
+        [constants.db.KEY_TX_HASH]:
           '0xed4fc787108745e0414cdcd24fe82afd82bbbb60d4976feefb6687253d558be8',
-        [schemas.constants.reportFields.SCHEMA_PROPOSAL_TX_HASH_KEY]: null,
-        [schemas.constants.reportFields.SCHEMA_PROPOSAL_TS_KEY]: null,
-        [schemas.constants.reportFields.SCHEMA_ASSET_TOKEN_ADDRESS_KEY]:
-          '0x49a5D1CF92772328Ad70f51894FD632a14dF12C9',
-        [schemas.constants.reportFields.SCHEMA_USER_DATA_KEY]: '0x',
-        [schemas.constants.reportFields.SCHEMA_WITNESSED_TS_KEY]: '2023-03-14T16:00:00.000Z',
+        [constants.db.KEY_PROPOSAL_TX_HASH]: null,
+        [constants.db.KEY_PROPOSAL_TS]: null,
+        [constants.db.KEY_ASSET_TOKEN_ADDRESS]: '0x49a5D1CF92772328Ad70f51894FD632a14dF12C9',
+        [constants.db.KEY_USER_DATA]: '0x',
+        [constants.db.KEY_WITNESSED_TS]: '2023-03-14T16:00:00.000Z',
       }
-      await validation.validateJson(schemas.db.collections.events, expected)
+      await validation.validateJson(constants.db.schemas.eventReport, expected)
       expect(result).toStrictEqual(expected)
     })
 
@@ -145,44 +140,41 @@ describe('Event building for EVM', () => {
       )
 
       const expected = {
-        [schemas.constants.reportFields.SCHEMA_ID_KEY]:
+        [constants.db.KEY_ID]:
           'useroperation_0xb3b4f34d53bcc3cb942d2582b740189e4027dbb7bd5c92757f8452f448c2bbb9',
-        [schemas.constants.reportFields.SCHEMA_STATUS_KEY]: constants.db.txStatus.DETECTED,
-        [schemas.constants.reportFields.SCHEMA_EVENT_NAME_KEY]:
-          constants.db.eventNames.USER_OPERATION,
+        [constants.db.KEY_STATUS]: constants.db.txStatus.DETECTED,
+        [constants.db.KEY_EVENT_NAME]: constants.db.eventNames.USER_OPERATION,
 
-        [schemas.constants.reportFields.SCHEMA_NONCE_KEY]: '6648',
-        [schemas.constants.reportFields.SCHEMA_ASSET_AMOUNT_KEY]: '3000000000000000000',
-        [schemas.constants.reportFields.SCHEMA_DESTINATION_ACCOUNT_KEY]:
-          '0xdDb5f4535123DAa5aE343c24006F4075aBAF5F7B',
-        [schemas.constants.reportFields.SCHEMA_DESTINATION_NETWORK_ID_KEY]: '0xe15503e4',
-        [schemas.constants.reportFields.SCHEMA_FINAL_TX_HASH_KEY]: null,
-        [schemas.constants.reportFields.SCHEMA_FINAL_TX_TS_KEY]: null,
-        [schemas.constants.reportFields.SCHEMA_UNDERLYING_ASSET_NAME_KEY]: 'Token',
-        [schemas.constants.reportFields.SCHEMA_UNDERLYING_ASSET_SYMBOL_KEY]: 'TKN',
-        [schemas.constants.reportFields.SCHEMA_UNDERLYING_ASSET_DECIMALS_KEY]: 18,
-        [schemas.constants.reportFields.SCHEMA_UNDERLYING_ASSET_NETWORK_ID_KEY]: '0xe15503e4',
-        [schemas.constants.reportFields.SCHEMA_UNDERLYING_ASSET_TOKEN_ADDRESS_KEY]:
+        [constants.db.KEY_NONCE]: '6648',
+        [constants.db.KEY_ASSET_AMOUNT]: '3000000000000000000',
+        [constants.db.KEY_DESTINATION_ACCOUNT]: '0xdDb5f4535123DAa5aE343c24006F4075aBAF5F7B',
+        [constants.db.KEY_DESTINATION_NETWORK_ID]: '0xe15503e4',
+        [constants.db.KEY_FINAL_TX_HASH]: null,
+        [constants.db.KEY_FINAL_TX_TS]: null,
+        [constants.db.KEY_UNDERLYING_ASSET_NAME]: 'Token',
+        [constants.db.KEY_UNDERLYING_ASSET_SYMBOL]: 'TKN',
+        [constants.db.KEY_UNDERLYING_ASSET_DECIMALS]: 18,
+        [constants.db.KEY_UNDERLYING_ASSET_NETWORK_ID]: '0xe15503e4',
+        [constants.db.KEY_UNDERLYING_ASSET_TOKEN_ADDRESS]:
           '0x49a5D1CF92772328Ad70f51894FD632a14dF12C9',
-        [schemas.constants.reportFields.SCHEMA_OPTIONS_MASK]:
+        [constants.db.KEY_OPTIONS_MASK]:
           '0x0000000000000000000000000000000000000000000000000000000000000000',
-        [schemas.constants.reportFields.SCHEMA_ORIGINATING_NETWORK_ID_KEY]: null,
-        [schemas.constants.reportFields.SCHEMA_ORIGINATING_ADDRESS_KEY]: null,
-        [schemas.constants.reportFields.SCHEMA_ORIGINATING_BLOCK_HASH_KEY]: null,
-        [schemas.constants.reportFields.SCHEMA_ORIGINATING_TX_HASH_KEY]: null,
-        [schemas.constants.reportFields.SCHEMA_NETWORK_ID_KEY]: '0xe15503e4',
-        [schemas.constants.reportFields.SCHEMA_BLOCK_HASH_KEY]:
+        [constants.db.KEY_ORIGINATING_NETWORK_ID]: null,
+        [constants.db.KEY_ORIGINATING_ADDRESS]: null,
+        [constants.db.KEY_ORIGINATING_BLOCK_HASH]: null,
+        [constants.db.KEY_ORIGINATING_TX_HASH]: null,
+        [constants.db.KEY_NETWORK_ID]: '0xe15503e4',
+        [constants.db.KEY_BLOCK_HASH]:
           '0x51a7df3cedcc76917b037b74bdd82a315f812a0cdbcac7ad70a8bce9d4150af4',
-        [schemas.constants.reportFields.SCHEMA_TX_HASH_KEY]:
+        [constants.db.KEY_TX_HASH]:
           '0xfad8f21a2981f49eafe79334d5b4b81fa95db5a1e40f0f633a22ad7e55b793a4',
-        [schemas.constants.reportFields.SCHEMA_PROPOSAL_TX_HASH_KEY]: null,
-        [schemas.constants.reportFields.SCHEMA_PROPOSAL_TS_KEY]: null,
-        [schemas.constants.reportFields.SCHEMA_ASSET_TOKEN_ADDRESS_KEY]:
-          '0x49a5D1CF92772328Ad70f51894FD632a14dF12C9',
-        [schemas.constants.reportFields.SCHEMA_USER_DATA_KEY]: '0x',
-        [schemas.constants.reportFields.SCHEMA_WITNESSED_TS_KEY]: '2023-03-14T16:00:00.000Z',
+        [constants.db.KEY_PROPOSAL_TX_HASH]: null,
+        [constants.db.KEY_PROPOSAL_TS]: null,
+        [constants.db.KEY_ASSET_TOKEN_ADDRESS]: '0x49a5D1CF92772328Ad70f51894FD632a14dF12C9',
+        [constants.db.KEY_USER_DATA]: '0x',
+        [constants.db.KEY_WITNESSED_TS]: '2023-03-14T16:00:00.000Z',
       }
-      await validation.validateJson(schemas.db.collections.events, expected)
+      await validation.validateJson(constants.db.schemas.eventReport, expected)
       expect(result).toStrictEqual(expected)
     })
 
@@ -202,44 +194,41 @@ describe('Event building for EVM', () => {
       )
 
       const expected = {
-        [schemas.constants.reportFields.SCHEMA_ID_KEY]:
+        [constants.db.KEY_ID]:
           'useroperation_0x7794b69ee042872159e5c4810addb698e4032ed6f4a3e1bdb94e38021d2f5146',
-        [schemas.constants.reportFields.SCHEMA_STATUS_KEY]: constants.db.txStatus.DETECTED,
-        [schemas.constants.reportFields.SCHEMA_EVENT_NAME_KEY]:
-          constants.db.eventNames.USER_OPERATION,
+        [constants.db.KEY_STATUS]: constants.db.txStatus.DETECTED,
+        [constants.db.KEY_EVENT_NAME]: constants.db.eventNames.USER_OPERATION,
 
-        [schemas.constants.reportFields.SCHEMA_NONCE_KEY]: '6648',
-        [schemas.constants.reportFields.SCHEMA_ASSET_AMOUNT_KEY]: '4000000000000000000',
-        [schemas.constants.reportFields.SCHEMA_DESTINATION_ACCOUNT_KEY]:
-          '0xdDb5f4535123DAa5aE343c24006F4075aBAF5F7B',
-        [schemas.constants.reportFields.SCHEMA_DESTINATION_NETWORK_ID_KEY]: '0xe15503e4',
-        [schemas.constants.reportFields.SCHEMA_FINAL_TX_HASH_KEY]: null,
-        [schemas.constants.reportFields.SCHEMA_FINAL_TX_TS_KEY]: null,
-        [schemas.constants.reportFields.SCHEMA_UNDERLYING_ASSET_NAME_KEY]: 'Token',
-        [schemas.constants.reportFields.SCHEMA_UNDERLYING_ASSET_SYMBOL_KEY]: 'TKN',
-        [schemas.constants.reportFields.SCHEMA_UNDERLYING_ASSET_DECIMALS_KEY]: 18,
-        [schemas.constants.reportFields.SCHEMA_UNDERLYING_ASSET_NETWORK_ID_KEY]: '0xe15503e4',
-        [schemas.constants.reportFields.SCHEMA_UNDERLYING_ASSET_TOKEN_ADDRESS_KEY]:
+        [constants.db.KEY_NONCE]: '6648',
+        [constants.db.KEY_ASSET_AMOUNT]: '4000000000000000000',
+        [constants.db.KEY_DESTINATION_ACCOUNT]: '0xdDb5f4535123DAa5aE343c24006F4075aBAF5F7B',
+        [constants.db.KEY_DESTINATION_NETWORK_ID]: '0xe15503e4',
+        [constants.db.KEY_FINAL_TX_HASH]: null,
+        [constants.db.KEY_FINAL_TX_TS]: null,
+        [constants.db.KEY_UNDERLYING_ASSET_NAME]: 'Token',
+        [constants.db.KEY_UNDERLYING_ASSET_SYMBOL]: 'TKN',
+        [constants.db.KEY_UNDERLYING_ASSET_DECIMALS]: 18,
+        [constants.db.KEY_UNDERLYING_ASSET_NETWORK_ID]: '0xe15503e4',
+        [constants.db.KEY_UNDERLYING_ASSET_TOKEN_ADDRESS]:
           '0x49a5D1CF92772328Ad70f51894FD632a14dF12C9',
-        [schemas.constants.reportFields.SCHEMA_OPTIONS_MASK]:
+        [constants.db.KEY_OPTIONS_MASK]:
           '0x0000000000000000000000000000000000000000000000000000000000000000',
-        [schemas.constants.reportFields.SCHEMA_ORIGINATING_NETWORK_ID_KEY]: null,
-        [schemas.constants.reportFields.SCHEMA_ORIGINATING_ADDRESS_KEY]: null,
-        [schemas.constants.reportFields.SCHEMA_ORIGINATING_BLOCK_HASH_KEY]: null,
-        [schemas.constants.reportFields.SCHEMA_ORIGINATING_TX_HASH_KEY]: null,
-        [schemas.constants.reportFields.SCHEMA_NETWORK_ID_KEY]: '0xe15503e4',
-        [schemas.constants.reportFields.SCHEMA_BLOCK_HASH_KEY]:
+        [constants.db.KEY_ORIGINATING_NETWORK_ID]: null,
+        [constants.db.KEY_ORIGINATING_ADDRESS]: null,
+        [constants.db.KEY_ORIGINATING_BLOCK_HASH]: null,
+        [constants.db.KEY_ORIGINATING_TX_HASH]: null,
+        [constants.db.KEY_NETWORK_ID]: '0xe15503e4',
+        [constants.db.KEY_BLOCK_HASH]:
           '0x1ed0f553eded679ce381d6d6d542971fec13b461035d0ebbfb8175910c5cd775',
-        [schemas.constants.reportFields.SCHEMA_TX_HASH_KEY]:
+        [constants.db.KEY_TX_HASH]:
           '0x037a7080ea701a0bf91b4f8a5f5671c3565da3dbcda916938eb597f9b4dcab2c',
-        [schemas.constants.reportFields.SCHEMA_PROPOSAL_TX_HASH_KEY]: null,
-        [schemas.constants.reportFields.SCHEMA_PROPOSAL_TS_KEY]: null,
-        [schemas.constants.reportFields.SCHEMA_ASSET_TOKEN_ADDRESS_KEY]:
-          '0x49a5D1CF92772328Ad70f51894FD632a14dF12C9',
-        [schemas.constants.reportFields.SCHEMA_USER_DATA_KEY]: '0x',
-        [schemas.constants.reportFields.SCHEMA_WITNESSED_TS_KEY]: '2023-03-14T16:00:00.000Z',
+        [constants.db.KEY_PROPOSAL_TX_HASH]: null,
+        [constants.db.KEY_PROPOSAL_TS]: null,
+        [constants.db.KEY_ASSET_TOKEN_ADDRESS]: '0x49a5D1CF92772328Ad70f51894FD632a14dF12C9',
+        [constants.db.KEY_USER_DATA]: '0x',
+        [constants.db.KEY_WITNESSED_TS]: '2023-03-14T16:00:00.000Z',
       }
-      await validation.validateJson(schemas.db.collections.events, expected)
+      await validation.validateJson(constants.db.schemas.eventReport, expected)
       expect(result).toStrictEqual(expected)
     })
 
@@ -259,44 +248,41 @@ describe('Event building for EVM', () => {
       )
 
       const expected = {
-        [schemas.constants.reportFields.SCHEMA_ID_KEY]:
+        [constants.db.KEY_ID]:
           'useroperation_0xcf021d05f8a70b96146067ba8f21cf26d00ad28fd7dc72fda247b4b87144459a',
-        [schemas.constants.reportFields.SCHEMA_STATUS_KEY]: constants.db.txStatus.DETECTED,
-        [schemas.constants.reportFields.SCHEMA_EVENT_NAME_KEY]:
-          constants.db.eventNames.USER_OPERATION,
+        [constants.db.KEY_STATUS]: constants.db.txStatus.DETECTED,
+        [constants.db.KEY_EVENT_NAME]: constants.db.eventNames.USER_OPERATION,
 
-        [schemas.constants.reportFields.SCHEMA_NONCE_KEY]: '6648',
-        [schemas.constants.reportFields.SCHEMA_ASSET_AMOUNT_KEY]: '5000000000000000000',
-        [schemas.constants.reportFields.SCHEMA_DESTINATION_ACCOUNT_KEY]:
-          '0xdDb5f4535123DAa5aE343c24006F4075aBAF5F7B',
-        [schemas.constants.reportFields.SCHEMA_DESTINATION_NETWORK_ID_KEY]: '0xe15503e4',
-        [schemas.constants.reportFields.SCHEMA_FINAL_TX_HASH_KEY]: null,
-        [schemas.constants.reportFields.SCHEMA_FINAL_TX_TS_KEY]: null,
-        [schemas.constants.reportFields.SCHEMA_UNDERLYING_ASSET_NAME_KEY]: 'Token',
-        [schemas.constants.reportFields.SCHEMA_UNDERLYING_ASSET_SYMBOL_KEY]: 'TKN',
-        [schemas.constants.reportFields.SCHEMA_UNDERLYING_ASSET_DECIMALS_KEY]: 18,
-        [schemas.constants.reportFields.SCHEMA_UNDERLYING_ASSET_NETWORK_ID_KEY]: '0xe15503e4',
-        [schemas.constants.reportFields.SCHEMA_UNDERLYING_ASSET_TOKEN_ADDRESS_KEY]:
+        [constants.db.KEY_NONCE]: '6648',
+        [constants.db.KEY_ASSET_AMOUNT]: '5000000000000000000',
+        [constants.db.KEY_DESTINATION_ACCOUNT]: '0xdDb5f4535123DAa5aE343c24006F4075aBAF5F7B',
+        [constants.db.KEY_DESTINATION_NETWORK_ID]: '0xe15503e4',
+        [constants.db.KEY_FINAL_TX_HASH]: null,
+        [constants.db.KEY_FINAL_TX_TS]: null,
+        [constants.db.KEY_UNDERLYING_ASSET_NAME]: 'Token',
+        [constants.db.KEY_UNDERLYING_ASSET_SYMBOL]: 'TKN',
+        [constants.db.KEY_UNDERLYING_ASSET_DECIMALS]: 18,
+        [constants.db.KEY_UNDERLYING_ASSET_NETWORK_ID]: '0xe15503e4',
+        [constants.db.KEY_UNDERLYING_ASSET_TOKEN_ADDRESS]:
           '0x49a5D1CF92772328Ad70f51894FD632a14dF12C9',
-        [schemas.constants.reportFields.SCHEMA_OPTIONS_MASK]:
+        [constants.db.KEY_OPTIONS_MASK]:
           '0x0000000000000000000000000000000000000000000000000000000000000000',
-        [schemas.constants.reportFields.SCHEMA_ORIGINATING_NETWORK_ID_KEY]: null,
-        [schemas.constants.reportFields.SCHEMA_ORIGINATING_ADDRESS_KEY]: null,
-        [schemas.constants.reportFields.SCHEMA_ORIGINATING_BLOCK_HASH_KEY]: null,
-        [schemas.constants.reportFields.SCHEMA_ORIGINATING_TX_HASH_KEY]: null,
-        [schemas.constants.reportFields.SCHEMA_NETWORK_ID_KEY]: '0xe15503e4',
-        [schemas.constants.reportFields.SCHEMA_BLOCK_HASH_KEY]:
+        [constants.db.KEY_ORIGINATING_NETWORK_ID]: null,
+        [constants.db.KEY_ORIGINATING_ADDRESS]: null,
+        [constants.db.KEY_ORIGINATING_BLOCK_HASH]: null,
+        [constants.db.KEY_ORIGINATING_TX_HASH]: null,
+        [constants.db.KEY_NETWORK_ID]: '0xe15503e4',
+        [constants.db.KEY_BLOCK_HASH]:
           '0x857652df471ab5d968caaa6638c7c60dd3bc71cf02ce3275e79ecf9719be57bf',
-        [schemas.constants.reportFields.SCHEMA_TX_HASH_KEY]:
+        [constants.db.KEY_TX_HASH]:
           '0x49ad2874e8e46263ce0dc8afdeae47c51409b183501d5a304aa2f9e2d538ec8a',
-        [schemas.constants.reportFields.SCHEMA_PROPOSAL_TX_HASH_KEY]: null,
-        [schemas.constants.reportFields.SCHEMA_PROPOSAL_TS_KEY]: null,
-        [schemas.constants.reportFields.SCHEMA_ASSET_TOKEN_ADDRESS_KEY]:
-          '0x49a5D1CF92772328Ad70f51894FD632a14dF12C9',
-        [schemas.constants.reportFields.SCHEMA_USER_DATA_KEY]: '0x',
-        [schemas.constants.reportFields.SCHEMA_WITNESSED_TS_KEY]: '2023-03-14T16:00:00.000Z',
+        [constants.db.KEY_PROPOSAL_TX_HASH]: null,
+        [constants.db.KEY_PROPOSAL_TS]: null,
+        [constants.db.KEY_ASSET_TOKEN_ADDRESS]: '0x49a5D1CF92772328Ad70f51894FD632a14dF12C9',
+        [constants.db.KEY_USER_DATA]: '0x',
+        [constants.db.KEY_WITNESSED_TS]: '2023-03-14T16:00:00.000Z',
       }
-      await validation.validateJson(schemas.db.collections.events, expected)
+      await validation.validateJson(constants.db.schemas.eventReport, expected)
       expect(result).toStrictEqual(expected)
     })
 
@@ -316,44 +302,41 @@ describe('Event building for EVM', () => {
       )
 
       const expected = {
-        [schemas.constants.reportFields.SCHEMA_ID_KEY]:
+        [constants.db.KEY_ID]:
           'useroperation_0x2ca0c7c469fbee9866b12c9c28b682d832782a3ee515832ad1e195953bc94d26',
-        [schemas.constants.reportFields.SCHEMA_STATUS_KEY]: constants.db.txStatus.DETECTED,
-        [schemas.constants.reportFields.SCHEMA_EVENT_NAME_KEY]:
-          constants.db.eventNames.USER_OPERATION,
+        [constants.db.KEY_STATUS]: constants.db.txStatus.DETECTED,
+        [constants.db.KEY_EVENT_NAME]: constants.db.eventNames.USER_OPERATION,
 
-        [schemas.constants.reportFields.SCHEMA_NONCE_KEY]: '6649',
-        [schemas.constants.reportFields.SCHEMA_ASSET_AMOUNT_KEY]: '6000000000000000000',
-        [schemas.constants.reportFields.SCHEMA_DESTINATION_ACCOUNT_KEY]:
-          '0xdDb5f4535123DAa5aE343c24006F4075aBAF5F7B',
-        [schemas.constants.reportFields.SCHEMA_DESTINATION_NETWORK_ID_KEY]: '0xf9b459a1',
-        [schemas.constants.reportFields.SCHEMA_FINAL_TX_HASH_KEY]: null,
-        [schemas.constants.reportFields.SCHEMA_FINAL_TX_TS_KEY]: null,
-        [schemas.constants.reportFields.SCHEMA_UNDERLYING_ASSET_NAME_KEY]: 'Token',
-        [schemas.constants.reportFields.SCHEMA_UNDERLYING_ASSET_SYMBOL_KEY]: 'TKN',
-        [schemas.constants.reportFields.SCHEMA_UNDERLYING_ASSET_DECIMALS_KEY]: 18,
-        [schemas.constants.reportFields.SCHEMA_UNDERLYING_ASSET_NETWORK_ID_KEY]: '0xe15503e4',
-        [schemas.constants.reportFields.SCHEMA_UNDERLYING_ASSET_TOKEN_ADDRESS_KEY]:
+        [constants.db.KEY_NONCE]: '6649',
+        [constants.db.KEY_ASSET_AMOUNT]: '6000000000000000000',
+        [constants.db.KEY_DESTINATION_ACCOUNT]: '0xdDb5f4535123DAa5aE343c24006F4075aBAF5F7B',
+        [constants.db.KEY_DESTINATION_NETWORK_ID]: '0xf9b459a1',
+        [constants.db.KEY_FINAL_TX_HASH]: null,
+        [constants.db.KEY_FINAL_TX_TS]: null,
+        [constants.db.KEY_UNDERLYING_ASSET_NAME]: 'Token',
+        [constants.db.KEY_UNDERLYING_ASSET_SYMBOL]: 'TKN',
+        [constants.db.KEY_UNDERLYING_ASSET_DECIMALS]: 18,
+        [constants.db.KEY_UNDERLYING_ASSET_NETWORK_ID]: '0xe15503e4',
+        [constants.db.KEY_UNDERLYING_ASSET_TOKEN_ADDRESS]:
           '0x49a5D1CF92772328Ad70f51894FD632a14dF12C9',
-        [schemas.constants.reportFields.SCHEMA_OPTIONS_MASK]:
+        [constants.db.KEY_OPTIONS_MASK]:
           '0x0000000000000000000000000000000000000000000000000000000000000000',
-        [schemas.constants.reportFields.SCHEMA_ORIGINATING_NETWORK_ID_KEY]: null,
-        [schemas.constants.reportFields.SCHEMA_ORIGINATING_ADDRESS_KEY]: null,
-        [schemas.constants.reportFields.SCHEMA_ORIGINATING_BLOCK_HASH_KEY]: null,
-        [schemas.constants.reportFields.SCHEMA_ORIGINATING_TX_HASH_KEY]: null,
-        [schemas.constants.reportFields.SCHEMA_NETWORK_ID_KEY]: '0xe15503e4',
-        [schemas.constants.reportFields.SCHEMA_BLOCK_HASH_KEY]:
+        [constants.db.KEY_ORIGINATING_NETWORK_ID]: null,
+        [constants.db.KEY_ORIGINATING_ADDRESS]: null,
+        [constants.db.KEY_ORIGINATING_BLOCK_HASH]: null,
+        [constants.db.KEY_ORIGINATING_TX_HASH]: null,
+        [constants.db.KEY_NETWORK_ID]: '0xe15503e4',
+        [constants.db.KEY_BLOCK_HASH]:
           '0x2eeefc9258765455e8e347c7e6b2e3b167afbf2354e6cafd30049c6fc5f4d010',
-        [schemas.constants.reportFields.SCHEMA_TX_HASH_KEY]:
+        [constants.db.KEY_TX_HASH]:
           '0x2b948164aad1517cdcd11e22c3f96d58b146fdee233ab74e46cb038afcc273e3',
-        [schemas.constants.reportFields.SCHEMA_PROPOSAL_TX_HASH_KEY]: null,
-        [schemas.constants.reportFields.SCHEMA_PROPOSAL_TS_KEY]: null,
-        [schemas.constants.reportFields.SCHEMA_ASSET_TOKEN_ADDRESS_KEY]:
-          '0x49a5D1CF92772328Ad70f51894FD632a14dF12C9',
-        [schemas.constants.reportFields.SCHEMA_USER_DATA_KEY]: '0x',
-        [schemas.constants.reportFields.SCHEMA_WITNESSED_TS_KEY]: '2023-03-14T16:00:00.000Z',
+        [constants.db.KEY_PROPOSAL_TX_HASH]: null,
+        [constants.db.KEY_PROPOSAL_TS]: null,
+        [constants.db.KEY_ASSET_TOKEN_ADDRESS]: '0x49a5D1CF92772328Ad70f51894FD632a14dF12C9',
+        [constants.db.KEY_USER_DATA]: '0x',
+        [constants.db.KEY_WITNESSED_TS]: '2023-03-14T16:00:00.000Z',
       }
-      await validation.validateJson(schemas.db.collections.events, expected)
+      await validation.validateJson(constants.db.schemas.eventReport, expected)
       expect(result).toStrictEqual(expected)
     })
 
@@ -373,44 +356,41 @@ describe('Event building for EVM', () => {
       )
 
       const expected = {
-        [schemas.constants.reportFields.SCHEMA_ID_KEY]:
+        [constants.db.KEY_ID]:
           'useroperation_0x32fe2ff93d26184c87287d7b8d3d92f48f6224dd79b353eadeacf1e399378c08',
-        [schemas.constants.reportFields.SCHEMA_STATUS_KEY]: constants.db.txStatus.DETECTED,
-        [schemas.constants.reportFields.SCHEMA_EVENT_NAME_KEY]:
-          constants.db.eventNames.USER_OPERATION,
+        [constants.db.KEY_STATUS]: constants.db.txStatus.DETECTED,
+        [constants.db.KEY_EVENT_NAME]: constants.db.eventNames.USER_OPERATION,
 
-        [schemas.constants.reportFields.SCHEMA_NONCE_KEY]: '6911',
-        [schemas.constants.reportFields.SCHEMA_ASSET_AMOUNT_KEY]: '7000000000000000000',
-        [schemas.constants.reportFields.SCHEMA_DESTINATION_ACCOUNT_KEY]:
-          '0xdDb5f4535123DAa5aE343c24006F4075aBAF5F7B',
-        [schemas.constants.reportFields.SCHEMA_DESTINATION_NETWORK_ID_KEY]: '0xe15503e4',
-        [schemas.constants.reportFields.SCHEMA_FINAL_TX_HASH_KEY]: null,
-        [schemas.constants.reportFields.SCHEMA_FINAL_TX_TS_KEY]: null,
-        [schemas.constants.reportFields.SCHEMA_UNDERLYING_ASSET_NAME_KEY]: 'Token',
-        [schemas.constants.reportFields.SCHEMA_UNDERLYING_ASSET_SYMBOL_KEY]: 'TKN',
-        [schemas.constants.reportFields.SCHEMA_UNDERLYING_ASSET_DECIMALS_KEY]: 18,
-        [schemas.constants.reportFields.SCHEMA_UNDERLYING_ASSET_NETWORK_ID_KEY]: '0xe15503e4',
-        [schemas.constants.reportFields.SCHEMA_UNDERLYING_ASSET_TOKEN_ADDRESS_KEY]:
+        [constants.db.KEY_NONCE]: '6911',
+        [constants.db.KEY_ASSET_AMOUNT]: '7000000000000000000',
+        [constants.db.KEY_DESTINATION_ACCOUNT]: '0xdDb5f4535123DAa5aE343c24006F4075aBAF5F7B',
+        [constants.db.KEY_DESTINATION_NETWORK_ID]: '0xe15503e4',
+        [constants.db.KEY_FINAL_TX_HASH]: null,
+        [constants.db.KEY_FINAL_TX_TS]: null,
+        [constants.db.KEY_UNDERLYING_ASSET_NAME]: 'Token',
+        [constants.db.KEY_UNDERLYING_ASSET_SYMBOL]: 'TKN',
+        [constants.db.KEY_UNDERLYING_ASSET_DECIMALS]: 18,
+        [constants.db.KEY_UNDERLYING_ASSET_NETWORK_ID]: '0xe15503e4',
+        [constants.db.KEY_UNDERLYING_ASSET_TOKEN_ADDRESS]:
           '0x49a5D1CF92772328Ad70f51894FD632a14dF12C9',
-        [schemas.constants.reportFields.SCHEMA_OPTIONS_MASK]:
+        [constants.db.KEY_OPTIONS_MASK]:
           '0x0000000000000000000000000000000000000000000000000000000000000000',
-        [schemas.constants.reportFields.SCHEMA_ORIGINATING_NETWORK_ID_KEY]: null,
-        [schemas.constants.reportFields.SCHEMA_ORIGINATING_ADDRESS_KEY]: null,
-        [schemas.constants.reportFields.SCHEMA_ORIGINATING_BLOCK_HASH_KEY]: null,
-        [schemas.constants.reportFields.SCHEMA_ORIGINATING_TX_HASH_KEY]: null,
-        [schemas.constants.reportFields.SCHEMA_NETWORK_ID_KEY]: '0xe15503e4',
-        [schemas.constants.reportFields.SCHEMA_BLOCK_HASH_KEY]:
+        [constants.db.KEY_ORIGINATING_NETWORK_ID]: null,
+        [constants.db.KEY_ORIGINATING_ADDRESS]: null,
+        [constants.db.KEY_ORIGINATING_BLOCK_HASH]: null,
+        [constants.db.KEY_ORIGINATING_TX_HASH]: null,
+        [constants.db.KEY_NETWORK_ID]: '0xe15503e4',
+        [constants.db.KEY_BLOCK_HASH]:
           '0xf085786d855e220305a67f95653bd9345956b211095b7403e54da1b40699cb86',
-        [schemas.constants.reportFields.SCHEMA_TX_HASH_KEY]:
+        [constants.db.KEY_TX_HASH]:
           '0x8ac05c2472b3a507f042557ee2c137d112a26d188fb267566b53c28975322452',
-        [schemas.constants.reportFields.SCHEMA_PROPOSAL_TX_HASH_KEY]: null,
-        [schemas.constants.reportFields.SCHEMA_PROPOSAL_TS_KEY]: null,
-        [schemas.constants.reportFields.SCHEMA_ASSET_TOKEN_ADDRESS_KEY]:
-          '0x49a5D1CF92772328Ad70f51894FD632a14dF12C9',
-        [schemas.constants.reportFields.SCHEMA_USER_DATA_KEY]: '0xc0ffee',
-        [schemas.constants.reportFields.SCHEMA_WITNESSED_TS_KEY]: '2023-03-14T16:00:00.000Z',
+        [constants.db.KEY_PROPOSAL_TX_HASH]: null,
+        [constants.db.KEY_PROPOSAL_TS]: null,
+        [constants.db.KEY_ASSET_TOKEN_ADDRESS]: '0x49a5D1CF92772328Ad70f51894FD632a14dF12C9',
+        [constants.db.KEY_USER_DATA]: '0xc0ffee',
+        [constants.db.KEY_WITNESSED_TS]: '2023-03-14T16:00:00.000Z',
       }
-      await validation.validateJson(schemas.db.collections.events, expected)
+      await validation.validateJson(constants.db.schemas.eventReport, expected)
       expect(result).toStrictEqual(expected)
     })
 
@@ -430,45 +410,43 @@ describe('Event building for EVM', () => {
       )
 
       const expected = {
-        [schemas.constants.reportFields.SCHEMA_ID_KEY]:
+        [constants.db.KEY_ID]:
           'operationqueued_0x0373cb2ceeafd11a18902d21a0edbd7f3651ee3cea09442a12c060115a97bda1',
-        [schemas.constants.reportFields.SCHEMA_STATUS_KEY]: constants.db.txStatus.DETECTED,
-        [schemas.constants.reportFields.SCHEMA_EVENT_NAME_KEY]:
-          constants.db.eventNames.QUEUED_OPERATION,
+        [constants.db.KEY_STATUS]: constants.db.txStatus.DETECTED,
+        [constants.db.KEY_EVENT_NAME]: constants.db.eventNames.QUEUED_OPERATION,
 
-        [schemas.constants.reportFields.SCHEMA_NONCE_KEY]: '6648',
-        [schemas.constants.reportFields.SCHEMA_ASSET_AMOUNT_KEY]: '1000000000000000000',
-        [schemas.constants.reportFields.SCHEMA_DESTINATION_ACCOUNT_KEY]:
-          '0xdDb5f4535123DAa5aE343c24006F4075aBAF5F7B',
-        [schemas.constants.reportFields.SCHEMA_DESTINATION_NETWORK_ID_KEY]: '0xe15503e4',
-        [schemas.constants.reportFields.SCHEMA_FINAL_TX_HASH_KEY]: null,
-        [schemas.constants.reportFields.SCHEMA_FINAL_TX_TS_KEY]: null,
-        [schemas.constants.reportFields.SCHEMA_UNDERLYING_ASSET_NAME_KEY]: 'Token',
-        [schemas.constants.reportFields.SCHEMA_UNDERLYING_ASSET_SYMBOL_KEY]: 'TKN',
-        [schemas.constants.reportFields.SCHEMA_UNDERLYING_ASSET_DECIMALS_KEY]: 18,
-        [schemas.constants.reportFields.SCHEMA_UNDERLYING_ASSET_NETWORK_ID_KEY]: '0xe15503e4',
-        [schemas.constants.reportFields.SCHEMA_UNDERLYING_ASSET_TOKEN_ADDRESS_KEY]:
+        [constants.db.KEY_NONCE]: '6648',
+        [constants.db.KEY_ASSET_AMOUNT]: '1000000000000000000',
+        [constants.db.KEY_DESTINATION_ACCOUNT]: '0xdDb5f4535123DAa5aE343c24006F4075aBAF5F7B',
+        [constants.db.KEY_DESTINATION_NETWORK_ID]: '0xe15503e4',
+        [constants.db.KEY_FINAL_TX_HASH]: null,
+        [constants.db.KEY_FINAL_TX_TS]: null,
+        [constants.db.KEY_UNDERLYING_ASSET_NAME]: 'Token',
+        [constants.db.KEY_UNDERLYING_ASSET_SYMBOL]: 'TKN',
+        [constants.db.KEY_UNDERLYING_ASSET_DECIMALS]: 18,
+        [constants.db.KEY_UNDERLYING_ASSET_NETWORK_ID]: '0xe15503e4',
+        [constants.db.KEY_UNDERLYING_ASSET_TOKEN_ADDRESS]:
           '0x49a5D1CF92772328Ad70f51894FD632a14dF12C9',
-        [schemas.constants.reportFields.SCHEMA_OPTIONS_MASK]:
+        [constants.db.KEY_OPTIONS_MASK]:
           '0x0000000000000000000000000000000000000000000000000000000000000000',
-        [schemas.constants.reportFields.SCHEMA_ORIGINATING_NETWORK_ID_KEY]: '0xe15503e4',
-        [schemas.constants.reportFields.SCHEMA_ORIGINATING_ADDRESS_KEY]: null,
-        [schemas.constants.reportFields.SCHEMA_ORIGINATING_BLOCK_HASH_KEY]:
+        [constants.db.KEY_ORIGINATING_NETWORK_ID]: '0xe15503e4',
+        [constants.db.KEY_ORIGINATING_ADDRESS]: null,
+        [constants.db.KEY_ORIGINATING_BLOCK_HASH]:
           '0xbaa9e89896c03366c3578a4568a6defd4b127e4b09bb06b67a12cb1a4c332376',
-        [schemas.constants.reportFields.SCHEMA_ORIGINATING_TX_HASH_KEY]:
+        [constants.db.KEY_ORIGINATING_TX_HASH]:
           '0x0907eefad58dfcb2cbfad66d29accd4d6ddc345851ec1d180b23122084fa2820',
-        [schemas.constants.reportFields.SCHEMA_NETWORK_ID_KEY]: '0xe15503e4',
-        [schemas.constants.reportFields.SCHEMA_BLOCK_HASH_KEY]:
+        [constants.db.KEY_NETWORK_ID]: '0xe15503e4',
+        [constants.db.KEY_BLOCK_HASH]:
           '0xb58eef9c0844fc69bc52ec679ca476419f7b2edf1aff430206f54e8081ec6da8',
-        [schemas.constants.reportFields.SCHEMA_TX_HASH_KEY]:
+        [constants.db.KEY_TX_HASH]:
           '0x302eac6bc7e18c649d58a8fc6137515914e9048aad6c6d000c2efea1dfed517f',
-        [schemas.constants.reportFields.SCHEMA_PROPOSAL_TX_HASH_KEY]: null,
-        [schemas.constants.reportFields.SCHEMA_PROPOSAL_TS_KEY]: null,
-        [schemas.constants.reportFields.SCHEMA_ASSET_TOKEN_ADDRESS_KEY]: null,
-        [schemas.constants.reportFields.SCHEMA_USER_DATA_KEY]: '0x',
-        [schemas.constants.reportFields.SCHEMA_WITNESSED_TS_KEY]: '2023-03-14T16:00:00.000Z',
+        [constants.db.KEY_PROPOSAL_TX_HASH]: null,
+        [constants.db.KEY_PROPOSAL_TS]: null,
+        [constants.db.KEY_ASSET_TOKEN_ADDRESS]: null,
+        [constants.db.KEY_USER_DATA]: '0x',
+        [constants.db.KEY_WITNESSED_TS]: '2023-03-14T16:00:00.000Z',
       }
-      await validation.validateJson(schemas.db.collections.events, expected)
+      await validation.validateJson(constants.db.schemas.eventReport, expected)
       expect(result).toStrictEqual(expected)
     })
 
@@ -488,45 +466,43 @@ describe('Event building for EVM', () => {
       )
 
       const expected = {
-        [schemas.constants.reportFields.SCHEMA_ID_KEY]:
+        [constants.db.KEY_ID]:
           'operationqueued_0x32fe2ff93d26184c87287d7b8d3d92f48f6224dd79b353eadeacf1e399378c08',
-        [schemas.constants.reportFields.SCHEMA_STATUS_KEY]: constants.db.txStatus.DETECTED,
-        [schemas.constants.reportFields.SCHEMA_EVENT_NAME_KEY]:
-          constants.db.eventNames.QUEUED_OPERATION,
+        [constants.db.KEY_STATUS]: constants.db.txStatus.DETECTED,
+        [constants.db.KEY_EVENT_NAME]: constants.db.eventNames.QUEUED_OPERATION,
 
-        [schemas.constants.reportFields.SCHEMA_NONCE_KEY]: '6911',
-        [schemas.constants.reportFields.SCHEMA_ASSET_AMOUNT_KEY]: '7000000000000000000',
-        [schemas.constants.reportFields.SCHEMA_DESTINATION_ACCOUNT_KEY]:
-          '0xdDb5f4535123DAa5aE343c24006F4075aBAF5F7B',
-        [schemas.constants.reportFields.SCHEMA_DESTINATION_NETWORK_ID_KEY]: '0xe15503e4',
-        [schemas.constants.reportFields.SCHEMA_FINAL_TX_HASH_KEY]: null,
-        [schemas.constants.reportFields.SCHEMA_FINAL_TX_TS_KEY]: null,
-        [schemas.constants.reportFields.SCHEMA_UNDERLYING_ASSET_NAME_KEY]: 'Token',
-        [schemas.constants.reportFields.SCHEMA_UNDERLYING_ASSET_SYMBOL_KEY]: 'TKN',
-        [schemas.constants.reportFields.SCHEMA_UNDERLYING_ASSET_DECIMALS_KEY]: 18,
-        [schemas.constants.reportFields.SCHEMA_UNDERLYING_ASSET_NETWORK_ID_KEY]: '0xe15503e4',
-        [schemas.constants.reportFields.SCHEMA_UNDERLYING_ASSET_TOKEN_ADDRESS_KEY]:
+        [constants.db.KEY_NONCE]: '6911',
+        [constants.db.KEY_ASSET_AMOUNT]: '7000000000000000000',
+        [constants.db.KEY_DESTINATION_ACCOUNT]: '0xdDb5f4535123DAa5aE343c24006F4075aBAF5F7B',
+        [constants.db.KEY_DESTINATION_NETWORK_ID]: '0xe15503e4',
+        [constants.db.KEY_FINAL_TX_HASH]: null,
+        [constants.db.KEY_FINAL_TX_TS]: null,
+        [constants.db.KEY_UNDERLYING_ASSET_NAME]: 'Token',
+        [constants.db.KEY_UNDERLYING_ASSET_SYMBOL]: 'TKN',
+        [constants.db.KEY_UNDERLYING_ASSET_DECIMALS]: 18,
+        [constants.db.KEY_UNDERLYING_ASSET_NETWORK_ID]: '0xe15503e4',
+        [constants.db.KEY_UNDERLYING_ASSET_TOKEN_ADDRESS]:
           '0x49a5D1CF92772328Ad70f51894FD632a14dF12C9',
-        [schemas.constants.reportFields.SCHEMA_OPTIONS_MASK]:
+        [constants.db.KEY_OPTIONS_MASK]:
           '0x0000000000000000000000000000000000000000000000000000000000000000',
-        [schemas.constants.reportFields.SCHEMA_ORIGINATING_NETWORK_ID_KEY]: '0xe15503e4',
-        [schemas.constants.reportFields.SCHEMA_ORIGINATING_ADDRESS_KEY]: null,
-        [schemas.constants.reportFields.SCHEMA_ORIGINATING_BLOCK_HASH_KEY]:
+        [constants.db.KEY_ORIGINATING_NETWORK_ID]: '0xe15503e4',
+        [constants.db.KEY_ORIGINATING_ADDRESS]: null,
+        [constants.db.KEY_ORIGINATING_BLOCK_HASH]:
           '0xf085786d855e220305a67f95653bd9345956b211095b7403e54da1b40699cb86',
-        [schemas.constants.reportFields.SCHEMA_ORIGINATING_TX_HASH_KEY]:
+        [constants.db.KEY_ORIGINATING_TX_HASH]:
           '0x8ac05c2472b3a507f042557ee2c137d112a26d188fb267566b53c28975322452',
-        [schemas.constants.reportFields.SCHEMA_NETWORK_ID_KEY]: '0xe15503e4',
-        [schemas.constants.reportFields.SCHEMA_BLOCK_HASH_KEY]:
+        [constants.db.KEY_NETWORK_ID]: '0xe15503e4',
+        [constants.db.KEY_BLOCK_HASH]:
           '0x8e4479cd521acad9deae47ec04cfcd3d5c28ab30686b3a8581c7d88980bbf35b',
-        [schemas.constants.reportFields.SCHEMA_TX_HASH_KEY]:
+        [constants.db.KEY_TX_HASH]:
           '0x153ad9b1613eeaf1234d8d430e2d3e22821f931d33d6f42de7e6ac0f95e87521',
-        [schemas.constants.reportFields.SCHEMA_PROPOSAL_TX_HASH_KEY]: null,
-        [schemas.constants.reportFields.SCHEMA_PROPOSAL_TS_KEY]: null,
-        [schemas.constants.reportFields.SCHEMA_ASSET_TOKEN_ADDRESS_KEY]: null,
-        [schemas.constants.reportFields.SCHEMA_USER_DATA_KEY]: '0xc0ffee',
-        [schemas.constants.reportFields.SCHEMA_WITNESSED_TS_KEY]: '2023-03-14T16:00:00.000Z',
+        [constants.db.KEY_PROPOSAL_TX_HASH]: null,
+        [constants.db.KEY_PROPOSAL_TS]: null,
+        [constants.db.KEY_ASSET_TOKEN_ADDRESS]: null,
+        [constants.db.KEY_USER_DATA]: '0xc0ffee',
+        [constants.db.KEY_WITNESSED_TS]: '2023-03-14T16:00:00.000Z',
       }
-      await validation.validateJson(schemas.db.collections.events, expected)
+      await validation.validateJson(constants.db.schemas.eventReport, expected)
       expect(result).toStrictEqual(expected)
     })
   })

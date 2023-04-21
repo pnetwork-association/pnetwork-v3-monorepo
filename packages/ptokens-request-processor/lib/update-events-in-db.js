@@ -1,18 +1,18 @@
 const {
-  STATE_PROPOSED_DB_REPORTS_KEY,
-  STATE_FINALIZED_DB_REPORTS_KEY,
-  STATE_DISMISSED_DB_REPORTS_KEY,
+  STATE_PROPOSED_DB_REPORTS,
+  STATE_FINALIZED_DB_REPORTS,
+  STATE_DISMISSED_DB_REPORTS,
 } = require('./state/constants')
 const { db } = require('ptokens-utils')
 const R = require('ramda')
 const { logger } = require('./get-logger')
-const schemas = require('ptokens-schemas')
+
 const constants = require('ptokens-constants')
 
 const updateEventInDb = R.curry(
   (_table, _eventReport) =>
     new Promise(resolve => {
-      const id = _eventReport[schemas.constants.reportFields.SCHEMA_ID_KEY]
+      const id = _eventReport[constants.db.KEY_ID]
       // Should update just the new fields
       const update = { $set: _eventReport }
       logger.debug(`Updating report ${id}`)
@@ -41,11 +41,11 @@ const maybeUpdateEventsInDb = R.curry(
     })
 )
 
-const maybeUpdateProposedEventsInDb = maybeUpdateEventsInDb(STATE_PROPOSED_DB_REPORTS_KEY)
+const maybeUpdateProposedEventsInDb = maybeUpdateEventsInDb(STATE_PROPOSED_DB_REPORTS)
 
-const maybeUpdateFinalizedEventsInDb = maybeUpdateEventsInDb(STATE_FINALIZED_DB_REPORTS_KEY)
+const maybeUpdateFinalizedEventsInDb = maybeUpdateEventsInDb(STATE_FINALIZED_DB_REPORTS)
 
-const maybeUpdateDismissedEventsInDb = maybeUpdateEventsInDb(STATE_DISMISSED_DB_REPORTS_KEY)
+const maybeUpdateDismissedEventsInDb = maybeUpdateEventsInDb(STATE_DISMISSED_DB_REPORTS)
 
 module.exports = {
   maybeUpdateProposedEventsInDb,

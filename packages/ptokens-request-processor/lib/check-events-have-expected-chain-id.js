@@ -1,5 +1,6 @@
 const R = require('ramda')
-const schemas = require('ptokens-schemas')
+const constants = require('ptokens-constants')
+
 const { ERROR_INVALID_NETWORK_ID } = require('./errors')
 
 const checkEventHaveExpectedChainId = R.curry(
@@ -24,10 +25,10 @@ const checkEventsHaveExpectedChainId = R.curry((_reportChainIdKey, _expectedValu
 )
 
 const checkEventsHaveExpectedDestinationChainId = checkEventsHaveExpectedChainId(
-  schemas.constants.reportFields.SCHEMA_DESTINATION_NETWORK_ID_KEY
+  constants.db.KEY_DESTINATION_NETWORK_ID
 )
 const checkEventsHaveExpectedOriginChainId = checkEventsHaveExpectedChainId(
-  schemas.constants.reportFields.SCHEMA_UNDERLYING_ASSET_NETWORK_ID_KEY
+  constants.db.KEY_UNDERLYING_ASSET_NETWORK_ID
 )
 
 module.exports = {

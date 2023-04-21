@@ -1,18 +1,12 @@
-const { logger, shutDownLogging } = require('./get-logger')
-const { db } = require('ptokens-utils')
 const config = require('../config')
-const schemas = require('ptokens-schemas')
+const { db } = require('ptokens-utils')
+const constants = require('ptokens-constants')
+const { logger, shutDownLogging } = require('./get-logger')
 
 const maybeCloseDbConnection = () =>
-  db
-    .closeConnection(
-      config[schemas.constants.configurationFields.SCHEMA_DB_KEY][
-        schemas.constants.configurationFields.SCHEMA_URL_KEY
-      ]
-    )
-    .catch(() => {
-      logger.info('No database connection to close')
-    })
+  db.closeConnection(config[constants.config.KEY_DB][constants.config.KEY_URL]).catch(() => {
+    logger.info('No database connection to close')
+  })
 
 const exitCleanly = _exitCode =>
   logger.info('Clean exit...') ||

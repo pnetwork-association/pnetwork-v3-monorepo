@@ -1,12 +1,12 @@
 const ethers = require('ethers')
-const schemas = require('ptokens-schemas')
+
 const constants = require('ptokens-constants')
 const R = require('ramda')
 const { ERROR_INVALID_EVENT_NAME, ERROR_OPERATION_NOT_QUEUED } = require('../errors')
 const { logger } = require('../get-logger')
 const { constants: ptokensUtilsConstants, errors, logic, utils } = require('ptokens-utils')
 const { addDismissedReportsToState } = require('../state/state-operations.js')
-const { STATE_TO_BE_DISMISSED_REQUESTS_KEY } = require('../state/constants')
+const { STATE_TO_BE_DISMISSED_REQUESTS } = require('../state/constants')
 const { callContractFunctionAndAwait } = require('./evm-call-contract-function')
 const {
   logUserOperationFromAbiArgs,
@@ -18,12 +18,12 @@ const { readIdentityFile } = require('../read-identity-file')
 // TODO: factor out (check evm-build-proposals-txs)
 const addCancelledTxHashToEvent = R.curry((_event, _finalizedTxHash) => {
   // TODO: replace _id field
-  const id = _event[schemas.constants.reportFields.SCHEMA_ID_KEY]
+  const id = _event[constants.db.KEY_ID]
   logger.debug(`Adding ${_finalizedTxHash} to ${id.slice(0, 20)}...`)
   const cancelledTimestamp = new Date().toISOString()
-  _event[schemas.constants.reportFields.SCHEMA_FINAL_TX_TS_KEY] = cancelledTimestamp
-  _event[schemas.constants.reportFields.SCHEMA_FINAL_TX_HASH_KEY] = _finalizedTxHash
-  _event[schemas.constants.reportFields.SCHEMA_STATUS_KEY] = constants.db.txStatus.CANCELLED
+  _event[constants.db.KEY_FINAL_TX_TS] = cancelledTimestamp
+  _event[constants.db.KEY_FINAL_TX_HASH] = _finalizedTxHash
+  _event[constants.db.KEY_STATUS] = constants.db.txStatus.CANCELLED
 
   return Promise.resolve(_event)
 })
@@ -31,8 +31,8 @@ const addCancelledTxHashToEvent = R.curry((_event, _finalizedTxHash) => {
 const makeDismissalContractCall = R.curry(
   (_wallet, _stateManager, _txTimeout, _eventReport) =>
     new Promise((resolve, reject) => {
-      const id = _eventReport[schemas.constants.reportFields.SCHEMA_ID_KEY]
-      const eventName = _eventReport[schemas.constants.reportFields.SCHEMA_EVENT_NAME_KEY]
+      const id = _eventReport[constants.db.KEY_ID]
+      const eventName = _eventReport[constants.db.KEY_EVENT_NAME]
 
       if (!R.includes(eventName, R.values(constants.db.eventNames))) {
         return reject(new Error(`${ERROR_INVALID_EVENT_NAME}: ${eventName}`))
@@ -52,7 +52,7 @@ const makeDismissalContractCall = R.curry(
         .then(addCancelledTxHashToEvent(_eventReport))
         .then(resolve)
         .catch(_err => {
-          const reportId = _eventReport[schemas.constants.reportFields.SCHEMA_ID_KEY]
+          const reportId = _eventReport[constants.db.KEY_ID]
           if (_err.message.includes(errors.ERROR_TIMEOUT)) {
             logger.error(`Tx for ${reportId} failed:`, _err.message)
             return resolve(_eventReport)
@@ -82,7 +82,7 @@ const sendDismissalTransaction = R.curry(
 const buildDismissalTxsAndPutInState = _state =>
   new Promise(resolve => {
     logger.info('Building dismissal txs...')
-    const invalidRequests = _state[STATE_TO_BE_DISMISSED_REQUESTS_KEY] || []
+    const invalidRequests = _state[STATE_TO_BE_DISMISSED_REQUESTS] || []
     const providerUrl = _state[constants.state.KEY_PROVIDER_URL]
     const identityGpgFile = _state[constants.state.KEY_IDENTITY_FILE]
     const provider = new ethers.JsonRpcProvider(providerUrl)
@@ -102,7 +102,7 @@ const maybeBuildDismissalTxsAndPutInState = _state =>
     const blockChainName = utils.flipObjectPropertiesSync(ptokensUtilsConstants.networkIds)[
       networkId
     ]
-    const invalidRequests = _state[STATE_TO_BE_DISMISSED_REQUESTS_KEY] || []
+    const invalidRequests = _state[STATE_TO_BE_DISMISSED_REQUESTS] || []
 
     return invalidRequests.length > 0
       ? resolve(buildDismissalTxsAndPutInState(_state))

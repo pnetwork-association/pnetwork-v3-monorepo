@@ -1,7 +1,7 @@
 const { STATE_KEY_EVENTS } = require('../state/constants')
 const { logger } = require('../get-logger')
 const constants = require('ptokens-constants')
-const schemas = require('ptokens-schemas')
+
 const {
   getEthersProvider,
   getInterfaceFromEvent,
@@ -24,7 +24,7 @@ const listenForEvmEvent = (_providerUrl, _networkId, _eventName, _contractAddres
 
 const startEvmListenerFromEventObject = (_providerUrl, _networkId, _event, _callback) =>
   Promise.all(
-    _event[schemas.constants.configurationFields.SCHEMA_CONTRACTS_KEY].map(_tokenContract =>
+    _event[constants.config.KEY_CONTRACTS].map(_tokenContract =>
       listenForEvmEvent(_providerUrl, _networkId, _event.name, _tokenContract, _callback)
     )
   )

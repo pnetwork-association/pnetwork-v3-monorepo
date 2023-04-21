@@ -1,9 +1,9 @@
 const constants = require('ptokens-constants')
-const schemas = require('ptokens-schemas')
+
 const { utils } = require('ptokens-utils')
 const { logger } = require('../get-logger')
 const R = require('ramda')
-const { STATE_PROPOSED_DB_REPORTS_KEY } = require('../state/constants')
+const { STATE_PROPOSED_DB_REPORTS } = require('../state/constants')
 
 const ERROR_INVALID_PROPOSED_TIMESTAMP = 'Invalid proposed timestamp!'
 
@@ -17,7 +17,7 @@ const getExpirationDate = R.curry(
 )
 
 const getEventProposedTimestamp = _event =>
-  Promise.resolve(R.prop(schemas.constants.reportFields.SCHEMA_PROPOSAL_TS_KEY, _event))
+  Promise.resolve(R.prop(constants.db.KEY_PROPOSAL_TS, _event))
 
 const getCurrentDate = () => new Date()
 
@@ -26,10 +26,7 @@ const isChallengePeriodExpired = R.curry((_challengePeriod, _proposedEvent) =>
     .then(getExpirationDate(_challengePeriod))
     .then(_expirationDate => {
       const now = getCurrentDate()
-      const slicedTxHash = _proposedEvent[schemas.constants.reportFields.SCHEMA_TX_HASH_KEY].slice(
-        0,
-        10
-      )
+      const slicedTxHash = _proposedEvent[constants.db.KEY_TX_HASH].slice(0, 10)
       logger.debug('%s: %s > %s => %s', slicedTxHash, now, _expirationDate, now > _expirationDate)
       return now > _expirationDate ? _proposedEvent : null
     })
@@ -54,7 +51,7 @@ const keepExpiredProposedEvents = R.curry(
 const filterForExpiredProposalsAndPutThemInState = _state =>
   new Promise((resolve, reject) => {
     const challengePeriod = _state[constants.state.KEY_CHALLENGE_PERIOD]
-    const proposedEvents = _state[STATE_PROPOSED_DB_REPORTS_KEY] || []
+    const proposedEvents = _state[STATE_PROPOSED_DB_REPORTS] || []
 
     if (R.isNil(challengePeriod)) {
       return reject(
@@ -66,14 +63,14 @@ const filterForExpiredProposalsAndPutThemInState = _state =>
       .then(
         _filteredReports =>
           logger.info(`Found ${R.length(_filteredReports)} expired events...`) ||
-          R.assoc(STATE_PROPOSED_DB_REPORTS_KEY, _filteredReports, _state)
+          R.assoc(STATE_PROPOSED_DB_REPORTS, _filteredReports, _state)
       )
       .then(resolve)
   })
 
 const maybefilterForExpiredProposalsAndPutThemInState = _state => {
   logger.info('Maybe filter for expired proposals...')
-  const proposedEvents = _state[STATE_PROPOSED_DB_REPORTS_KEY] || []
+  const proposedEvents = _state[STATE_PROPOSED_DB_REPORTS] || []
   const proposedEventsLength = R.length(proposedEvents)
 
   return proposedEventsLength === 0

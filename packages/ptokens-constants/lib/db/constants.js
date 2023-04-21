@@ -1,22 +1,4 @@
-const configurationFields = {
-  KEY_TABLE_EVENTS: 'table-events',
-  KEY_PROVIDER_URL: 'provider-url',
-  KEY_CHAIN_NAME: 'chain-name',
-  KEY_CHAIN_TYPE: 'chain-type',
-  KEY_TX_TIMEOUT: 'tx-timeout',
-  KEY_NETWORK_ID: 'network-id',
-  KEY_DB: 'db',
-  KEY_STATE_MANAGER: 'state-manager-address',
-  KEY_IDENTITY_GPG: 'identity',
-  KEY_NAME: 'name',
-  KEY_URL: 'url',
-  KEY_EVENTS: 'events',
-  KEY_CHALLENGE_PERIOD: 'challenge-period',
-  KEY_LOOP_SLEEP_TIME: 'loop-sleep-time',
-  KEY_CONTRACTS: 'contracts',
-}
-
-const reportFields = {
+module.exports = {
   KEY_ID: '_id',
   KEY_NONCE: 'nonce',
   KEY_DESTINATION_ACCOUNT: 'destinationAccount',
@@ -44,9 +26,4 @@ const reportFields = {
   KEY_NETWORK_ID: 'networkId',
   KEY_TX_HASH: 'transactionHash',
   KEY_BLOCK_HASH: 'blockHash',
-}
-
-module.exports = {
-  configurationFields,
-  reportFields,
 }

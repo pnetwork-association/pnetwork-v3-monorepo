@@ -1,9 +1,9 @@
 module.exports = {
-  STATE_ONCHAIN_REQUESTS_KEY: 'onChainRequests',
-  STATE_TO_BE_DISMISSED_REQUESTS_KEY: 'toBeDismissedRequests',
-  STATE_DETECTED_DB_REPORTS_KEY: 'detectedDbReports',
-  STATE_QUEUED_DB_REPORTS_KEY: 'queuedDbReports',
-  STATE_PROPOSED_DB_REPORTS_KEY: 'proposedDbReports',
-  STATE_FINALIZED_DB_REPORTS_KEY: 'finalizedDbReports',
-  STATE_DISMISSED_DB_REPORTS_KEY: 'dismissedDbReports',
+  STATE_ONCHAIN_REQUESTS: 'onChainRequests',
+  STATE_TO_BE_DISMISSED_REQUESTS: 'toBeDismissedRequests',
+  STATE_DETECTED_DB_REPORTS: 'detectedDbReports',
+  STATE_QUEUED_DB_REPORTS: 'queuedDbReports',
+  STATE_PROPOSED_DB_REPORTS: 'proposedDbReports',
+  STATE_FINALIZED_DB_REPORTS: 'finalizedDbReports',
+  STATE_DISMISSED_DB_REPORTS: 'dismissedDbReports',
 }

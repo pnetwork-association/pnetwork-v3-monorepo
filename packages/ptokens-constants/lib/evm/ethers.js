@@ -3,5 +3,5 @@ const KEY_TX_HASH = 'hash'
 
 module.exports = {
   ERROR_ESTIMATE_GAS,
-  KEY_TX_HASH
+  KEY_TX_HASH,
 }

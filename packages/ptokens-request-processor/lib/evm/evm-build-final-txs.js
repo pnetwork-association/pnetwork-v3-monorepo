@@ -1,12 +1,12 @@
 const ethers = require('ethers')
-const schemas = require('ptokens-schemas')
+
 const constants = require('ptokens-constants')
 const { logger } = require('../get-logger')
 const { logic, errors } = require('ptokens-utils')
 const { ERROR_INVALID_EVENT_NAME, ERROR_OPERATION_ALREADY_EXECUTED } = require('../errors')
 const R = require('ramda')
 const { addFinalizedEventsToState } = require('../state/state-operations.js')
-const { STATE_PROPOSED_DB_REPORTS_KEY } = require('../state/constants')
+const { STATE_PROPOSED_DB_REPORTS } = require('../state/constants')
 const {
   checkEventsHaveExpectedDestinationChainId,
 } = require('../check-events-have-expected-chain-id')
@@ -21,18 +21,18 @@ const { readIdentityFile } = require('../read-identity-file')
 // TODO: factor out (check evm-build-proposals-txs)
 const addFinalizedTxHashToEvent = R.curry((_event, _finalizedTxHash) => {
   // TODO: replace _id field
-  const id = _event[schemas.constants.reportFields.SCHEMA_ID_KEY]
+  const id = _event[constants.db.KEY_ID]
   logger.debug(`Adding ${_finalizedTxHash} to ${id.slice(0, 20)}...`)
   const finalizedTimestamp = new Date().toISOString()
-  _event[schemas.constants.reportFields.SCHEMA_FINAL_TX_TS_KEY] = finalizedTimestamp
-  _event[schemas.constants.reportFields.SCHEMA_FINAL_TX_HASH_KEY] = _finalizedTxHash
-  _event[schemas.constants.reportFields.SCHEMA_STATUS_KEY] = constants.db.txStatus.FINALIZED
+  _event[constants.db.KEY_FINAL_TX_TS] = finalizedTimestamp
+  _event[constants.db.KEY_FINAL_TX_HASH] = _finalizedTxHash
+  _event[constants.db.KEY_STATUS] = constants.db.txStatus.FINALIZED
 
   return Promise.resolve(_event)
 })
 
 const executeOperationErrorHandler = R.curry((resolve, reject, _eventReport, _err) => {
-  const reportId = _eventReport[schemas.constants.reportFields.SCHEMA_ID_KEY]
+  const reportId = _eventReport[constants.db.KEY_ID]
   if (_err.message.includes(errors.ERROR_TIMEOUT)) {
     logger.error(`Tx for ${reportId} failed:`, _err.message)
     return resolve(_eventReport)
@@ -47,8 +47,8 @@ const executeOperationErrorHandler = R.curry((resolve, reject, _eventReport, _er
 const makeFinalContractCall = R.curry(
   (_wallet, _stateManager, _txTimeout, _eventReport) =>
     new Promise((resolve, reject) => {
-      const id = _eventReport[schemas.constants.reportFields.SCHEMA_ID_KEY]
-      const eventName = _eventReport[schemas.constants.reportFields.SCHEMA_EVENT_NAME_KEY]
+      const id = _eventReport[constants.db.KEY_ID]
+      const eventName = _eventReport[constants.db.KEY_EVENT_NAME]
 
       if (!R.includes(eventName, R.values(constants.db.eventNames))) {
         return reject(new Error(`${ERROR_INVALID_EVENT_NAME}: ${eventName}`))
@@ -87,7 +87,7 @@ const sendFinalTransactions = R.curry(
 const buildFinalTxsAndPutInState = _state =>
   new Promise(resolve => {
     logger.info('Building final txs...')
-    const proposedEvents = _state[STATE_PROPOSED_DB_REPORTS_KEY]
+    const proposedEvents = _state[STATE_PROPOSED_DB_REPORTS]
     const destinationNetworkId = _state[constants.state.KEY_NETWORK_ID]
     const providerUrl = _state[constants.state.KEY_PROVIDER_URL]
     const identityGpgFile = _state[constants.state.KEY_IDENTITY_FILE]
@@ -106,7 +106,7 @@ const buildFinalTxsAndPutInState = _state =>
 const maybeBuildFinalTxsAndPutInState = _state =>
   new Promise(resolve => {
     logger.info('Maybe building final txs...')
-    const proposedEvents = _state[STATE_PROPOSED_DB_REPORTS_KEY] || []
+    const proposedEvents = _state[STATE_PROPOSED_DB_REPORTS] || []
     const proposedEventsNumber = R.length(proposedEvents)
 
     return proposedEventsNumber === 0

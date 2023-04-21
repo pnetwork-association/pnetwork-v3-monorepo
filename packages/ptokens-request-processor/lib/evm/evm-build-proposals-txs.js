@@ -1,12 +1,12 @@
 const ethers = require('ethers')
 const constants = require('ptokens-constants')
-const schemas = require('ptokens-schemas')
+
 const { logger } = require('../get-logger')
 const { errors, logic } = require('ptokens-utils')
 const { ERROR_INVALID_EVENT_NAME, ERROR_OPERATION_ALREADY_QUEUED } = require('../errors')
 const R = require('ramda')
 const { addProposalsReportsToState } = require('../state/state-operations.js')
-const { STATE_DETECTED_DB_REPORTS_KEY } = require('../state/constants')
+const { STATE_DETECTED_DB_REPORTS } = require('../state/constants')
 const {
   checkEventsHaveExpectedDestinationChainId,
 } = require('../check-events-have-expected-chain-id')
@@ -25,16 +25,16 @@ const addProposedTxHashToEvent = R.curry(
       // TODO: replace _id field
       logger.debug(`Adding ${_proposedTxHash} to ${_event._id.slice(0, 20)}...`)
       const proposedTimestamp = new Date().toISOString()
-      _event[schemas.constants.reportFields.SCHEMA_PROPOSAL_TS_KEY] = proposedTimestamp
-      _event[schemas.constants.reportFields.SCHEMA_PROPOSAL_TX_HASH_KEY] = _proposedTxHash
-      _event[schemas.constants.reportFields.SCHEMA_STATUS_KEY] = constants.db.txStatus.PROPOSED
+      _event[constants.db.KEY_PROPOSAL_TS] = proposedTimestamp
+      _event[constants.db.KEY_PROPOSAL_TX_HASH] = _proposedTxHash
+      _event[constants.db.KEY_STATUS] = constants.db.txStatus.PROPOSED
 
       return resolve(_event)
     })
 )
 
 const queueOperationErrorHandler = R.curry((resolve, reject, _eventReport, _err) => {
-  const reportId = _eventReport[schemas.constants.reportFields.SCHEMA_ID_KEY]
+  const reportId = _eventReport[constants.db.KEY_ID]
   if (_err.message.includes(errors.ERROR_TIMEOUT)) {
     logger.error(`Tx for ${reportId} failed:`, _err.message)
     return resolve(_eventReport)
@@ -48,8 +48,8 @@ const queueOperationErrorHandler = R.curry((resolve, reject, _eventReport, _err)
 const makeProposalContractCall = R.curry(
   (_wallet, _managerContract, _txTimeout, _eventReport) =>
     new Promise((resolve, reject) => {
-      const id = _eventReport[schemas.constants.reportFields.SCHEMA_ID_KEY]
-      const eventName = _eventReport[schemas.constants.reportFields.SCHEMA_EVENT_NAME_KEY]
+      const id = _eventReport[constants.db.KEY_ID]
+      const eventName = _eventReport[constants.db.KEY_EVENT_NAME]
 
       if (!R.includes(eventName, R.values(constants.db.eventNames))) {
         return reject(new Error(`${ERROR_INVALID_EVENT_NAME}: ${eventName}`))
@@ -85,7 +85,7 @@ const sendProposalTransactions = R.curry(
 const buildProposalsTxsAndPutInState = _state =>
   new Promise(resolve => {
     logger.info('Building proposals txs...')
-    const detectedEvents = _state[STATE_DETECTED_DB_REPORTS_KEY]
+    const detectedEvents = _state[STATE_DETECTED_DB_REPORTS]
     const destinationNetworkId = _state[constants.state.KEY_NETWORK_ID]
     const providerUrl = _state[constants.state.KEY_PROVIDER_URL]
     const identityGpgFile = _state[constants.state.KEY_IDENTITY_FILE]
@@ -107,7 +107,7 @@ const buildProposalsTxsAndPutInState = _state =>
 const maybeBuildProposalsTxsAndPutInState = _state =>
   new Promise(resolve => {
     logger.info('Maybe building proposals txs...')
-    const detectedEvents = _state[STATE_DETECTED_DB_REPORTS_KEY]
+    const detectedEvents = _state[STATE_DETECTED_DB_REPORTS]
     const detectedEventsNumber = R.length(detectedEvents)
 
     return detectedEventsNumber === 0

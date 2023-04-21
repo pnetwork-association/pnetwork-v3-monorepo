@@ -1,14 +1,14 @@
 const { jestMockContractConstructor } = require('./mock/jest-utils')
 const {
-  STATE_ONCHAIN_REQUESTS_KEY,
-  STATE_DETECTED_DB_REPORTS_KEY,
-  STATE_PROPOSED_DB_REPORTS_KEY,
-  STATE_FINALIZED_DB_REPORTS_KEY,
+  STATE_ONCHAIN_REQUESTS,
+  STATE_DETECTED_DB_REPORTS,
+  STATE_PROPOSED_DB_REPORTS,
+  STATE_FINALIZED_DB_REPORTS,
 } = require('../../lib/state/constants')
 const R = require('ramda')
 const { db, logic } = require('ptokens-utils')
 const constants = require('ptokens-constants')
-const schemas = require('ptokens-schemas')
+
 const proposedEvents = require('../samples/proposed-report-set').slice(0, 2)
 
 describe('Main EVM flow for transaction proposal tests', () => {
@@ -91,14 +91,14 @@ describe('Main EVM flow for transaction proposal tests', () => {
       const result = await maybeProcessFinalTransactions(state)
 
       expect(result).toHaveProperty(constants.state.KEY_DB)
-      expect(result).not.toHaveProperty(STATE_ONCHAIN_REQUESTS_KEY)
-      expect(result).not.toHaveProperty(STATE_DETECTED_DB_REPORTS_KEY)
-      expect(result).not.toHaveProperty(STATE_PROPOSED_DB_REPORTS_KEY)
-      expect(result).not.toHaveProperty(STATE_FINALIZED_DB_REPORTS_KEY)
+      expect(result).not.toHaveProperty(STATE_ONCHAIN_REQUESTS)
+      expect(result).not.toHaveProperty(STATE_DETECTED_DB_REPORTS)
+      expect(result).not.toHaveProperty(STATE_PROPOSED_DB_REPORTS)
+      expect(result).not.toHaveProperty(STATE_FINALIZED_DB_REPORTS)
       expect(result).toHaveProperty(constants.state.KEY_IDENTITY_FILE)
 
       const finalizedEvents = await db.findReports(collection, {
-        [schemas.constants.reportFields.SCHEMA_STATUS_KEY]: constants.db.txStatus.FINALIZED,
+        [constants.db.KEY_STATUS]: constants.db.txStatus.FINALIZED,
       })
 
       expect(finalizedEvents).toHaveLength(2)

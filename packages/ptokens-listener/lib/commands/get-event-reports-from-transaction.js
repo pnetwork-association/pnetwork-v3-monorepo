@@ -1,5 +1,5 @@
 const constants = require('ptokens-constants')
-const schemas = require('ptokens-schemas')
+
 const { checkConfiguration } = require('../check-configuration')
 const { getInitialStateFromConfiguration } = require('../populate-state-from-configuration')
 const {
@@ -22,8 +22,8 @@ const getEventReportsFromTransactionCommand = (_config, _hash, _eventName, _save
   checkConfiguration(_config)
     .then(_config =>
       getEventReportsFromTransaction(
-        _config[schemas.constants.configurationFields.SCHEMA_PROVIDER_URL_KEY],
-        _config[schemas.constants.configurationFields.SCHEMA_NETWORK_ID_KEY],
+        _config[constants.config.KEY_PROVIDER_URL],
+        _config[constants.config.KEY_NETWORK_ID],
         _hash,
         _eventName
       )
