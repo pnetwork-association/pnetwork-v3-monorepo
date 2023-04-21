@@ -27,6 +27,7 @@ contract StateManager is IStateManager, Context, ReentrancyGuard {
     mapping(bytes32 => bytes1) private _operationsStatus;
 
     address public immutable factory;
+    address public immutable epochsManager;
     uint32 private immutable _baseChallengePeriodDuration;
 
     modifier onlySentinel(
@@ -49,11 +50,29 @@ contract StateManager is IStateManager, Context, ReentrancyGuard {
         _;
     }
 
-    constructor(address _factory, uint32 baseChallengePeriodDuration) {
-        factory = _factory;
+    modifier onlyFarFromClosingAndOpeningCurrentEpoch() {
+        uint256 currentEpoch = IEpochsManager(epochsManager).currentEpoch();
+        uint256 epochDuration = IEpochsManager(epochsManager).epochDuration();
+        uint256 startFirstEpochTimestamp = IEpochsManager(epochsManager).startFirstEpochTimestamp();
+
+        uint256 currentEpochStartTimestamp = startFirstEpochTimestamp + ((currentEpoch - 1) * epochDuration) + 1;
+        uint256 currentEpochEndTimestamp = startFirstEpochTimestamp + (currentEpoch * epochDuration);
+
+        if (
+            block.timestamp <= currentEpochStartTimestamp + 3600 || block.timestamp >= currentEpochEndTimestamp + 3600
+        ) {
+            revert Errors.Paused();
+        }
+        _;
+    }
+
+    constructor(address factory_, address epochsManager_, uint32 baseChallengePeriodDuration) {
+        factory = factory_;
+        epochsManager = epochsManager_;
         _baseChallengePeriodDuration = baseChallengePeriodDuration;
     }
 
+    /// @inheritdoc IStateManager
     function challengePeriodOf(Operation calldata operation) public view returns (uint64, uint64) {
         bytes32 operationId = operationIdOf(operation);
         bytes1 operationStatus = _operationsStatus[operationId];
@@ -83,7 +102,10 @@ contract StateManager is IStateManager, Context, ReentrancyGuard {
             );
     }
 
-    function protocolGuardianCancelOperation(Operation calldata operation) external onlyGuardian {
+    /// @inheritdoc IStateManager
+    function protocolGuardianCancelOperation(
+        Operation calldata operation
+    ) external onlyFarFromClosingAndOpeningCurrentEpoch onlyGuardian("cancel") {
         _protocolCancelOperation(operation, Actor.Guardian);
     }
 
@@ -95,12 +117,18 @@ contract StateManager is IStateManager, Context, ReentrancyGuard {
         _protocolCancelOperation(operation, Actor.Governance);
     }
 
-    function protocolSentinelCancelOperation(Operation calldata operation) external onlySentinel {
+    /// @inheritdoc IStateManager
+    function protocolSentinelCancelOperation(
+        Operation calldata operation,
+        bytes calldata proof
+    ) external onlyFarFromClosingAndOpeningCurrentEpoch onlySentinel(operation, proof, "cancel") {
         _protocolCancelOperation(operation, Actor.Sentinel);
     }
 
     /// @inheritdoc IStateManager
-    function protocolExecuteOperation(Operation calldata operation) external nonReentrant {
+    function protocolExecuteOperation(
+        Operation calldata operation
+    ) external onlyFarFromClosingAndOpeningCurrentEpoch nonReentrant {
         bytes32 operationId = operationIdOf(operation);
 
         bytes1 operationStatus = _operationsStatus[operationId];
@@ -108,8 +136,7 @@ contract StateManager is IStateManager, Context, ReentrancyGuard {
             revert Errors.OperationAlreadyExecuted(operation);
         } else if (operationStatus == Constants.OPERATION_CANCELLED) {
             revert Errors.OperationAlreadyCancelled(operation);
-        }
-        if (operationStatus != Constants.OPERATION_QUEUED) {
+        } else if (operationStatus == Constants.OPERATION_NULL) {
             revert Errors.OperationNotQueued(operation);
         }
 
@@ -148,7 +175,7 @@ contract StateManager is IStateManager, Context, ReentrancyGuard {
     }
 
     /// @inheritdoc IStateManager
-    function protocolQueueOperation(Operation calldata operation) external {
+    function protocolQueueOperation(Operation calldata operation) external onlyFarFromClosingAndOpeningCurrentEpoch {
         bytes32 operationId = operationIdOf(operation);
 
         bytes1 operationStatus = _operationsStatus[operationId];
