@@ -3,9 +3,7 @@ const constants = require('ptokens-constants')
 const {
   pollForRequestsAndProposeLoop: evmPollForRequestsAndProposeLoop,
 } = require('../evm/evm-process-proposal-txs')
-const {
-  getImplementationFromChainId,
-} = require('../get-implementation-from-chainid')
+const { getImplementationFromChainId } = require('../get-implementation-from-chainid')
 
 const blockchainTypeImplementationMapping = {
   [ptokensUtilsConstants.blockchainType.EVM]: evmPollForRequestsAndProposeLoop,

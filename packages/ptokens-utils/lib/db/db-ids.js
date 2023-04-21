@@ -17,9 +17,7 @@ const getLegacyReportIdPrefix = (_bridgeSide, _bridgeType) =>
   getChainSymbolFromBridgeType(_bridgeSide, _bridgeType).then(_symbol => {
     const legacyBridges = [PBTC_ON_ETH, PBTC_ON_EOS]
     if (!legacyBridges.includes(_bridgeType))
-      return Promise.reject(
-        new Error(`This bridge type IS NOT legacy: ${_bridgeType}`)
-      )
+      return Promise.reject(new Error(`This bridge type IS NOT legacy: ${_bridgeType}`))
 
     switch (_bridgeSide) {
       case SIDE_NATIVE:
@@ -27,9 +25,7 @@ const getLegacyReportIdPrefix = (_bridgeSide, _bridgeType) =>
       case SIDE_HOST:
         return `pBTC_${_symbol.toUpperCase()} `
       default:
-        return Promise.reject(
-          new Error(`Invalid type for legacy prefix: '${_bridgeSide}'`)
-        )
+        return Promise.reject(new Error(`Invalid type for legacy prefix: '${_bridgeSide}'`))
     }
   })
 
@@ -38,9 +34,7 @@ const getNonLegacyReportIdPrefix = (_bridgeSide, _bridgeType) =>
     const allowedSides = [SIDE_HOST, SIDE_NATIVE]
 
     if (!allowedSides.includes(_bridgeSide))
-      return Promise.reject(
-        new Error(`Invalid side for non legacy prefix: '${_bridgeSide}'`)
-      )
+      return Promise.reject(new Error(`Invalid side for non legacy prefix: '${_bridgeSide}'`))
 
     return `${_bridgeType}-${_symbol}-`
   })
@@ -51,11 +45,8 @@ const getReportIdPrefix = R.curry((_bridgeSide, _bridgeType, _isLegacy) =>
     : getNonLegacyReportIdPrefix(_bridgeSide, _bridgeType)
 )
 
-const getReportIdFromNonce = R.curry(
-  (_bridgeSide, _bridgeType, _legacy, _nonce) =>
-    getReportIdPrefix(_bridgeSide, _bridgeType, _legacy).then(
-      _prefix => `${_prefix}${_nonce}`
-    )
+const getReportIdFromNonce = R.curry((_bridgeSide, _bridgeType, _legacy, _nonce) =>
+  getReportIdPrefix(_bridgeSide, _bridgeType, _legacy).then(_prefix => `${_prefix}${_nonce}`)
 )
 
 const getHostReportIdPrefix = getReportIdPrefix('host')

@@ -36,30 +36,21 @@ describe('General events report update tests', () => {
         '0xd656ffac17b71e2ea2e24f72cd4c15c909a0ebe1696f8ead388eb268268f1cbf',
         '0x2c7e8870be7643d97699bbcf3396dfb13217ee54a6784abfcacdb1e077fe201f',
       ]
-      const proposedTimestamps = [
-        new Date().toISOString(),
-        new Date().toISOString(),
-      ]
+      const proposedTimestamps = [new Date().toISOString(), new Date().toISOString()]
       const state = {
         [constants.state.STATE_KEY_DB]: collection,
         [STATE_PROPOSED_DB_REPORTS_KEY]: [
           {
             ...detectedEvents[0],
-            [schemas.constants.reportFields.SCHEMA_PROPOSAL_TS_KEY]:
-              proposedTimestamps[0],
-            [schemas.constants.reportFields.SCHEMA_PROPOSAL_TX_HASH_KEY]:
-              proposedTxHashes[0],
-            [schemas.constants.reportFields.SCHEMA_STATUS_KEY]:
-              schemas.db.enums.txStatus.PROPOSED,
+            [schemas.constants.reportFields.SCHEMA_PROPOSAL_TS_KEY]: proposedTimestamps[0],
+            [schemas.constants.reportFields.SCHEMA_PROPOSAL_TX_HASH_KEY]: proposedTxHashes[0],
+            [schemas.constants.reportFields.SCHEMA_STATUS_KEY]: schemas.db.enums.txStatus.PROPOSED,
           },
           {
             ...detectedEvents[1],
-            [schemas.constants.reportFields.SCHEMA_PROPOSAL_TS_KEY]:
-              proposedTimestamps[1],
-            [schemas.constants.reportFields.SCHEMA_PROPOSAL_TX_HASH_KEY]:
-              proposedTxHashes[1],
-            [schemas.constants.reportFields.SCHEMA_STATUS_KEY]:
-              schemas.db.enums.txStatus.PROPOSED,
+            [schemas.constants.reportFields.SCHEMA_PROPOSAL_TS_KEY]: proposedTimestamps[1],
+            [schemas.constants.reportFields.SCHEMA_PROPOSAL_TX_HASH_KEY]: proposedTxHashes[1],
+            [schemas.constants.reportFields.SCHEMA_STATUS_KEY]: schemas.db.enums.txStatus.PROPOSED,
           },
         ],
       }
@@ -70,8 +61,7 @@ describe('General events report update tests', () => {
       expect(result).toHaveProperty(STATE_PROPOSED_DB_REPORTS_KEY)
 
       const query = {
-        [schemas.constants.reportFields.SCHEMA_STATUS_KEY]:
-          schemas.db.enums.txStatus.PROPOSED,
+        [schemas.constants.reportFields.SCHEMA_STATUS_KEY]: schemas.db.enums.txStatus.PROPOSED,
       }
 
       const updatedReports = await db.findReports(collection, query)

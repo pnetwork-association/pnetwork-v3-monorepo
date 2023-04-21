@@ -1,8 +1,4 @@
-const {
-  ERROR_TIMEOUT,
-  ERROR_SERVER_ERROR,
-  HTTPResponseError,
-} = require('../errors')
+const { ERROR_TIMEOUT, ERROR_SERVER_ERROR, HTTPResponseError } = require('../errors')
 const fetch = require('node-fetch')
 const jsonrpc = require('jsonrpc-lite')
 const R = require('ramda')
@@ -18,9 +14,7 @@ const setControllerTimeout = R.curry((_millis, _controller) =>
 )
 
 const getAbortControllerAndTimeoutID = _timeoutMillis =>
-  Promise.resolve(new AbortController()).then(
-    setControllerTimeout(_timeoutMillis)
-  )
+  Promise.resolve(new AbortController()).then(setControllerTimeout(_timeoutMillis))
 
 const fetchWithAbort = (_url, _opts, _controller, _timeoutID) =>
   fetch(_url, { ..._opts, signal: _controller.signal })
@@ -35,10 +29,7 @@ const fetchWithAbort = (_url, _opts, _controller, _timeoutID) =>
     })
 
 const postRequest = (_url, _body, _headers = {}, _timeout = 1000) =>
-  Promise.all([
-    JSON.stringify(_body),
-    getAbortControllerAndTimeoutID(_timeout),
-  ]).then(
+  Promise.all([JSON.stringify(_body), getAbortControllerAndTimeoutID(_timeout)]).then(
     ([_bodyStr, [_controller, _timeoutID]]) =>
       logger.info(`Outgoing POST ${_bodyStr} to ${_url}`) ||
       fetchWithAbort(
@@ -62,21 +53,15 @@ const getRequest = (_url, _headers = {}, _timeout = 1000) =>
 const getJsonBody = _resp => _resp.json()
 
 const checkStatus = _resp =>
-  _resp.ok
-    ? Promise.resolve(_resp)
-    : Promise.reject(new HTTPResponseError(_resp))
+  _resp.ok ? Promise.resolve(_resp) : Promise.reject(new HTTPResponseError(_resp))
 
 const fetchJsonByGet = (_url, _headers = {}, _timeout = 1000) =>
   getRequest(_url, _headers, _timeout).then(checkStatus).then(getJsonBody)
 
 const fetchJsonByPost = (_url, _body, _headers = {}, _timeout = 5000) =>
-  postRequest(_url, _body, _headers, _timeout)
-    .then(checkStatus)
-    .then(getJsonBody)
+  postRequest(_url, _body, _headers, _timeout).then(checkStatus).then(getJsonBody)
 
-const plainJsonResponse = R.curry((_res, _result) =>
-  _res.status(200).send(_result)
-)
+const plainJsonResponse = R.curry((_res, _result) => _res.status(200).send(_result))
 
 const jsonRpcSuccess = R.curry((_req, _res, _result) =>
   _res.send(jsonrpc.success(_req.body.id, _result))
@@ -93,12 +78,7 @@ const jsonRpcError = R.curry((_req, _res, _err) => {
   )
 })
 
-const jsonRpcFetch = (
-  _url,
-  _jsonRpcRequest,
-  _headers = {},
-  _timeout = 1000
-) => {
+const jsonRpcFetch = (_url, _jsonRpcRequest, _headers = {}, _timeout = 1000) => {
   const headers = {
     'Content-Type': 'application/json',
     ..._headers,

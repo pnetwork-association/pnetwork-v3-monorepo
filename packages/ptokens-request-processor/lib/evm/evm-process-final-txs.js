@@ -2,9 +2,7 @@ const R = require('ramda')
 const { logic } = require('ptokens-utils')
 const { logger } = require('../get-logger')
 const { maybeBuildFinalTxsAndPutInState } = require('./evm-build-final-txs')
-const {
-  getProposedEventsFromDbAndPutInState,
-} = require('../get-events-from-db')
+const { getProposedEventsFromDbAndPutInState } = require('../get-events-from-db')
 const {
   maybefilterForExpiredProposalsAndPutThemInState,
 } = require('./evm-filter-for-expired-challenge-period')
@@ -23,11 +21,7 @@ const maybeProcessFinalTransactions = _state =>
     .then(removeProposalsEventsFromState)
     .then(maybeUpdateFinalizedEventsInDb)
     .then(removeFinalizedEventsFromState)
-    .then(
-      logic.sleepThenReturnArg(
-        _state[constants.state.STATE_KEY_LOOP_SLEEP_TIME]
-      )
-    )
+    .then(logic.sleepThenReturnArg(_state[constants.state.STATE_KEY_LOOP_SLEEP_TIME]))
 
 const processFinalTxsErrorHandler = R.curry((_state, _err) => {
   logger.error('Final transactions error handler...')

@@ -1,9 +1,7 @@
 const constants = require('ptokens-constants')
 const schemas = require('ptokens-schemas')
 const { checkConfiguration } = require('../check-configuration')
-const {
-  getInitialStateFromConfiguration,
-} = require('../populate-state-from-configuration')
+const { getInitialStateFromConfiguration } = require('../populate-state-from-configuration')
 const {
   getEventReportsFromTransaction,
 } = require('../interfaces/get-event-reports-from-transaction')
@@ -16,18 +14,11 @@ const printReports = _reports =>
 const insertReportsIntoDb = (_config, _reports) =>
   _reports
     ? getInitialStateFromConfiguration(_config).then(_state =>
-        Promise.all(
-          _reports.map(insertReportIntoDb(_state[constants.state.STATE_KEY_DB]))
-        )
+        Promise.all(_reports.map(insertReportIntoDb(_state[constants.state.STATE_KEY_DB])))
       )
     : Promise.resolve(_reports)
 
-const getEventReportsFromTransactionCommand = (
-  _config,
-  _hash,
-  _eventName,
-  _save = false
-) =>
+const getEventReportsFromTransactionCommand = (_config, _hash, _eventName, _save = false) =>
   checkConfiguration(_config)
     .then(_config =>
       getEventReportsFromTransaction(
@@ -38,8 +29,6 @@ const getEventReportsFromTransactionCommand = (
       )
     )
     .then(printReports)
-    .then(_reports =>
-      _save ? insertReportsIntoDb(_config, _reports) : _reports
-    )
+    .then(_reports => (_save ? insertReportsIntoDb(_config, _reports) : _reports))
 
 module.exports = { getEventReportsFromTransactionCommand }

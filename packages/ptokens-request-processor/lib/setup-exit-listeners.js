@@ -1,9 +1,7 @@
 const { logger, shutDownLogging } = require('./get-logger')
 
 const exitCleanly = _exitCode =>
-  logger.info('Clean exit...') ||
-  // eslint-disable-next-line no-process-exit
-  shutDownLogging().then(_ => process.exit(_exitCode))
+  logger.info('Clean exit...') || shutDownLogging().then(_ => process.exit(_exitCode))
 
 const setupExitEventListeners = () => {
   ;['SIGINT', 'SIGTERM'].map(_signal => {

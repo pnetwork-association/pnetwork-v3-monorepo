@@ -20,10 +20,7 @@ describe('DB fields tests', () => {
       ]
 
       await Object.values(bridgeTypes).map(async (_bridgeType, _i) => {
-        const result = await db.getReportTxHashField(
-          constants.SIDE_HOST,
-          _bridgeType
-        )
+        const result = await db.getReportTxHashField(constants.SIDE_HOST, _bridgeType)
         assert.equal(result, expected[_i])
       })
     })
@@ -45,10 +42,7 @@ describe('DB fields tests', () => {
       ]
 
       await Object.values(bridgeTypes).map(async (_bridgeType, _i) => {
-        const result = await db.getReportTxHashField(
-          constants.SIDE_NATIVE,
-          _bridgeType
-        )
+        const result = await db.getReportTxHashField(constants.SIDE_NATIVE, _bridgeType)
         assert.equal(result, expected[_i])
       })
     })

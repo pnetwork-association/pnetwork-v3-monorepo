@@ -10,8 +10,7 @@ describe('Loop tests', () => {
     }
 
     it('Should loop over a function correctly', async () => {
-      const fn = _state =>
-        Promise.resolve(R.assoc('iteration', _state.iteration + 1, _state))
+      const fn = _state => Promise.resolve(R.assoc('iteration', _state.iteration + 1, _state))
 
       let result = await fn(state).then(fn)
 
@@ -81,9 +80,7 @@ describe('Loop tests', () => {
         logic
           .loop(loopParams, fn, [_state])
           .catch(_err =>
-            _err.message.includes(rejectionError)
-              ? main(_err.lastLoopState)
-              : Promise.reject(_err)
+            _err.message.includes(rejectionError) ? main(_err.lastLoopState) : Promise.reject(_err)
           )
 
       const expectedLastState = { value: 'hello', iteration: 0 }
@@ -102,9 +99,9 @@ describe('Loop tests', () => {
       const sleepTime = 100
       const loopParams = { rounds: rounds }
       const fn = _state =>
-        Promise.resolve(
-          R.assoc('iteration', _state.iteration + 1, _state)
-        ).then(logic.sleepThenReturnArg(sleepTime))
+        Promise.resolve(R.assoc('iteration', _state.iteration + 1, _state)).then(
+          logic.sleepThenReturnArg(sleepTime)
+        )
 
       const timeBefore = new Date().getTime()
       const result = await logic.loop(loopParams, fn, [state])

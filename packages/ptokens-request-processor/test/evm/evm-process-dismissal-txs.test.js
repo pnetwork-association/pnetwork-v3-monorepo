@@ -43,36 +43,29 @@ describe('Tests for queued requests detection and dismissal', () => {
     it('Should put invalid transactions to be dismissed into state', async () => {
       const { logic } = require('ptokens-utils')
 
-      jest
-        .spyOn(logic, 'sleepForXMilliseconds')
-        .mockImplementation(_ => Promise.resolve())
+      jest.spyOn(logic, 'sleepForXMilliseconds').mockImplementation(_ => Promise.resolve())
       jest
         .spyOn(logic, 'sleepThenReturnArg')
         .mockImplementation(R.curry((_, _r) => Promise.resolve(_r)))
 
       const evmBuildDismissalModule = require('../../lib/evm/evm-build-dismissal-txs')
 
-      jest
-        .spyOn(evmBuildDismissalModule, 'maybeBuildDismissalTxsAndPutInState')
-        .mockImplementation(
-          R.assoc(STATE_DISMISSED_DB_REPORTS_KEY, [
-            {
-              ...queuedReports[0],
-              [schemas.constants.reportFields.SCHEMA_STATUS_KEY]:
-                schemas.db.enums.txStatus.CANCELLED,
-            },
-            {
-              ...queuedReports[1],
-              [schemas.constants.reportFields.SCHEMA_STATUS_KEY]:
-                schemas.db.enums.txStatus.CANCELLED,
-            },
-            {
-              ...queuedReports[2],
-              [schemas.constants.reportFields.SCHEMA_STATUS_KEY]:
-                schemas.db.enums.txStatus.CANCELLED,
-            },
-          ])
-        )
+      jest.spyOn(evmBuildDismissalModule, 'maybeBuildDismissalTxsAndPutInState').mockImplementation(
+        R.assoc(STATE_DISMISSED_DB_REPORTS_KEY, [
+          {
+            ...queuedReports[0],
+            [schemas.constants.reportFields.SCHEMA_STATUS_KEY]: schemas.db.enums.txStatus.CANCELLED,
+          },
+          {
+            ...queuedReports[1],
+            [schemas.constants.reportFields.SCHEMA_STATUS_KEY]: schemas.db.enums.txStatus.CANCELLED,
+          },
+          {
+            ...queuedReports[2],
+            [schemas.constants.reportFields.SCHEMA_STATUS_KEY]: schemas.db.enums.txStatus.CANCELLED,
+          },
+        ])
+      )
 
       const {
         maybeProcessNewRequestsAndDismiss,
@@ -86,22 +79,18 @@ describe('Tests for queued requests detection and dismissal', () => {
 
       expect(
         await db.findReports(collection, {
-          [schemas.constants.reportFields.SCHEMA_STATUS_KEY]:
-            schemas.db.enums.txStatus.CANCELLED,
+          [schemas.constants.reportFields.SCHEMA_STATUS_KEY]: schemas.db.enums.txStatus.CANCELLED,
         })
       ).toStrictEqual([])
 
       const result = await maybeProcessNewRequestsAndDismiss(state)
 
       const cancelledReports = await db.findReports(collection, {
-        [schemas.constants.reportFields.SCHEMA_STATUS_KEY]:
-          schemas.db.enums.txStatus.CANCELLED,
+        [schemas.constants.reportFields.SCHEMA_STATUS_KEY]: schemas.db.enums.txStatus.CANCELLED,
       })
 
       expect(
-        cancelledReports.map(
-          R.prop(schemas.constants.reportFields.SCHEMA_ID_KEY)
-        )
+        cancelledReports.map(R.prop(schemas.constants.reportFields.SCHEMA_ID_KEY))
       ).toStrictEqual([
         queuedReports[0][schemas.constants.reportFields.SCHEMA_ID_KEY],
         queuedReports[1][schemas.constants.reportFields.SCHEMA_ID_KEY],

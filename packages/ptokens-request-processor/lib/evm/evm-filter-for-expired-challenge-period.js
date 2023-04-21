@@ -11,20 +11,13 @@ const getExpirationDate = R.curry(
   (_challengePeriod, _proposedEventTimestamp) =>
     new Promise((resolve, reject) =>
       utils.isNotNil(_proposedEventTimestamp)
-        ? resolve(
-            utils.date.addMinutesToDate(
-              _challengePeriod,
-              new Date(_proposedEventTimestamp)
-            )
-          )
+        ? resolve(utils.date.addMinutesToDate(_challengePeriod, new Date(_proposedEventTimestamp)))
         : reject(ERROR_INVALID_PROPOSED_TIMESTAMP)
     )
 )
 
 const getEventProposedTimestamp = _event =>
-  Promise.resolve(
-    R.prop(schemas.constants.reportFields.SCHEMA_PROPOSAL_TS_KEY, _event)
-  )
+  Promise.resolve(R.prop(schemas.constants.reportFields.SCHEMA_PROPOSAL_TS_KEY, _event))
 
 const getCurrentDate = () => new Date()
 
@@ -33,16 +26,11 @@ const isChallengePeriodExpired = R.curry((_challengePeriod, _proposedEvent) =>
     .then(getExpirationDate(_challengePeriod))
     .then(_expirationDate => {
       const now = getCurrentDate()
-      const slicedTxHash = _proposedEvent[
-        schemas.constants.reportFields.SCHEMA_TX_HASH_KEY
-      ].slice(0, 10)
-      logger.debug(
-        '%s: %s > %s => %s',
-        slicedTxHash,
-        now,
-        _expirationDate,
-        now > _expirationDate
+      const slicedTxHash = _proposedEvent[schemas.constants.reportFields.SCHEMA_TX_HASH_KEY].slice(
+        0,
+        10
       )
+      logger.debug('%s: %s > %s => %s', slicedTxHash, now, _expirationDate, now > _expirationDate)
       return now > _expirationDate ? _proposedEvent : null
     })
     .catch(_err =>
@@ -57,12 +45,10 @@ const isChallengePeriodExpired = R.curry((_challengePeriod, _proposedEvent) =>
 
 const keepExpiredProposedEvents = R.curry(
   (_challengePeriod, _proposedEvents) =>
-    logger.info(
-      `Checking ${R.length(_proposedEvents)} events for expiration...`
-    ) ||
-    Promise.all(
-      _proposedEvents.map(isChallengePeriodExpired(_challengePeriod))
-    ).then(utils.removeNilsFromList)
+    logger.info(`Checking ${R.length(_proposedEvents)} events for expiration...`) ||
+    Promise.all(_proposedEvents.map(isChallengePeriodExpired(_challengePeriod))).then(
+      utils.removeNilsFromList
+    )
 )
 
 const filterForExpiredProposalsAndPutThemInState = _state =>
@@ -81,9 +67,8 @@ const filterForExpiredProposalsAndPutThemInState = _state =>
     return keepExpiredProposedEvents(challengePeriod, proposedEvents)
       .then(
         _filteredReports =>
-          logger.info(
-            `Found ${R.length(_filteredReports)} expired events...`
-          ) || R.assoc(STATE_PROPOSED_DB_REPORTS_KEY, _filteredReports, _state)
+          logger.info(`Found ${R.length(_filteredReports)} expired events...`) ||
+          R.assoc(STATE_PROPOSED_DB_REPORTS_KEY, _filteredReports, _state)
       )
       .then(resolve)
   })
@@ -94,9 +79,8 @@ const maybefilterForExpiredProposalsAndPutThemInState = _state => {
   const proposedEventsLength = R.length(proposedEvents)
 
   return proposedEventsLength === 0
-    ? logger.info(
-        'No proposed events so far, skipping challenge period filtering...'
-      ) || Promise.resolve(_state)
+    ? logger.info('No proposed events so far, skipping challenge period filtering...') ||
+        Promise.resolve(_state)
     : filterForExpiredProposalsAndPutThemInState(_state)
 }
 

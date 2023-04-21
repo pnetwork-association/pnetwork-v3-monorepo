@@ -57,46 +57,28 @@ const logUserOperationFromAbiArgs = (_operationName, _args) => {
   logger.info('])')
 }
 
-const getProtocolQueueOperationAbi = () =>
-  getProtocolOperationAbi('protocolQueueOperation')
-const getProtocolExecuteOperationAbi = () =>
-  getProtocolOperationAbi('protocolExecuteOperation')
-const getProtocolCancelOperationAbi = () =>
-  getProtocolOperationAbi('protocolCancelOperation')
+const getProtocolQueueOperationAbi = () => getProtocolOperationAbi('protocolQueueOperation')
+const getProtocolExecuteOperationAbi = () => getProtocolOperationAbi('protocolExecuteOperation')
+const getProtocolCancelOperationAbi = () => getProtocolOperationAbi('protocolCancelOperation')
 
 const getUserOperationAbiArgsFromReport = _eventReport => [
   [
-    _eventReport[
-      schemas.constants.reportFields.SCHEMA_ORIGINATING_BLOCK_HASH_KEY
-    ] || _eventReport[schemas.constants.reportFields.SCHEMA_BLOCK_HASH_KEY],
-    _eventReport[
-      schemas.constants.reportFields.SCHEMA_ORIGINATING_TX_HASH_KEY
-    ] || _eventReport[schemas.constants.reportFields.SCHEMA_TX_HASH_KEY],
+    _eventReport[schemas.constants.reportFields.SCHEMA_ORIGINATING_BLOCK_HASH_KEY] ||
+      _eventReport[schemas.constants.reportFields.SCHEMA_BLOCK_HASH_KEY],
+    _eventReport[schemas.constants.reportFields.SCHEMA_ORIGINATING_TX_HASH_KEY] ||
+      _eventReport[schemas.constants.reportFields.SCHEMA_TX_HASH_KEY],
     _eventReport[schemas.constants.reportFields.SCHEMA_OPTIONS_MASK],
     _eventReport[schemas.constants.reportFields.SCHEMA_NONCE_KEY],
-    _eventReport[
-      schemas.constants.reportFields.SCHEMA_UNDERLYING_ASSET_DECIMALS_KEY
-    ],
+    _eventReport[schemas.constants.reportFields.SCHEMA_UNDERLYING_ASSET_DECIMALS_KEY],
     _eventReport[schemas.constants.reportFields.SCHEMA_ASSET_AMOUNT_KEY],
-    _eventReport[
-      schemas.constants.reportFields.SCHEMA_UNDERLYING_ASSET_TOKEN_ADDRESS_KEY
-    ],
-    _eventReport[
-      schemas.constants.reportFields.SCHEMA_ORIGINATING_NETWORK_ID_KEY
-    ] || _eventReport[schemas.constants.reportFields.SCHEMA_NETWORK_ID_KEY],
-    _eventReport[
-      schemas.constants.reportFields.SCHEMA_DESTINATION_NETWORK_ID_KEY
-    ],
-    _eventReport[
-      schemas.constants.reportFields.SCHEMA_UNDERLYING_ASSET_NETWORK_ID_KEY
-    ],
+    _eventReport[schemas.constants.reportFields.SCHEMA_UNDERLYING_ASSET_TOKEN_ADDRESS_KEY],
+    _eventReport[schemas.constants.reportFields.SCHEMA_ORIGINATING_NETWORK_ID_KEY] ||
+      _eventReport[schemas.constants.reportFields.SCHEMA_NETWORK_ID_KEY],
+    _eventReport[schemas.constants.reportFields.SCHEMA_DESTINATION_NETWORK_ID_KEY],
+    _eventReport[schemas.constants.reportFields.SCHEMA_UNDERLYING_ASSET_NETWORK_ID_KEY],
     _eventReport[schemas.constants.reportFields.SCHEMA_DESTINATION_ACCOUNT_KEY],
-    _eventReport[
-      schemas.constants.reportFields.SCHEMA_UNDERLYING_ASSET_NAME_KEY
-    ],
-    _eventReport[
-      schemas.constants.reportFields.SCHEMA_UNDERLYING_ASSET_SYMBOL_KEY
-    ],
+    _eventReport[schemas.constants.reportFields.SCHEMA_UNDERLYING_ASSET_NAME_KEY],
+    _eventReport[schemas.constants.reportFields.SCHEMA_UNDERLYING_ASSET_SYMBOL_KEY],
     _eventReport[schemas.constants.reportFields.SCHEMA_USER_DATA_KEY],
   ],
 ]

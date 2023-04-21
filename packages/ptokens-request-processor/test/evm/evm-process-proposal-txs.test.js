@@ -17,8 +17,7 @@ describe('Main EVM flow for transaction proposal tests', () => {
     const dbName = global.__MONGO_DB_NAME__
     const table = 'test'
     const gpgEncryptedFile = './identity3.gpg'
-    const privKey =
-      '0xdf57089febbacf7ba0bc227dafbffa9fc08a93fdc68e1e42411a14efcf23656e'
+    const privKey = '0xdf57089febbacf7ba0bc227dafbffa9fc08a93fdc68e1e42411a14efcf23656e'
 
     beforeAll(async () => {
       collection = await db.getCollection(uri, dbName, table)
@@ -62,9 +61,7 @@ describe('Main EVM flow for transaction proposal tests', () => {
           .mockResolvedValueOnce(expecteCallResult[1]),
       })
 
-      jest
-        .spyOn(logic, 'sleepForXMilliseconds')
-        .mockImplementation(_ => Promise.resolve())
+      jest.spyOn(logic, 'sleepForXMilliseconds').mockImplementation(_ => Promise.resolve())
       jest
         .spyOn(logic, 'sleepThenReturnArg')
         .mockImplementation(R.curry((_, _r) => Promise.resolve(_r)))
@@ -72,10 +69,7 @@ describe('Main EVM flow for transaction proposal tests', () => {
       jest
         .spyOn(ethers, 'Contract')
         .mockImplementation(
-          jestMockContractConstructor(
-            'protocolQueueOperation',
-            mockQueueOperation
-          )
+          jestMockContractConstructor('protocolQueueOperation', mockQueueOperation)
         )
 
       jest.spyOn(fs, 'readFile').mockResolvedValue(privKey)
@@ -98,8 +92,7 @@ describe('Main EVM flow for transaction proposal tests', () => {
       expect(result).toHaveProperty(constants.state.STATE_KEY_IDENTITY_FILE)
 
       const proposedEvents = await db.findReports(collection, {
-        [schemas.constants.reportFields.SCHEMA_STATUS_KEY]:
-          schemas.db.enums.txStatus.PROPOSED,
+        [schemas.constants.reportFields.SCHEMA_STATUS_KEY]: schemas.db.enums.txStatus.PROPOSED,
       })
 
       expect(proposedEvents).toHaveLength(2)

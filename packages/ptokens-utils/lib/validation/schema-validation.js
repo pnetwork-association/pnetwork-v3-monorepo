@@ -13,8 +13,7 @@ const getValidationFunction = R.memoizeWith(JSON.stringify, _schema =>
   Promise.resolve(ajv.compile(_schema))
 )
 
-const printValidationError = _err =>
-  logger.error('%s %s', _err.instancePath, _err.message)
+const printValidationError = _err => logger.error('%s %s', _err.instancePath, _err.message)
 
 const handleValidationError = _validationError => {
   _validationError.errors.map(printValidationError)
@@ -30,19 +29,17 @@ const validateJsonAsyncSchema = R.curry((_validationFunction, _json) =>
 const validateJsonSyncSchema = R.curry((_validationFunction, _json) =>
   Promise.resolve(_validationFunction(_json))
     .then(_valid =>
-      _valid
-        ? _json
-        : Promise.reject(new Ajv.ValidationError(_validationFunction.errors))
+      _valid ? _json : Promise.reject(new Ajv.ValidationError(_validationFunction.errors))
     )
     .catch(handleValidationError)
 )
 
 const validateJson = R.curry((_schema, _json) =>
-  getValidationFunction(_schema).then(_validate => {
-    return _schema['$async']
+  getValidationFunction(_schema).then(_validate =>
+    _schema['$async']
       ? validateJsonAsyncSchema(_validate, _json)
       : validateJsonSyncSchema(_validate, _json)
-  })
+  )
 )
 
 module.exports = {

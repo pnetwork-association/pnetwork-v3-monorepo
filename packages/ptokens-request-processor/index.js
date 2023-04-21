@@ -6,18 +6,10 @@ const { logger } = require('./lib/get-logger')
 const { validation } = require('ptokens-utils')
 const schemas = require('ptokens-schemas')
 const { setupExitEventListeners } = require('./lib/setup-exit-listeners')
-const {
-  pollForRequestsAndPropose,
-} = require('./lib/interfaces/process-proposal-txs')
-const {
-  pollForRequestsAndDismiss,
-} = require('./lib/interfaces/process-dismissal-txs')
-const {
-  processFinalTransactions,
-} = require('./lib/interfaces/process-final-txs')
-const {
-  getInitialStateFromConfiguration,
-} = require('./lib/populate-state-from-configuration')
+const { pollForRequestsAndPropose } = require('./lib/interfaces/process-proposal-txs')
+const { pollForRequestsAndDismiss } = require('./lib/interfaces/process-dismissal-txs')
+const { processFinalTransactions } = require('./lib/interfaces/process-final-txs')
+const { getInitialStateFromConfiguration } = require('./lib/populate-state-from-configuration')
 const { version } = require('./package')
 
 const COMMANDS = {
@@ -35,17 +27,10 @@ const commandToFunctionMapping = {
 const requestProcessor = (_config, _cmd) =>
   logger.info(_config) ||
   setupExitEventListeners()
-    .then(_ =>
-      validation.validateJson(schemas.configurations.requestProcessor, _config)
-    )
+    .then(_ => validation.validateJson(schemas.configurations.requestProcessor, _config))
     .then(_ => getInitialStateFromConfiguration(_config))
     .then(commandToFunctionMapping[_cmd])
-    .catch(
-      _err =>
-        logger.error(_err) ||
-        // eslint-disable-next-line no-process-exit
-        process.exit(1)
-    )
+    .catch(_err => logger.error(_err) || process.exit(1))
 
 const main = () => {
   program
@@ -60,19 +45,13 @@ const main = () => {
 
   program
     .command(COMMANDS.POLL_FOR_REQUESTS_AND_PROPOSE)
-    .description(
-      'Poll for user requests and propose in the destination blockchain'
-    )
-    .action(() =>
-      requestProcessor(config, COMMANDS.POLL_FOR_REQUESTS_AND_PROPOSE)
-    )
+    .description('Poll for user requests and propose in the destination blockchain')
+    .action(() => requestProcessor(config, COMMANDS.POLL_FOR_REQUESTS_AND_PROPOSE))
 
   program
     .command(COMMANDS.POLL_FOR_REQUESTS_AND_DISMISS)
     .description('Poll for queued requests and dismiss them if invalid')
-    .action(() =>
-      requestProcessor(config, COMMANDS.POLL_FOR_REQUESTS_AND_DISMISS)
-    )
+    .action(() => requestProcessor(config, COMMANDS.POLL_FOR_REQUESTS_AND_DISMISS))
 
   program.parse(process.argv)
 }

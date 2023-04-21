@@ -1,7 +1,4 @@
-const {
-  ERROR_ENCLAVE_CALL_FAILED,
-  ERROR_ENCLAVE_CALL_TIMEOUT,
-} = require('../errors')
+const { ERROR_ENCLAVE_CALL_FAILED, ERROR_ENCLAVE_CALL_TIMEOUT } = require('../errors')
 const R = require('ramda')
 const { logger } = require('../logger')
 const { promisify } = require('node:util')

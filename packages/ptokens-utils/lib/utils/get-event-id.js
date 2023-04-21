@@ -151,10 +151,6 @@ const getEventId = ({
     // This should handle cases where
     //  - The ID is not defined in the networkIds object
     //  - The event does not have the expected properties
-    .catch(
-      _err =>
-        logger.error(_err) ||
-        fallbackEventId(networkId, blockHash, transactionHash)
-    )
+    .catch(_err => logger.error(_err) || fallbackEventId(networkId, blockHash, transactionHash))
 
 module.exports = { getEventId }

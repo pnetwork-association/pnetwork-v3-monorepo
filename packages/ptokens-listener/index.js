@@ -13,8 +13,7 @@ const { exitCleanly } = require('./lib/setup-exit-listeners')
 const config = require('./config')
 const { description, version } = require('./package')
 
-const printErrorAndExit = _err =>
-  logger.error('Halting due to \n', _err) || exitCleanly(1)
+const printErrorAndExit = _err => logger.error('Halting due to \n', _err) || exitCleanly(1)
 
 const disableLoggingForCLICommand = _ => {
   logger.level = 'error'
@@ -45,12 +44,7 @@ $ node index.js getEventReportsFromTransaction 0x2b948164aad1517cdcd11e22c3f96d5
     .action(
       (_hash, _event, _options) =>
         disableLoggingForCLICommand() ||
-        getEventReportsFromTransactionCommand(
-          config,
-          _hash,
-          _event,
-          _options.save
-        )
+        getEventReportsFromTransactionCommand(config, _hash, _event, _options.save)
     )
 
   program
@@ -70,8 +64,7 @@ $ node index.js getEventLogsFromTransaction 0x2b948164aad1517cdcd11e22c3f96d58b1
     )
     .action(
       (_hash, _event) =>
-        disableLoggingForCLICommand() ||
-        getEventLogsFromTransactionCommand(config, _hash, _event)
+        disableLoggingForCLICommand() || getEventLogsFromTransactionCommand(config, _hash, _event)
     )
 
   program

@@ -1,7 +1,5 @@
 const { constants: ptokensUtilsConstants, utils } = require('ptokens-utils')
-const {
-  getEvmEventLogsFromTransaction,
-} = require('../evm/evm-get-event-logs-from-transaction')
+const { getEvmEventLogsFromTransaction } = require('../evm/evm-get-event-logs-from-transaction')
 const { logger } = require('../get-logger')
 
 const getEosioEventLogsFromTransaction = (_state, _callback) =>
@@ -27,17 +25,10 @@ const getImplementationForBlockchainType = _blockchainType => {
   }
 }
 
-const getEventLogsFromTransaction = (
-  _providerUrl,
-  _networkId,
-  _hash,
-  _eventName
-) =>
+const getEventLogsFromTransaction = (_providerUrl, _networkId, _hash, _eventName) =>
   utils
     .getBlockchainTypeFromChainId(_networkId)
     .then(getImplementationForBlockchainType)
-    .then(_implementation =>
-      _implementation(_providerUrl, _networkId, _hash, _eventName)
-    )
+    .then(_implementation => _implementation(_providerUrl, _networkId, _hash, _eventName))
 
 module.exports = { getEventLogsFromTransaction }

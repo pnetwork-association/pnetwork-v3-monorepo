@@ -8,8 +8,7 @@ const queuedReports = require('../samples/queued-report-set')
 
 describe('Build proposals test for EVM', () => {
   describe('maybeBuildDismissalTxsAndPutInState', () => {
-    const privKey =
-      '0xdf57089febbacf7ba0bc227dafbffa9fc08a93fdc68e1e42411a14efcf23656e'
+    const privKey = '0xdf57089febbacf7ba0bc227dafbffa9fc08a93fdc68e1e42411a14efcf23656e'
     const gpgEncryptedFile = './identity.gpg'
 
     afterEach(async () => {
@@ -58,10 +57,7 @@ describe('Build proposals test for EVM', () => {
         [constants.state.STATE_KEY_NETWORK_ID]: destinationNetworkId,
         [constants.state.STATE_KEY_IDENTITY_FILE]: gpgEncryptedFile,
         [constants.state.STATE_KEY_STATE_MANAGER_ADDRESS]: stateManagerAddress,
-        [STATE_TO_BE_DISMISSED_REQUESTS_KEY]: [
-          queuedReports[0],
-          queuedReports[1],
-        ],
+        [STATE_TO_BE_DISMISSED_REQUESTS_KEY]: [queuedReports[0], queuedReports[1]],
       }
 
       const {
@@ -124,31 +120,23 @@ describe('Build proposals test for EVM', () => {
       expect(result).toHaveProperty(constants.state.STATE_KEY_NETWORK_ID)
       expect(result).toHaveProperty(constants.state.STATE_KEY_PROVIDER_URL)
       expect(result).toHaveProperty(constants.state.STATE_KEY_IDENTITY_FILE)
-      expect(result).toHaveProperty(
-        constants.state.STATE_KEY_STATE_MANAGER_ADDRESS
-      )
+      expect(result).toHaveProperty(constants.state.STATE_KEY_STATE_MANAGER_ADDRESS)
       expect(result).toHaveProperty(constants.state.STATE_KEY_TX_TIMEOUT)
       expect(result[STATE_DISMISSED_DB_REPORTS_KEY]).toHaveLength(2)
 
       expect(result[STATE_DISMISSED_DB_REPORTS_KEY][0]).toEqual(
         expect.objectContaining({
-          [schemas.constants.reportFields.SCHEMA_STATUS_KEY]:
-            schemas.db.enums.txStatus.CANCELLED,
-          [schemas.constants.reportFields.SCHEMA_FINAL_TX_HASH_KEY]:
-            cancelTxHashes[0],
-          [schemas.constants.reportFields.SCHEMA_FINAL_TX_TS_KEY]:
-            expect.any(String),
+          [schemas.constants.reportFields.SCHEMA_STATUS_KEY]: schemas.db.enums.txStatus.CANCELLED,
+          [schemas.constants.reportFields.SCHEMA_FINAL_TX_HASH_KEY]: cancelTxHashes[0],
+          [schemas.constants.reportFields.SCHEMA_FINAL_TX_TS_KEY]: expect.any(String),
         })
       )
 
       expect(result[STATE_DISMISSED_DB_REPORTS_KEY][1]).toEqual(
         expect.objectContaining({
-          [schemas.constants.reportFields.SCHEMA_STATUS_KEY]:
-            schemas.db.enums.txStatus.CANCELLED,
-          [schemas.constants.reportFields.SCHEMA_FINAL_TX_HASH_KEY]:
-            cancelTxHashes[1],
-          [schemas.constants.reportFields.SCHEMA_FINAL_TX_TS_KEY]:
-            expect.any(String),
+          [schemas.constants.reportFields.SCHEMA_STATUS_KEY]: schemas.db.enums.txStatus.CANCELLED,
+          [schemas.constants.reportFields.SCHEMA_FINAL_TX_HASH_KEY]: cancelTxHashes[1],
+          [schemas.constants.reportFields.SCHEMA_FINAL_TX_TS_KEY]: expect.any(String),
         })
       )
     })

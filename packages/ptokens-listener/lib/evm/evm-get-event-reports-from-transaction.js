@@ -1,15 +1,8 @@
 const R = require('ramda')
-const {
-  getEvmEventLogsFromTransaction,
-} = require('./evm-get-event-logs-from-transaction')
+const { getEvmEventLogsFromTransaction } = require('./evm-get-event-logs-from-transaction')
 const { getInterfaceFromEvent, processEventLog } = require('./evm-utils')
 
-const getEvmEventReportsFromTransaction = (
-  _providerUrl,
-  _networkId,
-  _hash,
-  _eventName
-) =>
+const getEvmEventReportsFromTransaction = (_providerUrl, _networkId, _hash, _eventName) =>
   Promise.all([
     getEvmEventLogsFromTransaction(_providerUrl, _networkId, _hash, _eventName),
     getInterfaceFromEvent(_eventName),

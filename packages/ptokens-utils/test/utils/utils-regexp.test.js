@@ -22,18 +22,11 @@ describe('RegeExp utils overall tests', () => {
   })
 
   describe('matchStringInsideListSync', () => {
-    const errorMessages = [
-      'error 1',
-      'error error',
-      'db lock error',
-      'it does not work!1!!!',
-    ]
+    const errorMessages = ['error 1', 'error error', 'db lock error', 'it does not work!1!!!']
 
     it('Should match every error message', async () => {
       const list = ['.*']
-      const results = await Promise.all(
-        errorMessages.map(utils.matchStringInsideListSync(list))
-      )
+      const results = await Promise.all(errorMessages.map(utils.matchStringInsideListSync(list)))
 
       assert(R.all(results))
     })
@@ -41,9 +34,7 @@ describe('RegeExp utils overall tests', () => {
     it('Should find the right match', async () => {
       const list = ['db lock']
 
-      const results = await Promise.all(
-        errorMessages.map(utils.matchStringInsideListSync(list))
-      )
+      const results = await Promise.all(errorMessages.map(utils.matchStringInsideListSync(list)))
 
       assert(!results[0])
       assert(!results[1])

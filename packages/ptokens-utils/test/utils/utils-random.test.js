@@ -20,8 +20,7 @@ describe('Overall utils random tests', () => {
         const variance = 0.1
         const elemAverage = frequencies[elem] / ROUNDS
         const isAverage =
-          expectedAverage - variance < elemAverage &&
-          elemAverage < expectedAverage + variance
+          expectedAverage - variance < elemAverage && elemAverage < expectedAverage + variance
 
         assert(isAverage)
       }

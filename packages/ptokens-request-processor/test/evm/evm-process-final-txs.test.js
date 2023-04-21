@@ -18,8 +18,7 @@ describe('Main EVM flow for transaction proposal tests', () => {
     const dbName = global.__MONGO_DB_NAME__
     const table = 'test'
 
-    const privKey =
-      '0xdf57089febbacf7ba0bc227dafbffa9fc08a93fdc68e1e42411a14efcf23656e'
+    const privKey = '0xdf57089febbacf7ba0bc227dafbffa9fc08a93fdc68e1e42411a14efcf23656e'
     const gpgEncryptedFile = './identity.gpg'
 
     beforeAll(async () => {
@@ -65,9 +64,7 @@ describe('Main EVM flow for transaction proposal tests', () => {
           .mockResolvedValueOnce(expectedCallResults[1]),
       })
 
-      jest
-        .spyOn(logic, 'sleepForXMilliseconds')
-        .mockImplementation(_ => Promise.resolve())
+      jest.spyOn(logic, 'sleepForXMilliseconds').mockImplementation(_ => Promise.resolve())
       jest
         .spyOn(logic, 'sleepThenReturnArg')
         .mockImplementation(R.curry((_, _r) => Promise.resolve(_r)))
@@ -75,10 +72,7 @@ describe('Main EVM flow for transaction proposal tests', () => {
       jest
         .spyOn(ethers, 'Contract')
         .mockImplementation(
-          jestMockContractConstructor(
-            'protocolExecuteOperation',
-            mockExecuteOperation
-          )
+          jestMockContractConstructor('protocolExecuteOperation', mockExecuteOperation)
         )
 
       jest.spyOn(fs, 'readFile').mockResolvedValue(privKey)
@@ -93,9 +87,7 @@ describe('Main EVM flow for transaction proposal tests', () => {
         [constants.state.STATE_KEY_IDENTITY_FILE]: gpgEncryptedFile,
       }
 
-      const {
-        maybeProcessFinalTransactions,
-      } = require('../../lib/evm/evm-process-final-txs')
+      const { maybeProcessFinalTransactions } = require('../../lib/evm/evm-process-final-txs')
 
       const result = await maybeProcessFinalTransactions(state)
 
@@ -107,8 +99,7 @@ describe('Main EVM flow for transaction proposal tests', () => {
       expect(result).toHaveProperty(constants.state.STATE_KEY_IDENTITY_FILE)
 
       const finalizedEvents = await db.findReports(collection, {
-        [schemas.constants.reportFields.SCHEMA_STATUS_KEY]:
-          schemas.db.enums.txStatus.FINALIZED,
+        [schemas.constants.reportFields.SCHEMA_STATUS_KEY]: schemas.db.enums.txStatus.FINALIZED,
       })
 
       expect(finalizedEvents).toHaveLength(2)

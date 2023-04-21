@@ -24,8 +24,7 @@ const updateEventInDb = R.curry(
 const updateEventsInDb = (_table, _events) =>
   logger.info('Updating events into database...') ||
   Promise.all(_events.map(updateEventInDb(_table))).then(
-    _ =>
-      logger.info(`Updated ${R.length(_events)} events!`) || Promise.resolve()
+    _ => logger.info(`Updated ${R.length(_events)} events!`) || Promise.resolve()
   )
 
 const maybeUpdateEventsInDb = R.curry(
@@ -36,24 +35,17 @@ const maybeUpdateEventsInDb = R.curry(
       const eventsLength = R.length(events)
 
       return eventsLength === 0
-        ? logger.info(
-            `No entries in ${_eventsStateKey} in state, skipping db update...`
-          ) || resolve(_state)
+        ? logger.info(`No entries in ${_eventsStateKey} in state, skipping db update...`) ||
+            resolve(_state)
         : updateEventsInDb(eventsTable, events).then(_ => resolve(_state))
     })
 )
 
-const maybeUpdateProposedEventsInDb = maybeUpdateEventsInDb(
-  STATE_PROPOSED_DB_REPORTS_KEY
-)
+const maybeUpdateProposedEventsInDb = maybeUpdateEventsInDb(STATE_PROPOSED_DB_REPORTS_KEY)
 
-const maybeUpdateFinalizedEventsInDb = maybeUpdateEventsInDb(
-  STATE_FINALIZED_DB_REPORTS_KEY
-)
+const maybeUpdateFinalizedEventsInDb = maybeUpdateEventsInDb(STATE_FINALIZED_DB_REPORTS_KEY)
 
-const maybeUpdateDismissedEventsInDb = maybeUpdateEventsInDb(
-  STATE_DISMISSED_DB_REPORTS_KEY
-)
+const maybeUpdateDismissedEventsInDb = maybeUpdateEventsInDb(STATE_DISMISSED_DB_REPORTS_KEY)
 
 module.exports = {
   maybeUpdateProposedEventsInDb,

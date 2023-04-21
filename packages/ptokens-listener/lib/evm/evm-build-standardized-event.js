@@ -12,8 +12,7 @@ const getEventWithAllRequiredSetToNull = _ => ({
   [schemas.constants.reportFields.SCHEMA_UNDERLYING_ASSET_NAME_KEY]: null,
   [schemas.constants.reportFields.SCHEMA_UNDERLYING_ASSET_SYMBOL_KEY]: null,
   [schemas.constants.reportFields.SCHEMA_UNDERLYING_ASSET_DECIMALS_KEY]: null,
-  [schemas.constants.reportFields.SCHEMA_UNDERLYING_ASSET_TOKEN_ADDRESS_KEY]:
-    null,
+  [schemas.constants.reportFields.SCHEMA_UNDERLYING_ASSET_TOKEN_ADDRESS_KEY]: null,
   [schemas.constants.reportFields.SCHEMA_UNDERLYING_ASSET_NETWORK_ID_KEY]: null,
   [schemas.constants.reportFields.SCHEMA_ASSET_TOKEN_ADDRESS_KEY]: null,
   [schemas.constants.reportFields.SCHEMA_ASSET_AMOUNT_KEY]: null,
@@ -44,29 +43,16 @@ const setStatusToDetected = R.assoc(
   schemas.db.enums.txStatus.DETECTED
 )
 
-const addFieldFromEventArgs = (
-  _eventValue,
-  _destKey,
-  _conversionFunction,
-  _standardEvent
-) =>
+const addFieldFromEventArgs = (_eventValue, _destKey, _conversionFunction, _standardEvent) =>
   logger.debug(`Adding ${_eventValue} to "${_destKey}"`) ||
   Promise.resolve(R.assoc(_destKey, _eventValue, _standardEvent))
 
 const getValueFromEventArgsByKey = R.curry((_eventArgs, _key) =>
-  typeof _eventArgs[0] === 'object'
-    ? _eventArgs[0].getValue(_key)
-    : _eventArgs.getValue(_key)
+  typeof _eventArgs[0] === 'object' ? _eventArgs[0].getValue(_key) : _eventArgs.getValue(_key)
 )
 
 const maybeAddFieldFromEventArgs = R.curry(
-  (
-    _eventArgs,
-    _possibleEventKeys,
-    _destKey,
-    _conversionFunction,
-    _standardEvent
-  ) =>
+  (_eventArgs, _possibleEventKeys, _destKey, _conversionFunction, _standardEvent) =>
     Promise.all(_possibleEventKeys.map(getValueFromEventArgsByKey(_eventArgs)))
       .then(R.find(utils.isNotNil))
       .then(_value =>
@@ -137,8 +123,7 @@ const addInfoFromParsedLog = (_parsedLog, _obj) =>
       maybeAddFieldFromEventArgs(
         _parsedLog.args,
         ['underlyingAssetTokenAddress'],
-        schemas.constants.reportFields
-          .SCHEMA_UNDERLYING_ASSET_TOKEN_ADDRESS_KEY,
+        schemas.constants.reportFields.SCHEMA_UNDERLYING_ASSET_TOKEN_ADDRESS_KEY,
         R.identity
       )
     )
@@ -229,9 +214,7 @@ const setId = _obj =>
     .then(_id =>
       R.assoc(
         '_id',
-        `${
-          _obj[schemas.constants.reportFields.SCHEMA_EVENT_NAME_KEY]
-        }_${_id}`.toLowerCase(),
+        `${_obj[schemas.constants.reportFields.SCHEMA_EVENT_NAME_KEY]}_${_id}`.toLowerCase(),
         _obj
       )
     )
@@ -272,22 +255,10 @@ const parseLog = (_interface, _log) =>
 const buildStandardizedEvmEventObjectFromLog = (_networkId, _interface, _log) =>
   Promise.all([getEventWithAllRequiredSetToNull(), parseLog(_interface, _log)])
     .then(([_obj, _parsedLog]) => addInfoFromParsedLog(_parsedLog, _obj))
+    .then(R.assoc(schemas.constants.reportFields.SCHEMA_NETWORK_ID_KEY, _networkId))
+    .then(addFieldFromLog(_log, 'blockHash', schemas.constants.reportFields.SCHEMA_BLOCK_HASH_KEY))
     .then(
-      R.assoc(schemas.constants.reportFields.SCHEMA_NETWORK_ID_KEY, _networkId)
-    )
-    .then(
-      addFieldFromLog(
-        _log,
-        'blockHash',
-        schemas.constants.reportFields.SCHEMA_BLOCK_HASH_KEY
-      )
-    )
-    .then(
-      addFieldFromLog(
-        _log,
-        'transactionHash',
-        schemas.constants.reportFields.SCHEMA_TX_HASH_KEY
-      )
+      addFieldFromLog(_log, 'transactionHash', schemas.constants.reportFields.SCHEMA_TX_HASH_KEY)
     )
     .then(addWitnessedTimestamp)
     .then(setId)

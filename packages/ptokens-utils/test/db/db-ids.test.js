@@ -101,11 +101,7 @@ describe('Database utils tests', () => {
       let isLegacy = false
       for (let i = nonLegacyBridgeTypes.length - 1; i >= 0; i--) {
         try {
-          await db.getReportIdPrefix(
-            bridgeSide,
-            nonLegacyBridgeTypes[i],
-            isLegacy
-          )
+          await db.getReportIdPrefix(bridgeSide, nonLegacyBridgeTypes[i], isLegacy)
           assert.fail('Should never reach here')
         } catch (err) {
           assert(err.message.includes(errors.ERROR_INVALID_BRIDGE_SIDE))
@@ -134,14 +130,8 @@ describe('Database utils tests', () => {
         [constants.SIDE_NATIVE]: [`pBTC_BTC ${nonce}`, `pBTC_BTC ${nonce}`],
       }
 
-      assert.equal(
-        expected[constants.SIDE_HOST].length,
-        legacyBridgeTypes.length
-      )
-      assert.equal(
-        expected[constants.SIDE_NATIVE].length,
-        legacyBridgeTypes.length
-      )
+      assert.equal(expected[constants.SIDE_HOST].length, legacyBridgeTypes.length)
+      assert.equal(expected[constants.SIDE_NATIVE].length, legacyBridgeTypes.length)
 
       for (let i = legacyBridgeTypes.length - 1; i >= 0; i--) {
         for (let j = bridgeSides.length - 1; j >= 0; j--) {
@@ -192,14 +182,8 @@ describe('Database utils tests', () => {
         ],
       }
 
-      assert.equal(
-        expected[constants.SIDE_HOST].length,
-        nonLegacyBridgeTypes.length
-      )
-      assert.equal(
-        expected[constants.SIDE_NATIVE].length,
-        nonLegacyBridgeTypes.length
-      )
+      assert.equal(expected[constants.SIDE_HOST].length, nonLegacyBridgeTypes.length)
+      assert.equal(expected[constants.SIDE_NATIVE].length, nonLegacyBridgeTypes.length)
 
       for (let i = nonLegacyBridgeTypes.length - 1; i >= 0; i--) {
         for (let j = bridgeSides.length - 1; j >= 0; j--) {

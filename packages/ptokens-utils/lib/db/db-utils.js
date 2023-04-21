@@ -29,11 +29,8 @@ const {
   REPORT_ID_MAINNET_DEPOSIT_ADDRESS_ARRAY,
 } = require('./db-constants')
 
-const deleteReportWithNonce = R.curry(
-  (_bridgeSide, _bridgeType, _legacy, _collection, _nonce) =>
-    getReportIdFromNonce(_bridgeSide, _bridgeType, _legacy, _nonce).then(
-      deleteReport(_collection)
-    )
+const deleteReportWithNonce = R.curry((_bridgeSide, _bridgeType, _legacy, _collection, _nonce) =>
+  getReportIdFromNonce(_bridgeSide, _bridgeType, _legacy, _nonce).then(deleteReport(_collection))
 )
 
 const deleteHostReport = deleteReportWithNonce(SIDE_HOST)
@@ -62,15 +59,14 @@ const getLastProcessedNativeBlock = getLastProcessedBlock(SIDE_NATIVE)
 
 const getLastProcessedHostBlock = getLastProcessedBlock(SIDE_HOST)
 
-const setLastProcessedBlock = R.curry(
-  (_bridgeSide, _bridgeType, _collection, _blockNum) =>
-    getChainSymbolFromBridgeType(_bridgeSide, _bridgeType)
-      .then(getLastProcessedBlockReportId)
-      .then(
-        updateReportById(_collection, {
-          $set: { [REPORTS_KEY_BLOCK_NUM]: _blockNum },
-        })
-      )
+const setLastProcessedBlock = R.curry((_bridgeSide, _bridgeType, _collection, _blockNum) =>
+  getChainSymbolFromBridgeType(_bridgeSide, _bridgeType)
+    .then(getLastProcessedBlockReportId)
+    .then(
+      updateReportById(_collection, {
+        $set: { [REPORTS_KEY_BLOCK_NUM]: _blockNum },
+      })
+    )
 )
 
 const setLastProcessedHostBlock = setLastProcessedBlock(SIDE_HOST)
@@ -78,10 +74,7 @@ const setLastProcessedHostBlock = setLastProcessedBlock(SIDE_HOST)
 const setLastProcessedNativeBlock = setLastProcessedBlock(SIDE_NATIVE)
 
 const getLegacyDepositAddressArray = R.curry(
-  (
-    _collection,
-    _depositAddressArrayPrefix = REPORT_ID_MAINNET_DEPOSIT_ADDRESS_ARRAY
-  ) =>
+  (_collection, _depositAddressArrayPrefix = REPORT_ID_MAINNET_DEPOSIT_ADDRESS_ARRAY) =>
     findReports(_collection, { _id: new RegExp(_depositAddressArrayPrefix) })
       .then(R.map(R.prop(_depositAddressArrayPrefix)))
       .then(R.flatten)
@@ -95,10 +88,7 @@ const getAllDepositAddresses = R.curry(
   ) =>
     Promise.all([
       findReports(_depositAddressesCollection, {}),
-      getLegacyDepositAddressArray(
-        _reportsCollection,
-        _depositAddressArrayPrefix
-      ),
+      getLegacyDepositAddressArray(_reportsCollection, _depositAddressArrayPrefix),
     ]).then(R.flatten)
 )
 
@@ -113,11 +103,8 @@ const setLastHostNonce = setLastNonce(SIDE_HOST)
 
 const setLastNativeNonce = setLastNonce(SIDE_NATIVE)
 
-const getReport = R.curry(
-  (_bridgeSide, _bridgeType, _legacy, _collection, _nonce) =>
-    getReportIdFromNonce(_bridgeSide, _bridgeType, _legacy, _nonce).then(
-      findReportById(_collection)
-    )
+const getReport = R.curry((_bridgeSide, _bridgeType, _legacy, _collection, _nonce) =>
+  getReportIdFromNonce(_bridgeSide, _bridgeType, _legacy, _nonce).then(findReportById(_collection))
 )
 
 const getHostReport = getReport(SIDE_HOST)
@@ -126,20 +113,9 @@ const getNativeReport = getReport(SIDE_NATIVE)
 
 // Helper function: don't export it as parameters' ordering is not intuitive
 const setFieldInReportToValue = R.curry(
-  (
-    _field,
-    _fieldType,
-    _bridgeSide,
-    _bridgeType,
-    _legacy,
-    _collection,
-    _nonce,
-    _value
-  ) =>
+  (_field, _fieldType, _bridgeSide, _bridgeType, _legacy, _collection, _nonce, _value) =>
     checkType(_fieldType, _value)
-      .then(_ =>
-        getReportIdFromNonce(_bridgeSide, _bridgeType, _legacy, _nonce)
-      )
+      .then(_ => getReportIdFromNonce(_bridgeSide, _bridgeType, _legacy, _nonce))
       .then(editReportField(_collection, _field, _value))
 )
 
@@ -150,40 +126,25 @@ const updateReportByIdWithNonce = R.curry(
     )
 )
 
-const setBroadcastStatus = setFieldInReportToValue(
-  REPORTS_KEY_BROADCAST,
-  'Boolean'
-)
+const setBroadcastStatus = setFieldInReportToValue(REPORTS_KEY_BROADCAST, 'Boolean')
 
 const setNativeBroadcastStatus = setBroadcastStatus(SIDE_NATIVE)
 
 const setHostBroadcastStatus = setBroadcastStatus(SIDE_HOST)
 
-const setBroadcastTimestamp = setFieldInReportToValue(
-  REPORTS_KEY_BROADCAST_TIMESTAMP,
-  'Number'
-)
+const setBroadcastTimestamp = setFieldInReportToValue(REPORTS_KEY_BROADCAST_TIMESTAMP, 'Number')
 
 const setHostBroadcastTimestamp = setBroadcastTimestamp(SIDE_HOST)
 
 const setNativeBroadcastTimestamp = setBroadcastStatus(SIDE_NATIVE)
 
-const approveReport = R.curry(
-  (_bridgeSide, _bridgeType, _legacy, _collection, _nonce, _txHash) =>
-    getEmptyMongoPipeline()
-      .then(setReportBroadcastStatus(true))
-      .then(setReportBroadcastTxHash(_bridgeSide, _bridgeType, _txHash))
-      .then(setReportBroadscastTimestamp(Math.round(Date.now() / 1000)))
-      .then(
-        updateReportByIdWithNonce(
-          _bridgeSide,
-          _bridgeType,
-          _legacy,
-          _collection,
-          _nonce
-        )
-      )
-      .then(_id => logger.info(`Report '${_id}' has been approved!`))
+const approveReport = R.curry((_bridgeSide, _bridgeType, _legacy, _collection, _nonce, _txHash) =>
+  getEmptyMongoPipeline()
+    .then(setReportBroadcastStatus(true))
+    .then(setReportBroadcastTxHash(_bridgeSide, _bridgeType, _txHash))
+    .then(setReportBroadscastTimestamp(Math.round(Date.now() / 1000)))
+    .then(updateReportByIdWithNonce(_bridgeSide, _bridgeType, _legacy, _collection, _nonce))
+    .then(_id => logger.info(`Report '${_id}' has been approved!`))
 )
 
 const approveNativeReport = approveReport(SIDE_NATIVE)

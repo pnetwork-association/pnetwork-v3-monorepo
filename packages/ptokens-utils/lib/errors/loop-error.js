@@ -16,9 +16,7 @@ class LoopError extends Error {
     super(_msg, { cause: _err })
     const { isNotNil } = require('../utils')
     this.lastLoopState =
-      isNotNil(_lastLoopState) && _lastLoopState.length > 0
-        ? _lastLoopState[0]
-        : undefined
+      isNotNil(_lastLoopState) && _lastLoopState.length > 0 ? _lastLoopState[0] : undefined
   }
 }
 

@@ -2,10 +2,7 @@ const { logger } = require('../logger')
 const { isNotNil } = require('../utils')
 const { LoopError } = require('../errors')
 const { validateJson, checkType } = require('../validation')
-const {
-  ERROR_UNKNOWN_RETURN,
-  ERROR_WRONG_NUMBER_OF_ARGS,
-} = require('../errors')
+const { ERROR_UNKNOWN_RETURN, ERROR_WRONG_NUMBER_OF_ARGS } = require('../errors')
 
 const LOOP_MODE = {
   INFINITE: -1,

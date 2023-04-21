@@ -22,9 +22,7 @@ describe('File system utilities', () => {
     it('Should successfully list all the files and folders into an array', async () => {
       const listOfFiles = ['hello.txt', 'world.txt']
 
-      listOfFiles.map(_file =>
-        fs.writeFileSync(path.join(tmpFolder, _file), '')
-      )
+      listOfFiles.map(_file => fs.writeFileSync(path.join(tmpFolder, _file), ''))
 
       const result = await utils.listFilesInFolder(tmpFolder)
 

@@ -4,16 +4,12 @@ const { validation } = require('ptokens-utils')
 const { logger } = require('../get-logger')
 
 const getEthersProvider = R.memoizeWith(R.identity, _url =>
-  validation
-    .checkType('String', _url)
-    .then(_ => ethers.getDefaultProvider(_url))
+  validation.checkType('String', _url).then(_ => ethers.getDefaultProvider(_url))
 )
 
-const getEventFragment = _eventName =>
-  Promise.resolve(ethers.EventFragment.from(_eventName))
+const getEventFragment = _eventName => Promise.resolve(ethers.EventFragment.from(_eventName))
 
-const createInterface = _fragments =>
-  Promise.resolve(new ethers.Interface(_fragments))
+const createInterface = _fragments => Promise.resolve(new ethers.Interface(_fragments))
 
 const getInterfaceFromEvent = _eventName =>
   getEventFragment(_eventName).then(Array.of).then(createInterface)
@@ -37,13 +33,9 @@ const getFilter = (_eventName, _contractAddress) =>
     .then(maybeAddTopicsToFilter(_eventName))
     .then(maybeAddAddressToFilter(_contractAddress))
 
-const areTopicsMatching = R.curry((_filter, _log) =>
-  R.equals(_filter.topics, _log.topics)
-)
+const areTopicsMatching = R.curry((_filter, _log) => R.equals(_filter.topics, _log.topics))
 
-const {
-  buildStandardizedEvmEventObjectFromLog,
-} = require('./evm-build-standardized-event.js')
+const { buildStandardizedEvmEventObjectFromLog } = require('./evm-build-standardized-event.js')
 
 const processEventLog = R.curry(
   (_networkId, _interface, _callback, _log) =>
