@@ -7,17 +7,10 @@
     "jest": true
   },
   "rules": {
+    "no-process-exit": 0,
     "camelcase": ["error"],
-    "max-len": [
-      "error",
-      {
-        "code": 120,
-        "ignoreComments": true,
-        "ignoreStrings": true,
-        "ignoreTemplateLiterals": true
-      }
-    ],
     "no-console": ["error"],
+    "arrow-body-style": ["error", "as-needed"],
     "no-unused-vars": ["error", { "argsIgnorePattern": "^_" }],
     "node/no-unpublished-require": [
       "error",
