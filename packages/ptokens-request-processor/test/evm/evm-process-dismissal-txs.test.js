@@ -71,10 +71,10 @@ describe('Tests for queued requests detection and dismissal', () => {
         maybeProcessNewRequestsAndDismiss,
       } = require('../../lib/evm/evm-process-dismissal-txs')
       const state = {
-        [constants.state.STATE_KEY_LOOP_SLEEP_TIME]: 1,
-        [constants.state.STATE_KEY_NETWORK_ID]: '0xe15503e4',
-        [constants.state.STATE_KEY_DB]: collection,
-        [constants.state.STATE_KEY_IDENTITY_FILE]: 'identity-file',
+        [constants.state.KEY_LOOP_SLEEP_TIME]: 1,
+        [constants.state.KEY_NETWORK_ID]: '0xe15503e4',
+        [constants.state.KEY_DB]: collection,
+        [constants.state.KEY_IDENTITY_FILE]: 'identity-file',
       }
 
       expect(
@@ -96,14 +96,14 @@ describe('Tests for queued requests detection and dismissal', () => {
         queuedReports[1][schemas.constants.reportFields.SCHEMA_ID_KEY],
         queuedReports[2][schemas.constants.reportFields.SCHEMA_ID_KEY],
       ])
-      expect(result).toHaveProperty(constants.state.STATE_KEY_DB)
+      expect(result).toHaveProperty(constants.state.KEY_DB)
       expect(result).not.toHaveProperty(STATE_ONCHAIN_REQUESTS_KEY)
       expect(result).not.toHaveProperty(STATE_DETECTED_DB_REPORTS_KEY)
       expect(result).not.toHaveProperty(STATE_PROPOSED_DB_REPORTS_KEY)
       expect(result).not.toHaveProperty(STATE_FINALIZED_DB_REPORTS_KEY)
       expect(result).not.toHaveProperty(STATE_TO_BE_DISMISSED_REQUESTS_KEY)
       expect(result).not.toHaveProperty(STATE_DISMISSED_DB_REPORTS_KEY)
-      expect(result).toHaveProperty(constants.state.STATE_KEY_IDENTITY_FILE)
+      expect(result).toHaveProperty(constants.state.KEY_IDENTITY_FILE)
     })
   })
 })

@@ -14,7 +14,7 @@ describe('Challenge period expired report filtering', () => {
       jest.useFakeTimers({ now: Date.parse(now) })
 
       const state = {
-        [constants.state.STATE_KEY_CHALLENGE_PERIOD]: 20, // 20mins
+        [constants.state.KEY_CHALLENGE_PERIOD]: 20, // 20mins
         [STATE_PROPOSED_DB_REPORTS_KEY]: proposedReports,
       }
 

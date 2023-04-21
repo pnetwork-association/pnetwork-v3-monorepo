@@ -103,11 +103,11 @@ describe('General final txs testing', () => {
       const stateManagerAddress = '0xC8E4270a6EF24B67eD38046318Fc8FC2d312f73C'
 
       const state = {
-        [constants.state.STATE_KEY_TX_TIMEOUT]: txTimeout,
-        [constants.state.STATE_KEY_PROVIDER_URL]: providerUrl,
-        [constants.state.STATE_KEY_NETWORK_ID]: destinationNetworkId,
-        [constants.state.STATE_KEY_IDENTITY_FILE]: gpgEncryptedFile,
-        [constants.state.STATE_KEY_STATE_MANAGER_ADDRESS]: stateManagerAddress,
+        [constants.state.KEY_TX_TIMEOUT]: txTimeout,
+        [constants.state.KEY_PROVIDER_URL]: providerUrl,
+        [constants.state.KEY_NETWORK_ID]: destinationNetworkId,
+        [constants.state.KEY_IDENTITY_FILE]: gpgEncryptedFile,
+        [constants.state.KEY_STATE_MANAGER_ADDRESS]: stateManagerAddress,
         [STATE_PROPOSED_DB_REPORTS_KEY]: [proposedEvents[0], proposedEvents[1]],
       }
 
@@ -166,11 +166,11 @@ describe('General final txs testing', () => {
       )
       expect(result).toHaveProperty(STATE_PROPOSED_DB_REPORTS_KEY)
       expect(result).toHaveProperty(STATE_FINALIZED_DB_REPORTS_KEY)
-      expect(result).toHaveProperty(constants.state.STATE_KEY_NETWORK_ID)
-      expect(result).toHaveProperty(constants.state.STATE_KEY_PROVIDER_URL)
-      expect(result).toHaveProperty(constants.state.STATE_KEY_IDENTITY_FILE)
-      expect(result).toHaveProperty(constants.state.STATE_KEY_STATE_MANAGER_ADDRESS)
-      expect(result).toHaveProperty(constants.state.STATE_KEY_TX_TIMEOUT)
+      expect(result).toHaveProperty(constants.state.KEY_NETWORK_ID)
+      expect(result).toHaveProperty(constants.state.KEY_PROVIDER_URL)
+      expect(result).toHaveProperty(constants.state.KEY_IDENTITY_FILE)
+      expect(result).toHaveProperty(constants.state.KEY_STATE_MANAGER_ADDRESS)
+      expect(result).toHaveProperty(constants.state.KEY_TX_TIMEOUT)
       expect(result[STATE_PROPOSED_DB_REPORTS_KEY]).toHaveLength(2)
 
       expect(result[STATE_FINALIZED_DB_REPORTS_KEY][0]).toEqual(

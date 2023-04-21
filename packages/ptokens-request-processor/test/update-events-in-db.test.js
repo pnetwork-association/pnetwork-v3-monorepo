@@ -38,7 +38,7 @@ describe('General events report update tests', () => {
       ]
       const proposedTimestamps = [new Date().toISOString(), new Date().toISOString()]
       const state = {
-        [constants.state.STATE_KEY_DB]: collection,
+        [constants.state.KEY_DB]: collection,
         [STATE_PROPOSED_DB_REPORTS_KEY]: [
           {
             ...detectedEvents[0],
@@ -57,7 +57,7 @@ describe('General events report update tests', () => {
 
       const result = await maybeUpdateProposedEventsInDb(state)
 
-      expect(result).toHaveProperty(constants.state.STATE_KEY_DB)
+      expect(result).toHaveProperty(constants.state.KEY_DB)
       expect(result).toHaveProperty(STATE_PROPOSED_DB_REPORTS_KEY)
 
       const query = {

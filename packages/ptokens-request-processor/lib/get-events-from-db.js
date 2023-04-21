@@ -16,9 +16,9 @@ const {
 const getValidEventsWithStatusAndPutInState = R.curry(
   (_status, _stateKey, _networkIdKey, _eventName, _state) =>
     extractReportsWithNameAndChainIdAndStatus(
-      _state[constants.state.STATE_KEY_DB],
+      _state[constants.state.KEY_DB],
       _eventName,
-      _state[constants.state.STATE_KEY_NETWORK_ID],
+      _state[constants.state.KEY_NETWORK_ID],
       _networkIdKey,
       _status
     )
@@ -59,7 +59,7 @@ const getProposedEventsFromDbAndPutInState = _state =>
 
 const getValidMatchingEventsAndPutInState = _state =>
   extractReportsFromOnChainRequests(
-    _state[constants.state.STATE_KEY_DB],
+    _state[constants.state.KEY_DB],
     _state[STATE_QUEUED_DB_REPORTS_KEY]
   )
     .then(filterForValidReports)

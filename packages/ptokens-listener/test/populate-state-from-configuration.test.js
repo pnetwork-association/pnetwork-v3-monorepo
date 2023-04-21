@@ -38,8 +38,8 @@ describe('State utilities tests', () => {
       const state = {}
       const ret = await getInitialStateFromConfiguration(config, state)
       assert.deepStrictEqual(ret, {
-        [constants.state.STATE_KEY_DB]: 'a-url/a-database-name/a-collection-name',
-        [constants.state.STATE_KEY_NETWORK_ID]: '0x00112233',
+        [constants.state.KEY_DB]: 'a-url/a-database-name/a-collection-name',
+        [constants.state.KEY_NETWORK_ID]: '0x00112233',
         [stateConstants.STATE_KEY_EVENTS]: [
           {
             [schemas.constants.configurationFields.SCHEMA_NAME_KEY]: 'redeem',
@@ -53,7 +53,7 @@ describe('State utilities tests', () => {
             [schemas.constants.configurationFields.SCHEMA_CONTRACTS_KEY]: ['xbsc.ptokens'],
           },
         ],
-        [constants.state.STATE_KEY_PROVIDER_URL]: 'provider-url',
+        [constants.state.KEY_PROVIDER_URL]: 'provider-url',
       })
     })
 

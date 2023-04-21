@@ -83,11 +83,11 @@ const buildDismissalTxsAndPutInState = _state =>
   new Promise(resolve => {
     logger.info('Building dismissal txs...')
     const invalidRequests = _state[STATE_TO_BE_DISMISSED_REQUESTS_KEY] || []
-    const providerUrl = _state[constants.state.STATE_KEY_PROVIDER_URL]
-    const identityGpgFile = _state[constants.state.STATE_KEY_IDENTITY_FILE]
+    const providerUrl = _state[constants.state.KEY_PROVIDER_URL]
+    const identityGpgFile = _state[constants.state.KEY_IDENTITY_FILE]
     const provider = new ethers.JsonRpcProvider(providerUrl)
-    const txTimeout = _state[constants.state.STATE_KEY_TX_TIMEOUT]
-    const stateManager = _state[constants.state.STATE_KEY_STATE_MANAGER_ADDRESS]
+    const txTimeout = _state[constants.state.KEY_TX_TIMEOUT]
+    const stateManager = _state[constants.state.KEY_STATE_MANAGER_ADDRESS]
 
     return readIdentityFile(identityGpgFile)
       .then(_privateKey => new ethers.Wallet(_privateKey, provider))
@@ -98,7 +98,7 @@ const buildDismissalTxsAndPutInState = _state =>
 
 const maybeBuildDismissalTxsAndPutInState = _state =>
   new Promise(resolve => {
-    const networkId = _state[constants.state.STATE_KEY_NETWORK_ID]
+    const networkId = _state[constants.state.KEY_NETWORK_ID]
     const blockChainName = utils.flipObjectPropertiesSync(ptokensUtilsConstants.networkIds)[
       networkId
     ]

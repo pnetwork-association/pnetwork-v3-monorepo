@@ -53,13 +53,13 @@ const keepExpiredProposedEvents = R.curry(
 
 const filterForExpiredProposalsAndPutThemInState = _state =>
   new Promise((resolve, reject) => {
-    const challengePeriod = _state[constants.state.STATE_KEY_CHALLENGE_PERIOD]
+    const challengePeriod = _state[constants.state.KEY_CHALLENGE_PERIOD]
     const proposedEvents = _state[STATE_PROPOSED_DB_REPORTS_KEY] || []
 
     if (R.isNil(challengePeriod)) {
       return reject(
         new Error(
-          `Invalid value for '${constants.state.STATE_KEY_CHALLENGE_PERIOD}': ${challengePeriod}`
+          `Invalid value for '${constants.state.KEY_CHALLENGE_PERIOD}': ${challengePeriod}`
         )
       )
     }

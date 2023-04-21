@@ -36,14 +36,14 @@ describe('State utilities tests', () => {
       const state = {}
       const ret = await getInitialStateFromConfiguration(config, state)
       assert.deepStrictEqual(ret, {
-        [constants.state.STATE_KEY_DB]: 'a-url/a-database-name/a-collection-name',
-        [constants.state.STATE_KEY_NETWORK_ID]: '0x005fe7f9',
-        [constants.state.STATE_KEY_PROVIDER_URL]: 'a-provider-url',
-        [constants.state.STATE_KEY_STATE_MANAGER_ADDRESS]: '0x1',
-        [constants.state.STATE_KEY_IDENTITY_FILE]: '/usr/src/app/private-key',
-        [constants.state.STATE_KEY_CHALLENGE_PERIOD]: 10,
-        [constants.state.STATE_KEY_LOOP_SLEEP_TIME]: DEFAULT_LOOP_SLEEP_TIME,
-        [constants.state.STATE_KEY_TX_TIMEOUT]: DEFAULT_TX_TIMEOUT,
+        [constants.state.KEY_DB]: 'a-url/a-database-name/a-collection-name',
+        [constants.state.KEY_NETWORK_ID]: '0x005fe7f9',
+        [constants.state.KEY_PROVIDER_URL]: 'a-provider-url',
+        [constants.state.KEY_STATE_MANAGER_ADDRESS]: '0x1',
+        [constants.state.KEY_IDENTITY_FILE]: '/usr/src/app/private-key',
+        [constants.state.KEY_CHALLENGE_PERIOD]: 10,
+        [constants.state.KEY_LOOP_SLEEP_TIME]: DEFAULT_LOOP_SLEEP_TIME,
+        [constants.state.KEY_TX_TIMEOUT]: DEFAULT_TX_TIMEOUT,
       })
     })
 

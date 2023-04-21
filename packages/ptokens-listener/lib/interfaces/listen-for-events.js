@@ -27,8 +27,8 @@ const getListenerForBlockchainType = _blockchainType => {
 
 const listenForEvents = _state =>
   utils
-    .getBlockchainTypeFromChainId(_state[constants.state.STATE_KEY_NETWORK_ID])
+    .getBlockchainTypeFromChainId(_state[constants.state.KEY_NETWORK_ID])
     .then(getListenerForBlockchainType)
-    .then(_listener => _listener(_state, insertReportIntoDb(_state[constants.state.STATE_KEY_DB])))
+    .then(_listener => _listener(_state, insertReportIntoDb(_state[constants.state.KEY_DB])))
 
 module.exports = { listenForEvents }

@@ -31,7 +31,7 @@ const maybeProcessNewRequestsAndDismiss = _state =>
     .then(maybeUpdateDismissedEventsInDb)
     .then(removeToBeDismissedEventsFromState)
     .then(removeDismissedEventsFromState)
-    .then(logic.sleepThenReturnArg(_state[constants.state.STATE_KEY_LOOP_SLEEP_TIME]))
+    .then(logic.sleepThenReturnArg(_state[constants.state.KEY_LOOP_SLEEP_TIME]))
 
 const INFINITE_LOOP = {
   rounds: logic.LOOP_MODE.INFINITE,

@@ -10,7 +10,7 @@ describe('Tests for the listener interface', () => {
     })
 
     const getState = _networkId => ({
-      [constants.state.STATE_KEY_NETWORK_ID]: _networkId,
+      [constants.state.KEY_NETWORK_ID]: _networkId,
       [stateConstants.STATE_KEY_EVENTS]: [
         {
           [schemas.constants.configurationFields.SCHEMA_NAME_KEY]: 'event1',
@@ -21,7 +21,7 @@ describe('Tests for the listener interface', () => {
           [schemas.constants.configurationFields.SCHEMA_CONTRACTS_KEY]: ['address3', 'address4'],
         },
       ],
-      [constants.state.STATE_KEY_DB]: { database: 'database' },
+      [constants.state.KEY_DB]: { database: 'database' },
     })
 
     test.each([['0x005fe7f9'], ['0x00e4b170'], ['0x00f1918e'], ['0xf9b459a1']])(

@@ -30,7 +30,7 @@ const updateEventsInDb = (_table, _events) =>
 const maybeUpdateEventsInDb = R.curry(
   (_eventsStateKey, _state) =>
     new Promise(resolve => {
-      const eventsTable = _state[constants.state.STATE_KEY_DB]
+      const eventsTable = _state[constants.state.KEY_DB]
       const events = _state[_eventsStateKey] || []
       const eventsLength = R.length(events)
 

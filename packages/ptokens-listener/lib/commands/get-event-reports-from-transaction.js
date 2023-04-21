@@ -14,7 +14,7 @@ const printReports = _reports =>
 const insertReportsIntoDb = (_config, _reports) =>
   _reports
     ? getInitialStateFromConfiguration(_config).then(_state =>
-        Promise.all(_reports.map(insertReportIntoDb(_state[constants.state.STATE_KEY_DB])))
+        Promise.all(_reports.map(insertReportIntoDb(_state[constants.state.KEY_DB])))
       )
     : Promise.resolve(_reports)
 

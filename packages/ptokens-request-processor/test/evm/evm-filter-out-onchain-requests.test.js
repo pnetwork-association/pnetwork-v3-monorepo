@@ -25,11 +25,11 @@ describe('Tests for already processed requests filtering', () => {
       const receivedRequests = [txSamples[0], txSamples[2], txSamples[3], txSamples[4]]
 
       const state = {
-        [constants.state.STATE_KEY_NETWORK_ID]: '0x005fe7f9',
+        [constants.state.KEY_NETWORK_ID]: '0x005fe7f9',
         [STATE_DETECTED_DB_REPORTS_KEY]: receivedRequests,
         [STATE_ONCHAIN_REQUESTS_KEY]: onchainRequests,
         [STATE_PROPOSED_DB_REPORTS_KEY]: [],
-        [constants.state.STATE_KEY_DB]: { collection: 'collection' },
+        [constants.state.KEY_DB]: { collection: 'collection' },
       }
 
       const _state = await target.filterOutOnChainRequestsAndPutInState(state)
