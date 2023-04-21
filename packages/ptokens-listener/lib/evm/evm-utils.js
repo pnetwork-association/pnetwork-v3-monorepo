@@ -21,11 +21,11 @@ const maybeAddTopicsToFilter = R.curry((_eventName, _filter) =>
     ? getEventFragment(_eventName).then(_fragment =>
         R.assoc('topics', [keccak256(_fragment.format())], _filter)
       )
-    : _filter
+    : Promise.resolve(_filter)
 )
 
 const maybeAddAddressToFilter = R.curry((_contractAddress, _filter) =>
-  _contractAddress ? R.assoc('address', _contractAddress, _filter) : _filter
+  _contractAddress ? R.assoc('address', _contractAddress, _filter) : Promise.resolve(_filter)
 )
 
 const getFilter = (_eventName, _contractAddress) =>
