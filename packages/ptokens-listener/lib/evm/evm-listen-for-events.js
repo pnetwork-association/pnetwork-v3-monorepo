@@ -9,52 +9,23 @@ const {
   processEventLog,
 } = require('./evm-utils')
 
-const listenFromFilter = (
-  _providerUrl,
-  _networkId,
-  _filter,
-  _interface,
-  _callback
-) =>
-  logger.info(
-    `Listening for event from ${_filter.address} with topics [${_filter.topics}]`
-  ) ||
+const listenFromFilter = (_providerUrl, _networkId, _filter, _interface, _callback) =>
+  logger.info(`Listening for event from ${_filter.address} with topics [${_filter.topics}]`) ||
   getEthersProvider(_providerUrl).then(_provider =>
     _provider.on(_filter, processEventLog(_networkId, _interface, _callback))
   )
 
-const listenForEvmEvent = (
-  _providerUrl,
-  _networkId,
-  _eventName,
-  _contractAddress,
-  _callback
-) =>
-  Promise.all([
-    getFilter(_eventName, _contractAddress),
-    getInterfaceFromEvent(_eventName),
-  ]).then(
+const listenForEvmEvent = (_providerUrl, _networkId, _eventName, _contractAddress, _callback) =>
+  Promise.all([getFilter(_eventName, _contractAddress), getInterfaceFromEvent(_eventName)]).then(
     ([_filter, _interface]) =>
       logger.info(`Listening to ${_eventName} @ ${_contractAddress}`) ||
       listenFromFilter(_providerUrl, _networkId, _filter, _interface, _callback)
   )
 
-const startEvmListenerFromEventObject = (
-  _providerUrl,
-  _networkId,
-  _event,
-  _callback
-) =>
+const startEvmListenerFromEventObject = (_providerUrl, _networkId, _event, _callback) =>
   Promise.all(
-    _event[schemas.constants.configurationFields.SCHEMA_CONTRACTS_KEY].map(
-      _tokenContract =>
-        listenForEvmEvent(
-          _providerUrl,
-          _networkId,
-          _event.name,
-          _tokenContract,
-          _callback
-        )
+    _event[schemas.constants.configurationFields.SCHEMA_CONTRACTS_KEY].map(_tokenContract =>
+      listenForEvmEvent(_providerUrl, _networkId, _event.name, _tokenContract, _callback)
     )
   )
 

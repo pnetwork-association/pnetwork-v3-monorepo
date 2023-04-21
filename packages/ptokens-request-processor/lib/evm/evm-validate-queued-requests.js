@@ -12,9 +12,7 @@ const isRequestInvalid = R.curry(
     !_detectedTxs.some(
       _detectedReport =>
         // check event ID is the same
-        _detectedReport[schemas.constants.reportFields.SCHEMA_ID_KEY].split(
-          '_'
-        )[1] ===
+        _detectedReport[schemas.constants.reportFields.SCHEMA_ID_KEY].split('_')[1] ===
         _request[schemas.constants.reportFields.SCHEMA_ID_KEY].split('_')[1]
     )
 )
@@ -23,12 +21,8 @@ const filterOutInvalidQueuedRequestsAndPutInState = _state => {
   const onChainRequests = _state[STATE_QUEUED_DB_REPORTS_KEY]
   const detectedTxs = _state[STATE_DETECTED_DB_REPORTS_KEY]
   return Promise.all(onChainRequests.map(isRequestInvalid(detectedTxs)))
-    .then(_invalidArray =>
-      onChainRequests.filter((_req, _i) => _invalidArray[_i])
-    )
-    .then(_invalidRequests =>
-      R.assoc(STATE_TO_BE_DISMISSED_REQUESTS_KEY, _invalidRequests, _state)
-    )
+    .then(_invalidArray => onChainRequests.filter((_req, _i) => _invalidArray[_i]))
+    .then(_invalidRequests => R.assoc(STATE_TO_BE_DISMISSED_REQUESTS_KEY, _invalidRequests, _state))
 }
 
 module.exports = {

@@ -13,16 +13,13 @@ describe('Tests for schemas utilities', () => {
         underlyingAssetName: 'Token',
         underlyingAssetSymbol: 'TKN',
         underlyingAssetDecimals: 18,
-        underlyingAssetTokenAddress:
-          '0x49a5D1CF92772328Ad70f51894FD632a14dF12C9',
+        underlyingAssetTokenAddress: '0x49a5D1CF92772328Ad70f51894FD632a14dF12C9',
         underlyingAssetNetworkId: '0xe15503e4',
         assetTokenAddress: '0x49a5D1CF92772328Ad70f51894FD632a14dF12C9',
         assetAmount: '100000000000000000000',
         userData: '0x',
-        optionsMask:
-          '0x0000000000000000000000000000000000000000000000000000000000000000',
-        originatingBlockHash:
-          '0xe19ab626cfc3f471238da9a375d396e3bd8a10c55601425d69677c908f0ad8f1',
+        optionsMask: '0x0000000000000000000000000000000000000000000000000000000000000000',
+        originatingBlockHash: '0xe19ab626cfc3f471238da9a375d396e3bd8a10c55601425d69677c908f0ad8f1',
         originatingAddress: null,
         originatingNetworkId: '0xe15503e4',
         originatingTransactionHash:
@@ -34,10 +31,7 @@ describe('Tests for schemas utilities', () => {
         finalTransactionTimestamp: null,
       })
 
-      assert.strictEqual(
-        ret,
-        '0x5ac3de11a54ac11a448052ad1c3f57ab5fe18a35024aa6fee622620fd1098d55'
-      )
+      assert.strictEqual(ret, '0x5ac3de11a54ac11a448052ad1c3f57ab5fe18a35024aa6fee622620fd1098d55')
     })
   })
 })

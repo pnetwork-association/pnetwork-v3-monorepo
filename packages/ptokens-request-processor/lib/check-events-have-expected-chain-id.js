@@ -19,19 +19,13 @@ const checkEventHaveExpectedChainId = R.curry(
     })
 )
 
-const checkEventsHaveExpectedChainId = R.curry(
-  (_reportChainIdKey, _expectedValue, _eventReports) =>
-    Promise.all(
-      _eventReports.map(
-        checkEventHaveExpectedChainId(_reportChainIdKey, _expectedValue)
-      )
-    )
+const checkEventsHaveExpectedChainId = R.curry((_reportChainIdKey, _expectedValue, _eventReports) =>
+  Promise.all(_eventReports.map(checkEventHaveExpectedChainId(_reportChainIdKey, _expectedValue)))
 )
 
-const checkEventsHaveExpectedDestinationChainId =
-  checkEventsHaveExpectedChainId(
-    schemas.constants.reportFields.SCHEMA_DESTINATION_NETWORK_ID_KEY
-  )
+const checkEventsHaveExpectedDestinationChainId = checkEventsHaveExpectedChainId(
+  schemas.constants.reportFields.SCHEMA_DESTINATION_NETWORK_ID_KEY
+)
 const checkEventsHaveExpectedOriginChainId = checkEventsHaveExpectedChainId(
   schemas.constants.reportFields.SCHEMA_UNDERLYING_ASSET_NETWORK_ID_KEY
 )

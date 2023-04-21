@@ -18,24 +18,11 @@ describe('Tests for already processed requests filtering', () => {
       const target = require('../../lib/evm/evm-filter-out-onchain-requests')
       const txSamples = require('../samples/detected-report-set.json')
       const onchainRequests = [
-        R.assoc(
-          schemas.constants.reportFields.SCHEMA_ID_KEY,
-          txSamples[0]._id,
-          {}
-        ),
-        R.assoc(
-          schemas.constants.reportFields.SCHEMA_ID_KEY,
-          txSamples[1]._id,
-          {}
-        ),
+        R.assoc(schemas.constants.reportFields.SCHEMA_ID_KEY, txSamples[0]._id, {}),
+        R.assoc(schemas.constants.reportFields.SCHEMA_ID_KEY, txSamples[1]._id, {}),
       ]
 
-      const receivedRequests = [
-        txSamples[0],
-        txSamples[2],
-        txSamples[3],
-        txSamples[4],
-      ]
+      const receivedRequests = [txSamples[0], txSamples[2], txSamples[3], txSamples[4]]
 
       const state = {
         [constants.state.STATE_KEY_NETWORK_ID]: '0x005fe7f9',

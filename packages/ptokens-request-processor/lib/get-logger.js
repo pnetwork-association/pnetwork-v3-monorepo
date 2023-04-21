@@ -16,10 +16,7 @@ const logAggregatedErrorSync = _aggregateError => {
 }
 
 const shutDownLogging = () =>
-  new Promise(
-    resolve =>
-      logger.info('Shutting down logging...') || log4js.shutdown(resolve)
-  )
+  new Promise(resolve => logger.info('Shutting down logging...') || log4js.shutdown(resolve))
 
 module.exports = {
   logger,

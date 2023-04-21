@@ -8,9 +8,7 @@ const isNotEmpty = _something => R.not(R.isEmpty(_something))
 
 const removeNilsFromList = _list => R.filter(isNotNil, _list)
 
-const doesNotInclude = R.curry((_something, _list) =>
-  R.not(R.includes(_something, _list))
-)
+const doesNotInclude = R.curry((_something, _list) => R.not(R.includes(_something, _list)))
 
 module.exports = {
   hasNot,

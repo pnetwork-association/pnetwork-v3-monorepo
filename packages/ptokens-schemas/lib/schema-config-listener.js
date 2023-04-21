@@ -29,10 +29,7 @@ module.exports = {
       type: 'array',
       items: {
         type: 'object',
-        required: [
-          configurationFields.SCHEMA_NAME_KEY,
-          configurationFields.SCHEMA_CONTRACTS_KEY,
-        ],
+        required: [configurationFields.SCHEMA_NAME_KEY, configurationFields.SCHEMA_CONTRACTS_KEY],
         properties: {
           [configurationFields.SCHEMA_NAME_KEY]: {
             type: 'string',

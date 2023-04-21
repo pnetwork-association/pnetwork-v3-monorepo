@@ -14,17 +14,11 @@ describe('Tests for the listener interface', () => {
       [stateConstants.STATE_KEY_EVENTS]: [
         {
           [schemas.constants.configurationFields.SCHEMA_NAME_KEY]: 'event1',
-          [schemas.constants.configurationFields.SCHEMA_CONTRACTS_KEY]: [
-            'address1',
-            'address2',
-          ],
+          [schemas.constants.configurationFields.SCHEMA_CONTRACTS_KEY]: ['address1', 'address2'],
         },
         {
           [schemas.constants.configurationFields.SCHEMA_NAME_KEY]: 'event2',
-          [schemas.constants.configurationFields.SCHEMA_CONTRACTS_KEY]: [
-            'address3',
-            'address4',
-          ],
+          [schemas.constants.configurationFields.SCHEMA_CONTRACTS_KEY]: ['address3', 'address4'],
         },
       ],
       [constants.state.STATE_KEY_DB]: { database: 'database' },
@@ -44,9 +38,7 @@ describe('Tests for the listener interface', () => {
           .spyOn(evmListener, 'listenForEvmEvents')
           .mockImplementation((_state, _callback) =>
             _state[stateConstants.STATE_KEY_EVENTS].forEach(_event =>
-              _event[
-                schemas.constants.configurationFields.SCHEMA_CONTRACTS_KEY
-              ].forEach(_address =>
+              _event[schemas.constants.configurationFields.SCHEMA_CONTRACTS_KEY].forEach(_address =>
                 _callback({ event: _event.name, address: _address })
               )
             )
@@ -58,11 +50,7 @@ describe('Tests for the listener interface', () => {
         await listenerInterface.listenForEvents(state)
 
         expect(listenForEvmEventsSpy).toHaveBeenCalledTimes(1)
-        expect(listenForEvmEventsSpy).toHaveBeenNthCalledWith(
-          1,
-          state,
-          expect.any(Function)
-        )
+        expect(listenForEvmEventsSpy).toHaveBeenNthCalledWith(1, state, expect.any(Function))
         expect(insertReportSpy).toHaveBeenCalledTimes(4)
         expect(insertReportSpy).toHaveBeenNthCalledWith(
           1,
@@ -104,9 +92,7 @@ describe('Tests for the listener interface', () => {
       async _networkId => {
         const listenerInterface = require('../../lib/interfaces/listen-for-events')
         const state = getState(_networkId)
-        expect(() => listenerInterface.listenForEvents(state)).rejects.toThrow(
-          'To be implemented!'
-        )
+        expect(() => listenerInterface.listenForEvents(state)).rejects.toThrow('To be implemented!')
       }
     )
 
@@ -115,9 +101,7 @@ describe('Tests for the listener interface', () => {
       async _networkId => {
         const listenerInterface = require('../../lib/interfaces/listen-for-events')
         const state = getState(_networkId)
-        expect(() => listenerInterface.listenForEvents(state)).rejects.toThrow(
-          'To be implemented!'
-        )
+        expect(() => listenerInterface.listenForEvents(state)).rejects.toThrow('To be implemented!')
       }
     )
 
@@ -126,9 +110,7 @@ describe('Tests for the listener interface', () => {
       async _networkId => {
         const listenerInterface = require('../../lib/interfaces/listen-for-events')
         const state = getState(_networkId)
-        expect(() => listenerInterface.listenForEvents(state)).rejects.toThrow(
-          'To be implemented!'
-        )
+        expect(() => listenerInterface.listenForEvents(state)).rejects.toThrow('To be implemented!')
       }
     )
 

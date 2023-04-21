@@ -25,9 +25,8 @@ const getValidEventsWithStatusAndPutInState = R.curry(
       .then(filterForValidReports)
       .then(
         _reports =>
-          logger.info(
-            `Adding reports w/ status '${_status}' to state under '${_stateKey}' key`
-          ) || R.assoc(_stateKey, _reports, _state)
+          logger.info(`Adding reports w/ status '${_status}' to state under '${_stateKey}' key`) ||
+          R.assoc(_stateKey, _reports, _state)
       )
 )
 

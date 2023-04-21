@@ -20,9 +20,7 @@ const getImplementationFromChainId = R.memoizeWith(
       )
       if (utils.doesNotInclude(_blockChainType, R.keys(_mapping))) {
         return Promise.reject(
-          new Error(
-            `Implementation of ${_functionName} for ${_blockChainType} not found!`
-          )
+          new Error(`Implementation of ${_functionName} for ${_blockChainType} not found!`)
         )
       }
       return _mapping[_blockChainType]

@@ -32,12 +32,8 @@ const filterOutOnChainRequestsAndPutInState = _state =>
     logger.info('Getting EVM on chain requests and putting in state...')
     const detectedTxs = _state[STATE_DETECTED_DB_REPORTS_KEY]
     const onChainRequests = _state[STATE_ONCHAIN_REQUESTS_KEY]
-    const alreadyProposedTxs = detectedTxs.filter(
-      isAlreadyProcessedTxs(onChainRequests)
-    )
-    const alreadyProposedRequests = alreadyProposedTxs.map(
-      setRequestStatusToProposed
-    )
+    const alreadyProposedTxs = detectedTxs.filter(isAlreadyProcessedTxs(onChainRequests))
+    const alreadyProposedRequests = alreadyProposedTxs.map(setRequestStatusToProposed)
     const toProcessRequests = detectedTxs.filter(
       R.complement(isAlreadyProcessedTxs(onChainRequests))
     )

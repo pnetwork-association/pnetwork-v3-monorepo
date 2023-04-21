@@ -10,8 +10,7 @@ describe('General EVM contract function tests', () => {
       const ethers = require('ethers')
 
       const expectedObject = {
-        transactionHash:
-          '0xd656ffac17b71e2ea2e24f72cd4c15c909a0ebe1696f8ead388eb268268f1cbf',
+        transactionHash: '0xd656ffac17b71e2ea2e24f72cd4c15c909a0ebe1696f8ead388eb268268f1cbf',
       }
 
       const mockCallMint = jest.fn().mockResolvedValue({
@@ -24,9 +23,7 @@ describe('General EVM contract function tests', () => {
 
       const contract = new ethers.Contract()
 
-      const {
-        callContractFunctionAndAwait,
-      } = require('../../lib/evm/evm-call-contract-function')
+      const { callContractFunctionAndAwait } = require('../../lib/evm/evm-call-contract-function')
 
       const result = await callContractFunctionAndAwait('mint', [], contract)
 

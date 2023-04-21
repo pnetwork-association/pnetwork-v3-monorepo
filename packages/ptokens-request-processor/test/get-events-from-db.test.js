@@ -3,9 +3,7 @@ const { db } = require('ptokens-utils')
 const constants = require('ptokens-constants')
 const detectedEvents = require('./samples/detected-report-set').slice(0, 2)
 const { STATE_DETECTED_DB_REPORTS_KEY } = require('../lib/state/constants')
-const {
-  getDetectedEventsFromDbAndPutInState,
-} = require('../lib/get-events-from-db')
+const { getDetectedEventsFromDbAndPutInState } = require('../lib/get-events-from-db')
 
 describe('General get events from db tests', () => {
   describe('getDetectedEventsFromDbAndPutInState', () => {

@@ -18,7 +18,6 @@ const exitCleanly = _exitCode =>
   logger.info('Clean exit...') ||
   maybeCloseDbConnection()
     .then(shutDownLogging)
-    // eslint-disable-next-line no-process-exit
     .then(_ => process.exit(_exitCode))
 
 const setupExitEventListeners = () =>

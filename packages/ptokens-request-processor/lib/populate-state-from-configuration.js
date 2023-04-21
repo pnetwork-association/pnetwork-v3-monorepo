@@ -19,18 +19,11 @@ const getDbAndPutInState = R.curry((_config, _state) => {
 
   return db
     .getCollection(url, dbName, tableName)
-    .then(_collection =>
-      R.assoc(constants.state.STATE_KEY_DB, _collection, _state)
-    )
+    .then(_collection => R.assoc(constants.state.STATE_KEY_DB, _collection, _state))
 })
 
-const getConfigPropertyAndPutInState = R.curry(
-  (_config, _configKey, _stateKey, _default, _state) =>
-    R.assoc(
-      _stateKey,
-      utils.isNotNil(_config[_configKey]) ? _config[_configKey] : _default,
-      _state
-    )
+const getConfigPropertyAndPutInState = R.curry((_config, _configKey, _stateKey, _default, _state) =>
+  R.assoc(_stateKey, utils.isNotNil(_config[_configKey]) ? _config[_configKey] : _default, _state)
 )
 
 const DEFAULT_TX_TIMEOUT = 10000 // 10s

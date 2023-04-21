@@ -40,16 +40,11 @@ const handleWebSocketError = _err =>
   })
 
 const getWebSocketConnection = R.memoizeWith(R.identity, _endpoint =>
-  Promise.resolve(new WebSocket(_endpoint))
-    .then(defineOpenEventHandler)
-    .catch(handleWebSocketError)
+  Promise.resolve(new WebSocket(_endpoint)).then(defineOpenEventHandler).catch(handleWebSocketError)
 )
 
 const webSocketSend = (_ws, _body, _timeout = 500) =>
-  Promise.race([
-    promisifiedWebSocketSend(_ws, _body),
-    rejectAfterXMilliseconds(_timeout),
-  ])
+  Promise.race([promisifiedWebSocketSend(_ws, _body), rejectAfterXMilliseconds(_timeout)])
     .then(defineMessageEventHandler)
     .then(Buffer.from)
     .then(String)
@@ -60,9 +55,7 @@ const webSocketSend = (_ws, _body, _timeout = 500) =>
     )
 
 const webSocketFetch = R.curry((_endpoint, _body, _timeout = 500) =>
-  getWebSocketConnection(_endpoint).then(_ws =>
-    webSocketSend(_ws, _body, _timeout)
-  )
+  getWebSocketConnection(_endpoint).then(_ws => webSocketSend(_ws, _body, _timeout))
 )
 
 const webSocketClose = _endpoint =>

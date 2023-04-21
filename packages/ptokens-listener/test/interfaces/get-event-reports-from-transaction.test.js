@@ -41,12 +41,7 @@ describe('Tests for the getEventReportsFromTransaction interface', () => {
           getEventReportsFromTransaction,
         } = require('../../lib/interfaces/get-event-reports-from-transaction')
         expect(() =>
-          getEventReportsFromTransaction(
-            'provider-url',
-            _networkId,
-            'tx-hash',
-            'event'
-          )
+          getEventReportsFromTransaction('provider-url', _networkId, 'tx-hash', 'event')
         ).rejects.toThrow('To be implemented!')
       }
     )
@@ -58,12 +53,7 @@ describe('Tests for the getEventReportsFromTransaction interface', () => {
           getEventReportsFromTransaction,
         } = require('../../lib/interfaces/get-event-reports-from-transaction')
         expect(() =>
-          getEventReportsFromTransaction(
-            'provider-url',
-            _networkId,
-            'tx-hash',
-            'event'
-          )
+          getEventReportsFromTransaction('provider-url', _networkId, 'tx-hash', 'event')
         ).rejects.toThrow('To be implemented!')
       }
     )
@@ -75,12 +65,7 @@ describe('Tests for the getEventReportsFromTransaction interface', () => {
           getEventReportsFromTransaction,
         } = require('../../lib/interfaces/get-event-reports-from-transaction')
         expect(() =>
-          getEventReportsFromTransaction(
-            'provider-url',
-            _networkId,
-            'tx-hash',
-            'event'
-          )
+          getEventReportsFromTransaction('provider-url', _networkId, 'tx-hash', 'event')
         ).rejects.toThrow('To be implemented!')
       }
     )
@@ -92,12 +77,7 @@ describe('Tests for the getEventReportsFromTransaction interface', () => {
           getEventReportsFromTransaction,
         } = require('../../lib/interfaces/get-event-reports-from-transaction')
         expect(() =>
-          getEventReportsFromTransaction(
-            'provider-url',
-            _networkId,
-            'tx-hash',
-            'event'
-          )
+          getEventReportsFromTransaction('provider-url', _networkId, 'tx-hash', 'event')
         ).rejects.toThrow('Unknown chain ID 0x12345678')
       }
     )

@@ -21,9 +21,7 @@ describe('Get chain symbols tests', () => {
       ]
 
       await R.values(bridgeTypes).map(async (_bridgeType, _i) => {
-        const nativeSymbol = await utils.getNativeChainSymbolFromBridgeType(
-          _bridgeType
-        )
+        const nativeSymbol = await utils.getNativeChainSymbolFromBridgeType(_bridgeType)
         assert.equal(nativeSymbol, expected[_i])
       })
     })
@@ -47,9 +45,7 @@ describe('Get chain symbols tests', () => {
       ]
 
       await R.values(bridgeTypes).map(async (_bridgeType, _i) => {
-        const hostSymbol = await utils.getHostChainSymbolFromBridgeType(
-          _bridgeType
-        )
+        const hostSymbol = await utils.getHostChainSymbolFromBridgeType(_bridgeType)
         assert.equal(hostSymbol, expected[_i])
       })
     })
@@ -114,11 +110,10 @@ describe('Get chain symbols tests', () => {
       const outputTxType = 'host'
 
       await R.values(bridgeTypes).map(async (_bridgeType, _i) => {
-        const nativeSymbol =
-          await utils.getSubmissionChainSymbolFromOutputTxType(
-            outputTxType,
-            _bridgeType
-          )
+        const nativeSymbol = await utils.getSubmissionChainSymbolFromOutputTxType(
+          outputTxType,
+          _bridgeType
+        )
         assert.equal(nativeSymbol, expected[_i])
       })
     })
@@ -160,14 +155,8 @@ describe('Get chain symbols tests', () => {
       assert.equal(nativeSymbols.length, R.values(bridgeTypes).length)
 
       await R.values(bridgeTypes).map(async (bridgeType, i) => {
-        const maybeNativeSide = await utils.getBridgeSideForSymbol(
-          bridgeType,
-          nativeSymbols[i]
-        )
-        const maybeHostSide = await utils.getBridgeSideForSymbol(
-          bridgeType,
-          hostSymbols[i]
-        )
+        const maybeNativeSide = await utils.getBridgeSideForSymbol(bridgeType, nativeSymbols[i])
+        const maybeHostSide = await utils.getBridgeSideForSymbol(bridgeType, hostSymbols[i])
 
         assert.equal(maybeNativeSide, constants.SIDE_NATIVE)
         assert.equal(maybeHostSide, constants.SIDE_HOST)
@@ -183,9 +172,7 @@ describe('Get chain symbols tests', () => {
           await utils.getBridgeSideForSymbol(bridgeType, symbol)
           assert.fail('Should never reach here')
         } catch (err) {
-          assert(
-            err.message.includes(errors.ERROR_INVALID_SYMBOL_FOR_BRIDGE_TYPE)
-          )
+          assert(err.message.includes(errors.ERROR_INVALID_SYMBOL_FOR_BRIDGE_TYPE))
         }
       })
     })
@@ -193,15 +180,7 @@ describe('Get chain symbols tests', () => {
 
   describe('getBridgeSideFromV2BridgeType', () => {
     it('Should get the correct side for each bridge configuration', async () => {
-      const expected = [
-        'native',
-        'native',
-        'host',
-        'host',
-        'native',
-        'native',
-        'host',
-      ]
+      const expected = ['native', 'native', 'host', 'host', 'native', 'native', 'host']
 
       const v2BridgesFilterRegexp = new RegExp('int')
       const v2BridgeTypes = R.values(bridgeTypes).filter(_bridge =>
@@ -224,10 +203,7 @@ describe('Get chain symbols tests', () => {
         try {
           await utils.getBridgeSideFromV2BridgeType(_bridgeType)
         } catch (err) {
-          assert.equal(
-            err.message,
-            'Invalid symbol for the given bridge type - int'
-          )
+          assert.equal(err.message, 'Invalid symbol for the given bridge type - int')
         }
       })
     })

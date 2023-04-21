@@ -59,9 +59,7 @@ const post = (_req, _res) => {
         try {
           _res.statusCode = 500
           _res.setHeader('Content-Type', 'application/json')
-          const resp = JSON.stringify(
-            jsonrpc.success(1, MOCK_SERVER_REQUEST_FAILED)
-          )
+          const resp = JSON.stringify(jsonrpc.success(1, MOCK_SERVER_REQUEST_FAILED))
           _res.end(resp)
         } catch (e) {
           // eslint-disable-next-line no-console
@@ -74,9 +72,7 @@ const post = (_req, _res) => {
 
 const createServer = () =>
   Promise.resolve(
-    http.createServer((_req, _res) =>
-      _req.method === 'POST' ? post(_req, _res) : get(_req, _res)
-    )
+    http.createServer((_req, _res) => (_req.method === 'POST' ? post(_req, _res) : get(_req, _res)))
   )
 
 module.exports = {

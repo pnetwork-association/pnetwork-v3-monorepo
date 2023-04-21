@@ -12,19 +12,15 @@ const createConnection = R.memoizeWith(R.identity, _url =>
 )
 
 const getClient = _url =>
-  createConnection(_url).catch(
-    _err => logger.error(ERROR_DB_CLIENT) || Promise.reject(_err)
-  )
+  createConnection(_url).catch(_err => logger.error(ERROR_DB_CLIENT) || Promise.reject(_err))
 
 const getDatabase = R.memoizeWith(
   (_url, _databaseName) => `${_url}/${_databaseName}`,
-  (_url, _databaseName) =>
-    getClient(_url).then(_client => _client.db(_databaseName))
+  (_url, _databaseName) => getClient(_url).then(_client => _client.db(_databaseName))
 )
 
 const getCollection = R.memoizeWith(
-  (_url, _databaseName, _collectionName) =>
-    `${_url}/${_databaseName}/${_collectionName}`,
+  (_url, _databaseName, _collectionName) => `${_url}/${_databaseName}/${_collectionName}`,
   (_url, _databaseName, _collectionName) =>
     getDatabase(_url, _databaseName)
       .then(_db => _db.collection(_collectionName))
@@ -55,18 +51,14 @@ const insertReport = R.curry((_collection, _report) =>
 const insertReports = R.curry((_collection, _reports) =>
   _collection
     .insertMany(_reports)
-    .then(_output =>
-      logger.info(`Inserted ${_output.insertedIds.length} documents!`)
-    )
+    .then(_output => logger.info(`Inserted ${_output.insertedIds.length} documents!`))
     .catch(handleDatabaseError)
 )
 
 const deleteReportByQuery = R.curry((_collection, _query) => {
   _collection
     .deleteOne(_query)
-    .then(_result =>
-      logger.info(`Delete ${_result.deletedCount} reports successfully!`)
-    )
+    .then(_result => logger.info(`Delete ${_result.deletedCount} reports successfully!`))
     .catch(handleDatabaseError)
 })
 
@@ -83,11 +75,7 @@ const updateReportOrReject = R.curry((_collection, _operations, _query) =>
     .then(R.equals(0))
     .then(_equalsZero =>
       _equalsZero
-        ? Promise.reject(
-            new Error(
-              `${ERROR_NO_UPDATE_FOR_REPORT}: ${JSON.stringify(_query)}`
-            )
-          )
+        ? Promise.reject(new Error(`${ERROR_NO_UPDATE_FOR_REPORT}: ${JSON.stringify(_query)}`))
         : Promise.resolve()
     )
 )
@@ -119,11 +107,7 @@ const editReportField = R.curry((_collection, _field, _value, _id) =>
 )
 
 const copyFromField = R.curry((_collection, _fromField, _toField, _id) =>
-  updateReportById(
-    _collection,
-    [{ $set: { [_fromField]: `$${_toField}` } }],
-    _id
-  )
+  updateReportById(_collection, [{ $set: { [_fromField]: `$${_toField}` } }], _id)
 )
 
 const renameField = R.curry((_collection, _actualName, _newName, _id) =>
@@ -132,13 +116,10 @@ const renameField = R.curry((_collection, _actualName, _newName, _id) =>
     .then(_output => logger.info(`Updated ${_output.modifiedCount} documents!`))
 )
 
-const renameReportsField = R.curry(
-  (_collection, _actualName, _newName, _idRegExp) =>
-    _collection
-      .updateMany({ _id: _idRegExp }, { $rename: { [_actualName]: _newName } })
-      .then(_output =>
-        logger.info(`Updated ${_output.modifiedCount} documents!`)
-      )
+const renameReportsField = R.curry((_collection, _actualName, _newName, _idRegExp) =>
+  _collection
+    .updateMany({ _id: _idRegExp }, { $rename: { [_actualName]: _newName } })
+    .then(_output => logger.info(`Updated ${_output.modifiedCount} documents!`))
 )
 
 const closeConnection = (

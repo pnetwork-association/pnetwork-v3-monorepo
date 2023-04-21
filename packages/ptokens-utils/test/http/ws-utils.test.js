@@ -77,10 +77,7 @@ describe('WebSocket tests', () => {
         await http.webSocketFetch(url, 'Should fail')
         assert.fail()
       } catch (err) {
-        assert.deepStrictEqual(
-          err.message,
-          errors.ERROR_WEBSOCKET_CONNECTION_FAILURE
-        )
+        assert.deepStrictEqual(err.message, errors.ERROR_WEBSOCKET_CONNECTION_FAILURE)
       }
     })
   })

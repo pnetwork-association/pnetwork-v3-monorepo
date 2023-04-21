@@ -1,7 +1,4 @@
-const {
-  ERROR_INVALID_BRIDGE_SIDE,
-  ERROR_INVALID_SYMBOL_FOR_BRIDGE_TYPE,
-} = require('../errors')
+const { ERROR_INVALID_BRIDGE_SIDE, ERROR_INVALID_SYMBOL_FOR_BRIDGE_TYPE } = require('../errors')
 const R = require('ramda')
 const { SIDE_HOST, SIDE_NATIVE } = require('../constants')
 
@@ -9,10 +6,8 @@ const extractHostSymbolFromBridgeType = R.memoizeWith(R.identity, _bridgeType =>
   Promise.resolve(_bridgeType.split('-')[2])
 )
 
-const extractNativeSymboFromBridgeType = R.memoizeWith(
-  R.identity,
-  _bridgeType =>
-    Promise.resolve(_bridgeType.split('-')[0].slice(1).replace('erc20', 'eth'))
+const extractNativeSymboFromBridgeType = R.memoizeWith(R.identity, _bridgeType =>
+  Promise.resolve(_bridgeType.split('-')[0].slice(1).replace('erc20', 'eth'))
 )
 
 // TODO: memoize
@@ -23,36 +18,29 @@ const getChainSymbolFromBridgeType = R.curry((_bridgeSide, _bridgeType) => {
     case SIDE_NATIVE:
       return extractNativeSymboFromBridgeType(_bridgeType)
     default:
-      return Promise.reject(
-        new Error(`${ERROR_INVALID_BRIDGE_SIDE}: '${_bridgeSide}'`)
-      )
+      return Promise.reject(new Error(`${ERROR_INVALID_BRIDGE_SIDE}: '${_bridgeSide}'`))
   }
 })
 
 const getHostChainSymbolFromBridgeType = getChainSymbolFromBridgeType(SIDE_HOST)
 
-const getNativeChainSymbolFromBridgeType =
-  getChainSymbolFromBridgeType(SIDE_NATIVE)
+const getNativeChainSymbolFromBridgeType = getChainSymbolFromBridgeType(SIDE_NATIVE)
 
 // TODO: memoize
-const getSubmissionChainSymbolFromOutputTxType = R.curry(
-  (_outputTxType, _bridgeType) => {
-    // Note: this function here is used by syncers where output tx type
-    // is defined as the type of output emitted by the enclave upon block submission.
-    // i.e. the output tx type for pbtc-on-eth on the eth-syncer is 'native'
-    // while for the btc syncer is 'host'
-    switch (_outputTxType) {
-      case SIDE_NATIVE:
-        return getChainSymbolFromBridgeType(SIDE_HOST, _bridgeType)
-      case SIDE_HOST:
-        return getChainSymbolFromBridgeType(SIDE_NATIVE, _bridgeType)
-      default:
-        return Promise.reject(
-          new Error(`Invalid output tx type: '${_outputTxType}'`)
-        )
-    }
+const getSubmissionChainSymbolFromOutputTxType = R.curry((_outputTxType, _bridgeType) => {
+  // Note: this function here is used by syncers where output tx type
+  // is defined as the type of output emitted by the enclave upon block submission.
+  // i.e. the output tx type for pbtc-on-eth on the eth-syncer is 'native'
+  // while for the btc syncer is 'host'
+  switch (_outputTxType) {
+    case SIDE_NATIVE:
+      return getChainSymbolFromBridgeType(SIDE_HOST, _bridgeType)
+    case SIDE_HOST:
+      return getChainSymbolFromBridgeType(SIDE_NATIVE, _bridgeType)
+    default:
+      return Promise.reject(new Error(`Invalid output tx type: '${_outputTxType}'`))
   }
-)
+})
 
 // TODO: memoize
 const getBridgeSideForSymbol = R.curry((_bridgeType, _symbol) =>
@@ -62,10 +50,7 @@ const getBridgeSideForSymbol = R.curry((_bridgeType, _symbol) =>
   ]).then(([_hostSymbol, _nativeSymbol]) => {
     if (_hostSymbol === _symbol) return SIDE_HOST
     else if (_nativeSymbol === _symbol) return SIDE_NATIVE
-    else
-      return Promise.reject(
-        new Error(`${ERROR_INVALID_SYMBOL_FOR_BRIDGE_TYPE} - ${_symbol}`)
-      )
+    else return Promise.reject(new Error(`${ERROR_INVALID_SYMBOL_FOR_BRIDGE_TYPE} - ${_symbol}`))
   })
 )
 

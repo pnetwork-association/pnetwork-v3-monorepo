@@ -26,9 +26,7 @@ describe('Database interface tests', () => {
     Promise.all(_reportsSet.map(_lib.insertReport(_collection)))
 
   const deleteReportsSet = (_lib, _collection, _reportsSet) =>
-    Promise.all(
-      _reportsSet.map(_report => _lib.deleteReport(_collection, _report._id))
-    )
+    Promise.all(_reportsSet.map(_report => _lib.deleteReport(_collection, _report._id)))
 
   before(async function () {
     this.timeout(10000)
@@ -84,11 +82,7 @@ describe('Database interface tests', () => {
     let collection
 
     before(async () => {
-      collection = await db.getCollection(
-        mongod.getUri(),
-        DATABASE_NAME,
-        COLLECTION_NAME
-      )
+      collection = await db.getCollection(mongod.getUri(), DATABASE_NAME, COLLECTION_NAME)
     })
 
     after(async () => {
@@ -117,11 +111,7 @@ describe('Database interface tests', () => {
     const { db } = require('../..')
 
     before(async () => {
-      collection = await db.getCollection(
-        mongod.getUri(),
-        DATABASE_NAME,
-        COLLECTION_NAME
-      )
+      collection = await db.getCollection(mongod.getUri(), DATABASE_NAME, COLLECTION_NAME)
 
       await db.insertReport(collection, dummyReport2)
     })
@@ -135,11 +125,7 @@ describe('Database interface tests', () => {
 
       assert.deepStrictEqual(beforeUpdate, dummyReport2)
 
-      const res = await db.updateReport(
-        collection,
-        { $set: { user: 'foo' } },
-        { key1: 'Hola' }
-      )
+      const res = await db.updateReport(collection, { $set: { user: 'foo' } }, { key1: 'Hola' })
 
       assert.equal(res.modifiedCount, 1)
 
@@ -157,11 +143,7 @@ describe('Database interface tests', () => {
     const { db } = require('../..')
 
     before(async () => {
-      collection = await db.getCollection(
-        mongod.getUri(),
-        DATABASE_NAME,
-        COLLECTION_NAME
-      )
+      collection = await db.getCollection(mongod.getUri(), DATABASE_NAME, COLLECTION_NAME)
     })
 
     it('Should reject when no report is updated', async () => {
@@ -183,21 +165,13 @@ describe('Database interface tests', () => {
     const { db } = require('../..')
 
     before(async () => {
-      collection = await db.getCollection(
-        mongod.getUri(),
-        DATABASE_NAME,
-        COLLECTION_NAME
-      )
+      collection = await db.getCollection(mongod.getUri(), DATABASE_NAME, COLLECTION_NAME)
     })
 
     it('Should update a report successfully', async () => {
       const reportId = 123
 
-      const result = await db.updateReportById(
-        collection,
-        { $set: { key1: 'Ciao' } },
-        reportId
-      )
+      const result = await db.updateReportById(collection, { $set: { key1: 'Ciao' } }, reportId)
 
       assert.equal(result, reportId)
     })
@@ -207,11 +181,7 @@ describe('Database interface tests', () => {
     let collection
     const { db } = require('../..')
     before(async () => {
-      collection = await db.getCollection(
-        mongod.getUri(),
-        DATABASE_NAME,
-        COLLECTION_NAME
-      )
+      collection = await db.getCollection(mongod.getUri(), DATABASE_NAME, COLLECTION_NAME)
     })
 
     it('Should delete a report successfully', async () => {
@@ -231,17 +201,11 @@ describe('Database interface tests', () => {
     ]
     const { db } = require('../..')
     before(async () => {
-      collection = await db.getCollection(
-        mongod.getUri(),
-        DATABASE_NAME,
-        COLLECTION_NAME
-      )
+      collection = await db.getCollection(mongod.getUri(), DATABASE_NAME, COLLECTION_NAME)
     })
 
     after(async () => {
-      await Promise.all(
-        reports.map(_report => db.deleteReport(collection, _report))
-      )
+      await Promise.all(reports.map(_report => db.deleteReport(collection, _report)))
     })
 
     it('Should delete a report by a custom query', async () => {
@@ -260,11 +224,7 @@ describe('Database interface tests', () => {
     let collection
 
     before(async () => {
-      collection = await db.getCollection(
-        mongod.getUri(),
-        DATABASE_NAME,
-        COLLECTION_NAME
-      )
+      collection = await db.getCollection(mongod.getUri(), DATABASE_NAME, COLLECTION_NAME)
     })
 
     it('Should return the report with the correct id', async () => {
@@ -294,11 +254,7 @@ describe('Database interface tests', () => {
     let collection
 
     before(async () => {
-      collection = await db.getCollection(
-        mongod.getUri(),
-        DATABASE_NAME,
-        COLLECTION_NAME
-      )
+      collection = await db.getCollection(mongod.getUri(), DATABASE_NAME, COLLECTION_NAME)
       await insertReportsSet(db, collection, reports)
     })
 
@@ -330,11 +286,7 @@ describe('Database interface tests', () => {
     let collection
 
     before(async () => {
-      collection = await db.getCollection(
-        mongod.getUri(),
-        DATABASE_NAME,
-        COLLECTION_NAME
-      )
+      collection = await db.getCollection(mongod.getUri(), DATABASE_NAME, COLLECTION_NAME)
     })
 
     before(async () => {
@@ -382,11 +334,7 @@ describe('Database interface tests', () => {
     let collection
 
     before(async () => {
-      collection = await db.getCollection(
-        mongod.getUri(),
-        DATABASE_NAME,
-        COLLECTION_NAME
-      )
+      collection = await db.getCollection(mongod.getUri(), DATABASE_NAME, COLLECTION_NAME)
       report = await db.insertReport(collection, DUMMY_REPORTS_SET_1[0])
       id = report['_id']
     })
@@ -417,11 +365,7 @@ describe('Database interface tests', () => {
     let collection
 
     before(async () => {
-      collection = await db.getCollection(
-        mongod.getUri(),
-        DATABASE_NAME,
-        COLLECTION_NAME
-      )
+      collection = await db.getCollection(mongod.getUri(), DATABASE_NAME, COLLECTION_NAME)
       await insertReportsSet(db, collection, reports)
     })
 

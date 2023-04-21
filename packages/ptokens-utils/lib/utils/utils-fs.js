@@ -36,9 +36,7 @@ const readGpgEncryptedFile = _gpgFile =>
     .then(({ stdout, stderr }) => {
       if (isNotEmpty(stderr)) {
         logger.error('stderr: ', stderr)
-        return Promise.reject(
-          new Error(`${ERROR_GPG_DECRYPTION_FAILED}: ${_gpgFile}`)
-        )
+        return Promise.reject(new Error(`${ERROR_GPG_DECRYPTION_FAILED}: ${_gpgFile}`))
       }
 
       logger.info(`File ${_gpgFile} successfully decrypted!`)

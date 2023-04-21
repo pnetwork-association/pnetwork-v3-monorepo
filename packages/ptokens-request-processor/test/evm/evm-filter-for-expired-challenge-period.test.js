@@ -22,9 +22,7 @@ describe('Challenge period expired report filtering', () => {
         maybefilterForExpiredProposalsAndPutThemInState,
       } = require('../../lib/evm/evm-filter-for-expired-challenge-period')
 
-      const result = await maybefilterForExpiredProposalsAndPutThemInState(
-        state
-      )
+      const result = await maybefilterForExpiredProposalsAndPutThemInState(state)
 
       expect(result).toStrictEqual({
         ...state,

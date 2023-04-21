@@ -30,29 +30,17 @@ const removeKeyFromState = R.curry((_key, _state) => {
   return Promise.resolve(_state)
 })
 
-const removeOnChainRequestsFromState = removeKeyFromState(
-  STATE_ONCHAIN_REQUESTS_KEY
-)
+const removeOnChainRequestsFromState = removeKeyFromState(STATE_ONCHAIN_REQUESTS_KEY)
 
-const removeDetectedEventsFromState = removeKeyFromState(
-  STATE_DETECTED_DB_REPORTS_KEY
-)
+const removeDetectedEventsFromState = removeKeyFromState(STATE_DETECTED_DB_REPORTS_KEY)
 
-const removeProposalsEventsFromState = removeKeyFromState(
-  STATE_PROPOSED_DB_REPORTS_KEY
-)
+const removeProposalsEventsFromState = removeKeyFromState(STATE_PROPOSED_DB_REPORTS_KEY)
 
-const removeToBeDismissedEventsFromState = removeKeyFromState(
-  STATE_TO_BE_DISMISSED_REQUESTS_KEY
-)
+const removeToBeDismissedEventsFromState = removeKeyFromState(STATE_TO_BE_DISMISSED_REQUESTS_KEY)
 
-const removeFinalizedEventsFromState = removeKeyFromState(
-  STATE_FINALIZED_DB_REPORTS_KEY
-)
+const removeFinalizedEventsFromState = removeKeyFromState(STATE_FINALIZED_DB_REPORTS_KEY)
 
-const removeDismissedEventsFromState = removeKeyFromState(
-  STATE_DISMISSED_DB_REPORTS_KEY
-)
+const removeDismissedEventsFromState = removeKeyFromState(STATE_DISMISSED_DB_REPORTS_KEY)
 
 module.exports = {
   addFinalizedEventsToState,

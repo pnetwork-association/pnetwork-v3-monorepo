@@ -9,11 +9,7 @@ const getKeyFromObj = R.curry(
       R.has(_key, _object)
         ? resolve(R.prop(_key, _object))
         : reject(
-            new Error(
-              `${ERROR_KEY_NOT_FOUND} ('${_key}' not found in ${JSON.stringify(
-                _object
-              )})`
-            )
+            new Error(`${ERROR_KEY_NOT_FOUND} ('${_key}' not found in ${JSON.stringify(_object)})`)
           )
     )
 )
@@ -26,9 +22,7 @@ const getKeyFromObjThroughPath = R.curry((_path, _object) =>
       R.isNil(_value)
         ? Promise.reject(
             new Error(
-              `${ERROR_KEY_NOT_FOUND} - Path '[${_path}]' not found in ${JSON.stringify(
-                _object
-              )}`
+              `${ERROR_KEY_NOT_FOUND} - Path '[${_path}]' not found in ${JSON.stringify(_object)}`
             )
           )
         : Promise.resolve(_value)
@@ -40,11 +34,7 @@ const getKeyFromObjThroughPossiblePaths = R.curry((_paths, _object) =>
     .then(_possibleValues => _possibleValues.filter(isNotNil))
     .then(_filteredValues =>
       _filteredValues.length === 0
-        ? Promise.reject(
-            new Error(
-              `${ERROR_UNABLE_TO_FIND_PATHS} ${JSON.stringify(_object)}`
-            )
-          )
+        ? Promise.reject(new Error(`${ERROR_UNABLE_TO_FIND_PATHS} ${JSON.stringify(_object)}`))
         : _filteredValues[0]
     )
 )

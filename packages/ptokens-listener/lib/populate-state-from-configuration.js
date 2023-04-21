@@ -17,9 +17,7 @@ const getDbAndPutInState = R.curry((_config, _state) =>
         schemas.constants.configurationFields.SCHEMA_TABLE_EVENTS_KEY
       ]
     )
-    .then(_collection =>
-      R.assoc(constants.state.STATE_KEY_DB, _collection, _state)
-    )
+    .then(_collection => R.assoc(constants.state.STATE_KEY_DB, _collection, _state))
 )
 
 const getEventFromConfigurationAndPutInState = R.curry((_config, _state) =>
@@ -38,13 +36,12 @@ const getNetworkIdFromConfigurationAndPutInState = R.curry((_config, _state) =>
   )
 )
 
-const getProviderUrlFromConfigurationAndPutInState = R.curry(
-  (_config, _state) =>
-    R.assoc(
-      constants.state.STATE_KEY_PROVIDER_URL,
-      _config[schemas.constants.configurationFields.SCHEMA_PROVIDER_URL_KEY],
-      _state
-    )
+const getProviderUrlFromConfigurationAndPutInState = R.curry((_config, _state) =>
+  R.assoc(
+    constants.state.STATE_KEY_PROVIDER_URL,
+    _config[schemas.constants.configurationFields.SCHEMA_PROVIDER_URL_KEY],
+    _state
+  )
 )
 
 const getInitialStateFromConfiguration = _config =>

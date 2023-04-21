@@ -4,12 +4,10 @@ const { listenForEvmEvents } = require('../evm/evm-listen-for-events')
 const { logger } = require('../get-logger')
 const { insertReportIntoDb } = require('../insert-report-into-db')
 
-const listenForEosioEvents = (_state, _callback) =>
-  Promise.reject(new Error('To be implemented!'))
+const listenForEosioEvents = (_state, _callback) => Promise.reject(new Error('To be implemented!'))
 const listenForAlgorandEvents = (_state, _callback) =>
   Promise.reject(new Error('To be implemented!'))
-const listenForUtxoDeposits = (_state, _callback) =>
-  Promise.reject(new Error('To be implemented!'))
+const listenForUtxoDeposits = (_state, _callback) => Promise.reject(new Error('To be implemented!'))
 
 const getListenerForBlockchainType = _blockchainType => {
   logger.info(`Listen to ${_blockchainType} events`)
@@ -31,11 +29,6 @@ const listenForEvents = _state =>
   utils
     .getBlockchainTypeFromChainId(_state[constants.state.STATE_KEY_NETWORK_ID])
     .then(getListenerForBlockchainType)
-    .then(_listener =>
-      _listener(
-        _state,
-        insertReportIntoDb(_state[constants.state.STATE_KEY_DB])
-      )
-    )
+    .then(_listener => _listener(_state, insertReportIntoDb(_state[constants.state.STATE_KEY_DB])))
 
 module.exports = { listenForEvents }
