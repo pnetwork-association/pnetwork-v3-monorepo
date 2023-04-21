@@ -121,7 +121,7 @@ Create a new branch having the pattern
 
 - feat/ptokens-utils/add-superpowers
 - chore/ptokens-listener/rename-file
-- fix/ptokens-schemas/wrong-type
+- fix/ptokens-constants/wrong-type
 
 ### <a name="best-practices-docker"> Docker
 

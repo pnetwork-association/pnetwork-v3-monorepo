@@ -11,7 +11,7 @@
   "nx": {
     "implicitDependencies": [
       "ptokens-utils",
-      "ptokens-schemas"
+      "ptokens-constants"
     ]
   }
 }

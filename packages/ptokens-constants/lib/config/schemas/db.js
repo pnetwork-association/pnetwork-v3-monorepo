@@ -1,8 +1,4 @@
-const {
-  KEY_URL,
-  KEY_NAME,
-  KEY_TABLE_EVENTS
-} = require('../constants')
+const { KEY_URL, KEY_NAME, KEY_TABLE_EVENTS } = require('../constants')
 
 module.exports = {
   type: 'object',
