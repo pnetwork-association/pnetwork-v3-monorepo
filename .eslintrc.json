@@ -10,6 +10,7 @@
     "no-process-exit": 0,
     "camelcase": ["error"],
     "no-console": ["error"],
+    "eol-last": ["error", "always"],
     "arrow-body-style": ["error", "as-needed"],
     "no-unused-vars": ["error", { "argsIgnorePattern": "^_" }],
     "node/no-unpublished-require": [
