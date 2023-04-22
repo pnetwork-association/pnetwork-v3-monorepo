@@ -47,6 +47,11 @@ module.exports = {
       accounts: [getEnvironmentVariable('PK')],
       gasPrice: 400e9,
     },
+    mumbai: {
+      url: getEnvironmentVariable('MUMBAI_NODE'),
+      accounts: [getEnvironmentVariable('PK')],
+      gasPrice: 400e9,
+    },
     bsc: {
       url: getEnvironmentVariable('BSC_NODE'),
       accounts: [getEnvironmentVariable('PK')],
@@ -77,6 +82,14 @@ module.exports = {
         urls: {
           apiURL: 'https://api.sepolia.etherscan.io/api',
           browserURL: 'https://sepolia.etherscan.io',
+        },
+      },
+      {
+        network: 'mumbai',
+        chainId: 80001,
+        urls: {
+          apiURL: 'https://api.mumbai.polygonscan.com/api',
+          browserURL: 'https://mumbai.polygonscan.com/',
         },
       },
     ],
