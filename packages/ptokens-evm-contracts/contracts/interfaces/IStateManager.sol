@@ -86,7 +86,7 @@ interface IStateManager {
      *
      * @return (uint64, uin64) representing the start and end timestamp of an operation challenge period.
      */
-    function challengePeriodOf(Operation calldata operation) public view returns (uint64, uint64);
+    function challengePeriodOf(Operation calldata operation) external view returns (uint64, uint64);
 
     /*
      * @notice Calculates the operation id.
