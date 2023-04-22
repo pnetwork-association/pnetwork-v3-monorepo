@@ -7,6 +7,7 @@ const constants = {
     mumbai: '0xadc11660'
   },
   QUEUE_TIME: 0,
+  CHALLENGE_TIME: 120,
   ZERO_ADDRESS: '0x0000000000000000000000000000000000000000',
 }
 module.exports = constants
