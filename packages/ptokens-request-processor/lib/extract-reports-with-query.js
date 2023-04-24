@@ -51,7 +51,7 @@ const extractReportsFromOnChainRequests = R.curry((_collection, _onChainRequests
   }
 
   return Promise.all(_onChainRequests.map(utils.getEventId))
-    .then(getQueryForIdInArray('UserOperation'))
+    .then(getQueryForIdInArray(constants.db.eventNames.USER_OPERATION))
     .then(_query => extractReportsWithQuery(_collection, _query))
     .then(_reports => logger.info(`Found ${_reports.length} events into the db!`) || _reports)
 })

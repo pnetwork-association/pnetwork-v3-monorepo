@@ -34,7 +34,7 @@ const getDetectedEventsFromDbAndPutInState = _state =>
     constants.db.txStatus.DETECTED,
     STATE_DETECTED_DB_REPORTS,
     constants.db.KEY_DESTINATION_NETWORK_ID,
-    'UserOperation',
+    constants.db.eventNames.USER_OPERATION,
     _state
   )
 
@@ -43,7 +43,7 @@ const getQueuedEventsFromDbAndPutInState = _state =>
     constants.db.txStatus.DETECTED,
     STATE_QUEUED_DB_REPORTS,
     constants.db.KEY_ORIGINATING_NETWORK_ID,
-    'OperationQueued',
+    constants.db.eventNames.QUEUED_OPERATION,
     _state
   )
 
@@ -52,7 +52,7 @@ const getProposedEventsFromDbAndPutInState = _state =>
     constants.db.txStatus.PROPOSED,
     STATE_PROPOSED_DB_REPORTS,
     constants.db.KEY_DESTINATION_NETWORK_ID,
-    'UserOperation',
+    constants.db.eventNames.USER_OPERATION,
     _state
   )
 
