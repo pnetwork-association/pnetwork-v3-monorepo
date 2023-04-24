@@ -7,6 +7,7 @@ require('@nomicfoundation/hardhat-chai-matchers')
 require('hardhat-spdx-license-identifier')
 require('hardhat-log-remover')
 require('solidity-coverage')
+require("@nomicfoundation/hardhat-toolbox")
 
 const getEnvironmentVariable = _envVar => process.env[_envVar] || ''
 
@@ -105,3 +106,10 @@ module.exports = {
     timeout: 100000000,
   },
 }
+
+/**
+ * User tasks
+ */
+require('./tasks/user-send.js')
+require('./tasks/deploy-ERC20-token.js')
+require('./tasks/deploy-v3-contracts.js')

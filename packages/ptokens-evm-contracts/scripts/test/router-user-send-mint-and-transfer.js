@@ -2,13 +2,13 @@
 const { ethers } = require('hardhat')
 const { PNETWORK_NETWORK_IDS } = require('../config')
 
-const PROUTER_ADDRESS = '0xEFcD9f9eE77A79A6E2536cb3759Ed3c00107a398'
-const TOKEN_ADDRESS = '0x49a5D1CF92772328Ad70f51894FD632a14dF12C9'
-const PTOKEN_ADDRESS = '0x573c0FFa96cB5a2366fc4ee6837CAecd0C5f13DE'
+const PROUTER_ADDRESS = '0xd0e946BD5BfE7Aa6cfC083028cf958c6B71cCAa0'
+const TOKEN_ADDRESS = '0xA2a4F06361C5913F1f2deb7E265EE21a09B8474e'
+const PTOKEN_ADDRESS = '0xb08A46F04c683aC0B9D3dE9774e8efc5A5e621b1'
 
 const main = async () => {
   const signer = await ethers.getSigner()
-
+  console.log(signer.address)
   const PRouter = await ethers.getContractFactory('PRouter')
   const ERC20 = await ethers.getContractFactory('ERC20')
 
