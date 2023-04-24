@@ -31,7 +31,6 @@ const {
   KEY_FINAL_TX_TS,
 } = require('../constants')
 const enumTxStatus = require('../tx-status')
-const enumEventNames = require('../event-names')
 
 module.exports = {
   $async: true,
@@ -77,7 +76,7 @@ module.exports = {
       enum: Object.values(enumTxStatus),
     },
     [KEY_EVENT_NAME]: {
-      enum: Object.values(enumEventNames),
+      type: 'string',
     },
     [KEY_NONCE]: {
       type: 'string',
