@@ -1,8 +1,7 @@
-const schemas = require('ptokens-schemas')
 const constants = require('ptokens-constants')
 const {
-  STATE_PROPOSED_DB_REPORTS_KEY,
-  STATE_FINALIZED_DB_REPORTS_KEY,
+  STATE_PROPOSED_DB_REPORTS,
+  STATE_FINALIZED_DB_REPORTS,
 } = require('../../lib/state/constants')
 const { jestMockContractConstructor } = require('./mock/jest-utils')
 const proposedEvents = require('../samples/proposed-report-set')
@@ -51,9 +50,9 @@ describe('General final txs testing', () => {
         '0x',
       ])
       expect(result).toMatchObject({
-        [schemas.constants.reportFields.SCHEMA_FINAL_TX_TS_KEY]: expect.any(String),
-        [schemas.constants.reportFields.SCHEMA_FINAL_TX_HASH_KEY]: finalizedTxHash,
-        [schemas.constants.reportFields.SCHEMA_STATUS_KEY]: schemas.db.enums.txStatus.FINALIZED,
+        [constants.db.KEY_FINAL_TX_TS]: expect.any(String),
+        [constants.db.KEY_FINAL_TX_HASH]: finalizedTxHash,
+        [constants.db.KEY_STATUS]: constants.db.txStatus.FINALIZED,
       })
     })
   })
@@ -83,10 +82,10 @@ describe('General final txs testing', () => {
 
       const expecteCallResult = [
         {
-          [constants.misc.ETHERS_KEY_TX_HASH]: finalizeTxHashes[0],
+          [constants.evm.ethers.KEY_TX_HASH]: finalizeTxHashes[0],
         },
         {
-          [constants.misc.ETHERS_KEY_TX_HASH]: finalizeTxHashes[1],
+          [constants.evm.ethers.KEY_TX_HASH]: finalizeTxHashes[1],
         },
       ]
 
@@ -103,12 +102,12 @@ describe('General final txs testing', () => {
       const stateManagerAddress = '0xC8E4270a6EF24B67eD38046318Fc8FC2d312f73C'
 
       const state = {
-        [constants.state.STATE_KEY_TX_TIMEOUT]: txTimeout,
-        [constants.state.STATE_KEY_PROVIDER_URL]: providerUrl,
-        [constants.state.STATE_KEY_NETWORK_ID]: destinationNetworkId,
-        [constants.state.STATE_KEY_IDENTITY_FILE]: gpgEncryptedFile,
-        [constants.state.STATE_KEY_STATE_MANAGER_ADDRESS]: stateManagerAddress,
-        [STATE_PROPOSED_DB_REPORTS_KEY]: [proposedEvents[0], proposedEvents[1]],
+        [constants.state.KEY_TX_TIMEOUT]: txTimeout,
+        [constants.state.KEY_PROVIDER_URL]: providerUrl,
+        [constants.state.KEY_NETWORK_ID]: destinationNetworkId,
+        [constants.state.KEY_IDENTITY_FILE]: gpgEncryptedFile,
+        [constants.state.KEY_STATE_MANAGER_ADDRESS]: stateManagerAddress,
+        [STATE_PROPOSED_DB_REPORTS]: [proposedEvents[0], proposedEvents[1]],
       }
 
       const { maybeBuildFinalTxsAndPutInState } = require('../../lib/evm/evm-build-final-txs')
@@ -164,28 +163,28 @@ describe('General final txs testing', () => {
         expect.anything(),
         1000
       )
-      expect(result).toHaveProperty(STATE_PROPOSED_DB_REPORTS_KEY)
-      expect(result).toHaveProperty(STATE_FINALIZED_DB_REPORTS_KEY)
-      expect(result).toHaveProperty(constants.state.STATE_KEY_NETWORK_ID)
-      expect(result).toHaveProperty(constants.state.STATE_KEY_PROVIDER_URL)
-      expect(result).toHaveProperty(constants.state.STATE_KEY_IDENTITY_FILE)
-      expect(result).toHaveProperty(constants.state.STATE_KEY_STATE_MANAGER_ADDRESS)
-      expect(result).toHaveProperty(constants.state.STATE_KEY_TX_TIMEOUT)
-      expect(result[STATE_PROPOSED_DB_REPORTS_KEY]).toHaveLength(2)
+      expect(result).toHaveProperty(STATE_PROPOSED_DB_REPORTS)
+      expect(result).toHaveProperty(STATE_FINALIZED_DB_REPORTS)
+      expect(result).toHaveProperty(constants.state.KEY_NETWORK_ID)
+      expect(result).toHaveProperty(constants.state.KEY_PROVIDER_URL)
+      expect(result).toHaveProperty(constants.state.KEY_IDENTITY_FILE)
+      expect(result).toHaveProperty(constants.state.KEY_STATE_MANAGER_ADDRESS)
+      expect(result).toHaveProperty(constants.state.KEY_TX_TIMEOUT)
+      expect(result[STATE_PROPOSED_DB_REPORTS]).toHaveLength(2)
 
-      expect(result[STATE_FINALIZED_DB_REPORTS_KEY][0]).toEqual(
+      expect(result[STATE_FINALIZED_DB_REPORTS][0]).toEqual(
         expect.objectContaining({
-          [schemas.constants.reportFields.SCHEMA_STATUS_KEY]: schemas.db.enums.txStatus.FINALIZED,
-          [schemas.constants.reportFields.SCHEMA_FINAL_TX_HASH_KEY]: finalizeTxHashes[0],
-          [schemas.constants.reportFields.SCHEMA_FINAL_TX_TS_KEY]: expect.any(String),
+          [constants.db.KEY_STATUS]: constants.db.txStatus.FINALIZED,
+          [constants.db.KEY_FINAL_TX_HASH]: finalizeTxHashes[0],
+          [constants.db.KEY_FINAL_TX_TS]: expect.any(String),
         })
       )
 
-      expect(result[STATE_FINALIZED_DB_REPORTS_KEY][1]).toEqual(
+      expect(result[STATE_FINALIZED_DB_REPORTS][1]).toEqual(
         expect.objectContaining({
-          [schemas.constants.reportFields.SCHEMA_STATUS_KEY]: schemas.db.enums.txStatus.FINALIZED,
-          [schemas.constants.reportFields.SCHEMA_FINAL_TX_HASH_KEY]: finalizeTxHashes[1],
-          [schemas.constants.reportFields.SCHEMA_FINAL_TX_TS_KEY]: expect.any(String),
+          [constants.db.KEY_STATUS]: constants.db.txStatus.FINALIZED,
+          [constants.db.KEY_FINAL_TX_HASH]: finalizeTxHashes[1],
+          [constants.db.KEY_FINAL_TX_TS]: expect.any(String),
         })
       )
     })

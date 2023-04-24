@@ -1,14 +1,14 @@
 const { jestMockContractConstructor } = require('./mock/jest-utils')
 const {
-  STATE_ONCHAIN_REQUESTS_KEY,
-  STATE_DETECTED_DB_REPORTS_KEY,
-  STATE_PROPOSED_DB_REPORTS_KEY,
-  STATE_FINALIZED_DB_REPORTS_KEY,
+  STATE_ONCHAIN_REQUESTS,
+  STATE_DETECTED_DB_REPORTS,
+  STATE_PROPOSED_DB_REPORTS,
+  STATE_FINALIZED_DB_REPORTS,
 } = require('../../lib/state/constants')
 const R = require('ramda')
 const { db, logic } = require('ptokens-utils')
 const constants = require('ptokens-constants')
-const schemas = require('ptokens-schemas')
+
 const proposedEvents = require('../samples/proposed-report-set').slice(0, 2)
 
 describe('Main EVM flow for transaction proposal tests', () => {
@@ -50,10 +50,10 @@ describe('Main EVM flow for transaction proposal tests', () => {
       ]
       const expectedCallResults = [
         {
-          [constants.misc.ETHERS_KEY_TX_HASH]: finalizedTxHashes[0],
+          [constants.evm.ethers.KEY_TX_HASH]: finalizedTxHashes[0],
         },
         {
-          [constants.misc.ETHERS_KEY_TX_HASH]: finalizedTxHashes[1],
+          [constants.evm.ethers.KEY_TX_HASH]: finalizedTxHashes[1],
         },
       ]
 
@@ -78,28 +78,27 @@ describe('Main EVM flow for transaction proposal tests', () => {
       jest.spyOn(fs, 'readFile').mockResolvedValue(privKey)
 
       const state = {
-        [constants.state.STATE_KEY_DB]: collection,
-        [constants.state.STATE_KEY_LOOP_SLEEP_TIME]: 1,
-        [constants.state.STATE_KEY_CHALLENGE_PERIOD]: 20,
-        [constants.state.STATE_KEY_NETWORK_ID]: '0xe15503e4',
-        [constants.state.STATE_KEY_STATE_MANAGER_ADDRESS]:
-          '0xC8E4270a6EF24B67eD38046318Fc8FC2d312f73C',
-        [constants.state.STATE_KEY_IDENTITY_FILE]: gpgEncryptedFile,
+        [constants.state.KEY_DB]: collection,
+        [constants.state.KEY_LOOP_SLEEP_TIME]: 1,
+        [constants.state.KEY_CHALLENGE_PERIOD]: 20,
+        [constants.state.KEY_NETWORK_ID]: '0xe15503e4',
+        [constants.state.KEY_STATE_MANAGER_ADDRESS]: '0xC8E4270a6EF24B67eD38046318Fc8FC2d312f73C',
+        [constants.state.KEY_IDENTITY_FILE]: gpgEncryptedFile,
       }
 
       const { maybeProcessFinalTransactions } = require('../../lib/evm/evm-process-final-txs')
 
       const result = await maybeProcessFinalTransactions(state)
 
-      expect(result).toHaveProperty(constants.state.STATE_KEY_DB)
-      expect(result).not.toHaveProperty(STATE_ONCHAIN_REQUESTS_KEY)
-      expect(result).not.toHaveProperty(STATE_DETECTED_DB_REPORTS_KEY)
-      expect(result).not.toHaveProperty(STATE_PROPOSED_DB_REPORTS_KEY)
-      expect(result).not.toHaveProperty(STATE_FINALIZED_DB_REPORTS_KEY)
-      expect(result).toHaveProperty(constants.state.STATE_KEY_IDENTITY_FILE)
+      expect(result).toHaveProperty(constants.state.KEY_DB)
+      expect(result).not.toHaveProperty(STATE_ONCHAIN_REQUESTS)
+      expect(result).not.toHaveProperty(STATE_DETECTED_DB_REPORTS)
+      expect(result).not.toHaveProperty(STATE_PROPOSED_DB_REPORTS)
+      expect(result).not.toHaveProperty(STATE_FINALIZED_DB_REPORTS)
+      expect(result).toHaveProperty(constants.state.KEY_IDENTITY_FILE)
 
       const finalizedEvents = await db.findReports(collection, {
-        [schemas.constants.reportFields.SCHEMA_STATUS_KEY]: schemas.db.enums.txStatus.FINALIZED,
+        [constants.db.KEY_STATUS]: constants.db.txStatus.FINALIZED,
       })
 
       expect(finalizedEvents).toHaveLength(2)

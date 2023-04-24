@@ -1,16 +1,18 @@
 #!/usr/bin/env node
-const { Command } = require('commander')
-const program = new Command()
 const config = require('./config')
+const constants = require('ptokens-constants')
+const { Command } = require('commander')
 const { logger } = require('./lib/get-logger')
 const { validation } = require('ptokens-utils')
-const schemas = require('ptokens-schemas')
+
 const { setupExitEventListeners } = require('./lib/setup-exit-listeners')
 const { pollForRequestsAndPropose } = require('./lib/interfaces/process-proposal-txs')
 const { pollForRequestsAndDismiss } = require('./lib/interfaces/process-dismissal-txs')
 const { processFinalTransactions } = require('./lib/interfaces/process-final-txs')
 const { getInitialStateFromConfiguration } = require('./lib/populate-state-from-configuration')
 const { version } = require('./package')
+
+const program = new Command()
 
 const COMMANDS = {
   PROCESS_FINAL_TRANSACTION: 'processFinalTransactions',
@@ -27,7 +29,7 @@ const commandToFunctionMapping = {
 const requestProcessor = (_config, _cmd) =>
   logger.info(_config) ||
   setupExitEventListeners()
-    .then(_ => validation.validateJson(schemas.configurations.requestProcessor, _config))
+    .then(_ => validation.validateJson(constants.config.schemas.requestProcessor, _config))
     .then(_ => getInitialStateFromConfiguration(_config))
     .then(commandToFunctionMapping[_cmd])
     .catch(_err => logger.error(_err) || process.exit(1))

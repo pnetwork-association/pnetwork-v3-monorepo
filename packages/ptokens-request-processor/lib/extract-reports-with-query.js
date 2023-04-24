@@ -1,7 +1,8 @@
 const R = require('ramda')
+const constants = require('ptokens-constants')
 const { logger } = require('./get-logger')
 const { db, utils } = require('ptokens-utils')
-const schemas = require('ptokens-schemas')
+
 const { ERROR_NIL_ARGUMENTS } = require('./errors')
 
 const extractReportsWithQuery = (_collection, _query) => db.findReports(_collection, _query)
@@ -21,8 +22,8 @@ const extractReportsWithNameAndChainIdAndStatus = R.curry(
     }
 
     const query = {
-      [schemas.constants.reportFields.SCHEMA_EVENT_NAME_KEY]: _eventName,
-      [schemas.constants.reportFields.SCHEMA_STATUS_KEY]: _status,
+      [constants.db.KEY_EVENT_NAME]: _eventName,
+      [constants.db.KEY_STATUS]: _status,
       [_networkIdKey]: _networkId,
     }
     return extractReportsWithQuery(_collection, query).then(
@@ -41,7 +42,7 @@ const getQueryForIdInArray = R.curry((_eventName, _possibleIds) => ({
 const extractReportsFromOnChainRequests = R.curry((_collection, _onChainRequests) => {
   logger.info(
     `Getting events w/ transaction hash ${_onChainRequests.map(
-      R.prop(schemas.constants.reportFields.SCHEMA_ORIGINATING_TX_HASH_KEY)
+      R.prop(constants.db.KEY_ORIGINATING_TX_HASH)
     )} from db...`
   )
 
@@ -50,7 +51,7 @@ const extractReportsFromOnChainRequests = R.curry((_collection, _onChainRequests
   }
 
   return Promise.all(_onChainRequests.map(utils.getEventId))
-    .then(getQueryForIdInArray('UserOperation'))
+    .then(getQueryForIdInArray(constants.db.eventNames.USER_OPERATION))
     .then(_query => extractReportsWithQuery(_collection, _query))
     .then(_reports => logger.info(`Found ${_reports.length} events into the db!`) || _reports)
 })

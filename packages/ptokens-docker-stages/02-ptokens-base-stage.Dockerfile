@@ -7,7 +7,6 @@ ARG REGISTRY=ghcr.io/pnetwork-association
 
 FROM $REGISTRY/ptokens-constants:$VERSION_PTOKENS_CONSTANTS as ptokens-constants
 FROM $REGISTRY/ptokens-utils:$VERSION_PTOKENS_UTILS as ptokens-utils
-FROM $REGISTRY/ptokens-schemas:$VERSION_PTOKENS_SCHEMAS as ptokens-schemas
 FROM $REGISTRY/ptokens-debian-stage:$VERSION_PTOKENS_DEBIAN_STAGE as ptokens-debian-stage
 FROM node:16.17.0-bullseye-slim
 
@@ -38,8 +37,3 @@ COPY --from=ptokens-utils \
      --chown=node:node \
         /home/node/ptokens-utils \
         $FOLDER_SRC/ptokens-utils
-
-COPY --from=ptokens-schemas \
-     --chown=node:node \
-        /home/node/ptokens-schemas \
-        $FOLDER_SRC/ptokens-schemas

@@ -5,7 +5,7 @@ const errors = require('../errors')
 
 const callContractFunction = (_fxnName, _fxnArgs, _contract) =>
   _contract[_fxnName](..._fxnArgs).catch(_err => {
-    if (_err.message.includes(constants.misc.ETHERS_ESTIMATE_GAS_ERROR)) {
+    if (_err.message.includes(constants.evm.ethers.ERROR_ESTIMATE_GAS)) {
       const revertData = _err.data
       const decodedError = _contract.interface.parseError(revertData)
       if (decodedError) {
@@ -30,7 +30,7 @@ const callContractFunctionAndAwait = (_fxnName, _fxnArgs, _contract, _txTimeout 
     .then(
       _tx =>
         logger.info(
-          `${_fxnName} call mined successfully ${_tx[constants.misc.ETHERS_KEY_TX_HASH]}`
+          `${_fxnName} call mined successfully ${_tx[constants.evm.ethers.KEY_TX_HASH]}`
         ) || _tx
     )
 

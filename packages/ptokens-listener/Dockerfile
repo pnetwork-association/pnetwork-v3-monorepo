@@ -6,7 +6,7 @@ WORKDIR $FOLDER_APP
 
 COPY package.json .
 
-RUN npm install ../ptokens-constants ../ptokens-schemas ../ptokens-utils && \
+RUN npm install ../ptokens-constants ../ptokens-utils && \
     echo '{}' > $FOLDER_APP/config.json && \
     chown -R node:node $FOLDER_APP
 

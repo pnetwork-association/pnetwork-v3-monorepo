@@ -1,12 +1,12 @@
 const { jestMockContractConstructor } = require('./mock/jest-utils')
 const R = require('ramda')
 const { db, logic } = require('ptokens-utils')
-const schemas = require('ptokens-schemas')
+
 const constants = require('ptokens-constants')
 const {
-  STATE_ONCHAIN_REQUESTS_KEY,
-  STATE_DETECTED_DB_REPORTS_KEY,
-  STATE_PROPOSED_DB_REPORTS_KEY,
+  STATE_ONCHAIN_REQUESTS,
+  STATE_DETECTED_DB_REPORTS,
+  STATE_PROPOSED_DB_REPORTS,
 } = require('../../lib/state/constants')
 const detectedEvents = require('../samples/detected-report-set').slice(0, 2)
 
@@ -75,24 +75,24 @@ describe('Main EVM flow for transaction proposal tests', () => {
       jest.spyOn(fs, 'readFile').mockResolvedValue(privKey)
 
       const state = {
-        [constants.state.STATE_KEY_DB]: collection,
-        [constants.state.STATE_KEY_LOOP_SLEEP_TIME]: 1,
-        [constants.state.STATE_KEY_IDENTITY_FILE]: gpgEncryptedFile,
-        [constants.state.STATE_KEY_NETWORK_ID]: '0xe15503e4',
+        [constants.state.KEY_DB]: collection,
+        [constants.state.KEY_LOOP_SLEEP_TIME]: 1,
+        [constants.state.KEY_IDENTITY_FILE]: gpgEncryptedFile,
+        [constants.state.KEY_NETWORK_ID]: '0xe15503e4',
       }
       const {
         maybeProcessNewRequestsAndPropose,
       } = require('../../lib/evm/evm-process-proposal-txs')
       const result = await maybeProcessNewRequestsAndPropose(state)
 
-      expect(result).toHaveProperty(constants.state.STATE_KEY_DB)
-      expect(result).not.toHaveProperty(STATE_ONCHAIN_REQUESTS_KEY)
-      expect(result).not.toHaveProperty(STATE_DETECTED_DB_REPORTS_KEY)
-      expect(result).not.toHaveProperty(STATE_PROPOSED_DB_REPORTS_KEY)
-      expect(result).toHaveProperty(constants.state.STATE_KEY_IDENTITY_FILE)
+      expect(result).toHaveProperty(constants.state.KEY_DB)
+      expect(result).not.toHaveProperty(STATE_ONCHAIN_REQUESTS)
+      expect(result).not.toHaveProperty(STATE_DETECTED_DB_REPORTS)
+      expect(result).not.toHaveProperty(STATE_PROPOSED_DB_REPORTS)
+      expect(result).toHaveProperty(constants.state.KEY_IDENTITY_FILE)
 
       const proposedEvents = await db.findReports(collection, {
-        [schemas.constants.reportFields.SCHEMA_STATUS_KEY]: schemas.db.enums.txStatus.PROPOSED,
+        [constants.db.KEY_STATUS]: constants.db.txStatus.PROPOSED,
       })
 
       expect(proposedEvents).toHaveLength(2)

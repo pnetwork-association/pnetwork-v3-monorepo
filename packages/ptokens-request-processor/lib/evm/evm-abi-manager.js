@@ -1,5 +1,5 @@
-const schemas = require('ptokens-schemas')
 const { logger } = require('../get-logger')
+const constants = require('ptokens-constants')
 
 const userOperationTuple =
   'tuple(' +
@@ -63,23 +63,22 @@ const getProtocolCancelOperationAbi = () => getProtocolOperationAbi('protocolCan
 
 const getUserOperationAbiArgsFromReport = _eventReport => [
   [
-    _eventReport[schemas.constants.reportFields.SCHEMA_ORIGINATING_BLOCK_HASH_KEY] ||
-      _eventReport[schemas.constants.reportFields.SCHEMA_BLOCK_HASH_KEY],
-    _eventReport[schemas.constants.reportFields.SCHEMA_ORIGINATING_TX_HASH_KEY] ||
-      _eventReport[schemas.constants.reportFields.SCHEMA_TX_HASH_KEY],
-    _eventReport[schemas.constants.reportFields.SCHEMA_OPTIONS_MASK],
-    _eventReport[schemas.constants.reportFields.SCHEMA_NONCE_KEY],
-    _eventReport[schemas.constants.reportFields.SCHEMA_UNDERLYING_ASSET_DECIMALS_KEY],
-    _eventReport[schemas.constants.reportFields.SCHEMA_ASSET_AMOUNT_KEY],
-    _eventReport[schemas.constants.reportFields.SCHEMA_UNDERLYING_ASSET_TOKEN_ADDRESS_KEY],
-    _eventReport[schemas.constants.reportFields.SCHEMA_ORIGINATING_NETWORK_ID_KEY] ||
-      _eventReport[schemas.constants.reportFields.SCHEMA_NETWORK_ID_KEY],
-    _eventReport[schemas.constants.reportFields.SCHEMA_DESTINATION_NETWORK_ID_KEY],
-    _eventReport[schemas.constants.reportFields.SCHEMA_UNDERLYING_ASSET_NETWORK_ID_KEY],
-    _eventReport[schemas.constants.reportFields.SCHEMA_DESTINATION_ACCOUNT_KEY],
-    _eventReport[schemas.constants.reportFields.SCHEMA_UNDERLYING_ASSET_NAME_KEY],
-    _eventReport[schemas.constants.reportFields.SCHEMA_UNDERLYING_ASSET_SYMBOL_KEY],
-    _eventReport[schemas.constants.reportFields.SCHEMA_USER_DATA_KEY],
+    _eventReport[constants.db.KEY_ORIGINATING_BLOCK_HASH] ||
+      _eventReport[constants.db.KEY_BLOCK_HASH],
+    _eventReport[constants.db.KEY_ORIGINATING_TX_HASH] || _eventReport[constants.db.KEY_TX_HASH],
+    _eventReport[constants.db.KEY_OPTIONS_MASK],
+    _eventReport[constants.db.KEY_NONCE],
+    _eventReport[constants.db.KEY_UNDERLYING_ASSET_DECIMALS],
+    _eventReport[constants.db.KEY_ASSET_AMOUNT],
+    _eventReport[constants.db.KEY_UNDERLYING_ASSET_TOKEN_ADDRESS],
+    _eventReport[constants.db.KEY_ORIGINATING_NETWORK_ID] ||
+      _eventReport[constants.db.KEY_NETWORK_ID],
+    _eventReport[constants.db.KEY_DESTINATION_NETWORK_ID],
+    _eventReport[constants.db.KEY_UNDERLYING_ASSET_NETWORK_ID],
+    _eventReport[constants.db.KEY_DESTINATION_ACCOUNT],
+    _eventReport[constants.db.KEY_UNDERLYING_ASSET_NAME],
+    _eventReport[constants.db.KEY_UNDERLYING_ASSET_SYMBOL],
+    _eventReport[constants.db.KEY_USER_DATA],
   ],
 ]
 

@@ -1,9 +1,9 @@
-const schemas = require('ptokens-schemas')
 const { logger } = require('./get-logger')
+const constants = require('ptokens-constants')
 const { utils, validation } = require('ptokens-utils')
 
 const validateReportOrSetNull = _report =>
-  validation.validateJson(schemas.db.collections.events, _report).catch(_err => {
+  validation.validateJson(constants.db.schemas.eventReport, _report).catch(_err => {
     logger.warn('Invalid report detected, skipping...', _err)
     logger.warn(JSON.stringify(_report))
     return null

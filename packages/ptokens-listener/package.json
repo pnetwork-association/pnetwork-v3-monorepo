@@ -1,6 +1,6 @@
 {
   "name": "ptokens-listener",
-  "version": "1.5.1",
+  "version": "1.5.2",
   "description": "Node.js implementation of the v3 pTokens Listener.",
   "bin": "./index.js",
   "scripts": {
@@ -17,7 +17,6 @@
     "commander": "^10.0.0",
     "log4js": "^6.7.1",
     "ptokens-constants": "*",
-    "ptokens-schemas": "*",
     "ptokens-utils": "*",
     "ramda": "^0.28.0"
   },

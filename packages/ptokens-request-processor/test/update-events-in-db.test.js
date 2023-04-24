@@ -1,9 +1,9 @@
 const R = require('ramda')
 const { db } = require('ptokens-utils')
 const constants = require('ptokens-constants')
-const schemas = require('ptokens-schemas')
+
 const detectedEvents = require('./samples/detected-report-set')
-const { STATE_PROPOSED_DB_REPORTS_KEY } = require('../lib/state/constants')
+const { STATE_PROPOSED_DB_REPORTS } = require('../lib/state/constants')
 const { maybeUpdateProposedEventsInDb } = require('../lib/update-events-in-db')
 
 describe('General events report update tests', () => {
@@ -38,30 +38,30 @@ describe('General events report update tests', () => {
       ]
       const proposedTimestamps = [new Date().toISOString(), new Date().toISOString()]
       const state = {
-        [constants.state.STATE_KEY_DB]: collection,
-        [STATE_PROPOSED_DB_REPORTS_KEY]: [
+        [constants.state.KEY_DB]: collection,
+        [STATE_PROPOSED_DB_REPORTS]: [
           {
             ...detectedEvents[0],
-            [schemas.constants.reportFields.SCHEMA_PROPOSAL_TS_KEY]: proposedTimestamps[0],
-            [schemas.constants.reportFields.SCHEMA_PROPOSAL_TX_HASH_KEY]: proposedTxHashes[0],
-            [schemas.constants.reportFields.SCHEMA_STATUS_KEY]: schemas.db.enums.txStatus.PROPOSED,
+            [constants.db.KEY_PROPOSAL_TS]: proposedTimestamps[0],
+            [constants.db.KEY_PROPOSAL_TX_HASH]: proposedTxHashes[0],
+            [constants.db.KEY_STATUS]: constants.db.txStatus.PROPOSED,
           },
           {
             ...detectedEvents[1],
-            [schemas.constants.reportFields.SCHEMA_PROPOSAL_TS_KEY]: proposedTimestamps[1],
-            [schemas.constants.reportFields.SCHEMA_PROPOSAL_TX_HASH_KEY]: proposedTxHashes[1],
-            [schemas.constants.reportFields.SCHEMA_STATUS_KEY]: schemas.db.enums.txStatus.PROPOSED,
+            [constants.db.KEY_PROPOSAL_TS]: proposedTimestamps[1],
+            [constants.db.KEY_PROPOSAL_TX_HASH]: proposedTxHashes[1],
+            [constants.db.KEY_STATUS]: constants.db.txStatus.PROPOSED,
           },
         ],
       }
 
       const result = await maybeUpdateProposedEventsInDb(state)
 
-      expect(result).toHaveProperty(constants.state.STATE_KEY_DB)
-      expect(result).toHaveProperty(STATE_PROPOSED_DB_REPORTS_KEY)
+      expect(result).toHaveProperty(constants.state.KEY_DB)
+      expect(result).toHaveProperty(STATE_PROPOSED_DB_REPORTS)
 
       const query = {
-        [schemas.constants.reportFields.SCHEMA_STATUS_KEY]: schemas.db.enums.txStatus.PROPOSED,
+        [constants.db.KEY_STATUS]: constants.db.txStatus.PROPOSED,
       }
 
       const updatedReports = await db.findReports(collection, query)

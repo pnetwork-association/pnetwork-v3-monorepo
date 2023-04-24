@@ -1,6 +1,6 @@
 {
   "name": "ptokens-docker-stages",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "A common place where to store shared Dockerfiles",
   "scripts": {
     "docker-build": "PROJECT_ROOT=$(pwd) ./docker-build.sh"
@@ -11,7 +11,7 @@
   "nx": {
     "implicitDependencies": [
       "ptokens-utils",
-      "ptokens-schemas"
+      "ptokens-constants"
     ]
   }
 }

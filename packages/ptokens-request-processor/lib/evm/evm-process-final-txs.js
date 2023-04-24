@@ -21,7 +21,7 @@ const maybeProcessFinalTransactions = _state =>
     .then(removeProposalsEventsFromState)
     .then(maybeUpdateFinalizedEventsInDb)
     .then(removeFinalizedEventsFromState)
-    .then(logic.sleepThenReturnArg(_state[constants.state.STATE_KEY_LOOP_SLEEP_TIME]))
+    .then(logic.sleepThenReturnArg(_state[constants.state.KEY_LOOP_SLEEP_TIME]))
 
 const processFinalTxsErrorHandler = R.curry((_state, _err) => {
   logger.error('Final transactions error handler...')

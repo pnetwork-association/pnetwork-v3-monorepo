@@ -1,4 +1,4 @@
-const schemas = require('ptokens-schemas')
+const constants = require('ptokens-constants')
 const { checkConfiguration } = require('../check-configuration')
 const { getEventLogsFromTransaction } = require('../interfaces/get-event-logs-from-transaction')
 
@@ -10,8 +10,8 @@ const getEventLogsFromTransactionCommand = (_config, _hash, _eventSignature, _op
   checkConfiguration(_config)
     .then(_ =>
       getEventLogsFromTransaction(
-        _config[schemas.constants.configurationFields.SCHEMA_PROVIDER_URL_KEY],
-        _config[schemas.constants.configurationFields.SCHEMA_NETWORK_ID_KEY],
+        _config[constants.config.KEY_PROVIDER_URL],
+        _config[constants.config.KEY_NETWORK_ID],
         _hash,
         _eventSignature
       )

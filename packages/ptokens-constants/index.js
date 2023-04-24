@@ -1,9 +1,11 @@
+const db = require('./lib/db')
+const evm = require('./lib/evm')
 const state = require('./lib/state')
-const evmEvents = require('./lib/evm-events')
-const misc = require('./lib/misc')
+const config = require('./lib/config')
 
 module.exports = {
+  db,
+  evm,
   state,
-  events: { ...evmEvents },
-  misc,
+  config,
 }

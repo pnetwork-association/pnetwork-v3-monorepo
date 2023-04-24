@@ -4,7 +4,7 @@
   "tx-timeout": 200,
   "chain-name": "bsc",
   "chain-type": "evm",
-  "chain-id": "0x00e4b170",
+  "network-id": "0x00e4b170",
   "identity": "./identity.gpg",
   "state-manager-address": "0x",
   "db": {

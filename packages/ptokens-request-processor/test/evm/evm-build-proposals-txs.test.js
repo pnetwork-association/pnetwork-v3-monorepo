@@ -1,9 +1,9 @@
 const { jestMockContractConstructor } = require('./mock/jest-utils')
 const {
-  STATE_DETECTED_DB_REPORTS_KEY,
-  STATE_PROPOSED_DB_REPORTS_KEY,
+  STATE_DETECTED_DB_REPORTS,
+  STATE_PROPOSED_DB_REPORTS,
 } = require('../../lib/state/constants')
-const schemas = require('ptokens-schemas')
+
 const { validation } = require('ptokens-utils')
 const constants = require('ptokens-constants')
 const detectedEvents = require('../samples/detected-report-set')
@@ -21,7 +21,7 @@ describe('Build proposals test for EVM', () => {
       const ethers = require('ethers')
       const proposedTxHash = '0xd656ffac17b71e2ea2e24f72cd4c15c909a0ebe1696f8ead388eb268268f1cbf'
       const expectedObject = {
-        [constants.misc.ETHERS_KEY_TX_HASH]: proposedTxHash,
+        [constants.evm.ethers.KEY_TX_HASH]: proposedTxHash,
       }
 
       const mockQueueOperation = jest.fn().mockResolvedValue({
@@ -39,7 +39,7 @@ describe('Build proposals test for EVM', () => {
       const wallet = ethers.Wallet.createRandom()
       const stateManagerAddress = '0xC8E4270a6EF24B67eD38046318Fc8FC2d312f73C'
 
-      await validation.validateJson(schemas.db.collections.events, eventReport)
+      await validation.validateJson(constants.db.schemas.eventReport, eventReport)
 
       const txTimeout = 1000 //ms
       const result = await makeProposalContractCall(
@@ -68,9 +68,9 @@ describe('Build proposals test for EVM', () => {
       ])
       expect(result).toStrictEqual({
         ...eventReport,
-        [schemas.constants.reportFields.SCHEMA_STATUS_KEY]: schemas.db.enums.txStatus.PROPOSED,
-        [schemas.constants.reportFields.SCHEMA_PROPOSAL_TX_HASH_KEY]: proposedTxHash,
-        [schemas.constants.reportFields.SCHEMA_PROPOSAL_TS_KEY]: expect.any(String),
+        [constants.db.KEY_STATUS]: constants.db.txStatus.PROPOSED,
+        [constants.db.KEY_PROPOSAL_TX_HASH]: proposedTxHash,
+        [constants.db.KEY_PROPOSAL_TS]: expect.any(String),
       })
     })
 
@@ -99,7 +99,7 @@ describe('Build proposals test for EVM', () => {
     //   const wallet = ethers.Wallet.createRandom()
     //   const stateManagerAddress = '0xC8E4270a6EF24B67eD38046318Fc8FC2d312f73C'
 
-    //   await validation.validateJson(schemas.db.collections.events, eventReport)
+    //   await validation.validateJson(constants.db.schemas.eventReport, eventReport)
 
     //   const txTimeout = 100 //ms
     //   const result = await makeProposalContractCall(
@@ -137,10 +137,10 @@ describe('Build proposals test for EVM', () => {
 
       const expecteCallResult = [
         {
-          [constants.misc.ETHERS_KEY_TX_HASH]: proposedTxHashes[0],
+          [constants.evm.ethers.KEY_TX_HASH]: proposedTxHashes[0],
         },
         {
-          [constants.misc.ETHERS_KEY_TX_HASH]: proposedTxHashes[1],
+          [constants.evm.ethers.KEY_TX_HASH]: proposedTxHashes[1],
         },
       ]
 
@@ -157,12 +157,12 @@ describe('Build proposals test for EVM', () => {
       const stateManagerAddress = '0xC8E4270a6EF24B67eD38046318Fc8FC2d312f73C'
 
       const state = {
-        [constants.state.STATE_KEY_TX_TIMEOUT]: txTimeout,
-        [constants.state.STATE_KEY_PROVIDER_URL]: providerUrl,
-        [constants.state.STATE_KEY_NETWORK_ID]: destinationNetworkId,
-        [constants.state.STATE_KEY_IDENTITY_FILE]: gpgEncryptedFile,
-        [constants.state.STATE_KEY_STATE_MANAGER_ADDRESS]: stateManagerAddress,
-        [STATE_DETECTED_DB_REPORTS_KEY]: [detectedEvents[0], detectedEvents[1]],
+        [constants.state.KEY_TX_TIMEOUT]: txTimeout,
+        [constants.state.KEY_PROVIDER_URL]: providerUrl,
+        [constants.state.KEY_NETWORK_ID]: destinationNetworkId,
+        [constants.state.KEY_IDENTITY_FILE]: gpgEncryptedFile,
+        [constants.state.KEY_STATE_MANAGER_ADDRESS]: stateManagerAddress,
+        [STATE_DETECTED_DB_REPORTS]: [detectedEvents[0], detectedEvents[1]],
       }
 
       const { buildProposalsTxsAndPutInState } = require('../../lib/evm/evm-build-proposals-txs')
@@ -218,28 +218,28 @@ describe('Build proposals test for EVM', () => {
         expect.anything(),
         1000
       )
-      expect(result).toHaveProperty(STATE_PROPOSED_DB_REPORTS_KEY)
-      expect(result).toHaveProperty(STATE_DETECTED_DB_REPORTS_KEY)
-      expect(result).toHaveProperty(constants.state.STATE_KEY_NETWORK_ID)
-      expect(result).toHaveProperty(constants.state.STATE_KEY_PROVIDER_URL)
-      expect(result).toHaveProperty(constants.state.STATE_KEY_IDENTITY_FILE)
-      expect(result).toHaveProperty(constants.state.STATE_KEY_STATE_MANAGER_ADDRESS)
-      expect(result).toHaveProperty(constants.state.STATE_KEY_TX_TIMEOUT)
-      expect(result[STATE_PROPOSED_DB_REPORTS_KEY]).toHaveLength(2)
+      expect(result).toHaveProperty(STATE_PROPOSED_DB_REPORTS)
+      expect(result).toHaveProperty(STATE_DETECTED_DB_REPORTS)
+      expect(result).toHaveProperty(constants.state.KEY_NETWORK_ID)
+      expect(result).toHaveProperty(constants.state.KEY_PROVIDER_URL)
+      expect(result).toHaveProperty(constants.state.KEY_IDENTITY_FILE)
+      expect(result).toHaveProperty(constants.state.KEY_STATE_MANAGER_ADDRESS)
+      expect(result).toHaveProperty(constants.state.KEY_TX_TIMEOUT)
+      expect(result[STATE_PROPOSED_DB_REPORTS]).toHaveLength(2)
 
-      expect(result[STATE_PROPOSED_DB_REPORTS_KEY][0]).toEqual(
+      expect(result[STATE_PROPOSED_DB_REPORTS][0]).toEqual(
         expect.objectContaining({
-          [schemas.constants.reportFields.SCHEMA_STATUS_KEY]: schemas.db.enums.txStatus.PROPOSED,
-          [schemas.constants.reportFields.SCHEMA_PROPOSAL_TX_HASH_KEY]: proposedTxHashes[0],
-          [schemas.constants.reportFields.SCHEMA_PROPOSAL_TS_KEY]: expect.any(String),
+          [constants.db.KEY_STATUS]: constants.db.txStatus.PROPOSED,
+          [constants.db.KEY_PROPOSAL_TX_HASH]: proposedTxHashes[0],
+          [constants.db.KEY_PROPOSAL_TS]: expect.any(String),
         })
       )
 
-      expect(result[STATE_PROPOSED_DB_REPORTS_KEY][1]).toEqual(
+      expect(result[STATE_PROPOSED_DB_REPORTS][1]).toEqual(
         expect.objectContaining({
-          [schemas.constants.reportFields.SCHEMA_STATUS_KEY]: schemas.db.enums.txStatus.PROPOSED,
-          [schemas.constants.reportFields.SCHEMA_PROPOSAL_TX_HASH_KEY]: proposedTxHashes[1],
-          [schemas.constants.reportFields.SCHEMA_PROPOSAL_TS_KEY]: expect.any(String),
+          [constants.db.KEY_STATUS]: constants.db.txStatus.PROPOSED,
+          [constants.db.KEY_PROPOSAL_TX_HASH]: proposedTxHashes[1],
+          [constants.db.KEY_PROPOSAL_TS]: expect.any(String),
         })
       )
     })

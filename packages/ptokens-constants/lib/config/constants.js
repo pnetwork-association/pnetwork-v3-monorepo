@@ -1,0 +1,17 @@
+module.exports = {
+  KEY_DB: 'db',
+  KEY_URL: 'url',
+  KEY_NAME: 'name',
+  KEY_EVENTS: 'events',
+  KEY_CONTRACTS: 'contracts',
+  KEY_CHAIN_NAME: 'chain-name',
+  KEY_CHAIN_TYPE: 'chain-type',
+  KEY_TX_TIMEOUT: 'tx-timeout',
+  KEY_NETWORK_ID: 'network-id',
+  KEY_IDENTITY_GPG: 'identity',
+  KEY_TABLE_EVENTS: 'table-events',
+  KEY_PROVIDER_URL: 'provider-url',
+  KEY_STATE_MANAGER: 'state-manager-address',
+  KEY_CHALLENGE_PERIOD: 'challenge-period',
+  KEY_LOOP_SLEEP_TIME: 'loop-sleep-time',
+}
