@@ -86,7 +86,7 @@ $ node index.js getUserOperation 0x2b948164aad1517cdcd11e22c3f96d58b146fdee233ab
         getEventReportsFromTransactionCommand(
           config,
           _hash,
-          constants.evm.events.USER_OPERATION,
+          constants.evm.events.USER_OPERATION_SIGNATURE,
           _options.save
         )
     )
@@ -110,7 +110,7 @@ $ node index.js getOperationQueued 0x261229b0af24a5caaf24edc96a0e4ccafa801ef873a
         getEventReportsFromTransactionCommand(
           config,
           _hash,
-          constants.evm.events.OPERATION_QUEUED,
+          constants.evm.events.OPERATION_QUEUED_SIGNATURE,
           _options.save
         )
     )
