@@ -2,7 +2,6 @@ const ethers = require('ethers')
 const schemas = require('ptokens-schemas')
 const constants = require('ptokens-constants')
 const { logger } = require('../get-logger')
-const { readFile } = require('fs/promises')
 const { logic, errors } = require('ptokens-utils')
 const { ERROR_INVALID_EVENT_NAME, ERROR_OPERATION_ALREADY_EXECUTED } = require('../errors')
 const R = require('ramda')
@@ -17,6 +16,7 @@ const {
   getProtocolExecuteOperationAbi,
   getUserOperationAbiArgsFromReport,
 } = require('./evm-abi-manager')
+const { readIdentityFile } = require('../read-identity-file')
 
 // TODO: factor out (check evm-build-proposals-txs)
 const addFinalizedTxHashToEvent = R.curry((_event, _finalizedTxHash) => {
@@ -95,16 +95,12 @@ const buildFinalTxsAndPutInState = _state =>
     const txTimeout = _state[constants.state.STATE_KEY_TX_TIMEOUT]
     const stateManager = _state[constants.state.STATE_KEY_STATE_MANAGER_ADDRESS]
 
-    return (
-      checkEventsHaveExpectedDestinationChainId(destinationNetworkId, proposedEvents)
-        // FIXME
-        // .then(_ => utils.readGpgEncryptedFile(identityGpgFile))
-        .then(_ => readFile(identityGpgFile, { encoding: 'utf8' }))
-        .then(_privateKey => new ethers.Wallet(_privateKey, provider))
-        .then(sendFinalTransactions(proposedEvents, stateManager, txTimeout))
-        .then(addFinalizedEventsToState(_state))
-        .then(resolve)
-    )
+    return checkEventsHaveExpectedDestinationChainId(destinationNetworkId, proposedEvents)
+      .then(_ => readIdentityFile(identityGpgFile))
+      .then(_privateKey => new ethers.Wallet(_privateKey, provider))
+      .then(sendFinalTransactions(proposedEvents, stateManager, txTimeout))
+      .then(addFinalizedEventsToState(_state))
+      .then(resolve)
   })
 
 const maybeBuildFinalTxsAndPutInState = _state =>
