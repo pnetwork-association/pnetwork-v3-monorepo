@@ -1,5 +1,5 @@
 const { expect } = require('chai')
-const { ethers } = require('hardhat')
+const { ethers, upgrades } = require('hardhat')
 const { time } = require('@nomicfoundation/hardhat-network-helpers')
 
 const {
@@ -23,6 +23,8 @@ let token,
   testReceiver,
   testNotReceiver,
   user1
+
+const EPOCH_DURATION = 60 * 60 * 24 * 15
 
 describe('StateManager', () => {
   const generateOperation = async (_opts = {}) => {
@@ -83,19 +85,26 @@ describe('StateManager', () => {
     const StateManager = await ethers.getContractFactory('StateManager')
     const StandardToken = await ethers.getContractFactory('StandardToken')
     const TestReceiver = await ethers.getContractFactory('TestReceiver')
+    const EpochsManager = await ethers.getContractFactory('EpochsManager')
     const TestNotReceiver = await ethers.getContractFactory('TestNotReceiver')
 
     const signers = await ethers.getSigners()
     owner = signers[0]
     relayer = signers[1]
     user1 = signers[2]
+    guardian = signers[3]
+    sentinel = signers[4]
 
     // H A R D H A T
+    epochsManager = await upgrades.deployProxy(EpochsManager, [EPOCH_DURATION], {
+      initializer: 'initialize',
+      kind: 'uups'
+    })
     testReceiver = await TestReceiver.deploy()
-    testNotReceiver = await TestNotReceiver.deploy()
     pFactory = await PFactory.deploy()
+    testNotReceiver = await TestNotReceiver.deploy()
     pRouter = await PRouter.deploy(pFactory.address)
-    stateManager = await StateManager.deploy(pFactory.address, QUEUE_TIME)
+    stateManager = await StateManager.deploy(pFactory.address, epochsManager.address, QUEUE_TIME)
     token = await StandardToken.deploy(
       'Token',
       'TKN',
@@ -117,10 +126,15 @@ describe('StateManager', () => {
         pFactory,
       }
     )
+
+    // FIXME: this is just temporary until the start epoch
+    // timestamp is fixed on the contract side
+    await time.increase(EPOCH_DURATION * 1)
   })
 
   it('should be able to queue an operation', async () => {
     const operation = await generateOperation()
+
     await expect(
       stateManager.connect(relayer).protocolQueueOperation(operation)
     )
@@ -136,33 +150,33 @@ describe('StateManager', () => {
     ).to.be.revertedWithCustomError(stateManager, 'OperationAlreadyQueued')
   })
 
-  it('should be able to cancel an operation before that the execution timestamp is reached', async () => {
+  it('a guardian should be able to cancel an operation within the challenge period', async () => {
     const operation = await generateOperation()
     await stateManager.connect(relayer).protocolQueueOperation(operation)
     await time.increase(QUEUE_TIME / 2)
     await expect(
-      stateManager.connect(relayer).protocolCancelOperation(operation)
+      stateManager.connect(relayer).protocolGuardianCancelOperation(operation)
     )
-      .to.emit(stateManager, 'OperationCancelled')
+      .to.emit(stateManager, 'GuardianOperationCancelled')
       .withArgs(operation.serialize())
   })
 
-  it('should not be able to cancel an operation after that the execution timestamp is passed', async () => {
+  it('a guardian should not be able to cancel an operation after the challenge period', async () => {
     const operation = await generateOperation()
     await stateManager.connect(relayer).protocolQueueOperation(operation)
     await time.increase(QUEUE_TIME)
     await expect(
-      stateManager.connect(relayer).protocolCancelOperation(operation)
+      stateManager.connect(relayer).protocolGuardianCancelOperation(operation)
     ).to.be.revertedWithCustomError(
       stateManager,
-      'ExecuteTimestampAlreadyReached'
+      'ChallengePeriodTerminated'
     )
   })
 
-  it('should not be able to cancel an operation that has not been queued', async () => {
+  it('a guardian should not be able to cancel an operation that has not been queued', async () => {
     const fakeOperation = new Operation()
     await expect(
-      stateManager.connect(relayer).protocolCancelOperation(fakeOperation)
+      stateManager.connect(relayer).protocolGuardianCancelOperation(fakeOperation)
     ).to.be.revertedWithCustomError(stateManager, 'OperationNotQueued')
   })
 
@@ -174,12 +188,15 @@ describe('StateManager', () => {
   })
 
   it('should not be able to execute an operation that has been cancelled', async () => {
+    // FIXME
+    const proof = [0]
     const operation = await generateOperation()
     await stateManager.connect(relayer).protocolQueueOperation(operation)
-    await stateManager.connect(relayer).protocolCancelOperation(operation)
+    await stateManager.connect(guardian).protocolGuardianCancelOperation(operation)
+    await stateManager.connect(sentinel).protocolGovernanceCancelOperation(operation, proof)
     await expect(
       stateManager.connect(relayer).protocolExecuteOperation(operation)
-    ).to.be.revertedWithCustomError(stateManager, 'OperationCancelled')
+    ).to.be.revertedWithCustomError(stateManager, 'OperationAlreadyCancelled')
   })
 
   it('should not be able to execute an operation before that the execution timestamp is reached', async () => {
@@ -187,7 +204,7 @@ describe('StateManager', () => {
     await stateManager.connect(relayer).protocolQueueOperation(operation)
     await expect(
       stateManager.connect(relayer).protocolExecuteOperation(operation)
-    ).to.be.revertedWithCustomError(stateManager, 'ExecuteTimestampNotReached')
+    ).to.be.revertedWithCustomError(stateManager, 'ChallengePeriodNotTerminated')
   })
 
   it('should be able to execute an operation', async () => {
