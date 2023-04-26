@@ -1,4 +1,5 @@
 require('dotenv').config()
+require('hardhat-tracer')
 require('@nomiclabs/hardhat-ethers')
 require('@nomiclabs/hardhat-etherscan')
 require('@openzeppelin/hardhat-upgrades')
@@ -30,12 +31,44 @@ module.exports = {
     },
   },
   networks: {
-    hardhat: {},
-    // mainnet: {
-    //   url: getEnvironmentVariable('MAINNET_NODE'),
-    //   accounts: [getEnvironmentVariable('PK')],
-    //   gasPrice: 20e9,
-    // },
+    hardhat: {
+      /*forking: {
+        url: `${getEnvironmentVariable('MAINNET_NODE')}`,
+        accounts: [getEnvironmentVariable('PK')]
+      }*/
+    },
+    local: {
+      url: 'http://localhost:8545',
+    },
+    mainnet: {
+      chainId: 0x01,
+      url: getEnvironmentVariable('MAINNET_NODE'),
+      accounts: [getEnvironmentVariable('PK')],
+      gasPrice: 20e9,
+    },
+    polygon: {
+      chainId: 0x89,
+      url: getEnvironmentVariable('POLYGON_NODE'),
+      accounts: [getEnvironmentVariable('PK')],
+      gasPrice: 400e9,
+    },
+    mumbai: {
+      chainId: 80001,
+      url: getEnvironmentVariable('MUMBAI_NODE'),
+      accounts: [getEnvironmentVariable('PK')],
+      gasPrice: 400e9,
+    },
+    bsc: {
+      chainId: 0x38,
+      url: getEnvironmentVariable('BSC_NODE'),
+      accounts: [getEnvironmentVariable('PK')],
+      gasPrice: 5e9,
+    },
+    sepolia: {
+      chainId: 0xaa36a7,
+      url: getEnvironmentVariable('SEPOLIA_NODE'),
+      accounts: [getEnvironmentVariable('PK')],
+    },
   },
   etherscan: {
     apiKey: {
@@ -84,6 +117,4 @@ module.exports = {
 /**
  * User tasks
  */
-require('./tasks/user-send.js')
-require('./tasks/deploy-ERC20-token.js')
-require('./tasks/deploy-v3-contracts.js')
+require('./tasks')
