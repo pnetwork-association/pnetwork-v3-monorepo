@@ -1,23 +1,23 @@
-task("pnetwork-user-send", "Send request to prouter")
-  .addPositionalParam("pRouterAddress")
-  .addPositionalParam("tokenAddress")
-  .addPositionalParam("pTokenAddress")
-  .addPositionalParam("underlyingAssetNetworkId")
-  .addPositionalParam("destinationNetworkId")
-  .addPositionalParam("amount")
-  .setAction(async (taskArgs) => {
+task('pnetwork-user-send', 'Send request to prouter')
+  .addPositionalParam('pRouterAddress')
+  .addPositionalParam('tokenAddress')
+  .addPositionalParam('pTokenAddress')
+  .addPositionalParam('underlyingAssetNetworkId')
+  .addPositionalParam('destinationNetworkId')
+  .addPositionalParam('amount')
+  .setAction(async taskArgs => {
     console.log(taskArgs)
     await main(taskArgs)
-    // eslint-disable-next-line no-process-exit
-    .then(() => process.exit(0))
-    .catch(error => {
-      console.error(error)
       // eslint-disable-next-line no-process-exit
-      process.exit(1)
-    })
-  });
+      .then(() => process.exit(0))
+      .catch(error => {
+        console.error(error)
+        // eslint-disable-next-line no-process-exit
+        process.exit(1)
+      })
+  })
 
-const main = async (config) => {
+const main = async config => {
   const signer = await ethers.getSigner()
   console.log(signer.address)
   const PRouter = await ethers.getContractFactory('PRouter')

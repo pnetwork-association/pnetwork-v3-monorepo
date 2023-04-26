@@ -4,7 +4,7 @@ const constants = {
     interim: '0xffffffff',
     polygonMainnet: '0x0075dd4c',
     sepolia: '0xe15503e4',
-    mumbai: '0xadc11660'
+    mumbai: '0xadc11660',
   },
   QUEUE_TIME: 0,
   CHALLENGE_TIME: 120,

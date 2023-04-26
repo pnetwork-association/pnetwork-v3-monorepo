@@ -1,5 +1,9 @@
 const { ethers } = require('hardhat')
-const { QUEUE_TIME, PNETWORK_NETWORK_IDS, CHALLENGE_TIME} = require('../config')
+const {
+  QUEUE_TIME,
+  PNETWORK_NETWORK_IDS,
+  CHALLENGE_TIME,
+} = require('../config')
 const { deployPToken } = require('../../test/utils')
 
 // Deploy on a destination chain: underlying asset should not be in this chain.
@@ -17,9 +21,12 @@ const main = async () => {
   console.log('Deploying PRouter ...')
   const pRouter = await PRouter.deploy(pFactory.address)
   console.log('Deploying StateManager ...')
-  const stateManager = await StateManager.deploy(pFactory.address, pEpochsManager.address, QUEUE_TIME)
+  const stateManager = await StateManager.deploy(
+    pFactory.address,
+    pEpochsManager.address,
+    QUEUE_TIME
+  )
   console.log('Deploying Token ...')
-  
 
   console.log('Setting pRouter ...')
   await pFactory.setRouter(pRouter.address)
@@ -46,7 +53,7 @@ const main = async () => {
     pRouter: pRouter.address,
     stateManager: stateManager.address,
     pToken: pToken.address,
-    dummyEpochsManager: pEpochsManager.address
+    dummyEpochsManager: pEpochsManager.address,
   })
 }
 

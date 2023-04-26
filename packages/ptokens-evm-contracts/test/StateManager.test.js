@@ -96,15 +96,23 @@ describe('StateManager', () => {
     sentinel = signers[4]
 
     // H A R D H A T
-    epochsManager = await upgrades.deployProxy(EpochsManager, [EPOCH_DURATION], {
-      initializer: 'initialize',
-      kind: 'uups'
-    })
+    epochsManager = await upgrades.deployProxy(
+      EpochsManager,
+      [EPOCH_DURATION],
+      {
+        initializer: 'initialize',
+        kind: 'uups',
+      }
+    )
     testReceiver = await TestReceiver.deploy()
     pFactory = await PFactory.deploy()
     testNotReceiver = await TestNotReceiver.deploy()
     pRouter = await PRouter.deploy(pFactory.address)
-    stateManager = await StateManager.deploy(pFactory.address, epochsManager.address, QUEUE_TIME)
+    stateManager = await StateManager.deploy(
+      pFactory.address,
+      epochsManager.address,
+      QUEUE_TIME
+    )
     token = await StandardToken.deploy(
       'Token',
       'TKN',
@@ -167,16 +175,15 @@ describe('StateManager', () => {
     await time.increase(QUEUE_TIME)
     await expect(
       stateManager.connect(relayer).protocolGuardianCancelOperation(operation)
-    ).to.be.revertedWithCustomError(
-      stateManager,
-      'ChallengePeriodTerminated'
-    )
+    ).to.be.revertedWithCustomError(stateManager, 'ChallengePeriodTerminated')
   })
 
   it('a guardian should not be able to cancel an operation that has not been queued', async () => {
     const fakeOperation = new Operation()
     await expect(
-      stateManager.connect(relayer).protocolGuardianCancelOperation(fakeOperation)
+      stateManager
+        .connect(relayer)
+        .protocolGuardianCancelOperation(fakeOperation)
     ).to.be.revertedWithCustomError(stateManager, 'OperationNotQueued')
   })
 
@@ -192,8 +199,12 @@ describe('StateManager', () => {
     const proof = [0]
     const operation = await generateOperation()
     await stateManager.connect(relayer).protocolQueueOperation(operation)
-    await stateManager.connect(guardian).protocolGuardianCancelOperation(operation)
-    await stateManager.connect(sentinel).protocolGovernanceCancelOperation(operation, proof)
+    await stateManager
+      .connect(guardian)
+      .protocolGuardianCancelOperation(operation)
+    await stateManager
+      .connect(sentinel)
+      .protocolGovernanceCancelOperation(operation, proof)
     await expect(
       stateManager.connect(relayer).protocolExecuteOperation(operation)
     ).to.be.revertedWithCustomError(stateManager, 'OperationAlreadyCancelled')
@@ -204,7 +215,10 @@ describe('StateManager', () => {
     await stateManager.connect(relayer).protocolQueueOperation(operation)
     await expect(
       stateManager.connect(relayer).protocolExecuteOperation(operation)
-    ).to.be.revertedWithCustomError(stateManager, 'ChallengePeriodNotTerminated')
+    ).to.be.revertedWithCustomError(
+      stateManager,
+      'ChallengePeriodNotTerminated'
+    )
   })
 
   it('should be able to execute an operation', async () => {

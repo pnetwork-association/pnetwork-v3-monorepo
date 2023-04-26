@@ -25,7 +25,11 @@ describe('PToken', () => {
         pFactory = await PFactory.deploy()
         pRouter = await PRouter.deploy(pFactory.address)
         pEpochsManager = await EpochsManager.deploy()
-        stateManager = await StateManager.deploy(pFactory.address, pEpochsManager.address, QUEUE_TIME)
+        stateManager = await StateManager.deploy(
+          pFactory.address,
+          pEpochsManager.address,
+          QUEUE_TIME
+        )
 
         token = await StandardToken.deploy(
           'Token',
