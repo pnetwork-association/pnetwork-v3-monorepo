@@ -115,6 +115,30 @@ $ node index.js getOperationQueued 0x261229b0af24a5caaf24edc96a0e4ccafa801ef873a
         )
     )
 
+  program
+    .command('getOperationExecuted')
+    .description('Get OperationExecuted event reports in a specific transaction')
+    .argument('<tx–hash>', 'transaction hash')
+    .option('-s, --save', 'save report into database')
+    .addHelpText(
+      'after',
+      `
+Example calls:
+
+$ node index.js getOperationExecuted 0x1091be7256f91c7025906b4cd82332e3b7d671c8ef60df08c14dc06fa11cf49a
+`
+    )
+    .action(
+      (_hash, _options) =>
+        disableLoggingForCLICommand() ||
+        getEventReportsFromTransactionCommand(
+          config,
+          _hash,
+          constants.evm.events.OPERATION_EXECUTED_SIGNATURE,
+          _options.save
+        )
+    )
+
   await program.parseAsync(process.argv).catch(printErrorAndExit)
   await exitCleanly(0)
 }
