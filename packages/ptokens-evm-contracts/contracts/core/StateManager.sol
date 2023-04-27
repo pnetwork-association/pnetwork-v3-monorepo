@@ -50,7 +50,7 @@ contract StateManager is IStateManager, Context, ReentrancyGuard {
         _;
     }
 
-    modifier onlyFarFromClosingAndOpeningCurrentEpoch() {
+    modifier onlyFarFromClosingAndOpeningEpoch() {
         uint256 currentEpoch = IEpochsManager(epochsManager).currentEpoch();
         uint256 epochDuration = IEpochsManager(epochsManager).epochDuration();
         uint256 startFirstEpochTimestamp = IEpochsManager(epochsManager).startFirstEpochTimestamp();
@@ -73,7 +73,7 @@ contract StateManager is IStateManager, Context, ReentrancyGuard {
     }
 
     /// @inheritdoc IStateManager
-    function challengePeriodOf(Operation calldata operation) public view returns (uint64, uint64) {
+    function challengePeriodOf(Operation calldata operation) external view returns (uint64, uint64) {
         bytes32 operationId = operationIdOf(operation);
         bytes1 operationStatus = _operationsStatus[operationId];
         return _challengePeriodOf(operationId, operationStatus);
@@ -105,7 +105,7 @@ contract StateManager is IStateManager, Context, ReentrancyGuard {
     /// @inheritdoc IStateManager
     function protocolGuardianCancelOperation(
         Operation calldata operation
-    ) external onlyFarFromClosingAndOpeningCurrentEpoch onlyGuardian("cancel") {
+    ) external onlyFarFromClosingAndOpeningEpoch onlyGuardian("cancel") {
         _protocolCancelOperation(operation, Actor.Guardian);
     }
 
@@ -121,14 +121,14 @@ contract StateManager is IStateManager, Context, ReentrancyGuard {
     function protocolSentinelCancelOperation(
         Operation calldata operation,
         bytes calldata proof
-    ) external onlyFarFromClosingAndOpeningCurrentEpoch onlySentinel(operation, proof, "cancel") {
+    ) external onlyFarFromClosingAndOpeningEpoch onlySentinel(operation, proof, "cancel") {
         _protocolCancelOperation(operation, Actor.Sentinel);
     }
 
     /// @inheritdoc IStateManager
     function protocolExecuteOperation(
         Operation calldata operation
-    ) external onlyFarFromClosingAndOpeningCurrentEpoch nonReentrant {
+    ) external onlyFarFromClosingAndOpeningEpoch nonReentrant {
         bytes32 operationId = operationIdOf(operation);
 
         bytes1 operationStatus = _operationsStatus[operationId];
@@ -175,7 +175,7 @@ contract StateManager is IStateManager, Context, ReentrancyGuard {
     }
 
     /// @inheritdoc IStateManager
-    function protocolQueueOperation(Operation calldata operation) external onlyFarFromClosingAndOpeningCurrentEpoch {
+    function protocolQueueOperation(Operation calldata operation) external onlyFarFromClosingAndOpeningEpoch {
         bytes32 operationId = operationIdOf(operation);
 
         bytes1 operationStatus = _operationsStatus[operationId];
