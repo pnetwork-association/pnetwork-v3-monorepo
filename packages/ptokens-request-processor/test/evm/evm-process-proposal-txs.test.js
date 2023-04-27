@@ -46,7 +46,7 @@ describe('Main EVM flow for transaction proposal tests', () => {
         '0x2c7e8870be7643d97699bbcf3396dfb13217ee54a6784abfcacdb1e077fe201f',
       ]
 
-      const expecteCallResult = [
+      const expectedCallResult = [
         {
           hash: proposedTxHashes[0],
         },
@@ -57,8 +57,8 @@ describe('Main EVM flow for transaction proposal tests', () => {
       const mockQueueOperation = jest.fn().mockResolvedValue({
         wait: jest
           .fn()
-          .mockResolvedValueOnce(expecteCallResult[0])
-          .mockResolvedValueOnce(expecteCallResult[1]),
+          .mockResolvedValueOnce(expectedCallResult[0])
+          .mockResolvedValueOnce(expectedCallResult[1]),
       })
 
       jest.spyOn(logic, 'sleepForXMilliseconds').mockImplementation(_ => Promise.resolve())
