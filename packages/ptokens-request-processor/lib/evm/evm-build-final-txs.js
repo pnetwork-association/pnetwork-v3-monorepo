@@ -40,6 +40,7 @@ const executeOperationErrorHandler = R.curry((resolve, reject, _eventReport, _er
     logger.error(`Tx for ${reportId} has already been executed`)
     return resolve(addFinalizedTxHashToEvent(_eventReport, '0x'))
   } else {
+    logger.error(`Tx for ${reportId} failed with error: ${_err.message}`)
     return reject(_err)
   }
 })
@@ -74,13 +75,12 @@ const makeFinalContractCall = R.curry(
 const sendFinalTransactions = R.curry(
   (_eventReports, _stateManager, _timeOut, _wallet) =>
     logger.info(`Sending final txs w/ address ${_wallet.address}`) ||
-    Promise.all(
-      _eventReports.map((_eventReport, _i) =>
-        logic
-          .sleepForXMilliseconds(1000 * _i)
-          .then(_ => makeFinalContractCall(_wallet, _stateManager, _timeOut, _eventReport))
+    logic
+      .executePromisesSequentially(
+        _eventReports,
+        makeFinalContractCall(_wallet, _stateManager, _timeOut)
       )
-    )
+      .then(logic.getFulfilledPromisesValues)
 )
 
 // TODO: function very similar to the one for building proposals...factor out?

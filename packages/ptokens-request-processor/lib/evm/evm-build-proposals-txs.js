@@ -42,6 +42,7 @@ const queueOperationErrorHandler = R.curry((resolve, reject, _eventReport, _err)
     logger.error(`Tx for ${reportId} has already been queued`)
     return addProposedTxHashToEvent(_eventReport, '0x').then(resolve)
   } else {
+    logger.error(`Tx for ${reportId} failed with error: ${_err.message}`)
     return reject(_err)
   }
 })
@@ -74,14 +75,14 @@ const makeProposalContractCall = R.curry(
 const sendProposalTransactions = R.curry(
   (_eventReports, _manager, _timeOut, _wallet) =>
     logger.info(`Sending proposals w/ address ${_wallet.address}`) ||
-    Promise.all(
-      _eventReports.map((_eventReport, _i) =>
-        logic
-          .sleepForXMilliseconds(1000 * _i)
-          .then(_ => makeProposalContractCall(_wallet, _manager, _timeOut, _eventReport))
+    logic
+      .executePromisesSequentially(
+        _eventReports,
+        makeProposalContractCall(_wallet, _manager, _timeOut)
       )
-    )
+      .then(logic.getFulfilledPromisesValues)
 )
+
 const buildProposalsTxsAndPutInState = _state =>
   new Promise(resolve => {
     logger.info('Building proposals txs...')
