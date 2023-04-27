@@ -59,7 +59,7 @@ contract StateManager is IStateManager, Context, ReentrancyGuard {
         uint256 currentEpochEndTimestamp = startFirstEpochTimestamp + ((currentEpoch + 1) * epochDuration);
 
         if (
-            block.timestamp <= currentEpochStartTimestamp + 3600 || block.timestamp >= currentEpochEndTimestamp + 3600
+            block.timestamp <= currentEpochStartTimestamp + 3600 || block.timestamp >= currentEpochEndTimestamp - 3600
         ) {
             revert Errors.Paused();
         }
