@@ -1,12 +1,13 @@
 const { logger } = require('../logger')
 const R = require('ramda')
-const { validateJson } = require('../validation')
+const { checkType, validateJson } = require('../validation')
 const { matchStringInsideListSync } = require('../utils')
 const {
   ERROR_TIMEOUT,
   ERROR_SLEEP_UNDEFINED_ARG,
   ERROR_INVALID_RETRYING_MODE,
 } = require('../errors')
+const enums = require('./enums')
 
 const MAX_ATTEMPTS_CAP = 100
 
@@ -150,6 +151,40 @@ const racePromise = (_milliseconds, _promiseFxn, _promiseFxnArgs = []) => {
     }
   )
 }
+/**
+ * Execute a one-argument function sequentially over an array of arguments
+ * @param _argsArray An array of arguments to be passed one by one to _f
+ * @param _f The function to be executed sequentially over the arguments in _argsArray. _f shall take 0 or 1 arguments
+ * @example
+ * const f = _t => new Promise(resolve => setTimeout(() => console.info(_t) || resolve(), _t))
+ * executePromisesSequentially([500, 100], f)
+ * // 500
+ * // 100
+ * @returns {Object} an array of objects, each describing the outcome of every call. These objects are similar to those returned by Promise.allSettled()
+ * https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/allSettled#return_value
+ */
+const executePromisesSequentially = async (_argsArray, _f) => {
+  await checkType('Array', _argsArray)
+  const results = []
+  for (const arg of _argsArray) {
+    try {
+      results.push({ value: await _f(arg), status: enums.FULFILLED })
+    } catch (_err) {
+      results.push({ status: enums.REJECTED, reason: _err })
+    }
+  }
+  return results
+}
+
+const getFulfilledPromisesValues = R.compose(
+  R.map(R.prop('value')),
+  R.filter(_r => R.prop('status', _r) === enums.FULFILLED)
+)
+
+const getRejectedPromisesErrors = R.compose(
+  R.map(R.prop('reason')),
+  R.filter(_r => R.prop('status', _r) === enums.REJECTED)
+)
 
 module.exports = {
   racePromise,
@@ -159,4 +194,7 @@ module.exports = {
   sleepForXMilliseconds,
   rejectAfterXMilliseconds,
   executePromiseWithRetries,
+  executePromisesSequentially,
+  getFulfilledPromisesValues,
+  getRejectedPromisesErrors,
 }

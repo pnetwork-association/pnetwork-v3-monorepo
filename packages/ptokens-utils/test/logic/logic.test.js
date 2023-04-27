@@ -438,4 +438,47 @@ describe('Logic tests', () => {
       }
     })
   })
+
+  describe('executePromisesSequentially', () => {
+    it('Should execute all function sequentially', async () => {
+      const args = [1, 2, 3, 5, 7, 11]
+      class Account {
+        constructor() {
+          this.balance = 0
+        }
+        depositOnlyIfOdd(_n) {
+          return new Promise((resolve, reject) => {
+            if (_n % 2) {
+              this.balance += _n
+              return resolve(this.balance)
+            } else return reject(new Error('Even number'))
+          })
+        }
+      }
+
+      const a = new Account()
+
+      const settledPromises = await logic.executePromisesSequentially(
+        args,
+        a.depositOnlyIfOdd.bind(a)
+      )
+      const values = logic.getFulfilledPromisesValues(settledPromises)
+      const rejected = logic.getRejectedPromisesErrors(settledPromises)
+      assert.deepStrictEqual(values, [1, 4, 9, 16, 27])
+      assert.deepStrictEqual(rejected.length, 1)
+      assert.deepStrictEqual(rejected[0].message, 'Even number')
+    })
+
+    it("Should reject if the passed argument isn't an array", async () => {
+      // eslint-disable-next-line no-console
+      const _f = _s => console.info(_s)
+
+      try {
+        await logic.executePromisesSequentially(1, _f)
+        assert.fail()
+      } catch (_err) {
+        assert.strictEqual(_err.message, "Invalid type: expected 'Array' for 1")
+      }
+    })
+  })
 })
