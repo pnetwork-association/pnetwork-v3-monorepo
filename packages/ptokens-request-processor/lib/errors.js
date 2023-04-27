@@ -5,4 +5,5 @@ module.exports = {
   ERROR_OPERATION_ALREADY_EXECUTED: 'Transaction has already been executed',
   ERROR_OPERATION_ALREADY_QUEUED: 'Transaction has already been queued',
   ERROR_OPERATION_NOT_QUEUED: 'Transaction has not been queued',
+  ERROR_REPLACEMENT_UNDERPRICED: 'Replacement transaction is underpriced',
 }

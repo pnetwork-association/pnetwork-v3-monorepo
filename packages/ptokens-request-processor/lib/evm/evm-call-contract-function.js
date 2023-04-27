@@ -1,7 +1,6 @@
 const constants = require('ptokens-constants')
 const { logger } = require('../get-logger')
 const errors = require('../errors')
-// const { logic } = require('ptokens-utils')
 
 const callContractFunction = (_fxnName, _fxnArgs, _contract) =>
   _contract[_fxnName](..._fxnArgs).catch(_err => {
@@ -16,8 +15,11 @@ const callContractFunction = (_fxnName, _fxnArgs, _contract) =>
         else if (decodedError.name === 'OperationNotQueued')
           return Promise.reject(new Error(errors.ERROR_OPERATION_NOT_QUEUED))
       }
+    } else if (_err.message.includes(constants.evm.ethers.ERROR_REPLACEMENT_UNDERPRICED)) {
+      return Promise.reject(new Error(errors.ERROR_REPLACEMENT_UNDERPRICED))
+    } else {
+      return Promise.reject(_err)
     }
-    return Promise.reject(_err)
   })
 
 const callContractFunctionAndAwait = (_fxnName, _fxnArgs, _contract, _txTimeout = 50000) =>

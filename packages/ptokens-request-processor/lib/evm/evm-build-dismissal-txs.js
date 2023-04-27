@@ -28,6 +28,20 @@ const addCancelledTxHashToEvent = R.curry((_event, _finalizedTxHash) => {
   return Promise.resolve(_event)
 })
 
+const cancelOperationErrorHandler = R.curry((resolve, reject, _eventReport, _err) => {
+  const reportId = _eventReport[constants.db.KEY_ID]
+  if (_err.message.includes(errors.ERROR_TIMEOUT)) {
+    logger.error(`Tx for ${reportId} failed:`, _err.message)
+    return resolve(_eventReport)
+  } else if (_err.message.includes(ERROR_OPERATION_NOT_QUEUED)) {
+    logger.error(`Tx for ${reportId} is not in the queue`)
+    return resolve(addCancelledTxHashToEvent(_eventReport, '0x'))
+  } else {
+    logger.error(`Tx for ${reportId} failed with error: ${_err.message}`)
+    return reject(_err)
+  }
+})
+
 const makeDismissalContractCall = R.curry(
   (_wallet, _stateManager, _txTimeout, _eventReport) =>
     new Promise((resolve, reject) => {
@@ -51,31 +65,19 @@ const makeDismissalContractCall = R.curry(
         .then(R.prop(constants.evm.ethers.KEY_TX_HASH))
         .then(addCancelledTxHashToEvent(_eventReport))
         .then(resolve)
-        .catch(_err => {
-          const reportId = _eventReport[constants.db.KEY_ID]
-          if (_err.message.includes(errors.ERROR_TIMEOUT)) {
-            logger.error(`Tx for ${reportId} failed:`, _err.message)
-            return resolve(_eventReport)
-          } else if (_err.message.includes(ERROR_OPERATION_NOT_QUEUED)) {
-            logger.error(`Tx for ${reportId} is not in the queue`)
-            return resolve(addCancelledTxHashToEvent(_eventReport, '0x'))
-          } else {
-            return reject(_err)
-          }
-        })
+        .catch(cancelOperationErrorHandler(resolve, reject, _eventReport))
     })
 )
 
 const sendDismissalTransaction = R.curry(
   (_eventReports, _stateManager, _timeOut, _wallet) =>
     logger.info(`Sending final txs w/ address ${_wallet.address}`) ||
-    Promise.all(
-      _eventReports.map((_eventReport, _i) =>
-        logic
-          .sleepForXMilliseconds(1000 * _i)
-          .then(_ => makeDismissalContractCall(_wallet, _stateManager, _timeOut, _eventReport))
+    logic
+      .executePromisesSequentially(
+        _eventReports,
+        makeDismissalContractCall(_wallet, _stateManager, _timeOut)
       )
-    )
+      .then(logic.getFulfilledPromisesValues)
 )
 
 // TODO: function very similar to the one for building proposals...factor out?
