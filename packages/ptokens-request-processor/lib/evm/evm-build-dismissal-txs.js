@@ -32,7 +32,7 @@ const cancelOperationErrorHandler = R.curry((resolve, reject, _eventReport, _err
   const reportId = _eventReport[constants.db.KEY_ID]
   if (_err.message.includes(errors.ERROR_TIMEOUT)) {
     logger.error(`Tx for ${reportId} failed:`, _err.message)
-    return resolve(_eventReport)
+    return reject(_eventReport)
   } else if (_err.message.includes(ERROR_OPERATION_NOT_QUEUED)) {
     logger.error(`Tx for ${reportId} is not in the queue`)
     return resolve(addCancelledTxHashToEvent(_eventReport, '0x'))

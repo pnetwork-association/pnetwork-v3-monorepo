@@ -1,4 +1,5 @@
 const constants = require('ptokens-constants')
+const { logic } = require('ptokens-utils')
 const { logger } = require('../get-logger')
 const errors = require('../errors')
 
@@ -26,8 +27,9 @@ const callContractFunctionAndAwait = (_fxnName, _fxnArgs, _contract, _txTimeout 
   logger.debug(`Calling ${_fxnName} in contracts and awaiting for tx receipt...`) ||
   callContractFunction(_fxnName, _fxnArgs, _contract)
     .then(
-      _tx => logger.debug(`Function ${_fxnName} called, awaiting...`) || _tx.wait()
-      // logic.racePromise(_txTimeout, _tx.wait, [])
+      _tx =>
+        logger.debug(`Function ${_fxnName} called, awaiting...`) ||
+        logic.racePromise(_txTimeout, _tx.wait.bind(_tx), [])
     )
     .then(
       _tx =>

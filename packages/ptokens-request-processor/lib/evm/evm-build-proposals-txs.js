@@ -37,7 +37,7 @@ const queueOperationErrorHandler = R.curry((resolve, reject, _eventReport, _err)
   const reportId = _eventReport[constants.db.KEY_ID]
   if (_err.message.includes(errors.ERROR_TIMEOUT)) {
     logger.error(`Tx for ${reportId} failed:`, _err.message)
-    return resolve(_eventReport)
+    return reject(_eventReport)
   } else if (_err.message.includes(ERROR_OPERATION_ALREADY_QUEUED)) {
     logger.error(`Tx for ${reportId} has already been queued`)
     return addProposedTxHashToEvent(_eventReport, '0x').then(resolve)
