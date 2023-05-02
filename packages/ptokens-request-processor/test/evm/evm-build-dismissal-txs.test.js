@@ -4,6 +4,7 @@ const {
 } = require('../../lib/state/constants')
 const { ERROR_OPERATION_NOT_QUEUED, ERROR_REPLACEMENT_UNDERPRICED } = require('../../lib/errors')
 const constants = require('ptokens-constants')
+const { errors } = require('ptokens-utils')
 const queuedReports = require('../samples/queued-report-set')
 
 describe('Build dismissal test for EVM', () => {
@@ -153,6 +154,7 @@ describe('Build dismissal test for EVM', () => {
       jest.spyOn(ethers, 'Contract').mockImplementation(_ => jest.fn())
 
       const expectedCallResult = [
+        new Error(errors.ERROR_TIMEOUT),
         new Error(ERROR_OPERATION_NOT_QUEUED), // this report will go through
         new Error(ERROR_REPLACEMENT_UNDERPRICED),
         new Error('Generic Error'),
@@ -165,6 +167,7 @@ describe('Build dismissal test for EVM', () => {
         .mockRejectedValueOnce(expectedCallResult[0])
         .mockRejectedValueOnce(expectedCallResult[1])
         .mockRejectedValueOnce(expectedCallResult[2])
+        .mockRejectedValueOnce(expectedCallResult[3])
 
       const txTimeout = 1000
       const destinationNetworkId = '0xe15503e4'
@@ -177,7 +180,12 @@ describe('Build dismissal test for EVM', () => {
         [constants.state.KEY_NETWORK_ID]: destinationNetworkId,
         [constants.state.KEY_IDENTITY_FILE]: gpgEncryptedFile,
         [constants.state.KEY_STATE_MANAGER_ADDRESS]: stateManagerAddress,
-        [STATE_TO_BE_DISMISSED_REQUESTS]: [queuedReports[0], queuedReports[1], queuedReports[2]],
+        [STATE_TO_BE_DISMISSED_REQUESTS]: [
+          queuedReports[0],
+          queuedReports[1],
+          queuedReports[2],
+          queuedReports[3],
+        ],
       }
 
       const {
@@ -186,7 +194,7 @@ describe('Build dismissal test for EVM', () => {
 
       const result = await maybeBuildDismissalTxsAndPutInState(state)
 
-      expect(callContractFunctionAndAwaitSpy).toHaveBeenCalledTimes(3)
+      expect(callContractFunctionAndAwaitSpy).toHaveBeenCalledTimes(4)
       expect(callContractFunctionAndAwaitSpy).toHaveBeenNthCalledWith(
         1,
         'protocolCancelOperation',
@@ -259,6 +267,30 @@ describe('Build dismissal test for EVM', () => {
         expect.anything(),
         1000
       )
+      expect(callContractFunctionAndAwaitSpy).toHaveBeenNthCalledWith(
+        4,
+        'protocolCancelOperation',
+        [
+          [
+            '0xf085786d855e220305a67f95653bd9345956b211095b7403e54da1b40699cb86',
+            '0x8ac05c2472b3a507f042557ee2c137d112a26d188fb267566b53c28975322452',
+            '0x0000000000000000000000000000000000000000000000000000000000000000',
+            '6911',
+            18,
+            '7000000000000000000',
+            '0x49a5D1CF92772328Ad70f51894FD632a14dF12C9',
+            '0xe15503e4',
+            '0xe15503e4',
+            '0xe15503e4',
+            '0xdDb5f4535123DAa5aE343c24006F4075aBAF5F7B',
+            'Token',
+            'TKN',
+            '0xc0ffee',
+          ],
+        ],
+        expect.anything(),
+        1000
+      )
       expect(result).toHaveProperty(STATE_TO_BE_DISMISSED_REQUESTS)
       expect(result).toHaveProperty(STATE_DISMISSED_DB_REPORTS)
       expect(result).toHaveProperty(constants.state.KEY_NETWORK_ID)
@@ -266,11 +298,11 @@ describe('Build dismissal test for EVM', () => {
       expect(result).toHaveProperty(constants.state.KEY_IDENTITY_FILE)
       expect(result).toHaveProperty(constants.state.KEY_STATE_MANAGER_ADDRESS)
       expect(result).toHaveProperty(constants.state.KEY_TX_TIMEOUT)
-      expect(result[STATE_TO_BE_DISMISSED_REQUESTS]).toHaveLength(3)
+      expect(result[STATE_TO_BE_DISMISSED_REQUESTS]).toHaveLength(4)
       expect(result[STATE_DISMISSED_DB_REPORTS]).toHaveLength(1)
       expect(result[STATE_DISMISSED_DB_REPORTS][0]).toEqual(
         expect.objectContaining({
-          [constants.db.KEY_ID]: queuedReports[0][constants.db.KEY_ID],
+          [constants.db.KEY_ID]: queuedReports[1][constants.db.KEY_ID],
           [constants.db.KEY_STATUS]: constants.db.txStatus.CANCELLED,
           [constants.db.KEY_FINAL_TX_HASH]: '0x',
           [constants.db.KEY_FINAL_TX_TS]: expect.any(String),

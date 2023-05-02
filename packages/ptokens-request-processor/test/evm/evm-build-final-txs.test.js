@@ -1,4 +1,5 @@
 const constants = require('ptokens-constants')
+const { errors } = require('ptokens-utils')
 const {
   STATE_PROPOSED_DB_REPORTS,
   STATE_FINALIZED_DB_REPORTS,
@@ -205,6 +206,7 @@ describe('General final txs testing', () => {
       jest.spyOn(ethers, 'Contract').mockImplementation(_ => jest.fn())
 
       const expectedCallResult = [
+        new Error(errors.ERROR_TIMEOUT),
         new Error(ERROR_OPERATION_ALREADY_EXECUTED), // this report will go through
         new Error(ERROR_REPLACEMENT_UNDERPRICED),
         new Error('Generic Error'),
@@ -217,6 +219,7 @@ describe('General final txs testing', () => {
         .mockRejectedValueOnce(expectedCallResult[0])
         .mockRejectedValueOnce(expectedCallResult[1])
         .mockRejectedValueOnce(expectedCallResult[2])
+        .mockRejectedValueOnce(expectedCallResult[3])
 
       const txTimeout = 1000
       const destinationNetworkId = '0xe15503e4'
@@ -229,14 +232,19 @@ describe('General final txs testing', () => {
         [constants.state.KEY_NETWORK_ID]: destinationNetworkId,
         [constants.state.KEY_IDENTITY_FILE]: gpgEncryptedFile,
         [constants.state.KEY_STATE_MANAGER_ADDRESS]: stateManagerAddress,
-        [STATE_PROPOSED_DB_REPORTS]: [proposedEvents[0], proposedEvents[1], proposedEvents[2]],
+        [STATE_PROPOSED_DB_REPORTS]: [
+          proposedEvents[0],
+          proposedEvents[1],
+          proposedEvents[2],
+          proposedEvents[3],
+        ],
       }
 
       const { maybeBuildFinalTxsAndPutInState } = require('../../lib/evm/evm-build-final-txs')
 
       const result = await maybeBuildFinalTxsAndPutInState(state)
 
-      expect(callContractFunctionAndAwaitSpy).toHaveBeenCalledTimes(3)
+      expect(callContractFunctionAndAwaitSpy).toHaveBeenCalledTimes(4)
       expect(callContractFunctionAndAwaitSpy).toHaveBeenNthCalledWith(
         1,
         'protocolExecuteOperation',
@@ -309,6 +317,30 @@ describe('General final txs testing', () => {
         expect.anything(),
         1000
       )
+      expect(callContractFunctionAndAwaitSpy).toHaveBeenNthCalledWith(
+        4,
+        'protocolExecuteOperation',
+        [
+          [
+            '0x1ed0f553eded679ce381d6d6d542971fec13b461035d0ebbfb8175910c5cd775',
+            '0x037a7080ea701a0bf91b4f8a5f5671c3565da3dbcda916938eb597f9b4dcab2c',
+            '0x0000000000000000000000000000000000000000000000000000000000000000',
+            '6648',
+            18,
+            '4000000000000000000',
+            '0x49a5D1CF92772328Ad70f51894FD632a14dF12C9',
+            '0xe15503e4',
+            '0xe15503e4',
+            '0xe15503e4',
+            '0xdDb5f4535123DAa5aE343c24006F4075aBAF5F7B',
+            'Token',
+            'TKN',
+            '0x',
+          ],
+        ],
+        expect.anything(),
+        1000
+      )
       expect(result).toHaveProperty(STATE_PROPOSED_DB_REPORTS)
       expect(result).toHaveProperty(STATE_FINALIZED_DB_REPORTS)
       expect(result).toHaveProperty(constants.state.KEY_NETWORK_ID)
@@ -316,11 +348,11 @@ describe('General final txs testing', () => {
       expect(result).toHaveProperty(constants.state.KEY_IDENTITY_FILE)
       expect(result).toHaveProperty(constants.state.KEY_STATE_MANAGER_ADDRESS)
       expect(result).toHaveProperty(constants.state.KEY_TX_TIMEOUT)
-      expect(result[STATE_PROPOSED_DB_REPORTS]).toHaveLength(3)
+      expect(result[STATE_PROPOSED_DB_REPORTS]).toHaveLength(4)
       expect(result[STATE_FINALIZED_DB_REPORTS]).toHaveLength(1)
       expect(result[STATE_FINALIZED_DB_REPORTS][0]).toEqual(
         expect.objectContaining({
-          [constants.db.KEY_ID]: proposedEvents[0][constants.db.KEY_ID],
+          [constants.db.KEY_ID]: proposedEvents[1][constants.db.KEY_ID],
           [constants.db.KEY_STATUS]: constants.db.txStatus.FINALIZED,
           [constants.db.KEY_FINAL_TX_HASH]: '0x',
           [constants.db.KEY_FINAL_TX_TS]: expect.any(String),

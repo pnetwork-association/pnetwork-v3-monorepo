@@ -7,7 +7,7 @@ const {
   ERROR_OPERATION_ALREADY_QUEUED,
   ERROR_REPLACEMENT_UNDERPRICED,
 } = require('../../lib/errors')
-const { validation } = require('ptokens-utils')
+const { errors, validation } = require('ptokens-utils')
 const constants = require('ptokens-constants')
 const detectedEvents = require('../samples/detected-report-set')
 
@@ -259,6 +259,7 @@ describe('Build proposals test for EVM', () => {
       jest.spyOn(ethers, 'Contract').mockImplementation(_ => jest.fn())
 
       const expectedCallResult = [
+        new Error(errors.ERROR_TIMEOUT),
         new Error(ERROR_OPERATION_ALREADY_QUEUED), // this report will go through
         new Error(ERROR_REPLACEMENT_UNDERPRICED),
         new Error('Generic Error'),
@@ -271,6 +272,7 @@ describe('Build proposals test for EVM', () => {
         .mockRejectedValueOnce(expectedCallResult[0])
         .mockRejectedValueOnce(expectedCallResult[1])
         .mockRejectedValueOnce(expectedCallResult[2])
+        .mockRejectedValueOnce(expectedCallResult[3])
 
       const txTimeout = 1000
       const destinationNetworkId = '0xe15503e4'
@@ -283,14 +285,19 @@ describe('Build proposals test for EVM', () => {
         [constants.state.KEY_NETWORK_ID]: destinationNetworkId,
         [constants.state.KEY_IDENTITY_FILE]: gpgEncryptedFile,
         [constants.state.KEY_STATE_MANAGER_ADDRESS]: stateManagerAddress,
-        [STATE_DETECTED_DB_REPORTS]: [detectedEvents[0], detectedEvents[1], detectedEvents[2]],
+        [STATE_DETECTED_DB_REPORTS]: [
+          detectedEvents[0],
+          detectedEvents[1],
+          detectedEvents[2],
+          detectedEvents[3],
+        ],
       }
 
       const { buildProposalsTxsAndPutInState } = require('../../lib/evm/evm-build-proposals-txs')
 
       const result = await buildProposalsTxsAndPutInState(state)
 
-      expect(callContractFunctionAndAwaitSpy).toHaveBeenCalledTimes(3)
+      expect(callContractFunctionAndAwaitSpy).toHaveBeenCalledTimes(4)
       expect(callContractFunctionAndAwaitSpy).toHaveBeenNthCalledWith(
         1,
         'protocolQueueOperation',
@@ -363,6 +370,30 @@ describe('Build proposals test for EVM', () => {
         expect.anything(),
         1000
       )
+      expect(callContractFunctionAndAwaitSpy).toHaveBeenNthCalledWith(
+        4,
+        'protocolQueueOperation',
+        [
+          [
+            '0x1ed0f553eded679ce381d6d6d542971fec13b461035d0ebbfb8175910c5cd775',
+            '0x037a7080ea701a0bf91b4f8a5f5671c3565da3dbcda916938eb597f9b4dcab2c',
+            '0x0000000000000000000000000000000000000000000000000000000000000000',
+            '6648',
+            18,
+            '4000000000000000000',
+            '0x49a5D1CF92772328Ad70f51894FD632a14dF12C9',
+            '0xe15503e4',
+            '0xe15503e4',
+            '0xe15503e4',
+            '0xdDb5f4535123DAa5aE343c24006F4075aBAF5F7B',
+            'Token',
+            'TKN',
+            '0x',
+          ],
+        ],
+        expect.anything(),
+        1000
+      )
       expect(result).toHaveProperty(STATE_PROPOSED_DB_REPORTS)
       expect(result).toHaveProperty(STATE_DETECTED_DB_REPORTS)
       expect(result).toHaveProperty(constants.state.KEY_NETWORK_ID)
@@ -370,11 +401,11 @@ describe('Build proposals test for EVM', () => {
       expect(result).toHaveProperty(constants.state.KEY_IDENTITY_FILE)
       expect(result).toHaveProperty(constants.state.KEY_STATE_MANAGER_ADDRESS)
       expect(result).toHaveProperty(constants.state.KEY_TX_TIMEOUT)
-      expect(result[STATE_DETECTED_DB_REPORTS]).toHaveLength(3)
+      expect(result[STATE_DETECTED_DB_REPORTS]).toHaveLength(4)
       expect(result[STATE_PROPOSED_DB_REPORTS]).toHaveLength(1)
       expect(result[STATE_PROPOSED_DB_REPORTS][0]).toEqual(
         expect.objectContaining({
-          [constants.db.KEY_ID]: detectedEvents[0][constants.db.KEY_ID],
+          [constants.db.KEY_ID]: detectedEvents[1][constants.db.KEY_ID],
           [constants.db.KEY_STATUS]: constants.db.txStatus.PROPOSED,
           [constants.db.KEY_PROPOSAL_TX_HASH]: '0x',
           [constants.db.KEY_PROPOSAL_TS]: expect.any(String),

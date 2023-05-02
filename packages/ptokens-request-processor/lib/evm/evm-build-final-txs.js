@@ -35,7 +35,7 @@ const executeOperationErrorHandler = R.curry((resolve, reject, _eventReport, _er
   const reportId = _eventReport[constants.db.KEY_ID]
   if (_err.message.includes(errors.ERROR_TIMEOUT)) {
     logger.error(`Tx for ${reportId} failed:`, _err.message)
-    return resolve(_eventReport)
+    return reject(_eventReport)
   } else if (_err.message.includes(ERROR_OPERATION_ALREADY_EXECUTED)) {
     logger.error(`Tx for ${reportId} has already been executed`)
     return resolve(addFinalizedTxHashToEvent(_eventReport, '0x'))
