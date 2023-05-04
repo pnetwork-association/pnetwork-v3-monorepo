@@ -1,10 +1,5 @@
 const R = require('ramda')
-const fs = require('fs/promises')
-const { utils, errors } = require('ptokens-utils')
-const {
-  getConfiguration,
-  updateConfiguration,
-} = require('./lib/configuration-manager')
+const { getConfiguration, updateConfiguration } = require('./lib/configuration-manager')
 
 const getSelectedChainId = hre => hre.network.config.chainId
 
@@ -21,14 +16,10 @@ const addNewNetwork = (hre, _config) =>
       quiet: true,
       chainId: getSelectedChainId(hre),
     })
-    .then(_networkId =>
-      updateConfiguration(_config, hre.network.name, KEY_NETWORK_ID, _networkId)
-    )
+    .then(_networkId => updateConfiguration(_config, hre.network.name, KEY_NETWORK_ID, _networkId))
 
 const maybeAddNewNetwork = R.curry((hre, _config) =>
-  !_config.has(hre.network.name)
-    ? addNewNetwork(hre, _config)
-    : Promise.resolve(_config)
+  !_config.has(hre.network.name) ? addNewNetwork(hre, _config) : Promise.resolve(_config)
 )
 
 const deployInit = (_, hre) =>
