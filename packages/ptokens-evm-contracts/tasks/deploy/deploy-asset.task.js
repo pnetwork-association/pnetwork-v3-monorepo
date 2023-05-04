@@ -13,7 +13,7 @@ const {
   KEY_UNDERLYING_TOTAL_SUPPLY,
 } = require('../constants')
 const { errors } = require('ptokens-utils')
-const { attachToContract, deployContractErrorHandler } = require('./utils/utils-contracts')
+const { attachToContract, deployContractErrorHandler } = require('./lib/utils-contracts')
 
 const findPtokenWithUnderlyingAsset = R.curry((underlyingAddress, pTokenList) =>
   pTokenList ? R.find(R.propEq(underlyingAddress, KEY_UNDERLYING_ADDRESS))(pTokenList) : undefined
@@ -36,14 +36,14 @@ const getAssetFromConfig = R.curry((taskArgs, store) =>
   taskArgs.configurableName == KEY_PTOKEN_ADDRESS
     ? new Promise((resolve, reject) => {
         const foundPtoken = findPtokenWithUnderlyingAsset(
-          taskArgs.underlyingAsset,
+          taskArgs.deployArgsArray[3],
           store[KEY_PTOKEN_LIST]
         )
         R.isNotNil(foundPtoken)
           ? resolve(foundPtoken)
           : reject(
               new Error(
-                `${errors.ERROR_KEY_NOT_FOUND} (No pToken found for underlying asset: ${taskArgs.underlyingAsset})`
+                `${errors.ERROR_KEY_NOT_FOUND} (No pToken found for underlying asset: ${taskArgs.deployArgsArray[3]})`
               )
             )
       })
@@ -77,12 +77,6 @@ subtask(TASK_NAME_DEPLOY_ASSET, TASK_DESC_DEPLOY_ASSET)
     types.string
   )
   .addParam('contractFactoryName', 'Contract factory name (i.e. PFactory)', undefined, types.string)
-  .addParam(
-    'underlyingAsset',
-    'address for the underlying asset (undefined if not needed)',
-    undefined,
-    types.string
-  )
   .addVariadicPositionalParam(
     'deployArgsArray',
     'Contract constructor arguments array',

@@ -11,7 +11,7 @@ const {
   KEY_PTOKEN_DECIMAL,
 } = require('../../constants')
 const { errors } = require('ptokens-utils')
-const { getConfiguration, updateConfiguration } = require('../lib/configuration-manager')
+const { getConfiguration, updateConfiguration } = require('./configuration-manager')
 
 const createDataToStore = (_taskArgs, _contractAddress) =>
   _taskArgs.configurableName == KEY_PTOKEN_ADDRESS
@@ -32,7 +32,7 @@ const createDataToStore = (_taskArgs, _contractAddress) =>
       }
     : _contractAddress
 
-const saveContractAddress = R.curry((hre, taskArgs, _contract) =>
+const saveConfigurationEntry = R.curry((hre, taskArgs, _contract) =>
   getConfiguration()
     .then(_config =>
       updateConfiguration(
@@ -52,12 +52,12 @@ const awaitTxSaveAddressAndReturnContract = R.curry((hre, taskArgs, _contract) =
       _tx =>
         console.info(`Tx mined @ ${_tx.transactionHash}`) ||
         console.info(`${taskArgs.configurableName} @ ${_tx.contractAddress}`) ||
-        saveContractAddress(hre, taskArgs, _contract)
+        saveConfigurationEntry(hre, taskArgs, _contract)
     )
     .then(_ => _contract)
 )
 
-const deployAndSaveContractAddress = (hre, taskArgs) =>
+const deployAndSaveConfigurationEntry = (hre, taskArgs) =>
   hre.ethers
     .getContractFactory(taskArgs.contractFactoryName)
     .then(_factory => _factory.deploy(...taskArgs.deployArgsArray))
@@ -65,7 +65,7 @@ const deployAndSaveContractAddress = (hre, taskArgs) =>
 
 const deployContractErrorHandler = R.curry((hre, taskArgs, _err) =>
   _err.message.includes(errors.ERROR_KEY_NOT_FOUND)
-    ? deployAndSaveContractAddress(hre, taskArgs)
+    ? deployAndSaveConfigurationEntry(hre, taskArgs)
     : console.error(_err)
 )
 

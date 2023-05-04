@@ -27,7 +27,7 @@ contract StateManager is IStateManager, Context, ReentrancyGuard {
     mapping(bytes32 => bytes1) private _operationsStatus;
 
     address public immutable factory;
-    address public immutable epochsManager;
+    // address public immutable epochsManager;
     uint32 private immutable _baseChallengePeriodDuration;
 
     modifier onlySentinel(
@@ -68,7 +68,7 @@ contract StateManager is IStateManager, Context, ReentrancyGuard {
 
     constructor(address factory_, address epochsManager_, uint32 baseChallengePeriodDuration) {
         factory = factory_;
-        epochsManager = epochsManager_;
+        // epochsManager = epochsManager_;
         _baseChallengePeriodDuration = baseChallengePeriodDuration;
     }
 

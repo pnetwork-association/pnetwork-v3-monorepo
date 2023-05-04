@@ -1,0 +1,32 @@
+{
+  "hardhat": {
+    "networkId": "0x244ebbfe",
+    "factoryAddress": "0x5FbDB2315678afecb367f032d93F642f64180aa3",
+    "deployedUnderlyingAssets": [
+      {
+        "underlyingAssetName": "Token",
+        "underlyingAssetSymbol": "TKN",
+        "underlyingAssetDecimal": "18",
+        "underlyingAssetTotalSupply": "10000000",
+        "underlyingAssetAddress": "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512"
+      }
+    ],
+    "routerAddress": "0x5FbDB2315678afecb367f032d93F642f64180aa3",
+    "stateManagerAddress": "0x5FbDB2315678afecb367f032d93F642f64180aa3"
+  },
+  "sepolia": {
+    "networkId": "0xe15503e4",
+    "factoryAddress": "0xa64DBf70d58119Cd1390e1Fa8D7E0d8fB894bdBA",
+    "routerAddress": "0x1ff2152949c6f6e56F5f83A6D77F1B93c287a3c8",
+    "stateManagerAddress": "0x8E2fE67b3d77A31522472c104904429282b475BC",
+    "deployedPtokens": [
+      {
+        "underlyingAssetName": "Token",
+        "underlyingAssetSymbol": "TKN",
+        "underlyingAssetDecimal": "18",
+        "underlyingAssetAddress": "0x8Af49d394c7EfbC49Fd83A830fAacF51e9F29134",
+        "pTokenAddress": "0x61789af95A523DB28D873265f32613cfF6C43C5C"
+      }
+    ]
+  }
+}

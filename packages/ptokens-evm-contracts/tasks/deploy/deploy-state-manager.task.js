@@ -1,8 +1,7 @@
 const {
-  KEY_NETWORK_ID,
   KEY_STATEMANAGER_ADDRESS,
   CONTRACT_NAME_STATEMANAGER,
-  TASK_DESC_DEPLOY_PTOKEN,
+  TASK_DESC_DEPLOY_STATEMANAGER,
   TASK_NAME_DEPLOY_STATEMANAGER,
   TASK_NAME_DEPLOY_CONTRACT,
 } = require('../constants')
@@ -22,7 +21,7 @@ const deployStateManagerTask = (_, hre) =>
       })
     )
 
-task(TASK_NAME_DEPLOY_STATEMANAGER, TASK_NAME_DEPLOY_STATEMANAGER, deployStateManagerTask)
+task(TASK_NAME_DEPLOY_STATEMANAGER, TASK_DESC_DEPLOY_STATEMANAGER, deployStateManagerTask)
 
 module.exports = {
   deployStateManagerTask,

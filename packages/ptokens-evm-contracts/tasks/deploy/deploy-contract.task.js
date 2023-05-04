@@ -6,7 +6,7 @@ const {
 } = require('../constants')
 const { utils, errors } = require('ptokens-utils')
 const { types } = require('hardhat/config')
-const { attachToContract, deployContractErrorHandler } = require('./utils/utils-contracts')
+const { attachToContract, deployContractErrorHandler } = require('./lib/utils-contracts')
 
 const deployContractTask = (taskArgs, hre) =>
   hre
