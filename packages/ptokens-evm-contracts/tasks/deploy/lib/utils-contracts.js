@@ -5,6 +5,7 @@ const {
   KEY_ASSET_DECIMAL,
   KEY_ASSET_ADDRESS,
   KEY_PTOKEN_UNDERLYING_ASSET_ADDRESS,
+  KEY_PTOKEN_UNDERLYING_ASSET_NETWORKID,
   CONTRACT_NAME_PTOKEN,
   KEY_ASSET_TOTAL_SUPPLY,
   CONTRACT_NAME_UNDERLYING_ASSET,
@@ -18,6 +19,7 @@ const configEntryLookup = {
     [KEY_ASSET_SYMBOL]: _taskArgs.deployArgsArray[1],
     [KEY_ASSET_DECIMAL]: _taskArgs.deployArgsArray[2],
     [KEY_PTOKEN_UNDERLYING_ASSET_ADDRESS]: _taskArgs.deployArgsArray[3],
+    [KEY_PTOKEN_UNDERLYING_ASSET_NETWORKID]: _taskArgs.deployArgsArray[4],
     [KEY_ASSET_ADDRESS]: _contractAddress,
   }),
   [CONTRACT_NAME_UNDERLYING_ASSET]: (_taskArgs, _contractAddress) => ({

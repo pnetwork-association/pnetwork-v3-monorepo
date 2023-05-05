@@ -1,6 +1,6 @@
 module.exports = {
   KEY_NETWORK_ID: 'networkId',
-  KEY_UNDERLYING_ASSET_LIST: 'UnderlyingAssets',
+  KEY_UNDERLYING_ASSET_LIST: 'underlyingAssets',
   KEY_ASSET_NAME: 'name',
   KEY_ASSET_SYMBOL: 'symbol',
   KEY_ASSET_DECIMAL: 'decimal',
@@ -8,6 +8,7 @@ module.exports = {
   KEY_ASSET_ADDRESS: 'address',
   KEY_PTOKEN_LIST: 'pTokens',
   KEY_PTOKEN_UNDERLYING_ASSET_ADDRESS: 'underlyingAssetAddress',
+  KEY_PTOKEN_UNDERLYING_ASSET_NETWORKID: 'underlyingAssetNetworkId',
   KEY_PROUTER_ADDRESS: 'routerAddress',
   KEY_PFACTORY_ADDRESS: 'factoryAddress',
   KEY_STATEMANAGER_ADDRESS: 'stateManagerAddress',

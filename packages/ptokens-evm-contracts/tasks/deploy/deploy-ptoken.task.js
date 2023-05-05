@@ -16,7 +16,7 @@ const { deployPFactoryTask } = require('./deploy-pfactory.task')
 const { getConfiguration } = require('./lib/configuration-manager')
 const R = require('ramda')
 
-const deployPTokenTask = ({ name, symbol, decimals, tokenAddress }, hre) =>
+const deployPTokenTask = ({ name, symbol, decimals, tokenAddress, networkId }, hre) =>
   deployPFactoryTask(null, hre)
     .then(getConfiguration)
     .then(_config => hre.run(TASK_NAME_DEPLOY_CONTRACT, {
@@ -39,7 +39,7 @@ const deployPTokenTask = ({ name, symbol, decimals, tokenAddress }, hre) =>
           symbol,
           decimals,
           tokenAddress,
-          _config.get(hre.network.name)[KEY_NETWORK_ID],
+          networkId,
           _config.get(hre.network.name)[KEY_PROUTER_ADDRESS],
           _config.get(hre.network.name)[KEY_STATEMANAGER_ADDRESS],
         ],
@@ -56,3 +56,4 @@ task(TASK_NAME_DEPLOY_PTOKEN, TASK_DESC_DEPLOY_PTOKEN, deployPTokenTask)
     undefined,
     types.string
   )
+  .addPositionalParam('networkId', 'Underlying Asset network ID', undefined, types.string)
