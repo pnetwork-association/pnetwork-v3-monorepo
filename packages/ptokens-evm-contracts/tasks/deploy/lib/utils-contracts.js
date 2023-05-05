@@ -1,36 +1,38 @@
 const R = require('ramda')
 const {
-  KEY_PTOKEN_ADDRESS,
-  KEY_UNDERLYING_ADDRESS,
-  KEY_UNDERLYING_NAME,
-  KEY_UNDERLYING_SYMBOL,
-  KEY_UNDERLYING_DECIMAL,
-  KEY_UNDERLYING_TOTAL_SUPPLY,
-  KEY_PTOKEN_NAME,
-  KEY_PTOKEN_SYMBOL,
-  KEY_PTOKEN_DECIMAL,
+  KEY_ASSET_NAME,
+  KEY_ASSET_SYMBOL,
+  KEY_ASSET_DECIMAL,
+  KEY_ASSET_ADDRESS,
+  KEY_PTOKEN_UNDERLYING_ASSET_ADDRESS,
+  CONTRACT_NAME_PTOKEN,
+  KEY_ASSET_TOTAL_SUPPLY,
+  CONTRACT_NAME_UNDERLYING_ASSET,
 } = require('../../constants')
 const { errors } = require('ptokens-utils')
 const { getConfiguration, updateConfiguration } = require('./configuration-manager')
 
-const createDataToStore = (_taskArgs, _contractAddress) =>
-  _taskArgs.configurableName == KEY_PTOKEN_ADDRESS
-    ? {
-        [KEY_UNDERLYING_NAME]: _taskArgs.deployArgsArray[0],
-        [KEY_UNDERLYING_SYMBOL]: _taskArgs.deployArgsArray[1],
-        [KEY_UNDERLYING_DECIMAL]: _taskArgs.deployArgsArray[2], // these in reality are the underlying token name symbol and decimal
-        [KEY_UNDERLYING_ADDRESS]: _taskArgs.underlyingAsset,
-        [KEY_PTOKEN_ADDRESS]: _contractAddress,
-      }
-    : _taskArgs.configurableName == KEY_UNDERLYING_ADDRESS
-    ? {
-        [KEY_UNDERLYING_NAME]: _taskArgs.deployArgsArray[0],
-        [KEY_UNDERLYING_SYMBOL]: _taskArgs.deployArgsArray[1],
-        [KEY_UNDERLYING_DECIMAL]: _taskArgs.deployArgsArray[2],
-        [KEY_UNDERLYING_TOTAL_SUPPLY]: _taskArgs.deployArgsArray[3],
-        [KEY_UNDERLYING_ADDRESS]: _contractAddress,
-      }
-    : _contractAddress
+const configEntryLookup = {
+  [CONTRACT_NAME_PTOKEN]: (_taskArgs, _contractAddress) => ({
+    [KEY_ASSET_NAME]: _taskArgs.deployArgsArray[0],
+    [KEY_ASSET_SYMBOL]: _taskArgs.deployArgsArray[1],
+    [KEY_ASSET_DECIMAL]: _taskArgs.deployArgsArray[2],
+    [KEY_PTOKEN_UNDERLYING_ASSET_ADDRESS]: _taskArgs.deployArgsArray[3],
+    [KEY_ASSET_ADDRESS]: _contractAddress,
+  }),
+  [CONTRACT_NAME_UNDERLYING_ASSET]: (_taskArgs, _contractAddress) => ({
+    [KEY_ASSET_NAME]: _taskArgs.deployArgsArray[0],
+    [KEY_ASSET_SYMBOL]: _taskArgs.deployArgsArray[1],
+    [KEY_ASSET_DECIMAL]: _taskArgs.deployArgsArray[2],
+    [KEY_ASSET_TOTAL_SUPPLY]: _taskArgs.deployArgsArray[3],
+    [KEY_ASSET_ADDRESS]: _contractAddress,
+  }),
+};
+
+const createConfigEntryFromTaskArgs  = (_taskArgs, _contractAddress) => {
+  const configEntryFn = configEntryLookup[_taskArgs.configurableName];
+  return configEntryFn ? configEntryFn(_taskArgs, _contractAddress) : _contractAddress;
+};
 
 const saveConfigurationEntry = R.curry((hre, taskArgs, _contract) =>
   getConfiguration()
@@ -39,7 +41,7 @@ const saveConfigurationEntry = R.curry((hre, taskArgs, _contract) =>
         _config,
         hre.network.name,
         taskArgs.configurableName,
-        createDataToStore(taskArgs, _contract.address)
+        createConfigEntryFromTaskArgs(taskArgs, _contract.address)
       )
     )
     .then(_ => _contract)
@@ -80,20 +82,7 @@ const attachToContract = R.curry((hre, taskArgs, _address) =>
     )
 )
 
-const execAndPass = R.curry(async (funToExecute, funParameters, contract) => {
-  try {
-    const executedFunc =
-      funParameters.length == 0 ? await funToExecute() : await R.apply(funToExecute, funParameters)
-    if (Array.isArray(contract))
-      return new Promise(resolve => resolve(R.concat(contract, [executedFunc])))
-    else return new Promise(resolve => resolve(R.concat([contract], [executedFunc])))
-  } catch (_err) {
-    return new Promise((resolve, reject) => reject(_err))
-  }
-})
-
 module.exports = {
-  execAndPass,
   attachToContract,
   deployContractErrorHandler,
 }
