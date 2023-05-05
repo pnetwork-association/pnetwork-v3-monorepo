@@ -7,6 +7,7 @@ const { logger: utilsLogger } = require('ptokens-utils')
 const {
   getEventLogsFromTransactionCommand,
   getEventReportsFromTransactionCommand,
+  getOperationsByIdCommand,
   listenForEventsCommand,
 } = require('./lib/commands')
 const { exitCleanly } = require('./lib/setup-exit-listeners')
@@ -137,6 +138,26 @@ $ node index.js getOperationExecuted 0x1091be7256f91c7025906b4cd82332e3b7d671c8e
           constants.evm.events.OPERATION_EXECUTED_SIGNATURE,
           _options.save
         )
+    )
+
+  program
+    .command('getOperations')
+    .description('Get operations linked to an Operation ID')
+    .argument('<operationId>', 'operation ID')
+    .argument('<state-manager-address>', 'state manager address')
+    .option('--fromBlock <block>', 'fromBlock', parseInt)
+    .addHelpText(
+      'after',
+      `
+Example calls:
+
+$ node index.js getOperations 0x46840d7667c567d8ae702801c296d9cb19535d7c77f8e132c79f06c25df79600 0x565033350582f4Ad298fDD8d59b7c36D0cAC1712 --fromBlock 34923840
+`
+    )
+    .action(
+      (_operationId, _stateManagerAddress, _options) =>
+        disableLoggingForCLICommand() ||
+        getOperationsByIdCommand(config, _operationId, _stateManagerAddress, _options.fromBlock)
     )
 
   await program.parseAsync(process.argv).catch(printErrorAndExit)
