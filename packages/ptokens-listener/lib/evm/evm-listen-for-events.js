@@ -1,13 +1,8 @@
 const { STATE_KEY_EVENTS } = require('../state/constants')
 const { logger } = require('../get-logger')
 const constants = require('ptokens-constants')
-
-const {
-  getEthersProvider,
-  getInterfaceFromEvent,
-  getFilter,
-  processEventLog,
-} = require('./evm-utils')
+const { getEthersProvider, getInterfaceFromEvent, getFilter } = require('./evm-utils')
+const { processEventLog } = require('./evm-process-event-log')
 
 const listenFromFilter = (_providerUrl, _networkId, _filter, _interface, _callback) =>
   logger.info(`Listening for event from ${_filter.address} with topics [${_filter.topics}]`) ||
