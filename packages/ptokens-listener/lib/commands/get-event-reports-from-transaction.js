@@ -18,14 +18,14 @@ const insertReportsIntoDb = (_config, _reports) =>
       )
     : Promise.resolve(_reports)
 
-const getEventReportsFromTransactionCommand = (_config, _hash, _eventName, _save = false) =>
+const getEventReportsFromTransactionCommand = (_config, _hash, _eventSignature, _save = false) =>
   checkConfiguration(_config)
     .then(_config =>
       getEventReportsFromTransaction(
         _config[constants.config.KEY_PROVIDER_URL],
         _config[constants.config.KEY_NETWORK_ID],
         _hash,
-        _eventName
+        _eventSignature
       )
     )
     .then(printReports)

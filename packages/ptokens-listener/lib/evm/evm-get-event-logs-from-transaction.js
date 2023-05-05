@@ -1,8 +1,8 @@
 const R = require('ramda')
 const { areTopicsMatching, getEthersProvider, getFilter } = require('./evm-utils')
 
-const getEvmEventLogsFromTransaction = (_providerUrl, _networkId, _hash, _eventName = null) =>
-  Promise.all([getFilter(_eventName), getEthersProvider(_providerUrl)]).then(
+const getEvmEventLogsFromTransaction = (_providerUrl, _networkId, _hash, _eventSignature = null) =>
+  Promise.all([getFilter(_eventSignature), getEthersProvider(_providerUrl)]).then(
     ([_filter, _provider]) =>
       _provider
         .getTransactionReceipt(_hash)

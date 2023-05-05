@@ -15,10 +15,19 @@ const listenFromFilter = (_providerUrl, _networkId, _filter, _interface, _callba
     _provider.on(_filter, processEventLog(_networkId, _interface, _callback))
   )
 
-const listenForEvmEvent = (_providerUrl, _networkId, _eventName, _contractAddress, _callback) =>
-  Promise.all([getFilter(_eventName, _contractAddress), getInterfaceFromEvent(_eventName)]).then(
+const listenForEvmEvent = (
+  _providerUrl,
+  _networkId,
+  _eventSignature,
+  _contractAddress,
+  _callback
+) =>
+  Promise.all([
+    getFilter(_eventSignature, _contractAddress),
+    getInterfaceFromEvent(_eventSignature),
+  ]).then(
     ([_filter, _interface]) =>
-      logger.info(`Listening to ${_eventName} @ ${_contractAddress}`) ||
+      logger.info(`Listening to ${_eventSignature} @ ${_contractAddress}`) ||
       listenFromFilter(_providerUrl, _networkId, _filter, _interface, _callback)
   )
 
