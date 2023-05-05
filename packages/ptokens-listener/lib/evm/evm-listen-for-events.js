@@ -1,7 +1,12 @@
 const { STATE_KEY_EVENTS } = require('../state/constants')
 const { logger } = require('../get-logger')
 const constants = require('ptokens-constants')
-const { getEthersProvider, getInterfaceFromEvent, getFilter } = require('./evm-utils')
+const {
+  getEthersProvider,
+  getInterfaceFromEvent,
+  getEventFilter,
+  getTopicFromEventSignature,
+} = require('./evm-utils')
 const { processEventLog } = require('./evm-process-event-log')
 
 const listenFromFilter = (_providerUrl, _networkId, _filter, _interface, _callback) =>
@@ -17,14 +22,18 @@ const listenForEvmEvent = (
   _contractAddress,
   _callback
 ) =>
-  Promise.all([
-    getFilter(_eventSignature, _contractAddress),
-    getInterfaceFromEvent(_eventSignature),
-  ]).then(
-    ([_filter, _interface]) =>
-      logger.info(`Listening to ${_eventSignature} @ ${_contractAddress}`) ||
-      listenFromFilter(_providerUrl, _networkId, _filter, _interface, _callback)
-  )
+  getTopicFromEventSignature(_eventSignature)
+    .then(_topic =>
+      Promise.all([
+        getEventFilter({ topics: _topic, contractAddress: _contractAddress }),
+        getInterfaceFromEvent(_eventSignature),
+      ])
+    )
+    .then(
+      ([_filter, _interface]) =>
+        logger.info(`Listen_eventSignatureing to ${_eventSignature} @ ${_contractAddress}`) ||
+        listenFromFilter(_providerUrl, _networkId, _filter, _interface, _callback)
+    )
 
 const startEvmListenerFromEventObject = (_providerUrl, _networkId, _event, _callback) =>
   Promise.all(
