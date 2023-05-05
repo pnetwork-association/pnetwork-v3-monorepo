@@ -1,10 +1,7 @@
 const { deployPToken } = require('../test/utils')
 const { QUEUE_TIME, CHALLENGE_TIME } = require('./config')
 
-task(
-  'pnetwork-deploy-v3-contracts',
-  'Deploy v3 contracts providing an underlying asset'
-)
+task('pnetwork-deploy-v3-contracts', 'Deploy v3 contracts providing an underlying asset')
   .addPositionalParam('underlyingAssetName')
   .addPositionalParam('underlyingAssetSymbol')
   .addPositionalParam('underlyingAssetDecimals')
@@ -12,9 +9,7 @@ task(
   .addPositionalParam('underlyingAssetNetworkId')
   .setAction(async taskArgs => {
     console.log(taskArgs)
-    console.log(
-      `queueTime: ${QUEUE_TIME} \nchallengeTime: ${CHALLENGE_TIME} \n`
-    )
+    console.log(`queueTime: ${QUEUE_TIME} \nchallengeTime: ${CHALLENGE_TIME} \n`)
     await main(taskArgs)
       // eslint-disable-next-line no-process-exit
       .then(() => process.exit(0))

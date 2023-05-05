@@ -1,9 +1,5 @@
 const { ethers } = require('hardhat')
-const {
-  QUEUE_TIME,
-  PNETWORK_NETWORK_IDS,
-  CHALLENGE_TIME,
-} = require('../config')
+const { QUEUE_TIME, PNETWORK_NETWORK_IDS, CHALLENGE_TIME } = require('../config')
 const { deployPToken } = require('../../test/utils')
 
 /* eslint-disable no-console */
@@ -27,12 +23,7 @@ const main = async () => {
     QUEUE_TIME
   )
   console.log('Deploying Token ...')
-  const token = await StandardToken.deploy(
-    'Token',
-    'TKN',
-    18,
-    ethers.utils.parseEther('100000000')
-  )
+  const token = await StandardToken.deploy('Token', 'TKN', 18, ethers.utils.parseEther('100000000'))
 
   console.log('Setting pRouter ...')
   await pFactory.setRouter(pRouter.address)

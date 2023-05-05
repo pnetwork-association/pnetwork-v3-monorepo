@@ -1,9 +1,5 @@
 const { ethers } = require('hardhat')
-const {
-  QUEUE_TIME,
-  PNETWORK_NETWORK_IDS,
-  CHALLENGE_TIME,
-} = require('../config')
+const { QUEUE_TIME, PNETWORK_NETWORK_IDS, CHALLENGE_TIME } = require('../config')
 const { deployPToken } = require('../../test/utils')
 
 // Deploy on a destination chain: underlying asset should not be in this chain.

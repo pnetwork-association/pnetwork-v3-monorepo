@@ -53,10 +53,7 @@ describe('PToken', () => {
           }
         )
 
-        await token.transfer(
-          user.address,
-          ethers.utils.parseUnits('100000', decimals)
-        )
+        await token.transfer(user.address, ethers.utils.parseUnits('100000', decimals))
       })
 
       it('should be able to mint by depositing the collateral', async () => {

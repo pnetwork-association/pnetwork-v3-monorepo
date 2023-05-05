@@ -2,11 +2,7 @@ const { expect } = require('chai')
 const { ethers } = require('hardhat')
 const { time } = require('@nomicfoundation/hardhat-network-helpers')
 
-const {
-  QUEUE_TIME,
-  PNETWORK_NETWORK_IDS,
-  ZERO_ADDRESS,
-} = require('./constants')
+const { QUEUE_TIME, PNETWORK_NETWORK_IDS, ZERO_ADDRESS } = require('./constants')
 const { deployPToken } = require('./utils')
 
 let token,
@@ -40,12 +36,7 @@ describe('StateManager', () => {
     pFactory = await PFactory.deploy()
     pRouter = await PRouter.deploy(pFactory.address)
     stateManager = await StateManager.deploy(pFactory.address, QUEUE_TIME)
-    token = await StandardToken.deploy(
-      'Token',
-      'TKN',
-      18,
-      ethers.utils.parseEther('100000000')
-    )
+    token = await StandardToken.deploy('Token', 'TKN', 18, ethers.utils.parseEther('100000000'))
 
     await pFactory.setRouter(pRouter.address)
     await pFactory.setStateManager(stateManager.address)
