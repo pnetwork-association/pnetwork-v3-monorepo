@@ -10,6 +10,7 @@ require('hardhat-log-remover')
 require('solidity-coverage')
 require('@nomicfoundation/hardhat-toolbox')
 require('hardhat-tracer')
+require('hardhat-change-network')
 
 const getEnvironmentVariable = _envVar => process.env[_envVar] || ''
 
