@@ -1,10 +1,9 @@
-const R = require('ramda')
 const {
   TASK_NAME_DEPLOY_INIT,
   TASK_NAME_DEPLOY_CONTRACT,
   TASK_DESC_DEPLOY_CONTRACT,
 } = require('../constants')
-const { utils, errors } = require('ptokens-utils')
+const { utils } = require('ptokens-utils')
 const { types } = require('hardhat/config')
 const { attachToContract, deployContractErrorHandler } = require('./lib/utils-contracts')
 
