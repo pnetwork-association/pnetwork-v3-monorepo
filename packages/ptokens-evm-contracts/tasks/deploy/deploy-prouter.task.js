@@ -1,5 +1,5 @@
 const {
-  KEY_PROUTER_ADDRESS,
+  KEY_PROUTER,
   CONTRACT_NAME_PROUTER,
   TASK_DESC_DEPLOY_PROUTER,
   TASK_NAME_DEPLOY_PROUTER,
@@ -8,9 +8,10 @@ const {
 const { deployPFactoryTask } = require('./deploy-pfactory.task')
 
 const deployPRouterTask = (_, hre) =>
+  console.info('Deploying pRouter ...') ||
   deployPFactoryTask(null, hre).then(_pFactory =>
     hre.run(TASK_NAME_DEPLOY_CONTRACT, {
-      configurableName: KEY_PROUTER_ADDRESS,
+      configurableName: KEY_PROUTER,
       contractFactoryName: CONTRACT_NAME_PROUTER,
       deployArgsArray: [_pFactory.address],
     })

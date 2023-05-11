@@ -1,33 +1,47 @@
 const R = require('ramda')
 const {
+  KEY_ADDRESS,
   KEY_ASSET_NAME,
   KEY_ASSET_SYMBOL,
   KEY_ASSET_DECIMAL,
-  KEY_ASSET_ADDRESS,
   KEY_PTOKEN_UNDERLYING_ASSET_ADDRESS,
   KEY_PTOKEN_UNDERLYING_ASSET_NETWORKID,
-  CONTRACT_NAME_PTOKEN,
+  KEY_PTOKEN_LIST,
   KEY_ASSET_TOTAL_SUPPLY,
-  CONTRACT_NAME_UNDERLYING_ASSET,
+  KEY_UNDERLYING_ASSET_LIST,
+  KEY_PROUTER,
+  KEY_PFACTORY,
+  KEY_STATEMANAGER,
+  CONTRACT_NAME_PFACTORY,
+  CONTRACT_NAME_PTOKEN,
 } = require('../../constants')
 const { errors } = require('ptokens-utils')
 const { getConfiguration, updateConfiguration } = require('./configuration-manager')
 
 const configEntryLookup = {
-  [CONTRACT_NAME_PTOKEN]: (_taskArgs, _contractAddress) => ({
+  [KEY_PTOKEN_LIST]: (_taskArgs, _contractAddress) => ({
     [KEY_ASSET_NAME]: _taskArgs.deployArgsArray[0],
     [KEY_ASSET_SYMBOL]: _taskArgs.deployArgsArray[1],
     [KEY_ASSET_DECIMAL]: _taskArgs.deployArgsArray[2],
     [KEY_PTOKEN_UNDERLYING_ASSET_ADDRESS]: _taskArgs.deployArgsArray[3],
     [KEY_PTOKEN_UNDERLYING_ASSET_NETWORKID]: _taskArgs.deployArgsArray[4],
-    [KEY_ASSET_ADDRESS]: _contractAddress,
+    [KEY_ADDRESS]: _contractAddress,
   }),
-  [CONTRACT_NAME_UNDERLYING_ASSET]: (_taskArgs, _contractAddress) => ({
+  [KEY_UNDERLYING_ASSET_LIST]: (_taskArgs, _contractAddress) => ({
     [KEY_ASSET_NAME]: _taskArgs.deployArgsArray[0],
     [KEY_ASSET_SYMBOL]: _taskArgs.deployArgsArray[1],
     [KEY_ASSET_DECIMAL]: _taskArgs.deployArgsArray[2],
     [KEY_ASSET_TOTAL_SUPPLY]: _taskArgs.deployArgsArray[3],
-    [KEY_ASSET_ADDRESS]: _contractAddress,
+    [KEY_ADDRESS]: _contractAddress,
+  }),
+  [KEY_PFACTORY]: (_taskArgs, _contractAddress) => ({
+    [KEY_ADDRESS]: _contractAddress,
+  }),
+  [KEY_PROUTER]: (_taskArgs, _contractAddress) => ({
+    [KEY_ADDRESS]: _contractAddress,
+  }),
+  [KEY_STATEMANAGER]: (_taskArgs, _contractAddress) => ({
+    [KEY_ADDRESS]: _contractAddress,
   }),
 };
 
@@ -55,13 +69,23 @@ const awaitTxSaveAddressAndReturnContract = R.curry((hre, taskArgs, _contract) =
     .then(
       _tx =>
         console.info(`Tx mined @ ${_tx.transactionHash}`) ||
-        console.info(`${taskArgs.configurableName} @ ${_tx.contractAddress}`) ||
+        console.info(`${taskArgs.configurableName} address: ${_tx.contractAddress}`) ||
         saveConfigurationEntry(hre, taskArgs, _contract)
     )
     .then(_ => _contract)
 )
 
 const deployAndSaveConfigurationEntry = (hre, taskArgs) =>
+taskArgs.contractFactoryName == CONTRACT_NAME_PTOKEN ?
+  hre.ethers
+    .getContractFactory(CONTRACT_NAME_PFACTORY)
+    .then(_factory => Promise.all([_factory, getConfiguration()]))
+    .then(([_factory, _config]) => _factory.attach(_config.get(hre.network.name)[KEY_PFACTORY][KEY_ADDRESS]))
+    .then(_factory => _factory.deploy(...taskArgs.deployArgsArray))
+    .then(_factoryContract => _factoryContract.wait())
+    .then(_ptokenTx => Promise.all([_ptokenTx.events.find(({ event }) => event === 'PTokenDeployed'), hre.ethers.getContractFactory(CONTRACT_NAME_PTOKEN)]))
+    .then(([_event, _ptoken]) => _ptoken.attach(_event.args.pTokenAddress))
+    .then(saveConfigurationEntry(hre, taskArgs)) :
   hre.ethers
     .getContractFactory(taskArgs.contractFactoryName)
     .then(_factory => _factory.deploy(...taskArgs.deployArgsArray))
@@ -79,7 +103,7 @@ const attachToContract = R.curry((hre, taskArgs, _address) =>
     .then(_factoryContract => _factoryContract.attach(_address))
     .then(
       _contract =>
-        console.info(`${taskArgs.configurableName} found @ ${JSON.stringify(_contract.address)}`) ||
+        console.info(`${taskArgs.configurableName} found: ${JSON.stringify(_contract.address)}`) ||
         _contract
     )
 )

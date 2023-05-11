@@ -34,7 +34,7 @@ const findUnderlyingAsset = R.curry((underlyingAssetList, args) =>
 
 const getAssetFromConfig = R.curry((taskArgs, store) =>
   new Promise((resolve, reject) => {
-    const [ findAssetFunction, assetsList, errorMsg ] = taskArgs.configurableName === CONTRACT_NAME_PTOKEN ?
+    const [ findAssetFunction, assetsList, errorMsg ] = taskArgs.contractFactoryName === CONTRACT_NAME_PTOKEN ?
       [ findPtokenWithUnderlyingAsset, store[KEY_PTOKEN_LIST], `${errors.ERROR_KEY_NOT_FOUND} (No pToken found for underlying asset: ${taskArgs.deployArgsArray[3]})` ] :
       [ findUnderlyingAsset, store[KEY_UNDERLYING_ASSET_LIST], `${errors.ERROR_KEY_NOT_FOUND} (No underlyingAsset found for underlying asset: ${taskArgs.deployArgsArray[0]})` ]
     

@@ -2,6 +2,7 @@ const {
   TASK_NAME_DEPLOY_INIT,
   TASK_NAME_DEPLOY_CONTRACT,
   TASK_DESC_DEPLOY_CONTRACT,
+  KEY_ADDRESS,
 } = require('../constants')
 const { utils } = require('ptokens-utils')
 const { types } = require('hardhat/config')
@@ -10,7 +11,7 @@ const { attachToContract, deployContractErrorHandler } = require('./lib/utils-co
 const deployContractTask = (taskArgs, hre) =>
   hre
     .run(TASK_NAME_DEPLOY_INIT)
-    .then(utils.getKeyFromObj(taskArgs.configurableName))
+    .then(utils.getKeyFromObjThroughPath([taskArgs.configurableName, KEY_ADDRESS]))
     .then(attachToContract(hre, taskArgs))
     .catch(deployContractErrorHandler(hre, taskArgs))
 
