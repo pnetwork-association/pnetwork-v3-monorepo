@@ -4,7 +4,7 @@ module.exports = {
   KEY_PTOKEN_LIST: 'pTokens',
   KEY_ASSET_NAME: 'name',
   KEY_ASSET_SYMBOL: 'symbol',
-  KEY_ASSET_DECIMAL: 'decimal',
+  KEY_ASSET_DECIMAL: 'decimals',
   KEY_ASSET_TOTAL_SUPPLY: 'totalSupply',
   KEY_ADDRESS: 'address',
   KEY_PTOKEN_UNDERLYING_ASSET_ADDRESS: 'underlyingAssetAddress',
