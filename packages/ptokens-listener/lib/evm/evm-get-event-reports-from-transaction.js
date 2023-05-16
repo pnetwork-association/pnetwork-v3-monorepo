@@ -5,7 +5,7 @@ const { processEventLog } = require('./evm-process-event-log')
 
 const getEvmEventReportsFromTransaction = (_providerUrl, _networkId, _hash, _eventSignature) =>
   Promise.all([
-    getEvmEventLogsFromTransaction(_providerUrl, _networkId, _hash, _eventSignature),
+    getEvmEventLogsFromTransaction(_providerUrl, _hash, _eventSignature),
     getInterfaceFromEvent(_eventSignature),
   ]).then(([_logs, _interface]) =>
     Promise.all(_logs.map(processEventLog(_networkId, _interface, R.identity)))

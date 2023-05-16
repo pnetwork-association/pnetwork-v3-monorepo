@@ -6,17 +6,25 @@ const {
   getTopicFromEventSignature,
 } = require('./evm-utils')
 
-const getEvmEventLogsFromTransaction = (_providerUrl, _networkId, _hash, _eventSignature = null) =>
-  getTopicFromEventSignature(_eventSignature)
-    .then(_topic =>
-      Promise.all([getEventFilter({ topics: _topic }), getEthersProvider(_providerUrl)])
-    )
-    .then(([_filter, _provider]) =>
-      _provider
-        .getTransactionReceipt(_hash)
-        .then(R.prop('logs'))
-        .then(_logs => (_filter.topics ? R.filter(areTopicsMatching(_filter), _logs) : _logs))
-        .finally(() => _provider.websocket && _provider.websocket.close())
-    )
+const maybeFilterLogsForMatchingTopics = R.curry((_logs, _filter) =>
+  _filter.topics ? R.filter(areTopicsMatching(_filter), _logs) : _logs
+)
+
+const getTransactionLogs = R.curry((_hash, _provider) =>
+  _provider.getTransactionReceipt(_hash).then(R.prop('logs'))
+)
+
+const maybeFilterLogsByEventSignature = R.curry((_eventSignature, _logs) =>
+  _eventSignature
+    ? getTopicFromEventSignature(_eventSignature)
+        .then(_topic => getEventFilter({ topics: _topic }))
+        .then(maybeFilterLogsForMatchingTopics(_logs))
+    : Promise.resolve(_logs)
+)
+
+const getEvmEventLogsFromTransaction = (_providerUrl, _hash, _eventSignature = null) =>
+  getEthersProvider(_providerUrl)
+    .then(getTransactionLogs(_hash))
+    .then(maybeFilterLogsByEventSignature(_eventSignature))
 
 module.exports = { getEvmEventLogsFromTransaction }

@@ -24,13 +24,7 @@ describe('Tests for the getEventLogsFromTransaction interface', () => {
         )
 
         expect(listenForEvmEventsSpy).toHaveBeenCalledTimes(1)
-        expect(listenForEvmEventsSpy).toHaveBeenNthCalledWith(
-          1,
-          'provider-url',
-          _networkId,
-          'tx-hash',
-          'event'
-        )
+        expect(listenForEvmEventsSpy).toHaveBeenNthCalledWith(1, 'provider-url', 'tx-hash', 'event')
       }
     )
 
