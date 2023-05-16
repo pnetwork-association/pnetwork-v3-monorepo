@@ -1,9 +1,18 @@
 const { types } = require('hardhat/config')
 const { getConfiguration } = require('../deploy/lib/configuration-manager')
 
-const { KEY_ADDRESS, TASK_NAME_USER_MINT_AND_BURN, TASK_DESC_USER_MINT_AND_BURN, KEY_NETWORK_ID, KEY_PROUTER } = require('../constants')
+const {
+  KEY_ADDRESS,
+  TASK_NAME_USER_MINT_AND_BURN,
+  TASK_DESC_USER_MINT_AND_BURN,
+  KEY_NETWORK_ID,
+  KEY_PROUTER,
+} = require('../constants')
 
-const mintAndBurn = async ({ underlyingAssetAddress, pTokenAddress, destinationNetworkId, amount }, hre) => {
+const mintAndBurn = async (
+  { underlyingAssetAddress, pTokenAddress, destinationNetworkId, amount },
+  hre
+) => {
   const config = await getConfiguration()
   const signer = await hre.ethers.getSigner()
   console.log(signer.address)
@@ -40,8 +49,18 @@ const mintAndBurn = async ({ underlyingAssetAddress, pTokenAddress, destinationN
 
 task(TASK_NAME_USER_MINT_AND_BURN, TASK_DESC_USER_MINT_AND_BURN)
   .addPositionalParam('underlyingAssetAddress', 'Underlying Asset Address', undefined, types.string)
-  .addPositionalParam('pTokenAddress', 'pToken address relative to the underlying asset selected', undefined, types.string)
-  .addPositionalParam('destinationNetworkId', 'Destiantion chain name (ex. 11155111, mumbai ...)', undefined, types.string)
+  .addPositionalParam(
+    'pTokenAddress',
+    'pToken address relative to the underlying asset selected',
+    undefined,
+    types.string
+  )
+  .addPositionalParam(
+    'destinationNetworkId',
+    'Destiantion chain name (ex. 11155111, mumbai ...)',
+    undefined,
+    types.string
+  )
   .addPositionalParam('amount', 'Amount of underlying asset to be used', undefined, types.string)
   .setAction(mintAndBurn)
 

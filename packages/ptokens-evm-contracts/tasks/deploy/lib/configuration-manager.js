@@ -1,10 +1,7 @@
 const R = require('ramda')
 const Store = require('data-store')
 const PATH_CONFIG_FILE = '/deployments.json'
-const {
-  KEY_PTOKEN_LIST,
-  KEY_UNDERLYING_ASSET_LIST,
-} = require('../../constants')
+const { KEY_PTOKEN_LIST, KEY_UNDERLYING_ASSET_LIST } = require('../../constants')
 
 const getConfiguration = () => Promise.resolve(Store({ path: process.cwd() + PATH_CONFIG_FILE }))
 
@@ -17,7 +14,10 @@ const updateConfiguration = (...vargs) =>
     const args = R.slice(1, valueArgIndex, vargs)
     const path = args.reduce((acc, cur) => acc + '.' + cur)
 
-    if (vargs.at(typeArgIndex) == KEY_PTOKEN_LIST || vargs.at(typeArgIndex) == KEY_UNDERLYING_ASSET_LIST) {
+    if (
+      vargs.at(typeArgIndex) === KEY_PTOKEN_LIST ||
+      vargs.at(typeArgIndex) === KEY_UNDERLYING_ASSET_LIST
+    ) {
       config.union(path, value)
     } else {
       config.set(path, value)

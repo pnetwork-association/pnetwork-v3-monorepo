@@ -13,10 +13,13 @@ const {
   KEY_ASSET_TOTAL_SUPPLY,
 } = require('../constants')
 const { errors } = require('ptokens-utils')
+const { types } = require('hardhat/config')
 const { attachToContract, deployContractErrorHandler } = require('./lib/utils-contracts')
 
 const findPtokenWithUnderlyingAsset = R.curry((pTokenList, args) =>
-  pTokenList ? R.find(R.propEq(args[3], KEY_PTOKEN_UNDERLYING_ASSET_ADDRESS))(pTokenList) : undefined
+  pTokenList
+    ? R.find(R.propEq(args[3], KEY_PTOKEN_UNDERLYING_ASSET_ADDRESS))(pTokenList)
+    : undefined
 )
 
 const findUnderlyingAsset = R.curry((underlyingAssetList, args) =>
@@ -32,18 +35,26 @@ const findUnderlyingAsset = R.curry((underlyingAssetList, args) =>
     : undefined
 )
 
-const getAssetFromConfig = R.curry((taskArgs, store) =>
-  new Promise((resolve, reject) => {
-    const [ findAssetFunction, assetsList, errorMsg ] = taskArgs.contractFactoryName === CONTRACT_NAME_PTOKEN ?
-      [ findPtokenWithUnderlyingAsset, store[KEY_PTOKEN_LIST], `${errors.ERROR_KEY_NOT_FOUND} (No pToken found for underlying asset: ${taskArgs.deployArgsArray[3]})` ] :
-      [ findUnderlyingAsset, store[KEY_UNDERLYING_ASSET_LIST], `${errors.ERROR_KEY_NOT_FOUND} (No underlyingAsset found for underlying asset: ${taskArgs.deployArgsArray[0]})` ]
-    
-    const assetFound = findAssetFunction(assetsList, taskArgs.deployArgsArray)
-    
-    return R.isNotNil(assetFound)
-      ? resolve(assetFound)
-      : reject(new Error(errorMsg))
-  })
+const getAssetFromConfig = R.curry(
+  (taskArgs, store) =>
+    new Promise((resolve, reject) => {
+      const [findAssetFunction, assetsList, errorMsg] =
+        taskArgs.contractFactoryName === CONTRACT_NAME_PTOKEN
+          ? [
+              findPtokenWithUnderlyingAsset,
+              store[KEY_PTOKEN_LIST],
+              `${errors.ERROR_KEY_NOT_FOUND} (No pToken found for underlying asset: ${taskArgs.deployArgsArray[3]})`,
+            ]
+          : [
+              findUnderlyingAsset,
+              store[KEY_UNDERLYING_ASSET_LIST],
+              `${errors.ERROR_KEY_NOT_FOUND} (No underlyingAsset found for underlying asset: ${taskArgs.deployArgsArray[0]})`,
+            ]
+
+      const assetFound = findAssetFunction(assetsList, taskArgs.deployArgsArray)
+
+      return R.isNotNil(assetFound) ? resolve(assetFound) : reject(new Error(errorMsg))
+    })
 )
 
 const deployAssetTask = (taskArgs, hre) =>

@@ -3,5 +3,5 @@ const protocolExecuteOperation = require('./statemanager-protocol-queue-exev.tas
 
 module.exports = {
   ...mintAndBurn,
-  ...protocolExecuteOperation
+  ...protocolExecuteOperation,
 }

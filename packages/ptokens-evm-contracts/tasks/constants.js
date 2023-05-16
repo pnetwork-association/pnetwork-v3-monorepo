@@ -32,8 +32,8 @@ module.exports = {
   TASK_NAME_DEPLOY_PFACTORY: 'deploy:pfactory',
   TASK_NAME_CONFIG_PFACTORY: 'config-pfactory',
   TASK_NAME_GET_NETWORK_ID: 'get-network-id',
-  TASK_NAME_USER_MINT_AND_BURN: 'user-send:mint-and-burn', 
-  TASK_NAME_SM_PEO: 'state-manager:execute-operation', 
+  TASK_NAME_USER_MINT_AND_BURN: 'user-send:mint-and-burn',
+  TASK_NAME_SM_PEO: 'state-manager:execute-operation',
   TASK_DESC_DEPLOY_CONTRACT: 'Deploy a contract.',
   TASK_DESC_DEPLOY_ASSET: 'Deploy a pToken or a Token to be used as underlying asset',
   TASK_DESC_DEPLOY_INIT:

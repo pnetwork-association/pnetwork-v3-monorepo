@@ -23,7 +23,11 @@ const deployUnderlyingAssetTask = ({ name, symbol, decimals, totalSupply }, hre)
       })
     )
 
-task(TASK_NAME_DEPLOY_UNDERLYING_ASSET, TASK_DESC_DEPLOY_UNDERLYING_ASSET, deployUnderlyingAssetTask)
+task(
+  TASK_NAME_DEPLOY_UNDERLYING_ASSET,
+  TASK_DESC_DEPLOY_UNDERLYING_ASSET,
+  deployUnderlyingAssetTask
+)
   .addPositionalParam('name', 'Token name (i.e. "Token BTC")', undefined, types.string)
   .addPositionalParam('symbol', 'Token symbol (i.e. "BTC")', undefined, types.string)
   .addPositionalParam('decimals', 'Tokens decimals number', undefined, types.string)

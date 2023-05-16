@@ -1,6 +1,6 @@
 const { getConfiguration } = require('../deploy/lib/configuration-manager')
 
-const { KEY_ADDRESS, TASK_NAME_SM_PEO, KEY_STATEMANAGER } = require('../constants')
+const { TASK_NAME_SM_PEO } = require('../constants')
 
 const protocolExecuteOperation = async (_, hre) => {
   const config = await getConfiguration()
@@ -9,7 +9,9 @@ const protocolExecuteOperation = async (_, hre) => {
 
   const StateManagerContract = await hre.ethers.getContractFactory('StateManager')
 
-  const StateManager = await StateManagerContract.attach('0x220f1347d38ABb3CebF94897a998db0EF58ef5E6')
+  const StateManager = await StateManagerContract.attach(
+    '0x220f1347d38ABb3CebF94897a998db0EF58ef5E6'
+  )
 
   console.log(StateManagerContract)
   // const parsedAmount = hre.ethers.utils.parseEther(amount)
@@ -32,11 +34,11 @@ const protocolExecuteOperation = async (_, hre) => {
       '0xa41657bf225F8Ec7E2010C89c3F084172948264D',
       'Token',
       'TKN',
-      '0x'
-],
- {
-  gasLimit: 200000,
-}
+      '0x',
+    ],
+    {
+      gasLimit: 200000,
+    }
   )
   await tx.wait(1)
 }
