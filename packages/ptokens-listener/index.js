@@ -20,6 +20,43 @@ const disableLoggingForCLICommand = _ => {
   utilsLogger.logger.level = 'off'
 }
 
+const EXAMPLE_CALLS = `
+Example calls:
+
+`
+
+const GET_EVENT_REPORTS_FROM_TRANSACTION_HELP_MESSAGE =
+  EXAMPLE_CALLS +
+  `$ node index.js getEventReportsFromTransaction 0x2b948164aad1517cdcd11e22c3f96d58b146fdee233ab74e46cb038afcc273e3 'UserOperation(uint256 nonce,string destinationAccount,bytes4 destinationNetworkId,string underlyingAssetName,string underlyingAssetSymbol,uint256 underlyingAssetDecimals,address underlyingAssetTokenAddress,bytes4 underlyingAssetNetworkId,address assetTokenAddress,uint256 assetAmount,bytes userData,bytes32 optionsMask)'
+`
+
+const GET_EVENT_LOGS_FROM_TRANSACTION_HELP_MESSAGE =
+  EXAMPLE_CALLS +
+  `$ node index.js getEventLogsFromTransaction 0x2b948164aad1517cdcd11e22c3f96d58b146fdee233ab74e46cb038afcc273e3
+
+$ node index.js getEventLogsFromTransaction 0x2b948164aad1517cdcd11e22c3f96d58b146fdee233ab74e46cb038afcc273e3 'UserOperation(uint256 nonce,string destinationAccount,bytes4 destinationNetworkId,string underlyingAssetName,string underlyingAssetSymbol,uint256 underlyingAssetDecimals,address underlyingAssetTokenAddress,bytes4 underlyingAssetNetworkId,address assetTokenAddress,uint256 assetAmount,bytes userData,bytes32 optionsMask)'
+`
+
+const GET_USER_OPERATION_HELP_MESSAGE =
+  EXAMPLE_CALLS +
+  `$ node index.js getUserOperation 0x2b948164aad1517cdcd11e22c3f96d58b146fdee233ab74e46cb038afcc273e3
+`
+
+const GET_OPERATION_QUEUED_HELP_MESSAGE =
+  EXAMPLE_CALLS +
+  `$ node index.js getOperationQueued 0x261229b0af24a5caaf24edc96a0e4ccafa801ef873ab4dff2277538232b38e79
+`
+
+const GET_OPERATION_EXECUTED_HELP_MESSAGE =
+  EXAMPLE_CALLS +
+  `$ node index.js getOperationExecuted 0x1091be7256f91c7025906b4cd82332e3b7d671c8ef60df08c14dc06fa11cf49a
+`
+
+const GET_OPERATIONS_HELP_MESSAGE =
+  EXAMPLE_CALLS +
+  `$ node index.js getOperations 0x46840d7667c567d8ae702801c296d9cb19535d7c77f8e132c79f06c25df79600 0x565033350582f4Ad298fDD8d59b7c36D0cAC1712 --fromBlock 34923840
+`
+
 const addMainCommand = _program =>
   _program
     .name('ptokens-listener')
@@ -34,14 +71,7 @@ const addGetEventReportsFromTransactionCommand = _program =>
     .argument('<tx–hash>', 'transaction hash')
     .argument('<event-signature>', 'event signature')
     .option('-s, --save', 'save report into database')
-    .addHelpText(
-      'after',
-      `
-Example calls:
-
-$ node index.js getEventReportsFromTransaction 0x2b948164aad1517cdcd11e22c3f96d58b146fdee233ab74e46cb038afcc273e3 'UserOperation(uint256 nonce,string destinationAccount,bytes4 destinationNetworkId,string underlyingAssetName,string underlyingAssetSymbol,uint256 underlyingAssetDecimals,address underlyingAssetTokenAddress,bytes4 underlyingAssetNetworkId,address assetTokenAddress,uint256 assetAmount,bytes userData,bytes32 optionsMask)'
-`
-    )
+    .addHelpText('after', GET_EVENT_REPORTS_FROM_TRANSACTION_HELP_MESSAGE)
     .action(
       (_hash, _event, _options) =>
         disableLoggingForCLICommand() ||
@@ -54,16 +84,7 @@ const addGetEventLogsFromTransactionCommand = _program =>
     .description('Get event logs for a specific transaction')
     .argument('<tx–hash>', 'transaction hash')
     .argument('[event-signature]', 'event signature', null)
-    .addHelpText(
-      'after',
-      `
-  Example calls:
-
-  $ node index.js getEventLogsFromTransaction 0x2b948164aad1517cdcd11e22c3f96d58b146fdee233ab74e46cb038afcc273e3
-
-  $ node index.js getEventLogsFromTransaction 0x2b948164aad1517cdcd11e22c3f96d58b146fdee233ab74e46cb038afcc273e3 'UserOperation(uint256 nonce,string destinationAccount,bytes4 destinationNetworkId,string underlyingAssetName,string underlyingAssetSymbol,uint256 underlyingAssetDecimals,address underlyingAssetTokenAddress,bytes4 underlyingAssetNetworkId,address assetTokenAddress,uint256 assetAmount,bytes userData,bytes32 optionsMask)'
-  `
-    )
+    .addHelpText('after', GET_EVENT_LOGS_FROM_TRANSACTION_HELP_MESSAGE)
     .action(
       (_hash, _event) =>
         disableLoggingForCLICommand() || getEventLogsFromTransactionCommand(config, _hash, _event)
@@ -75,14 +96,7 @@ const addGetUserOperationCommand = _program =>
     .description('Get UserOperation event reports in a specific transaction')
     .argument('<tx–hash>', 'transaction hash')
     .option('-s, --save', 'save report into database')
-    .addHelpText(
-      'after',
-      `
-Example calls:
-
-$ node index.js getUserOperation 0x2b948164aad1517cdcd11e22c3f96d58b146fdee233ab74e46cb038afcc273e3
-`
-    )
+    .addHelpText('after', GET_USER_OPERATION_HELP_MESSAGE)
     .action(
       (_hash, _options) =>
         disableLoggingForCLICommand() ||
@@ -100,14 +114,7 @@ const addGetOperationQueuedCommand = _program =>
     .description('Get OperationQueued event reports in a specific transaction')
     .argument('<tx–hash>', 'transaction hash')
     .option('-s, --save', 'save report into database')
-    .addHelpText(
-      'after',
-      `
-Example calls:
-
-$ node index.js getOperationQueued 0x261229b0af24a5caaf24edc96a0e4ccafa801ef873ab4dff2277538232b38e79
-`
-    )
+    .addHelpText('after', GET_OPERATION_QUEUED_HELP_MESSAGE)
     .action(
       (_hash, _options) =>
         disableLoggingForCLICommand() ||
@@ -125,14 +132,7 @@ const addGetOperationExecutedCommand = _program =>
     .description('Get OperationExecuted event reports in a specific transaction')
     .argument('<tx–hash>', 'transaction hash')
     .option('-s, --save', 'save report into database')
-    .addHelpText(
-      'after',
-      `
-Example calls:
-
-$ node index.js getOperationExecuted 0x1091be7256f91c7025906b4cd82332e3b7d671c8ef60df08c14dc06fa11cf49a
-`
-    )
+    .addHelpText('after', GET_OPERATION_EXECUTED_HELP_MESSAGE)
     .action(
       (_hash, _options) =>
         disableLoggingForCLICommand() ||
@@ -151,14 +151,7 @@ const addGetOperationsCommand = _program =>
     .argument('<operationId>', 'operation ID')
     .argument('<state-manager-address>', 'state manager address')
     .option('--fromBlock <block>', 'fromBlock', parseInt)
-    .addHelpText(
-      'after',
-      `
-Example calls:
-
-$ node index.js getOperations 0x46840d7667c567d8ae702801c296d9cb19535d7c77f8e132c79f06c25df79600 0x565033350582f4Ad298fDD8d59b7c36D0cAC1712 --fromBlock 34923840
-`
-    )
+    .addHelpText('after', GET_OPERATIONS_HELP_MESSAGE)
     .action(
       (_operationId, _stateManagerAddress, _options) =>
         disableLoggingForCLICommand() ||
