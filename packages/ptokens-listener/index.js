@@ -1,6 +1,5 @@
 #!/usr/bin/env node
 const { Command } = require('commander')
-const program = new Command()
 const constants = require('ptokens-constants')
 const { logger } = require('./lib/get-logger')
 const { logger: utilsLogger } = require('ptokens-utils')
@@ -21,14 +20,15 @@ const disableLoggingForCLICommand = _ => {
   utilsLogger.logger.level = 'off'
 }
 
-const main = async () => {
-  program
+const addMainCommand = _program =>
+  _program
     .name('ptokens-listener')
     .description(description)
     .version(version)
     .action(_ => listenForEventsCommand(config))
 
-  program
+const addGetEventReportsFromTransactionCommand = _program =>
+  _program
     .command('getEventReportsFromTransaction')
     .description('Get event reports in a specific transaction')
     .argument('<tx–hash>', 'transaction hash')
@@ -46,9 +46,10 @@ $ node index.js getEventReportsFromTransaction 0x2b948164aad1517cdcd11e22c3f96d5
       (_hash, _event, _options) =>
         disableLoggingForCLICommand() ||
         getEventReportsFromTransactionCommand(config, _hash, _event, _options.save)
-    )
+    ) && _program
 
-  program
+const addGetEventLogsFromTransactionCommand = _program =>
+  _program
     .command('getEventLogsFromTransaction')
     .description('Get event logs for a specific transaction')
     .argument('<tx–hash>', 'transaction hash')
@@ -56,19 +57,20 @@ $ node index.js getEventReportsFromTransaction 0x2b948164aad1517cdcd11e22c3f96d5
     .addHelpText(
       'after',
       `
-Example calls:
+  Example calls:
 
-$ node index.js getEventLogsFromTransaction 0x2b948164aad1517cdcd11e22c3f96d58b146fdee233ab74e46cb038afcc273e3
+  $ node index.js getEventLogsFromTransaction 0x2b948164aad1517cdcd11e22c3f96d58b146fdee233ab74e46cb038afcc273e3
 
-$ node index.js getEventLogsFromTransaction 0x2b948164aad1517cdcd11e22c3f96d58b146fdee233ab74e46cb038afcc273e3 'UserOperation(uint256 nonce,string destinationAccount,bytes4 destinationNetworkId,string underlyingAssetName,string underlyingAssetSymbol,uint256 underlyingAssetDecimals,address underlyingAssetTokenAddress,bytes4 underlyingAssetNetworkId,address assetTokenAddress,uint256 assetAmount,bytes userData,bytes32 optionsMask)'
-`
+  $ node index.js getEventLogsFromTransaction 0x2b948164aad1517cdcd11e22c3f96d58b146fdee233ab74e46cb038afcc273e3 'UserOperation(uint256 nonce,string destinationAccount,bytes4 destinationNetworkId,string underlyingAssetName,string underlyingAssetSymbol,uint256 underlyingAssetDecimals,address underlyingAssetTokenAddress,bytes4 underlyingAssetNetworkId,address assetTokenAddress,uint256 assetAmount,bytes userData,bytes32 optionsMask)'
+  `
     )
     .action(
       (_hash, _event) =>
         disableLoggingForCLICommand() || getEventLogsFromTransactionCommand(config, _hash, _event)
-    )
+    ) && _program
 
-  program
+const addGetUserOperationCommand = _program =>
+  _program
     .command('getUserOperation')
     .description('Get UserOperation event reports in a specific transaction')
     .argument('<tx–hash>', 'transaction hash')
@@ -90,9 +92,10 @@ $ node index.js getUserOperation 0x2b948164aad1517cdcd11e22c3f96d58b146fdee233ab
           constants.evm.events.USER_OPERATION_SIGNATURE,
           _options.save
         )
-    )
+    ) && _program
 
-  program
+const addGetOperationQueuedCommand = _program =>
+  _program
     .command('getOperationQueued')
     .description('Get OperationQueued event reports in a specific transaction')
     .argument('<tx–hash>', 'transaction hash')
@@ -114,9 +117,10 @@ $ node index.js getOperationQueued 0x261229b0af24a5caaf24edc96a0e4ccafa801ef873a
           constants.evm.events.OPERATION_QUEUED_SIGNATURE,
           _options.save
         )
-    )
+    ) && _program
 
-  program
+const addGetOperationExecutedCommand = _program =>
+  _program
     .command('getOperationExecuted')
     .description('Get OperationExecuted event reports in a specific transaction')
     .argument('<tx–hash>', 'transaction hash')
@@ -138,9 +142,10 @@ $ node index.js getOperationExecuted 0x1091be7256f91c7025906b4cd82332e3b7d671c8e
           constants.evm.events.OPERATION_EXECUTED_SIGNATURE,
           _options.save
         )
-    )
+    ) && _program
 
-  program
+const addGetOperationsCommand = _program =>
+  _program
     .command('getOperations')
     .description('Get operations linked to an Operation ID')
     .argument('<operationId>', 'operation ID')
@@ -158,10 +163,19 @@ $ node index.js getOperations 0x46840d7667c567d8ae702801c296d9cb19535d7c77f8e132
       (_operationId, _stateManagerAddress, _options) =>
         disableLoggingForCLICommand() ||
         getOperationsByIdCommand(config, _operationId, _stateManagerAddress, _options.fromBlock)
-    )
+    ) && _program
 
-  await program.parseAsync(process.argv).catch(printErrorAndExit)
-  await exitCleanly(0)
-}
+const main = () =>
+  Promise.resolve(new Command())
+    .then(addMainCommand)
+    .then(addGetEventReportsFromTransactionCommand)
+    .then(addGetEventLogsFromTransactionCommand)
+    .then(addGetUserOperationCommand)
+    .then(addGetOperationQueuedCommand)
+    .then(addGetOperationExecutedCommand)
+    .then(addGetOperationsCommand)
+    .then(_program => _program.parseAsync(process.argv))
+    .catch(printErrorAndExit)
+    .then(_ => exitCleanly(0))
 
 main()
