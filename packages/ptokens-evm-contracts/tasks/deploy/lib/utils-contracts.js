@@ -83,7 +83,7 @@ const deployAndSaveConfigurationEntry = (hre, taskArgs) =>
         .then(([_factory, _config]) =>
           _factory.attach(_config.get(hre.network.name)[KEY_PFACTORY][KEY_ADDRESS])
         )
-        .then(_factory => _factory.deploy(...taskArgs.deployArgsArray))
+        .then(_factory => console.log(taskArgs.overrides) || _factory.deploy(...taskArgs.deployArgsArray, taskArgs.overrides))
         .then(_factoryContract => _factoryContract.wait())
         .then(_ptokenTx =>
           Promise.all([

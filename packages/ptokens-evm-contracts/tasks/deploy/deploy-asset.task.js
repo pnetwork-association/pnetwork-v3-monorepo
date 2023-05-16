@@ -64,6 +64,7 @@ const deployAssetTask = (taskArgs, hre) =>
     .then(attachToContract(hre, taskArgs))
     .catch(deployContractErrorHandler(hre, taskArgs))
 
+console.log(types)
 subtask(TASK_NAME_DEPLOY_ASSET, TASK_DESC_DEPLOY_ASSET)
   .addParam(
     'configurableName',
@@ -72,6 +73,7 @@ subtask(TASK_NAME_DEPLOY_ASSET, TASK_DESC_DEPLOY_ASSET)
     types.string
   )
   .addParam('contractFactoryName', 'Contract factory name (i.e. PFactory)', undefined, types.string)
+  .addParam('overrides', 'Ethers deploy overrides values (gasLimit, gasPrice, ...)', undefined, types.json)
   .addVariadicPositionalParam(
     'deployArgsArray',
     'Contract constructor arguments array',
