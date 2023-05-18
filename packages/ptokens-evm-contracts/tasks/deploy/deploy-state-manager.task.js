@@ -5,22 +5,34 @@ const {
   TASK_NAME_DEPLOY_STATEMANAGER,
   TASK_NAME_DEPLOY_CONTRACT,
 } = require('../constants')
+const R = require('ramda')
 const { types } = require('hardhat/config')
 const { deployPFactoryTask } = require('./deploy-pfactory.task')
-const { getConfiguration } = require('./lib/configuration-manager')
 
-const deployStateManagerTask = ({ challengePeriod }, hre) =>
-  console.info('Deploying stateManager ...') ||
-  deployPFactoryTask(null, hre)
-    // Leave it as a second step as the configuration may not be ready yet
-    .then(_pFactory => Promise.all([_pFactory, getConfiguration()]))
-    .then(([_pFactory, _config]) =>
-      hre.run(TASK_NAME_DEPLOY_CONTRACT, {
+const setStateManagerAddressInPFactory = R.curry(
+  (_pFactory, _pStateManager) =>
+    console.info('Setting pStateManager address in pFactory...') ||
+    _pFactory
+      .setStateManager(_pStateManager.address)
+      .then(_tx => _tx.wait())
+      .then(_tx => console.info(`Tx mined @ ${_tx.transactionHash}`))
+      .then(_ => _pStateManager)
+)
+
+const deployStateManager = R.curry(
+  (taskArgs, hre, _pFactory) =>
+    console.info('Deploying stateManager ...') ||
+    hre
+      .run(TASK_NAME_DEPLOY_CONTRACT, {
         configurableName: KEY_STATEMANAGER,
         contractFactoryName: CONTRACT_NAME_STATEMANAGER,
-        deployArgsArray: [_pFactory.address, challengePeriod],
+        deployArgsArray: [_pFactory.address, taskArgs.challengePeriod],
       })
-    )
+      .then(setStateManagerAddressInPFactory(_pFactory))
+)
+
+const deployStateManagerTask = (taskArgs, hre) =>
+  deployPFactoryTask(null, hre).then(deployStateManager(taskArgs, hre))
 
 task(TASK_NAME_DEPLOY_STATEMANAGER, TASK_DESC_DEPLOY_STATEMANAGER)
   .addPositionalParam(
