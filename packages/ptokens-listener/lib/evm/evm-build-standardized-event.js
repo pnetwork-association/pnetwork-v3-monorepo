@@ -237,7 +237,7 @@ const parseLog = (_interface, _log) =>
  * @param  {object} _log [on chain event log]
  * @return {object}            [the standard event object]
  */
-const buildStandardizedEvmEventObjectFromLog = (_networkId, _interface, _log) =>
+const buildStandardizedEvmEventObjectFromLog = R.curry((_networkId, _interface, _log) =>
   Promise.all([getEventWithAllRequiredSetToNull(), parseLog(_interface, _log)])
     .then(([_obj, _parsedLog]) => addInfoFromParsedLog(_parsedLog, _obj))
     .then(R.assoc(constants.db.KEY_NETWORK_ID, _networkId))
@@ -245,6 +245,7 @@ const buildStandardizedEvmEventObjectFromLog = (_networkId, _interface, _log) =>
     .then(addFieldFromLog(_log, 'transactionHash', constants.db.KEY_TX_HASH))
     .then(addWitnessedTimestamp)
     .then(setId)
+)
 
 module.exports = {
   buildStandardizedEvmEventObjectFromLog,
