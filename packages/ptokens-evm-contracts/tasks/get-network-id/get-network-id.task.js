@@ -27,5 +27,6 @@ task(TASK_NAME_GET_NETWORK_ID, TASK_DESC_GET_NETWORK_ID)
   .setAction(getNetworkId)
 
 module.exports = {
+  getNetworkId,
   TASK_NAME_GET_NETWORK_ID,
 }
