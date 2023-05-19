@@ -27,6 +27,6 @@ subtask(TASK_NAME_DEPLOY_CONTRACT, TASK_DESC_DEPLOY_CONTRACT)
     'deployArgsArray',
     'Contract constructor arguments array',
     [],
-    types.array
+    types.json
   )
   .setAction(deployContractTask)
