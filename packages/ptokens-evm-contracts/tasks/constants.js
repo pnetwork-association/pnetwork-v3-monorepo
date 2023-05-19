@@ -4,7 +4,7 @@ module.exports = {
   KEY_PTOKEN_LIST: 'pTokens',
   KEY_ASSET_NAME: 'name',
   KEY_ASSET_SYMBOL: 'symbol',
-  KEY_ASSET_DECIMAL: 'decimals',
+  KEY_ASSET_DECIMALS: 'decimals',
   KEY_ASSET_TOTAL_SUPPLY: 'totalSupply',
   KEY_ADDRESS: 'address',
   KEY_PTOKEN_UNDERLYING_ASSET_ADDRESS: 'underlyingAssetAddress',
@@ -15,7 +15,7 @@ module.exports = {
   KEY_CHALLENGE_PERIOD: 'challegePeriod',
 
   // Contract names
-  CONTRACT_NAME_UNDERLYING_ASSET: 'StandardToken',
+  CONTRACT_NAME_STANDARD_TOKEN: 'StandardToken',
   CONTRACT_NAME_PTOKEN: 'PToken',
   CONTRACT_NAME_PROUTER: 'PRouter',
   CONTRACT_NAME_PFACTORY: 'PFactory',
