@@ -3,7 +3,7 @@ const {
   KEY_ADDRESS,
   KEY_ASSET_NAME,
   KEY_ASSET_SYMBOL,
-  KEY_ASSET_DECIMAL,
+  KEY_ASSET_DECIMALS,
   KEY_PTOKEN_UNDERLYING_ASSET_ADDRESS,
   KEY_PTOKEN_UNDERLYING_ASSET_NETWORKID,
   KEY_PTOKEN_LIST,
@@ -22,7 +22,7 @@ const configEntryLookup = {
   [KEY_PTOKEN_LIST]: (_taskArgs, _contractAddress) => ({
     [KEY_ASSET_NAME]: _taskArgs.deployArgsArray[0],
     [KEY_ASSET_SYMBOL]: _taskArgs.deployArgsArray[1],
-    [KEY_ASSET_DECIMAL]: _taskArgs.deployArgsArray[2],
+    [KEY_ASSET_DECIMALS]: _taskArgs.deployArgsArray[2],
     [KEY_PTOKEN_UNDERLYING_ASSET_ADDRESS]: _taskArgs.deployArgsArray[3],
     [KEY_PTOKEN_UNDERLYING_ASSET_NETWORKID]: _taskArgs.deployArgsArray[4],
     [KEY_ADDRESS]: _contractAddress,
@@ -30,7 +30,7 @@ const configEntryLookup = {
   [KEY_UNDERLYING_ASSET_LIST]: (_taskArgs, _contractAddress) => ({
     [KEY_ASSET_NAME]: _taskArgs.deployArgsArray[0],
     [KEY_ASSET_SYMBOL]: _taskArgs.deployArgsArray[1],
-    [KEY_ASSET_DECIMAL]: _taskArgs.deployArgsArray[2],
+    [KEY_ASSET_DECIMALS]: _taskArgs.deployArgsArray[2],
     [KEY_ASSET_TOTAL_SUPPLY]: _taskArgs.deployArgsArray[3],
     [KEY_ADDRESS]: _contractAddress,
   }),
@@ -83,7 +83,7 @@ const deployAndSaveConfigurationEntry = (hre, taskArgs) =>
         .then(([_factory, _config]) =>
           _factory.attach(_config.get(hre.network.name)[KEY_PFACTORY][KEY_ADDRESS])
         )
-        .then(_factory => console.log(taskArgs.overrides) || _factory.deploy(...taskArgs.deployArgsArray, taskArgs.overrides))
+        .then(_factory => _factory.deploy(...taskArgs.deployArgsArray, taskArgs.overrides))
         .then(_factoryContract => _factoryContract.wait())
         .then(_ptokenTx =>
           Promise.all([
