@@ -3,81 +3,99 @@ const {
   TASK_NAME_DEPLOY_INIT,
   TASK_NAME_DEPLOY_ASSET,
   TASK_DESC_DEPLOY_ASSET,
-  CONTRACT_NAME_PTOKEN,
-  KEY_PTOKEN_LIST,
-  KEY_UNDERLYING_ASSET_LIST,
+  KEY_ADDRESS,
   KEY_ASSET_NAME,
-  KEY_PTOKEN_UNDERLYING_ASSET_ADDRESS,
   KEY_ASSET_SYMBOL,
-  KEY_ASSET_DECIMAL,
+  KEY_ASSET_DECIMALS,
   KEY_ASSET_TOTAL_SUPPLY,
+  KEY_UNDERLYING_ASSET_LIST,
+  CONTRACT_NAME_STANDARD_TOKEN,
 } = require('../constants')
-const { errors } = require('ptokens-utils')
 const { types } = require('hardhat/config')
-const { attachToContract, deployContractErrorHandler } = require('./lib/utils-contracts')
+const { getConfiguration, updateConfiguration } = require('./lib/configuration-manager')
 
-const findPtokenWithUnderlyingAsset = R.curry((pTokenList, args) =>
-  pTokenList
-    ? R.find(R.propEq(args[3], KEY_PTOKEN_UNDERLYING_ASSET_ADDRESS))(pTokenList)
-    : undefined
-)
+const TASK_PARAM_NAME = 'name'
+const TASK_PARAM_SYMBOL = 'symbol'
+const TASK_PARAM_DECIMALS = 'decimals'
+const TASK_PARAM_TOTAL_SUPPLY = 'totalSupply'
 
-const findUnderlyingAsset = R.curry((underlyingAssetList, args) =>
-  underlyingAssetList
-    ? R.find(
-        R.whereEq({
-          [KEY_ASSET_NAME]: args[0],
-          [KEY_ASSET_SYMBOL]: args[1],
-          [KEY_ASSET_DECIMAL]: args[2],
-          [KEY_ASSET_TOTAL_SUPPLY]: args[3],
-        })
-      )(underlyingAssetList)
-    : undefined
-)
+const findAssetInUnderlyingAssetList = R.curry(
+  (hre, _config, _entry) =>
+    new Promise(resolve => {
+      const assetList = _config.get(hre.network.name)[KEY_UNDERLYING_ASSET_LIST]
 
-const getAssetFromConfig = R.curry(
-  (taskArgs, store) =>
-    new Promise((resolve, reject) => {
-      const [findAssetFunction, assetsList, errorMsg] =
-        taskArgs.contractFactoryName === CONTRACT_NAME_PTOKEN
-          ? [
-              findPtokenWithUnderlyingAsset,
-              store[KEY_PTOKEN_LIST],
-              `${errors.ERROR_KEY_NOT_FOUND} (No pToken found for underlying asset: ${taskArgs.deployArgsArray[3]})`,
-            ]
-          : [
-              findUnderlyingAsset,
-              store[KEY_UNDERLYING_ASSET_LIST],
-              `${errors.ERROR_KEY_NOT_FOUND} (No underlyingAsset found for underlying asset: ${taskArgs.deployArgsArray[0]})`,
-            ]
-
-      const assetFound = findAssetFunction(assetsList, taskArgs.deployArgsArray)
-
-      return R.isNotNil(assetFound) ? resolve(assetFound) : reject(new Error(errorMsg))
+      return resolve(R.find(R.whereEq(_entry), assetList))
     })
+)
+
+const createUnderlyingAssetConfigurationEntry = taskArgs =>
+  Promise.resolve({
+    [KEY_ASSET_NAME]: taskArgs[TASK_PARAM_NAME],
+    [KEY_ASSET_SYMBOL]: taskArgs[TASK_PARAM_SYMBOL],
+    [KEY_ASSET_DECIMALS]: taskArgs[TASK_PARAM_DECIMALS],
+    [KEY_ASSET_TOTAL_SUPPLY]: taskArgs[TASK_PARAM_TOTAL_SUPPLY],
+  })
+
+const addNewUnderlyingAssetToConfig = R.curry((taskArgs, hre, _config, _contract) =>
+  createUnderlyingAssetConfigurationEntry(taskArgs, _contract)
+    .then(R.assoc(KEY_ADDRESS, _contract.address))
+    .then(_entry =>
+      updateConfiguration(_config, hre.network.name, KEY_UNDERLYING_ASSET_LIST, _entry)
+    )
+    .then(_ => _contract)
+)
+
+const deployUnderlyingAsset = (taskArgs, hre, _config) =>
+  hre.ethers
+    .getContractFactory(CONTRACT_NAME_STANDARD_TOKEN)
+    .then(_contractFactory =>
+      _contractFactory.deploy(
+        taskArgs.name,
+        taskArgs.symbol,
+        taskArgs.decimals,
+        hre.ethers.utils.parseUnits(taskArgs.totalSupply, taskArgs.decimals)
+      )
+    )
+    .then(addNewUnderlyingAssetToConfig(taskArgs, hre, _config))
+    .then(_contract => console.info(`New underlying asset deployed @ ${_contract.address}`))
+
+const attachToUnderlyingAsset = R.curry((taskArgs, hre, _asset) =>
+  hre.ethers
+    .getContractFactory(CONTRACT_NAME_STANDARD_TOKEN)
+    .then(_contractFactory => _contractFactory.attach(_asset[KEY_ADDRESS]))
+    .then(
+      _contract =>
+        console.info(`Successfully attached to underlying asset @ ${_asset.address}`) || _contract
+    )
+)
+
+const maybeGetAssetFromConfigOrDeploy = R.curry((taskArgs, hre, _config) =>
+  createUnderlyingAssetConfigurationEntry(taskArgs)
+    .then(findAssetInUnderlyingAssetList(hre, _config))
+    .then(_asset =>
+      R.isNil(_asset)
+        ? deployUnderlyingAsset(taskArgs, hre, _config)
+        : attachToUnderlyingAsset(taskArgs, hre, _asset)
+    )
 )
 
 const deployAssetTask = (taskArgs, hre) =>
   hre
     .run(TASK_NAME_DEPLOY_INIT)
-    .then(getAssetFromConfig(taskArgs))
-    .then(attachToContract(hre, taskArgs))
-    .catch(deployContractErrorHandler(hre, taskArgs))
+    .then(getConfiguration)
+    .then(maybeGetAssetFromConfigOrDeploy(taskArgs, hre))
 
-console.log(types)
-subtask(TASK_NAME_DEPLOY_ASSET, TASK_DESC_DEPLOY_ASSET)
-  .addParam(
-    'configurableName',
-    'Configuration property where the address will be stored',
+task(TASK_NAME_DEPLOY_ASSET, TASK_DESC_DEPLOY_ASSET, deployAssetTask)
+  .addPositionalParam(TASK_PARAM_NAME, 'Token name (i.e. "Token BTC")', undefined, types.string)
+  .addPositionalParam(TASK_PARAM_SYMBOL, 'Token symbol (i.e. "BTC")', undefined, types.string)
+  .addPositionalParam(TASK_PARAM_DECIMALS, 'Tokens decimals number', undefined, types.string)
+  .addPositionalParam(
+    TASK_PARAM_TOTAL_SUPPLY,
+    'Tokens total supply number',
     undefined,
     types.string
   )
-  .addParam('contractFactoryName', 'Contract factory name (i.e. PFactory)', undefined, types.string)
-  .addParam('overrides', 'Ethers deploy overrides values (gasLimit, gasPrice, ...)', undefined, types.json)
-  .addVariadicPositionalParam(
-    'deployArgsArray',
-    'Contract constructor arguments array',
-    [],
-    types.array
-  )
-  .setAction(deployAssetTask)
+
+module.exports = {
+  attachToUnderlyingAsset
+}
