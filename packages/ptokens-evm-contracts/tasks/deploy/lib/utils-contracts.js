@@ -20,11 +20,8 @@ const { getConfiguration, updateConfiguration } = require('./configuration-manag
 
 const configEntryLookup = {
   [KEY_PTOKEN_LIST]: (_taskArgs, _contractAddress) => ({
-    [KEY_ASSET_NAME]: _taskArgs.deployArgsArray[0],
-    [KEY_ASSET_SYMBOL]: _taskArgs.deployArgsArray[1],
-    [KEY_ASSET_DECIMALS]: _taskArgs.deployArgsArray[2],
-    [KEY_PTOKEN_UNDERLYING_ASSET_ADDRESS]: _taskArgs.deployArgsArray[3],
-    [KEY_PTOKEN_UNDERLYING_ASSET_NETWORKID]: _taskArgs.deployArgsArray[4],
+    [KEY_PTOKEN_UNDERLYING_ASSET_ADDRESS]: _taskArgs.underlyingAssetAddress,
+    [KEY_PTOKEN_UNDERLYING_ASSET_NETWORKID]: _taskArgs.underlyingAssetChainName,
     [KEY_ADDRESS]: _contractAddress,
   }),
   [KEY_UNDERLYING_ASSET_LIST]: (_taskArgs, _contractAddress) => ({
@@ -115,7 +112,44 @@ const attachToContract = R.curry((hre, taskArgs, _address) =>
     )
 )
 
+const deployPToken = async (
+  _underlyingAssetName,
+  _underlyingAssetSymbol,
+  _underlyingAssetDecimals,
+  _underlyingAssetTokenAddress,
+  _underlyingAssetChainId,
+  { pFactory },
+  _gasLimit = 0
+) => {
+  const PToken = await ethers.getContractFactory('PToken')
+  const args = _gasLimit ? 
+    [
+    _underlyingAssetName,
+    _underlyingAssetSymbol,
+    _underlyingAssetDecimals,
+    _underlyingAssetTokenAddress,
+    _underlyingAssetChainId,
+    { gasLimit: _gasLimit },
+    ] 
+    :
+    [
+      _underlyingAssetName,
+      _underlyingAssetSymbol,
+      _underlyingAssetDecimals,
+      _underlyingAssetTokenAddress,
+      _underlyingAssetChainId,
+    ]
+
+  const transaction = await pFactory.deploy(...args)
+  const receipt = await transaction.wait()
+  const event = receipt.events.find(({ event }) => event === 'PTokenDeployed')
+  const { pTokenAddress } = event.args
+  return await PToken.attach(pTokenAddress)
+}
+
 module.exports = {
   attachToContract,
   deployContractErrorHandler,
+  deployPToken,
+  saveConfigurationEntry,
 }

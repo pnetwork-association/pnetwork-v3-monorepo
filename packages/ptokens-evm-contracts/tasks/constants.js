@@ -9,7 +9,7 @@ module.exports = {
   KEY_ADDRESS: 'address',
   KEY_PTOKEN_UNDERLYING_ASSET_ADDRESS: 'underlyingAssetAddress',
   KEY_PTOKEN_UNDERLYING_ASSET_NETWORKID: 'underlyingAssetNetworkId',
-  KEY_STATEMANAGER: 'pStateManager',
+  KEY_STATEMANAGER: 'stateManager',
   KEY_PROUTER: 'pRouter',
   KEY_PFACTORY: 'pFactory',
   KEY_CHALLENGE_PERIOD: 'challegePeriod',
@@ -33,6 +33,7 @@ module.exports = {
   TASK_NAME_CONFIG_PFACTORY: 'config-pfactory',
   TASK_NAME_GET_NETWORK_ID: 'get-network-id',
   TASK_NAME_USER_MINT_AND_BURN: 'user-send:mint-and-burn',
+  TASK_NAME_USER_SEND: 'user-send',
   TASK_NAME_SM_PEO: 'state-manager:execute-operation',
   TASK_DESC_DEPLOY_CONTRACT: 'Deploy a contract.',
   TASK_DESC_DEPLOY_ASSET: 'Deploy a pToken or a Token to be used as underlying asset',
@@ -53,4 +54,6 @@ module.exports = {
     'Deploy a stateManager contract or attach to an existing one from the configuration.',
   TASK_DESC_USER_MINT_AND_BURN:
     'Mint a new pToken providing an underlying asset and send it to a different chain.',
+  TASK_DESC_USER_SEND:
+    'Router user send.',
 }

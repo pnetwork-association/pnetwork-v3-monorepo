@@ -17,8 +17,8 @@ const {
 } = require('../constants')
 const R = require('ramda')
 const { types } = require('hardhat/config')
-const assetTypes = require('./lib/asset-types')
-const { deployPToken } = require('../../test/utils')
+// const assetTypes = require('./lib/asset-types')
+const { deployPToken, saveConfigurationEntry } = require('./lib/utils-contracts')
 const { attachToUnderlyingAsset } = require('./deploy-asset.task')
 const { getConfiguration } = require('./lib/configuration-manager')
 
@@ -90,7 +90,7 @@ const attachToContract = R.curry(
 
 const getFactoryContract = (taskArgs, hre) =>
   getConfiguration()
-    .then(_config => _config.get(taskArgs[TASK_PARAM_UNDERLYING_ASSET_CHAIN_NAME]))
+    .then(_config => _config.get(hre.network.name))
     .then(R.path([KEY_PFACTORY, KEY_ADDRESS]))
     .then(attachToContract(hre, CONTRACT_NAME_PFACTORY))
     .catch(_err =>
@@ -112,17 +112,18 @@ const checkPRouterIsDeployed = (taskArgs, hre) =>
     .then(rejectIfNil(`Could not find any PRouter address for '${hre.network.name}', have you deployed it?`))
 
 const getPTokenDeployArgs = (taskArgs, hre) =>
-  Promise.all([
-    getUnderlyingAsset(taskArgs, hre),
-    getUnderlyingAssetNetworkId(taskArgs, hre),
-    getFactoryContract(taskArgs, hre),
-  ])
-  .then(
+  getUnderlyingAsset(taskArgs, hre)
+  .then(_underlyingAssetContract => Promise.all([
+      _underlyingAssetContract,
+      getUnderlyingAssetNetworkId(taskArgs, hre),
+      getFactoryContract(taskArgs, hre),
+    ]))
+  .then( 
     ([
       _underlyingAssetContract,
       _underlyingAssetNetworkId,
       pFactory,
-    ]) => console.log(_underlyingAssetContract) ||Promise.all([
+    ]) => Promise.all([
       _underlyingAssetContract.name(),
       _underlyingAssetContract.symbol(),
       _underlyingAssetContract.decimals(),
@@ -145,6 +146,7 @@ const deployPTokenTask = (taskArgs, hre) =>
     .then(_ => maybeOverwriteParamsWithDefaultValues(taskArgs, hre))
     .then(_taskArgs => getPTokenDeployArgs(_taskArgs, hre))
     .then(_args => deployPToken(..._args))
+    .then(_pToken => saveConfigurationEntry(hre, R.assoc('configurableName', KEY_PTOKEN_LIST, taskArgs), _pToken))
     .catch(_err =>
       _err.message.includes('cannot estimate gas')
         ? console.error('Error: gas estimation failed, are you sure the pToken is not deployed already? If yes, try to overwrite the gas options.')
@@ -166,3 +168,7 @@ task(TASK_NAME_DEPLOY_PTOKEN, TASK_DESC_DEPLOY_PTOKEN, deployPTokenTask)
   )
   .addOptionalParam(TASK_PARAM_GAS, 'Optional gas limit setting', undefined, types.int)
   .addOptionalParam(TASK_PARAM_GASPRICE, 'Optional gas price setting', undefined, types.int)
+
+  module.exports = {
+    getUnderlyingAsset
+  }

@@ -14,11 +14,15 @@ module.exports.deployPToken = async (
     _underlyingAssetSymbol,
     _underlyingAssetDecimals,
     _underlyingAssetTokenAddress,
-    _underlyingAssetChainId
+    _underlyingAssetChainId,
+    {
+      gasLimit: 30000000,
+    }
   )
   const receipt = await transaction.wait()
   const event = receipt.events.find(({ event }) => event === 'PTokenDeployed')
   const { pTokenAddress } = event.args
+  console.log(pTokenAddress)
   return await PToken.attach(pTokenAddress)
 }
 

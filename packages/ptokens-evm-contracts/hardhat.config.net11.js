@@ -10,7 +10,7 @@ require('hardhat-log-remover')
 require('solidity-coverage')
 require('@nomicfoundation/hardhat-toolbox')
 require('hardhat-tracer')
-require('hardhat-change-network')
+require("hardhat-change-network")
 
 const getEnvironmentVariable = _envVar => process.env[_envVar] || ''
 
@@ -33,6 +33,7 @@ module.exports = {
   },
   networks: {
     hardhat: {
+      chainId: 1, 
       /*forking: {
       	url: "https://polygon-mumbai.g.alchemy.com/v2/g-1oufa00CC1Vs46vS3pc2qQtccg_6gp",
       },*/
@@ -52,7 +53,7 @@ module.exports = {
     hardhat2: {
       chainId: Number(process.env.HARDHAT2_CHAIN_ID ?? 31337),
       url: 'http://127.0.0.1:8546',
-      accounts: ['0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80'],
+      accounts: ['0x59c6995e998f97a5a0044966f0945389dc9e86dae88c7a8412f4603b6b78690d'],
     },
     mainnet: {
       chainId: 0x01,
