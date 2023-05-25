@@ -1,4 +1,4 @@
 module.exports = {
   '*.+(js|jsx)': 'eslint --cache',
-  '*.+(jsx|js)': 'nx format:write --files',
+  '*.+(js|jsx|yml)': 'nx format:write --files',
 }
