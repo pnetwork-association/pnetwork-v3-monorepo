@@ -23,12 +23,12 @@
   "author": "gitmp01",
   "license": "MIT",
   "dependencies": {
-    "ethers": "^6.3.0",
-    "commander": "^10.0.0",
-    "log4js": "^6.7.1",
+    "ethers": "6.3.0",
+    "commander": "10.0.1",
+    "log4js": "6.9.1",
     "ptokens-constants": "*",
     "ptokens-utils": "*",
-    "ramda": "^0.28.0"
+    "ramda": "0.29.0"
   },
   "nx": {
     "implicitDependencies": [

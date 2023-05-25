@@ -17,16 +17,16 @@
   "author": "gitmp01",
   "license": "MIT",
   "dependencies": {
-    "@log4js-node/log4js-api": "^1.0.2",
-    "ajv": "^8.11.0",
-    "ajv-formats": "^2.1.1",
-    "ethers": "^6.3.0",
-    "inquirer": "^8.2.2",
-    "jsonrpc-lite": "^2.2.0",
-    "mongodb": "^5.0.0",
-    "node-fetch": "^2.6.7",
-    "ramda": "^0.28.0",
-    "rewire": "^6.0.0",
-    "ws": "^8.5.0"
+    "@log4js-node/log4js-api": "1.0.2",
+    "ajv": "8.12.0",
+    "ajv-formats": "2.1.1",
+    "ethers": "6.3.0",
+    "inquirer": "8.2.3",
+    "jsonrpc-lite": "2.2.0",
+    "mongodb": "5.5.0",
+    "node-fetch": "2.6.11",
+    "ramda": "0.29.0",
+    "rewire": "6.0.0",
+    "ws": "8.13.0"
   }
 }
