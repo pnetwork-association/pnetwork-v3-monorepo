@@ -1,0 +1,8 @@
+.openzeppelin
+.env
+*.sw*
+
+#Hardhat files
+cache
+artifacts
+coverage.json

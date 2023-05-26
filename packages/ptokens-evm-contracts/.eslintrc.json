@@ -1,0 +1,7 @@
+{
+  "extends": ["../../.eslintrc.json"],
+  "globals": {
+    "task": "readonly",
+    "ethers": "readonly"
+  }
+}
