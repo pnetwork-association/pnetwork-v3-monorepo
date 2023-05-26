@@ -62,7 +62,7 @@ contract PRouter is IPRouter, Context {
             } else if (pTokenAddress == assetTokenAddress && !Network.isCurrentNetwork(destinationNetworkId)) {
                 IPToken(pTokenAddress).routedUserBurn(msgSender, assetAmount);
             } else if (pTokenAddress == assetTokenAddress && Network.isCurrentNetwork(destinationNetworkId)) {
-                revert Errors.NoUserOperation();
+                IPToken(pTokenAddress).burn(assetAmount);
             } else {
                 revert Errors.InvalidUserOperation();
             }
