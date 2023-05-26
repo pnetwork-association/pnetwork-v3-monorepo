@@ -36,7 +36,7 @@
     "dotenv": "^8.2.0",
     "erc1820-ethers-registry": "^1.1.0",
     "ethereumjs-abi": "^0.6.8",
-    "ethers": "^5.7.2",
+    "ethers": "6.3.0",
     "hardhat": "^2.13.0",
     "hardhat-gas-reporter": "1.0.9",
     "hardhat-log-remover": "^2.0.2",
