@@ -1,5 +1,5 @@
 const { expect } = require('chai')
-const { ethers, upgrades } = require('hardhat')
+const { ethers } = require('hardhat')
 const { time } = require('@nomicfoundation/hardhat-network-helpers')
 
 const { QUEUE_TIME, PNETWORK_NETWORK_IDS, ZERO_ADDRESS } = require('./constants')
@@ -12,6 +12,8 @@ let token,
   pRouter,
   pFactory,
   stateManager,
+  guardian,
+  sentinel,
   relayer,
   testReceiver,
   testNotReceiver,
@@ -78,7 +80,6 @@ describe('StateManager', () => {
     const StateManager = await ethers.getContractFactory('StateManager')
     const StandardToken = await ethers.getContractFactory('StandardToken')
     const TestReceiver = await ethers.getContractFactory('TestReceiver')
-    const EpochsManager = await ethers.getContractFactory('EpochsManager')
     const TestNotReceiver = await ethers.getContractFactory('TestNotReceiver')
 
     const signers = await ethers.getSigners()
@@ -89,15 +90,11 @@ describe('StateManager', () => {
     sentinel = signers[4]
 
     // H A R D H A T
-    epochsManager = await upgrades.deployProxy(EpochsManager, [EPOCH_DURATION], {
-      initializer: 'initialize',
-      kind: 'uups',
-    })
     testReceiver = await TestReceiver.deploy()
     pFactory = await PFactory.deploy()
     testNotReceiver = await TestNotReceiver.deploy()
     pRouter = await PRouter.deploy(pFactory.address)
-    stateManager = await StateManager.deploy(pFactory.address, epochsManager.address, QUEUE_TIME)
+    stateManager = await StateManager.deploy(pFactory.address, QUEUE_TIME)
     token = await StandardToken.deploy('Token', 'TKN', 18, ethers.utils.parseEther('100000000'))
 
     await pFactory.setRouter(pRouter.address)

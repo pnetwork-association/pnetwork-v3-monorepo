@@ -1,35 +1,27 @@
 const { expect } = require('chai')
 const { ethers } = require('hardhat')
-const { time } = require('@nomicfoundation/hardhat-network-helpers')
 
 const { QUEUE_TIME, PNETWORK_NETWORK_IDS } = require('./constants')
 const { deployPToken } = require('./utils')
 
-let token, owner, pToken, pRouter, pFactory, stateManager, pEpochsManager
+let user, token, pToken, pRouter, pFactory, stateManager
 
 describe('PToken', () => {
   for (const decimals of [6, 18]) {
     describe(`${decimals} decimals`, () => {
       beforeEach(async () => {
-        const EpochsManager = await ethers.getContractFactory('EpochsManager')
         const StateManager = await ethers.getContractFactory('StateManager')
         const StandardToken = await ethers.getContractFactory('StandardToken')
         const PFactory = await ethers.getContractFactory('PFactory')
         const PRouter = await ethers.getContractFactory('PRouter')
 
         const signers = await ethers.getSigners()
-        owner = signers[0]
         user = signers[1]
 
         // H A R D H A T
         pFactory = await PFactory.deploy()
         pRouter = await PRouter.deploy(pFactory.address)
-        pEpochsManager = await EpochsManager.deploy()
-        stateManager = await StateManager.deploy(
-          pFactory.address,
-          pEpochsManager.address,
-          QUEUE_TIME
-        )
+        stateManager = await StateManager.deploy(pFactory.address, QUEUE_TIME)
 
         token = await StandardToken.deploy(
           'Token',

@@ -7,7 +7,6 @@ task(
   .addPositionalParam('decimals')
   .addPositionalParam('totalSupply')
   .setAction(async taskArgs => {
-    console.log(taskArgs)
     await main(taskArgs)
       // eslint-disable-next-line no-process-exit
       .then(() => process.exit(0))

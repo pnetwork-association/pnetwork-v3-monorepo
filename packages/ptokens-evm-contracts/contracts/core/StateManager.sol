@@ -27,7 +27,7 @@ contract StateManager is IStateManager, Context, ReentrancyGuard {
     mapping(bytes32 => bytes1) private _operationsStatus;
 
     address public immutable factory;
-    address public immutable epochsManager;
+    // address public immutable epochsManager;
     uint32 private immutable _baseChallengePeriodDuration;
 
     modifier onlySentinel(
@@ -51,24 +51,25 @@ contract StateManager is IStateManager, Context, ReentrancyGuard {
     }
 
     modifier onlyFarFromClosingAndOpeningEpoch() {
-        uint256 currentEpoch = IEpochsManager(epochsManager).currentEpoch();
-        uint256 epochDuration = IEpochsManager(epochsManager).epochDuration();
-        uint256 startFirstEpochTimestamp = IEpochsManager(epochsManager).startFirstEpochTimestamp();
+        // uint256 currentEpoch = 1; //IEpochsManager(epochsManager).currentEpoch();
+        // uint256 epochDuration = 86400; //IEpochsManager(epochsManager).epochDuration();
+        // uint256 startFirstEpochTimestamp = 0; //IEpochsManager(epochsManager).startFirstEpochTimestamp();
 
-        uint256 currentEpochStartTimestamp = startFirstEpochTimestamp + (currentEpoch * epochDuration);
-        uint256 currentEpochEndTimestamp = startFirstEpochTimestamp + ((currentEpoch + 1) * epochDuration);
+        // uint256 currentEpochStartTimestamp = startFirstEpochTimestamp + (currentEpoch * epochDuration);
+        // uint256 currentEpochEndTimestamp = startFirstEpochTimestamp + ((currentEpoch + 1) * epochDuration);
 
-        if (
-            block.timestamp <= currentEpochStartTimestamp + 3600 || block.timestamp >= currentEpochEndTimestamp - 3600
-        ) {
-            revert Errors.Paused();
-        }
+        // if (
+        //     block.timestamp <= currentEpochStartTimestamp + 3600 || block.timestamp >= currentEpochEndTimestamp - 3600
+        // ) {
+        //     revert Errors.Paused();
+        // }
         _;
     }
 
-    constructor(address factory_, address epochsManager_, uint32 baseChallengePeriodDuration) {
+    constructor(address factory_, uint32 baseChallengePeriodDuration) {
+        // address epochsManager_,
         factory = factory_;
-        epochsManager = epochsManager_;
+        // epochsManager = epochsManager_;
         _baseChallengePeriodDuration = baseChallengePeriodDuration;
     }
 

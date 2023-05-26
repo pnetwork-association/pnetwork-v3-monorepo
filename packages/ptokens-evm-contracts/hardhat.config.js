@@ -8,6 +8,7 @@ require('hardhat-spdx-license-identifier')
 require('hardhat-log-remover')
 require('solidity-coverage')
 require('@nomicfoundation/hardhat-toolbox')
+require('hardhat-tracer')
 
 const getEnvironmentVariable = _envVar => process.env[_envVar] || ''
 
