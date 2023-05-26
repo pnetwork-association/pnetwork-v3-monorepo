@@ -30,39 +30,12 @@ module.exports = {
     },
   },
   networks: {
-    hardhat: {
-      /*forking: {
-        url: `${getEnvironmentVariable('MAINNET_NODE')}`,
-        accounts: [getEnvironmentVariable('PK')]
-      }*/
-    },
-    local: {
-      url: 'http://localhost:8545',
-    },
-    mainnet: {
-      url: getEnvironmentVariable('MAINNET_NODE'),
-      accounts: [getEnvironmentVariable('PK')],
-      gasPrice: 20e9,
-    },
-    polygon: {
-      url: getEnvironmentVariable('POLYGON_NODE'),
-      accounts: [getEnvironmentVariable('PK')],
-      gasPrice: 400e9,
-    },
-    mumbai: {
-      url: getEnvironmentVariable('MUMBAI_NODE'),
-      accounts: [getEnvironmentVariable('PK')],
-      gasPrice: 400e9,
-    },
-    bsc: {
-      url: getEnvironmentVariable('BSC_NODE'),
-      accounts: [getEnvironmentVariable('PK')],
-      gasPrice: 5e9,
-    },
-    sepolia: {
-      url: getEnvironmentVariable('SEPOLIA_NODE'),
-      accounts: [getEnvironmentVariable('PK')],
-    },
+    hardhat: {},
+    // mainnet: {
+    //   url: getEnvironmentVariable('MAINNET_NODE'),
+    //   accounts: [getEnvironmentVariable('PK')],
+    //   gasPrice: 20e9,
+    // },
   },
   etherscan: {
     apiKey: {
