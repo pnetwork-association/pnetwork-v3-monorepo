@@ -281,7 +281,7 @@ contract StateManager is IStateManager, GovernanceMessageHandler, ReentrancyGuar
         }
     }
 
-    function _onMessage(bytes memory data) internal override {
+    function _onMessage(bytes memory data) internal override /*onlyNearFromClosingAndOpeningEpoch*/ {
         sentinelsRoot = bytes32(data);
     }
 }

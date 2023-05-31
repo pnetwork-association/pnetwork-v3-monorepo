@@ -10,6 +10,15 @@ require('solidity-coverage')
 require('@nomicfoundation/hardhat-toolbox')
 require('hardhat-tracer')
 
+/**
+ * User tasks
+ */
+require('./tasks/user-send.js')
+require('./tasks/deploy-ERC20-token.js')
+require('./tasks/deploy-governance-state-reader.js')
+require('./tasks/deploy-v3-contracts.js')
+require('./tasks/propagate-sentinels.js')
+
 const getEnvironmentVariable = _envVar => process.env[_envVar] || ''
 
 /**
@@ -36,6 +45,11 @@ module.exports = {
     //   accounts: [getEnvironmentVariable('PK')],
     //   gasPrice: 20e9,
     // },
+    polygon: {
+      url: getEnvironmentVariable('POLYGON_NODE'),
+      accounts: [getEnvironmentVariable('PK')],
+      gasPrice: 250e9,
+    },
   },
   etherscan: {
     apiKey: {
@@ -80,10 +94,3 @@ module.exports = {
     timeout: 100000000,
   },
 }
-
-/**
- * User tasks
- */
-require('./tasks/user-send.js')
-require('./tasks/deploy-ERC20-token.js')
-require('./tasks/deploy-v3-contracts.js')
