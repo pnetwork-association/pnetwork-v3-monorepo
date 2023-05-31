@@ -1,9 +1,11 @@
-const mintAndBurn = require('./router-user-send-mint-and-burn.task.js')
-const userSend = require('./router-user-send.task.js')
+const mint = require('./router-user-send-mint.task.js')
+const transfer = require('./router-user-send-transfer.task.js')
+const burn = require('./router-user-send-burn.task.js')
 const protocolExecuteOperation = require('./statemanager-protocol-queue-exev.task.js')
 
 module.exports = {
-  ...mintAndBurn,
-  ...userSend,
+  ...mint,
+  ...transfer,
+  ...burn,
   ...protocolExecuteOperation,
 }

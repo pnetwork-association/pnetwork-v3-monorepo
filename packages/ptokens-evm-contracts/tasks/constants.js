@@ -33,7 +33,9 @@ module.exports = {
   TASK_NAME_CONFIG_PFACTORY: 'config-pfactory',
   TASK_NAME_GET_NETWORK_ID: 'get-network-id',
   TASK_NAME_USER_MINT_AND_BURN: 'user-send:mint-and-burn',
-  TASK_NAME_USER_SEND: 'user-send',
+  TASK_NAME_USER_SEND_MINT: 'user-send:mint',
+  TASK_NAME_USER_SEND_TRANS: 'user-send:transfer',
+  TASK_NAME_USER_SEND_BURN: 'user-send:burn',
   TASK_NAME_SM_PEO: 'state-manager:execute-operation',
   TASK_DESC_DEPLOY_CONTRACT: 'Deploy a contract.',
   TASK_DESC_DEPLOY_ASSET: 'Deploy a pToken or a Token to be used as underlying asset',
@@ -54,6 +56,7 @@ module.exports = {
     'Deploy a stateManager contract or attach to an existing one from the configuration.',
   TASK_DESC_USER_MINT_AND_BURN:
     'Mint a new pToken providing an underlying asset and send it to a different chain.',
-  TASK_DESC_USER_SEND:
-    'Router user send.',
+  TASK_DESC_USER_SEND_MINT: 'Mint new pTokens given an asset address.',
+  TASK_DESC_USER_SEND_TRANS: 'Move pTokens form a chain to another one.',
+  TASK_DESC_USER_SEND_BURN: 'Redeem pTokens.',
 }

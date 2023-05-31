@@ -34,9 +34,5 @@
   },
   "workspaces": [
     "packages/*"
-  ],
-  "dependencies": {
-    "hardhat-change-network": "^0.0.7",
-    "hardhat-tracer": "^2.2.2"
-  }
+  ]
 }
