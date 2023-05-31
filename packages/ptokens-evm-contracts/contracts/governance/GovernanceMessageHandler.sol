@@ -9,31 +9,36 @@ import {Errors} from "../libraries/Errors.sol";
 abstract contract GovernanceMessageHandler is IGovernanceMessageHandler, Ownable {
     address public constant TELEPATHY_ROUTER = 0x41EA857C32c8Cb42EEFa00AF67862eCFf4eB795a;
 
-    address public governanceMessageVerifier;
-    uint32 public sourceChainId;
+    mapping(uint32 => mapping(address => bool)) private _sourceChainGovernanceMessagesVerifiersEnabled;
 
-    function setGovernanceMessageVerifier(address governanceMessageVerifier_) external onlyOwner {
-        governanceMessageVerifier = governanceMessageVerifier_;
+    function enableGovernanceMessageVerifierForSourceChain(
+        address governanceMessageVerifier,
+        uint32 sourceChainId
+    ) external onlyOwner /*onlyGovernance*/ {
+        _sourceChainGovernanceMessagesVerifiersEnabled[sourceChainId][governanceMessageVerifier] = true;
     }
 
-    function setSourceChainId(uint32 sourceChainId_) external onlyOwner {
-        sourceChainId = sourceChainId_;
+    function disableGovernanceMessageVerifierForSourceChain(
+        address governanceMessageVerifier,
+        uint32 sourceChainId
+    ) external onlyOwner /*onlyGovernance*/ {
+        _sourceChainGovernanceMessagesVerifiersEnabled[sourceChainId][governanceMessageVerifier] = false;
     }
 
-    function handleTelepathy(
-        uint32 sourceChainId_,
-        address senderAddress,
-        bytes memory data
-    ) external returns (bytes4) {
-        if (msg.sender != TELEPATHY_ROUTER) revert Errors.NotRouter(msg.sender, TELEPATHY_ROUTER);
-        if (sourceChainId != sourceChainId_) revert Errors.InvalidSourceChainId(sourceChainId_, sourceChainId);
-        if (senderAddress != governanceMessageVerifier)
-            revert Errors.NotGovernanceMessageVerifier(senderAddress, governanceMessageVerifier);
+    function handleTelepathy(uint32 sourceChainId, address senderAddress, bytes memory data) external returns (bytes4) {
+        address sender = _msgSender();
+        if (sender != TELEPATHY_ROUTER) revert Errors.NotRouter(sender, TELEPATHY_ROUTER);
+        // NOTE: we just need to check the address that called the telepathy router (GovernanceMessageVerifier)
+        // and not who emitted the event on Polygon since it's the GovernanceMessageVerifier that verifies that
+        // a certain event has been emitted by the GovernanceStateReader
+        if (!_sourceChainGovernanceMessagesVerifiersEnabled[sourceChainId][senderAddress]) {
+            revert Errors.InvalidGovernanceMessageVerifier(senderAddress);
+        }
 
-        _onMessage(data);
+        _onGovernanceMessage(data);
 
         return ITelepathyHandler.handleTelepathy.selector;
     }
 
-    function _onMessage(bytes memory data) internal virtual {}
+    function _onGovernanceMessage(bytes memory message) internal virtual {}
 }

@@ -11,10 +11,14 @@ import {MerklePatriciaProof} from "../libraries/MerklePatriciaProof.sol";
 
 contract GovernanceMessageVerifier is IGovernanceMessageVerifier, Ownable {
     address public constant TELEPATHY_ROUTER = 0x41EA857C32c8Cb42EEFa00AF67862eCFf4eB795a;
-    address public constant ROOT_CHAIN_ADDRESS = 0x86E4Dc95c7FBdBf52e33D563BbDB00823894C287;
+    address public constant ROOT_CHAIN_ADDRESS = 0x2890bA17EfE978480615e330ecB65333b880928e;
     bytes32 public constant EVENT_SIGNATURE_TOPIC = 0x85aab78efe4e39fd3b313a465f645990e6a1b923f5f5b979957c176e632c5a07; //keccak256(GovernanceMessage(bytes));
 
     address public governanceStateReader;
+
+    constructor(address governanceStateReader_) {
+        governanceStateReader = governanceStateReader_;
+    }
 
     function setGovernanceStateReader(address governanceStateReader_) external onlyOwner {
         governanceStateReader = governanceStateReader_;
@@ -32,6 +36,7 @@ contract GovernanceMessageVerifier is IGovernanceMessageVerifier, Ownable {
         RLPReader.RLPItem[] memory logs = RLPReader.toList(receiptData[3]);
         RLPReader.RLPItem[] memory log = RLPReader.toList(logs[proof.logIndex]);
 
+        // NOTE: only events emitted from the GovernanceStateReader will be propagated
         address proofGovernanceStateReader = RLPReader.toAddress(log[0]);
         if (governanceStateReader != proofGovernanceStateReader) {
             revert Errors.InvalidGovernanceStateReader(governanceStateReader, proofGovernanceStateReader);

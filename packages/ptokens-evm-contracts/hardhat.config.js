@@ -13,9 +13,11 @@ require('hardhat-tracer')
 /**
  * User tasks
  */
+require('./tasks/test/governance-message-handler')
 require('./tasks/user-send.js')
 require('./tasks/deploy-ERC20-token.js')
 require('./tasks/deploy-governance-state-reader.js')
+require('./tasks/deploy-governance-message-verifier.js')
 require('./tasks/deploy-v3-contracts.js')
 require('./tasks/propagate-sentinels.js')
 
@@ -40,15 +42,34 @@ module.exports = {
   },
   networks: {
     hardhat: {},
-    // mainnet: {
-    //   url: getEnvironmentVariable('MAINNET_NODE'),
-    //   accounts: [getEnvironmentVariable('PK')],
-    //   gasPrice: 20e9,
-    // },
+    mainnet: {
+      url: getEnvironmentVariable('MAINNET_NODE'),
+      accounts: [getEnvironmentVariable('PK')],
+      gasPrice: 45e9,
+    },
     polygon: {
       url: getEnvironmentVariable('POLYGON_NODE'),
       accounts: [getEnvironmentVariable('PK')],
-      gasPrice: 250e9,
+      gasPrice: 400e9,
+    },
+    mumbai: {
+      url: getEnvironmentVariable('MUMBAI_NODE'),
+      accounts: [getEnvironmentVariable('PK')],
+      gasPrice: 10e9,
+    },
+    bsc: {
+      url: getEnvironmentVariable('BSC_NODE'),
+      accounts: [getEnvironmentVariable('PK')],
+      gasPrice: 5e9,
+    },
+    sepolia: {
+      url: getEnvironmentVariable('SEPOLIA_NODE'),
+      accounts: [getEnvironmentVariable('PK')],
+    },
+    goerli: {
+      url: getEnvironmentVariable('GOERLI_NODE'),
+      accounts: [getEnvironmentVariable('PK')],
+      gasPrice: 90e9,
     },
   },
   etherscan: {

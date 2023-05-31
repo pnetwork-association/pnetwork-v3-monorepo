@@ -25,11 +25,11 @@ contract StateManager is IStateManager, GovernanceMessageHandler, ReentrancyGuar
     mapping(bytes32 => Action) private _operationsExecuteAction;
     mapping(bytes32 => uint8) private _operationsTotalCancelActions;
     mapping(bytes32 => bytes1) private _operationsStatus;
+    mapping(uint16 => bytes32) private _epochsSentinelsRoot;
 
     address public immutable factory;
     // address public immutable epochsManager;
     uint32 private immutable _baseChallengePeriodDuration;
-    bytes32 public sentinelsRoot;
 
     modifier onlySentinel(
         Operation calldata operation,
@@ -64,6 +64,9 @@ contract StateManager is IStateManager, GovernanceMessageHandler, ReentrancyGuar
         // ) {
         //     revert Errors.Paused();
         // }
+
+        // UPDATE: revert if there is less than an hour to the end of the epoch or if there is no commitment for the current epoch (aka has not been propagated)
+        // uint256 currentEpoch = 1; //IEpochsManager(epochsManager).currentEpoch();
         _;
     }
 
@@ -79,6 +82,10 @@ contract StateManager is IStateManager, GovernanceMessageHandler, ReentrancyGuar
         bytes32 operationId = operationIdOf(operation);
         bytes1 operationStatus = _operationsStatus[operationId];
         return _challengePeriodOf(operationId, operationStatus);
+    }
+
+    function getSentinelsRootForEpoch(uint16 epoch) external returns(bytes32) {
+        return _epochsSentinelsRoot[epoch];
     }
 
     /// @inheritdoc IStateManager
@@ -281,7 +288,14 @@ contract StateManager is IStateManager, GovernanceMessageHandler, ReentrancyGuar
         }
     }
 
-    function _onMessage(bytes memory data) internal override /*onlyNearFromClosingAndOpeningEpoch*/ {
-        sentinelsRoot = bytes32(data);
+    function _onGovernanceMessage(bytes memory message) internal override /*onlyNearFromClosingAndOpeningEpoch*/ {
+        (bytes1 messageType, bytes memory data) = abi.decode(message, (bytes1, bytes));
+        if (messageType == Constants.GOVERNANCE_MESSAGE_SENTINELS) {
+            (uint16 epoch, bytes32 sentinelRoot) = abi.decode(data, (uint16, bytes32));
+            _epochsSentinelsRoot[epoch] = bytes32(sentinelRoot);
+            return;
+        }
+
+        revert Errors.InvalidGovernanceMessage(message);
     }
 }

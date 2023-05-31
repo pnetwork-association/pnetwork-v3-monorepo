@@ -10,5 +10,10 @@ pragma solidity 0.8.17;
  */
 
 interface IGovernanceStateReader {
-
+    /**
+     * @dev Emitted when a governance message must be propagated on the other chains
+     *
+     * @param data The data
+     */
+    event GovernanceMessage(bytes data);
 }
