@@ -3,9 +3,9 @@
 pragma solidity 0.8.17;
 
 import {ReentrancyGuard} from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
-import {Context} from "@openzeppelin/contracts/utils/Context.sol";
 import {ECDSA} from "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import {IEpochsManager} from "@pnetwork/dao-v2-contracts/contracts/interfaces/IEpochsManager.sol";
+import {GovernanceMessageHandler} from "../governance/GovernanceMessageHandler.sol";
 import {IPRouter} from "../interfaces/IPRouter.sol";
 import {IPToken} from "../interfaces/IPToken.sol";
 import {IPFactory} from "../interfaces/IPFactory.sol";
@@ -17,7 +17,7 @@ import {Constants} from "../libraries/Constants.sol";
 import {Utils} from "../libraries/Utils.sol";
 import {Network} from "../libraries/Network.sol";
 
-contract StateManager is IStateManager, Context, ReentrancyGuard {
+contract StateManager is IStateManager, GovernanceMessageHandler, ReentrancyGuard {
     mapping(bytes32 => Action) private _operationsRelayerQueueAction;
     mapping(bytes32 => Action) private _operationsGovernanceCancelAction;
     mapping(bytes32 => Action) private _operationsGuardianCancelAction;
@@ -29,6 +29,7 @@ contract StateManager is IStateManager, Context, ReentrancyGuard {
     address public immutable factory;
     // address public immutable epochsManager;
     uint32 private immutable _baseChallengePeriodDuration;
+    bytes32 public sentinelsRoot;
 
     modifier onlySentinel(
         Operation calldata operation,
@@ -66,7 +67,7 @@ contract StateManager is IStateManager, Context, ReentrancyGuard {
         _;
     }
 
-    constructor(address factory_, uint32 baseChallengePeriodDuration) {
+    constructor(address factory_, uint32 baseChallengePeriodDuration) GovernanceMessageHandler() {
         // address epochsManager_,
         factory = factory_;
         // epochsManager = epochsManager_;
@@ -278,5 +279,9 @@ contract StateManager is IStateManager, Context, ReentrancyGuard {
             _operationsStatus[operationId] = Constants.OPERATION_CANCELLED;
             emit OperationCancelled(operation);
         }
+    }
+
+    function _onMessage(bytes memory data) internal override {
+        sentinelsRoot = bytes32(data);
     }
 }

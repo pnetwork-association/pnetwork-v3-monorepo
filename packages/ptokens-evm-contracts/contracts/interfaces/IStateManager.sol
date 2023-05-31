@@ -2,13 +2,15 @@
 
 pragma solidity 0.8.17;
 
+import {IGovernanceMessageHandler} from "./IGovernanceMessageHandler.sol";
+
 /**
  * @title IStateManager
  * @author pNetwork
  *
  * @notice
  */
-interface IStateManager {
+interface IStateManager is IGovernanceMessageHandler {
     enum Actor {
         Governance,
         Guardian,

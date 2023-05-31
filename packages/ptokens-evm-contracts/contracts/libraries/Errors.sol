@@ -27,4 +27,14 @@ library Errors {
     error InvalidNetwork(bytes4 networkId);
     error NotContract(address addr);
     error Paused();
+    error InvalidGovernanceStateReader(address expectedGovernanceStateReader, address governanceStateReader);
+    error InvalidTopic(bytes32 expectedTopic, bytes32 topic);
+    error InvalidReceiptsRootMerkleProof();
+    error InvalidRootHashMerkleProof();
+    error InvalidHeaderBlock();
+    error InvalidSourceChainId(uint32 chainId, uint32 expectedChainId);
+    error NotRouter(address sender, address router);
+    error NotGovernanceMessageVerifier(address sender, address governanceMessageVerifier);
+    error InvalidAmount(uint256 amount, uint256 expectedAmount);
+    error InvalidSentinelRegistration(bytes1 kind);
 }
