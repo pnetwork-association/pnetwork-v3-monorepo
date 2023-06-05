@@ -1,7 +1,6 @@
+const R = require('ramda')
 const Ajv = require('ajv')
 const addFormats = require('ajv-formats')
-const { logger } = require('../logger')
-const R = require('ramda')
 const { ERROR_SCHEMA_VALIDATION_FAILED } = require('../errors')
 
 // Keep it global for efficiency reasons
@@ -13,11 +12,13 @@ const getValidationFunction = R.memoizeWith(JSON.stringify, _schema =>
   Promise.resolve(ajv.compile(_schema))
 )
 
-const printValidationError = _err => logger.error('%s %s', _err.instancePath, _err.message)
-
 const handleValidationError = _validationError => {
-  _validationError.errors.map(printValidationError)
-  return Promise.reject(new Error(ERROR_SCHEMA_VALIDATION_FAILED))
+  const error = _validationError.errors.reduce(
+    (_acc, _cur) => _acc + `${_cur.instancePath} ${_cur.message}\n`,
+    `${ERROR_SCHEMA_VALIDATION_FAILED}:\n`
+  )
+
+  return Promise.reject(new Error(error))
 }
 
 const validateJsonAsyncSchema = R.curry((_validationFunction, _json) =>
