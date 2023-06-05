@@ -25,14 +25,14 @@ abstract contract GovernanceMessageHandler is IGovernanceMessageHandler, Ownable
         _sourceChainGovernanceMessagesVerifiersEnabled[sourceChainId][governanceMessageVerifier] = false;
     }
 
-    function handleTelepathy(uint32 sourceChainId, address senderAddress, bytes memory data) external returns (bytes4) {
-        address sender = _msgSender();
-        if (sender != TELEPATHY_ROUTER) revert Errors.NotRouter(sender, TELEPATHY_ROUTER);
+    function handleTelepathy(uint32 sourceChainId, address sender, bytes memory data) external returns (bytes4) {
+        address msgSender = _msgSender();
+        if (msgSender != TELEPATHY_ROUTER) revert Errors.NotRouter(msgSender, TELEPATHY_ROUTER);
         // NOTE: we just need to check the address that called the telepathy router (GovernanceMessageVerifier)
         // and not who emitted the event on Polygon since it's the GovernanceMessageVerifier that verifies that
         // a certain event has been emitted by the GovernanceStateReader
-        if (!_sourceChainGovernanceMessagesVerifiersEnabled[sourceChainId][senderAddress]) {
-            revert Errors.InvalidGovernanceMessageVerifier(senderAddress);
+        if (!_sourceChainGovernanceMessagesVerifiersEnabled[sourceChainId][sender]) {
+            revert Errors.InvalidGovernanceMessageVerifier(sender);
         }
 
         _onGovernanceMessage(data);

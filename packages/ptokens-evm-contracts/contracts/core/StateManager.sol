@@ -84,7 +84,7 @@ contract StateManager is IStateManager, GovernanceMessageHandler, ReentrancyGuar
         return _challengePeriodOf(operationId, operationStatus);
     }
 
-    function getSentinelsRootForEpoch(uint16 epoch) external returns(bytes32) {
+    function getSentinelsRootForEpoch(uint16 epoch) external view returns (bytes32) {
         return _epochsSentinelsRoot[epoch];
     }
 
@@ -289,7 +289,8 @@ contract StateManager is IStateManager, GovernanceMessageHandler, ReentrancyGuar
     }
 
     function _onGovernanceMessage(bytes memory message) internal override /*onlyNearFromClosingAndOpeningEpoch*/ {
-        (bytes1 messageType, bytes memory data) = abi.decode(message, (bytes1, bytes));
+        bytes memory decodedMessage = abi.decode(message, (bytes));
+        (bytes32 messageType, bytes memory data) = abi.decode(decodedMessage, (bytes32, bytes));
         if (messageType == Constants.GOVERNANCE_MESSAGE_SENTINELS) {
             (uint16 epoch, bytes32 sentinelRoot) = abi.decode(data, (uint16, bytes32));
             _epochsSentinelsRoot[epoch] = bytes32(sentinelRoot);
