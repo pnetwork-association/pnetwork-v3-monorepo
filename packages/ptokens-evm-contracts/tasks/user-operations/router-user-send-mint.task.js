@@ -20,7 +20,7 @@ const getPTokenFromAsset = (assetAddress, config, hre) => {
   return pTokenAddress
 }
 
-const mint = async ({ assetAddress, destinationChainName, amount }, hre) => {
+const mint = async ({ assetAddress, destinationChainName, destinationAddress, amount }, hre) => {
   const config = await getConfiguration()
   const signer = await hre.ethers.getSigner()
   console.log(signer.address)
@@ -41,7 +41,7 @@ const mint = async ({ assetAddress, destinationChainName, amount }, hre) => {
   console.log('Generating an UserOperation ...')
 
   const tx = await pRouter.userSend(
-    signer.address,
+    destinationAddress,
     destinationNetworkId,
     await asset.name(),
     await asset.symbol(),
@@ -60,15 +60,16 @@ const mint = async ({ assetAddress, destinationChainName, amount }, hre) => {
 }
 
 task(TASK_NAME_USER_SEND_MINT, TASK_DESC_USER_SEND_MINT)
+  .addPositionalParam('assetAddress', 'Underlying asset address', undefined, types.string)
   .addPositionalParam(
-    'assetAddress',
-    'pToken address relative to the underlying asset selected',
+    'destinationChainName',
+    'Destination chain name (ex. mainnet, mumbai ...)',
     undefined,
     types.string
   )
   .addPositionalParam(
-    'destinationChainName',
-    'Destiantion chain name (ex. mainnet, mumbai ...)',
+    'destinationAddress',
+    'Where the pToken is destined to',
     undefined,
     types.string
   )
