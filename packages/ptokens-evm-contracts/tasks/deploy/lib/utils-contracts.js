@@ -12,8 +12,6 @@ const {
   KEY_PROUTER,
   KEY_PFACTORY,
   KEY_STATEMANAGER,
-  CONTRACT_NAME_PFACTORY,
-  CONTRACT_NAME_PTOKEN,
 } = require('../../constants')
 const { errors } = require('ptokens-utils')
 const { getConfiguration, updateConfiguration } = require('./configuration-manager')
@@ -73,27 +71,10 @@ const awaitTxSaveAddressAndReturnContract = R.curry((hre, taskArgs, _contract) =
 )
 
 const deployAndSaveConfigurationEntry = (hre, taskArgs) =>
-  taskArgs.contractFactoryName === CONTRACT_NAME_PTOKEN
-    ? hre.ethers
-        .getContractFactory(CONTRACT_NAME_PFACTORY)
-        .then(_factory => Promise.all([_factory, getConfiguration()]))
-        .then(([_factory, _config]) =>
-          _factory.attach(_config.get(hre.network.name)[KEY_PFACTORY][KEY_ADDRESS])
-        )
-        .then(_factory => _factory.deploy(...taskArgs.deployArgsArray, taskArgs.overrides))
-        .then(_factoryContract => _factoryContract.wait())
-        .then(_ptokenTx =>
-          Promise.all([
-            _ptokenTx.events.find(({ event }) => event === 'PTokenDeployed'),
-            hre.ethers.getContractFactory(CONTRACT_NAME_PTOKEN),
-          ])
-        )
-        .then(([_event, _ptoken]) => _ptoken.attach(_event.args.pTokenAddress))
-        .then(saveConfigurationEntry(hre, taskArgs))
-    : hre.ethers
-        .getContractFactory(taskArgs.contractFactoryName)
-        .then(_factory => _factory.deploy(...taskArgs.deployArgsArray))
-        .then(awaitTxSaveAddressAndReturnContract(hre, taskArgs))
+  hre.ethers
+    .getContractFactory(taskArgs.contractFactoryName)
+    .then(_factory => _factory.deploy(...taskArgs.deployArgsArray))
+    .then(awaitTxSaveAddressAndReturnContract(hre, taskArgs))
 
 const deployContractErrorHandler = R.curry((hre, taskArgs, _err) =>
   _err.message.includes(errors.ERROR_KEY_NOT_FOUND)
