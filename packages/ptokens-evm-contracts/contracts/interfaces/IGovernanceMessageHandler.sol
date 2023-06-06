@@ -13,12 +13,12 @@ import {ITelepathyHandler} from "../interfaces/external/ITelepathyHandler.sol";
 
 interface IGovernanceMessageHandler is ITelepathyHandler {
     function enableGovernanceMessageVerifierForSourceChain(
-        address governanceMessageVerifier,
-        uint32 sourceChainId
+        uint32 sourceChainId,
+        address governanceMessageVerifier
     ) external;
 
     function disableGovernanceMessageVerifierForSourceChain(
-        address governanceMessageVerifier,
-        uint32 sourceChainId
+        uint32 sourceChainId,
+        address governanceMessageVerifier
     ) external;
 }

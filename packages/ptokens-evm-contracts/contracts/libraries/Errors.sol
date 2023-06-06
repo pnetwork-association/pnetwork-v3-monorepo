@@ -26,7 +26,7 @@ library Errors {
     error PTokenNotCreated(address pTokenAddress);
     error InvalidNetwork(bytes4 networkId);
     error NotContract(address addr);
-    error Paused();
+    error LockDown();
     error InvalidGovernanceStateReader(address expectedGovernanceStateReader, address governanceStateReader);
     error InvalidTopic(bytes32 expectedTopic, bytes32 topic);
     error InvalidReceiptsRootMerkleProof();

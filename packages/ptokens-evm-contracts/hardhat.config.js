@@ -13,13 +13,14 @@ require('hardhat-tracer')
 /**
  * User tasks
  */
-require('./tasks/test/governance-message-handler')
 require('./tasks/user-send.js')
 require('./tasks/deploy-ERC20-token.js')
 require('./tasks/deploy-governance-state-reader.js')
 require('./tasks/deploy-governance-message-verifier.js')
 require('./tasks/deploy-v3-contracts.js')
 require('./tasks/propagate-sentinels.js')
+require('./tasks/test/governance-message-handler.js')
+require('./tasks/test/read-sentinels-root.js')
 
 const getEnvironmentVariable = _envVar => process.env[_envVar] || ''
 
@@ -60,7 +61,7 @@ module.exports = {
     bsc: {
       url: getEnvironmentVariable('BSC_NODE'),
       accounts: [getEnvironmentVariable('PK')],
-      gasPrice: 5e9,
+      gasPrice: 3e9,
     },
     sepolia: {
       url: getEnvironmentVariable('SEPOLIA_NODE'),
@@ -69,13 +70,14 @@ module.exports = {
     goerli: {
       url: getEnvironmentVariable('GOERLI_NODE'),
       accounts: [getEnvironmentVariable('PK')],
-      gasPrice: 90e9,
+      gasPrice: 250e9,
     },
   },
   etherscan: {
     apiKey: {
       mainnet: getEnvironmentVariable('ETHERSCAN_API_KEY'),
       polygon: getEnvironmentVariable('POLYGONSCAN_API_KEY'),
+      bsc: getEnvironmentVariable('BSCSCAN_API_KEY'),
     },
     customChains: [
       {
@@ -97,6 +99,14 @@ module.exports = {
       {
         network: 'mumbai',
         chainId: 80001,
+        urls: {
+          apiURL: 'https://api.mumbai.polygonscan.com/api',
+          browserURL: 'https://mumbai.polygonscan.com/',
+        },
+      },
+      {
+        network: 'bsc',
+        chainId: 56,
         urls: {
           apiURL: 'https://api.mumbai.polygonscan.com/api',
           browserURL: 'https://mumbai.polygonscan.com/',

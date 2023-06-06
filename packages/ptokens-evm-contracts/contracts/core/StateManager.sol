@@ -28,7 +28,7 @@ contract StateManager is IStateManager, GovernanceMessageHandler, ReentrancyGuar
     mapping(uint16 => bytes32) private _epochsSentinelsRoot;
 
     address public immutable factory;
-    // address public immutable epochsManager;
+    address public immutable epochsManager;
     uint32 private immutable _baseChallengePeriodDuration;
 
     modifier onlySentinel(
@@ -51,29 +51,36 @@ contract StateManager is IStateManager, GovernanceMessageHandler, ReentrancyGuar
         _;
     }
 
-    modifier onlyFarFromClosingAndOpeningEpoch() {
-        // uint256 currentEpoch = 1; //IEpochsManager(epochsManager).currentEpoch();
-        // uint256 epochDuration = 86400; //IEpochsManager(epochsManager).epochDuration();
-        // uint256 startFirstEpochTimestamp = 0; //IEpochsManager(epochsManager).startFirstEpochTimestamp();
+    modifier onlyWhenIsNotInLockDown(uint32 lockDownDeltaSeconds) {
+        uint16 currentEpoch = IEpochsManager(epochsManager).currentEpoch();
+        if (_epochsSentinelsRoot[currentEpoch] == bytes32(0)) {
+            revert Errors.LockDown();
+        }
 
-        // uint256 currentEpochStartTimestamp = startFirstEpochTimestamp + (currentEpoch * epochDuration);
-        // uint256 currentEpochEndTimestamp = startFirstEpochTimestamp + ((currentEpoch + 1) * epochDuration);
+        uint256 epochDuration = IEpochsManager(epochsManager).epochDuration();
+        uint256 startFirstEpochTimestamp = IEpochsManager(epochsManager).startFirstEpochTimestamp();
+        uint256 currentEpochEndTimestamp = startFirstEpochTimestamp + ((currentEpoch + 1) * epochDuration);
 
-        // if (
-        //     block.timestamp <= currentEpochStartTimestamp + 3600 || block.timestamp >= currentEpochEndTimestamp - 3600
-        // ) {
-        //     revert Errors.Paused();
-        // }
+        // If a relayer queues a malicious operation shortly before lockdown mode begins, what happens?
+        // When lockdown mode is initiated, both sentinels and guardians lose their ability to cancel operations.
+        //  Consequently, the malicious operation may be executed immediately after the lockdown period ends,
+        // especially if the operation's queue time is significantly shorter than the lockdown duration.
+        // To mitigate this risk, operations should not be queued if they are to be initiated 20 minutes
+        //  (lockDownDeltaSeconds = 1200) prior to an hour before the endEpoch.
+        if (block.timestamp + lockDownDeltaSeconds >= currentEpochEndTimestamp - 3600) {
+            revert Errors.LockDown();
+        }
 
-        // UPDATE: revert if there is less than an hour to the end of the epoch or if there is no commitment for the current epoch (aka has not been propagated)
-        // uint256 currentEpoch = 1; //IEpochsManager(epochsManager).currentEpoch();
         _;
     }
 
-    constructor(address factory_, uint32 baseChallengePeriodDuration) GovernanceMessageHandler() {
-        // address epochsManager_,
+    constructor(
+        address factory_,
+        uint32 baseChallengePeriodDuration,
+        address epochsManager_
+    ) GovernanceMessageHandler() {
         factory = factory_;
-        // epochsManager = epochsManager_;
+        epochsManager = epochsManager_;
         _baseChallengePeriodDuration = baseChallengePeriodDuration;
     }
 
@@ -114,7 +121,7 @@ contract StateManager is IStateManager, GovernanceMessageHandler, ReentrancyGuar
     /// @inheritdoc IStateManager
     function protocolGuardianCancelOperation(
         Operation calldata operation
-    ) external onlyFarFromClosingAndOpeningEpoch onlyGuardian("cancel") {
+    ) external onlyWhenIsNotInLockDown(0) onlyGuardian("cancel") {
         _protocolCancelOperation(operation, Actor.Guardian);
     }
 
@@ -130,14 +137,12 @@ contract StateManager is IStateManager, GovernanceMessageHandler, ReentrancyGuar
     function protocolSentinelCancelOperation(
         Operation calldata operation,
         bytes calldata proof
-    ) external onlyFarFromClosingAndOpeningEpoch onlySentinel(operation, proof, "cancel") {
+    ) external onlyWhenIsNotInLockDown(0) onlySentinel(operation, proof, "cancel") {
         _protocolCancelOperation(operation, Actor.Sentinel);
     }
 
     /// @inheritdoc IStateManager
-    function protocolExecuteOperation(
-        Operation calldata operation
-    ) external onlyFarFromClosingAndOpeningEpoch nonReentrant {
+    function protocolExecuteOperation(Operation calldata operation) external onlyWhenIsNotInLockDown(0) nonReentrant {
         bytes32 operationId = operationIdOf(operation);
 
         bytes1 operationStatus = _operationsStatus[operationId];
@@ -187,7 +192,7 @@ contract StateManager is IStateManager, GovernanceMessageHandler, ReentrancyGuar
     }
 
     /// @inheritdoc IStateManager
-    function protocolQueueOperation(Operation calldata operation) external onlyFarFromClosingAndOpeningEpoch {
+    function protocolQueueOperation(Operation calldata operation) external onlyWhenIsNotInLockDown(1200) {
         bytes32 operationId = operationIdOf(operation);
 
         bytes1 operationStatus = _operationsStatus[operationId];
@@ -288,7 +293,7 @@ contract StateManager is IStateManager, GovernanceMessageHandler, ReentrancyGuar
         }
     }
 
-    function _onGovernanceMessage(bytes memory message) internal override /*onlyNearFromClosingAndOpeningEpoch*/ {
+    function _onGovernanceMessage(bytes memory message) internal override {
         bytes memory decodedMessage = abi.decode(message, (bytes));
         (bytes32 messageType, bytes memory data) = abi.decode(decodedMessage, (bytes32, bytes));
         if (messageType == Constants.GOVERNANCE_MESSAGE_SENTINELS) {

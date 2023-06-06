@@ -1,8 +1,8 @@
 const { QUEUE_TIME, ZERO_ADDRESS } = require('../config')
 
 task('deploy-test-governance-message-handler', 'Test the governance messages on the StateManager')
-  .addPositionalParam('governanceMessageVerifier')
   .addPositionalParam('sourceChainId')
+  .addPositionalParam('governanceMessageVerifier')
   .setAction(async _args => {
     await main(_args)
       // eslint-disable-next-line no-process-exit
@@ -21,8 +21,8 @@ const main = async _args => {
 
   console.log('Enabling Governance Message Verifier ...')
   await stateManager.enableGovernanceMessageVerifierForSourceChain(
-    _args.governanceMessageVerifier,
-    _args.sourceChainId
+    _args.sourceChainId,
+    _args.governanceMessageVerifier
   )
 
   console.log({

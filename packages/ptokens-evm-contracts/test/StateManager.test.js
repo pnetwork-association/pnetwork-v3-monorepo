@@ -2,7 +2,12 @@ const { expect } = require('chai')
 const { ethers } = require('hardhat')
 const { time } = require('@nomicfoundation/hardhat-network-helpers')
 
-const { QUEUE_TIME, PNETWORK_NETWORK_IDS, ZERO_ADDRESS } = require('./constants')
+const {
+  QUEUE_TIME,
+  PNETWORK_NETWORK_IDS,
+  ZERO_ADDRESS,
+  TELEPATHY_ROUTER_ADDRESS,
+} = require('./constants')
 const { deployPToken, getOptionMaskWithOptionEnabledForBit } = require('./utils')
 const Operation = require('./utils/Operation')
 
@@ -17,9 +22,11 @@ let token,
   relayer,
   testReceiver,
   testNotReceiver,
-  user1
-
-const EPOCH_DURATION = 60 * 60 * 24 * 15
+  user1,
+  epochsManager,
+  telepathyRouter,
+  fakeGovernanceMessageVerifier,
+  epochDuration
 
 describe('StateManager', () => {
   const generateOperation = async (_opts = {}) => {
@@ -75,12 +82,18 @@ describe('StateManager', () => {
   }
 
   beforeEach(async () => {
+    // eslint-disable-next-line no-undef
+    await network.provider.request({
+      method: 'hardhat_reset',
+    })
+
     const PFactory = await ethers.getContractFactory('PFactory')
     const PRouter = await ethers.getContractFactory('PRouter')
     const StateManager = await ethers.getContractFactory('StateManager')
     const StandardToken = await ethers.getContractFactory('StandardToken')
     const TestReceiver = await ethers.getContractFactory('TestReceiver')
     const TestNotReceiver = await ethers.getContractFactory('TestNotReceiver')
+    const EpochsManager = await ethers.getContractFactory('EpochsManager')
 
     const signers = await ethers.getSigners()
     owner = signers[0]
@@ -88,14 +101,24 @@ describe('StateManager', () => {
     user1 = signers[2]
     guardian = signers[3]
     sentinel = signers[4]
+    fakeGovernanceMessageVerifier = signers[5]
 
     // H A R D H A T
     testReceiver = await TestReceiver.deploy()
     pFactory = await PFactory.deploy()
     testNotReceiver = await TestNotReceiver.deploy()
     pRouter = await PRouter.deploy(pFactory.address)
-    stateManager = await StateManager.deploy(pFactory.address, QUEUE_TIME)
+    epochsManager = await EpochsManager.deploy()
+    stateManager = await StateManager.deploy(pFactory.address, QUEUE_TIME, epochsManager.address)
     token = await StandardToken.deploy('Token', 'TKN', 18, ethers.utils.parseEther('100000000'))
+    telepathyRouter = await ethers.getImpersonatedSigner(TELEPATHY_ROUTER_ADDRESS)
+
+    epochDuration = (await epochsManager.epochDuration()).toNumber()
+
+    await owner.sendTransaction({
+      to: telepathyRouter.address,
+      value: ethers.utils.parseEther('1'),
+    })
 
     await pFactory.setRouter(pRouter.address)
     await pFactory.setStateManager(stateManager.address)
@@ -112,9 +135,30 @@ describe('StateManager', () => {
       }
     )
 
-    // FIXME: this is just temporary until the start epoch
-    // timestamp is fixed on the contract side
-    await time.increase(EPOCH_DURATION * 1)
+    // NOTE: mock
+    await stateManager.enableGovernanceMessageVerifierForSourceChain(
+      1,
+      fakeGovernanceMessageVerifier.address
+    )
+    const epoch = await epochsManager.currentEpoch() // NOTE: should be next epoch but to simplify testing we use the current one
+    const coder = new ethers.utils.AbiCoder()
+    const data =
+      '0x000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000000000000000a0' +
+      coder
+        .encode(
+          ['bytes32', 'bytes'],
+          [
+            '0x0abea1e3e92cf48dbad75e3c6f731e5ef04a7a2bff451ae7ed39d6eee2bcb0e7',
+            coder.encode(
+              ['uint16', 'bytes32'],
+              [epoch, '0xa4896a3f93bf4bf58378e579f3cf193bb4af1022af7d2089f37d8bae7157b85f']
+            ),
+          ]
+        )
+        .slice(2)
+    await stateManager
+      .connect(telepathyRouter)
+      .handleTelepathy(1, fakeGovernanceMessageVerifier.address, data)
   })
 
   it('should be able to queue an operation', async () => {
@@ -263,5 +307,59 @@ describe('StateManager', () => {
     await expect(
       stateManager.connect(relayer).protocolExecuteOperation(operation)
     ).to.be.revertedWithCustomError(stateManager, 'NotContract')
+  })
+
+  it('should not be able to queue an operation because the sentinels root for the current epoch has not been received yet', async () => {
+    await time.increase(epochDuration)
+    const operation = await generateOperation({
+      userData: '0x01',
+      destinationAccount: user1.address,
+    })
+    await expect(
+      stateManager.connect(relayer).protocolQueueOperation(operation)
+    ).to.be.revertedWithCustomError(stateManager, 'LockDown')
+  })
+
+  it('should not be able to execute an operation because the sentinels root for the current epoch has not been received yet', async () => {
+    const operation = await generateOperation({
+      userData: '0x01',
+      destinationAccount: user1.address,
+    })
+    await stateManager.connect(relayer).protocolQueueOperation(operation)
+    await time.increase(epochDuration)
+    await expect(
+      stateManager.connect(relayer).protocolExecuteOperation(operation)
+    ).to.be.revertedWithCustomError(stateManager, 'LockDown')
+  })
+
+  it('should not be able to queue an operation because is missing less than 1 hour and 20 minutes', async () => {
+    const currentEpoch = await epochsManager.currentEpoch()
+    const startFirstEpochTimestamp = (await epochsManager.startFirstEpochTimestamp()).toNumber()
+    const currentEpochEndTimestamp = startFirstEpochTimestamp + (currentEpoch + 1) * epochDuration
+    await time.increaseTo(currentEpochEndTimestamp - (3600 + 1200))
+    const operation = await generateOperation({
+      userData: '0x01',
+      destinationAccount: user1.address,
+    })
+    await expect(
+      stateManager.connect(relayer).protocolQueueOperation(operation)
+    ).to.be.revertedWithCustomError(stateManager, 'LockDown')
+  })
+
+  it('should not be able to execute an operation because is missing less then 1 hour before the ending of the current epoch', async () => {
+    const operation = await generateOperation({
+      userData: '0x01',
+      destinationAccount: user1.address,
+    })
+    await stateManager.connect(relayer).protocolQueueOperation(operation)
+
+    const currentEpoch = await epochsManager.currentEpoch()
+    const startFirstEpochTimestamp = (await epochsManager.startFirstEpochTimestamp()).toNumber()
+    const currentEpochEndTimestamp = startFirstEpochTimestamp + (currentEpoch + 1) * epochDuration
+    await time.increaseTo(currentEpochEndTimestamp - 1800)
+
+    await expect(
+      stateManager.connect(relayer).protocolExecuteOperation(operation)
+    ).to.be.revertedWithCustomError(stateManager, 'LockDown')
   })
 })

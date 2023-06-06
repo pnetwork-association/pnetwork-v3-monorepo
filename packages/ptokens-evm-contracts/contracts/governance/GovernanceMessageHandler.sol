@@ -12,15 +12,15 @@ abstract contract GovernanceMessageHandler is IGovernanceMessageHandler, Ownable
     mapping(uint32 => mapping(address => bool)) private _sourceChainGovernanceMessagesVerifiersEnabled;
 
     function enableGovernanceMessageVerifierForSourceChain(
-        address governanceMessageVerifier,
-        uint32 sourceChainId
+        uint32 sourceChainId,
+        address governanceMessageVerifier
     ) external onlyOwner /*onlyGovernance*/ {
         _sourceChainGovernanceMessagesVerifiersEnabled[sourceChainId][governanceMessageVerifier] = true;
     }
 
     function disableGovernanceMessageVerifierForSourceChain(
-        address governanceMessageVerifier,
-        uint32 sourceChainId
+        uint32 sourceChainId,
+        address governanceMessageVerifier
     ) external onlyOwner /*onlyGovernance*/ {
         _sourceChainGovernanceMessagesVerifiersEnabled[sourceChainId][governanceMessageVerifier] = false;
     }
