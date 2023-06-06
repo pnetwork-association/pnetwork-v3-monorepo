@@ -24,7 +24,6 @@ abstract contract GovernanceMessageHandler is IGovernanceMessageHandler, Context
         // and not who emitted the event on Polygon since it's the GovernanceMessageVerifier that verifies that
         // a certain event has been emitted by the GovernanceStateReader
         if (sourceChainId != allowedSourceChainId) {
-            // TODO: add 1 when ready for mainnet
             revert Errors.InvalidSourceChainId(sourceChainId, allowedSourceChainId);
         }
         if (sourceSender != governanceMessageVerifier) {
