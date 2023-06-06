@@ -15,33 +15,37 @@ const {
 
 const getAssetFromPToken = (pTokenAddress, config, hre) => {
   const findPToken = R.find(R.propEq(pTokenAddress, KEY_ADDRESS))
-  const findAssetAddress = R.path([KEY_PTOKEN_UNDERLYING_ASSET_ADDRESS])
-  const getAssetNetworkId = R.path([KEY_PTOKEN_UNDERLYING_ASSET_NETWORKID])
   const pTokens = R.path([hre.network.name, KEY_PTOKEN_LIST], config.get())
-  const [assetAddress, AssetNetworkId] = R.pipe(
-    findPToken,
-    R.juxt([findAssetAddress, getAssetNetworkId])
-  )(pTokens)
-  return [assetAddress, AssetNetworkId]
+  const ptoken = findPToken(pTokens)
+  return [
+    ptoken[KEY_PTOKEN_UNDERLYING_ASSET_ADDRESS],
+    ptoken[KEY_PTOKEN_UNDERLYING_ASSET_NETWORKID],
+  ]
 }
 
-const transfer = async ({ pTokenAddress, destinationChainName, amount }, hre) => {
+const transfer = async (
+  { pTokenAddress, destinationChainName, destinationAddress, amount },
+  hre
+) => {
   const config = await getConfiguration()
   const signer = await hre.ethers.getSigner()
   console.log(signer.address)
 
   const PRouter = await hre.ethers.getContractFactory('PRouter')
-  const ERC20 = await hre.ethers.getContractFactory('ERC20')
-
   const pRouter = await PRouter.attach(config.get(hre.network.name)[KEY_PROUTER][KEY_ADDRESS])
 
-  const { underlyingAssetAddress, underlyingAssetChainName } = getAssetFromPToken(
+  const [underlyingAssetAddress, underlyingAssetChainName] = getAssetFromPToken(
     pTokenAddress,
     config,
     hre
   )
+
+  console.log(underlyingAssetAddress, underlyingAssetChainName)
+
   const currentChain = hre.network.name
   hre.changeNetwork(underlyingAssetChainName)
+  console.log(`Network changed to ${underlyingAssetChainName}`)
+  const ERC20 = await hre.ethers.getContractFactory('ERC20')
   const asset = await ERC20.attach(underlyingAssetAddress)
   const underlyingAssetName = await asset.name()
   const underlyingAssetSymbol = await asset.symbol()
@@ -57,7 +61,7 @@ const transfer = async ({ pTokenAddress, destinationChainName, amount }, hre) =>
   console.log('Generating an UserOperation ...')
 
   const tx = await pRouter.userSend(
-    signer.address,
+    destinationAddress,
     destinationNetworkId,
     underlyingAssetName,
     underlyingAssetSymbol,
@@ -84,7 +88,13 @@ task(TASK_NAME_USER_SEND_TRANS, TASK_DESC_USER_SEND_TRANS)
   )
   .addPositionalParam(
     'destinationChainName',
-    'Destiantion chain name (ex. mainnet, mumbai ...)',
+    'Destination chain name (ex. mainnet, mumbai ...)',
+    undefined,
+    types.string
+  )
+  .addPositionalParam(
+    'destinationAddress',
+    'The address receiving the tokens on the destination chain',
     undefined,
     types.string
   )
