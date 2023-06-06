@@ -19,8 +19,8 @@ require('./tasks/deploy-governance-state-reader.js')
 require('./tasks/deploy-governance-message-verifier.js')
 require('./tasks/deploy-v3-contracts.js')
 require('./tasks/propagate-sentinels.js')
+require('./tasks/read-sentinels-root.js')
 require('./tasks/test/governance-message-handler.js')
-require('./tasks/test/read-sentinels-root.js')
 
 const getEnvironmentVariable = _envVar => process.env[_envVar] || ''
 
