@@ -97,5 +97,5 @@ task(TASK_NAME_DEPLOY_ASSET, TASK_DESC_DEPLOY_ASSET, deployAssetTask)
   )
 
 module.exports = {
-  attachToUnderlyingAsset
+  attachToUnderlyingAsset,
 }

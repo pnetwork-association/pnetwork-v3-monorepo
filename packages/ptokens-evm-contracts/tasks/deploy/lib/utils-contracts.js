@@ -122,23 +122,22 @@ const deployPToken = async (
   _gasLimit = 0
 ) => {
   const PToken = await ethers.getContractFactory('PToken')
-  const args = _gasLimit ? 
-    [
-    _underlyingAssetName,
-    _underlyingAssetSymbol,
-    _underlyingAssetDecimals,
-    _underlyingAssetTokenAddress,
-    _underlyingAssetChainId,
-    { gasLimit: _gasLimit },
-    ] 
-    :
-    [
-      _underlyingAssetName,
-      _underlyingAssetSymbol,
-      _underlyingAssetDecimals,
-      _underlyingAssetTokenAddress,
-      _underlyingAssetChainId,
-    ]
+  const args = _gasLimit
+    ? [
+        _underlyingAssetName,
+        _underlyingAssetSymbol,
+        _underlyingAssetDecimals,
+        _underlyingAssetTokenAddress,
+        _underlyingAssetChainId,
+        { gasLimit: _gasLimit },
+      ]
+    : [
+        _underlyingAssetName,
+        _underlyingAssetSymbol,
+        _underlyingAssetDecimals,
+        _underlyingAssetTokenAddress,
+        _underlyingAssetChainId,
+      ]
 
   const transaction = await pFactory.deploy(...args)
   const receipt = await transaction.wait()
