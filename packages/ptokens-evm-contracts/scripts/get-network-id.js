@@ -1,3 +1,4 @@
+// eslint-disable-next-line
 const ethers = require('ethers')
 
 const getNetworkId = (chainId, version = 0x01, networkType = 0x01, extraData = 0x00) =>

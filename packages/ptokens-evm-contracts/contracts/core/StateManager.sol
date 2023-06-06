@@ -66,7 +66,8 @@ contract StateManager is IStateManager, Context, ReentrancyGuard {
         _;
     }
 
-    constructor(address factory_, uint32 baseChallengePeriodDuration) { // address epochsManager_,
+    constructor(address factory_, uint32 baseChallengePeriodDuration) {
+        // address epochsManager_,
         factory = factory_;
         // epochsManager = epochsManager_;
         _baseChallengePeriodDuration = baseChallengePeriodDuration;

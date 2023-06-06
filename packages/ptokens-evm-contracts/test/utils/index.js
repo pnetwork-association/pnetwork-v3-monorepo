@@ -22,7 +22,7 @@ module.exports.deployPToken = async (
   const receipt = await transaction.wait()
   const event = receipt.events.find(({ event }) => event === 'PTokenDeployed')
   const { pTokenAddress } = event.args
-  console.log(pTokenAddress)
+
   return await PToken.attach(pTokenAddress)
 }
 

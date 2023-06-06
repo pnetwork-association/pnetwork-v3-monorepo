@@ -1,9 +1,6 @@
-const { getConfiguration } = require('../deploy/lib/configuration-manager')
-
 const { TASK_NAME_SM_PEO } = require('../constants')
 
 const protocolExecuteOperation = async (_, hre) => {
-  const config = await getConfiguration()
   const signer = await hre.ethers.getSigner()
   console.log(signer.address)
 
