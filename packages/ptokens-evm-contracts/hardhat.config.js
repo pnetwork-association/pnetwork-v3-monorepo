@@ -9,10 +9,12 @@ require('hardhat-log-remover')
 require('solidity-coverage')
 require('@nomicfoundation/hardhat-toolbox')
 require('hardhat-tracer')
+require('hardhat-change-network')
 
 /**
  * User tasks
  */
+require('./tasks/governance-message-relayer')
 require('./tasks/user-send.js')
 require('./tasks/deploy-ERC20-token.js')
 require('./tasks/deploy-governance-state-reader.js')
