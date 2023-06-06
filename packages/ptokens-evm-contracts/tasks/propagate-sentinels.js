@@ -1,6 +1,6 @@
 task('propagate-sentinels', 'Start the sentinel addresses propagation')
-  .addPositionalParam('registrationManager')
-  .addPositionalParam('epochsManager')
+  //.addPositionalParam('registrationManager')
+  //.addPositionalParam('epochsManager')
   .addPositionalParam('governanceStateReader')
   .setAction(async _args => {
     await main(_args)
@@ -15,28 +15,28 @@ task('propagate-sentinels', 'Start the sentinel addresses propagation')
 
 /* eslint-disable no-console */
 const main = async _args => {
-  const RegistrationManager = await ethers.getContractFactory('RegistrationManager')
-  const EpochsManager = await ethers.getContractFactory('EpochsManager')
+  //const RegistrationManager = await ethers.getContractFactory('RegistrationManager')
+  //const EpochsManager = await ethers.getContractFactory('EpochsManager')
   const GovernanceStateReader = await ethers.getContractFactory('GovernanceStateReader')
 
-  const registrationManager = await RegistrationManager.attach(_args.registrationManager)
-  const epochsManager = await EpochsManager.attach(_args.epochsManager)
-  const governanceStateReader = await GovernanceStateReader.attach(_args.epochsManager)
+  //const registrationManager = await RegistrationManager.attach(_args.registrationManager)
+  //const epochsManager = await EpochsManager.attach(_args.epochsManager)
+  const governanceStateReader = await GovernanceStateReader.attach(_args.governanceStateReader)
 
   try {
-    const nextEpoch = (await epochsManager.currentEpoch()) + 1
+    /*const nextEpoch = (await epochsManager.currentEpoch()) + 1
     console.log(nextEpoch)
 
     const events = await registrationManager.queryFilter(
       registrationManager.filters.SentinelRegistrationUpdated()
     )
-    console.log(events)
+    console.log(events)*/
 
     const sentinels = []
     // TODO get all sentinels registered in the nextEpoch
 
-    await governanceStateReader.propagateSentinels(sentinels, nextEpoch)
-    console.log('Sentinels addresses succesfully propagated!')
+    const trasaction = await governanceStateReader.propagateSentinels(sentinels)
+    console.log('Sentinels addresses succesfully propagated ...', trasaction.hash)
   } catch (_err) {
     console.error(_err)
   }

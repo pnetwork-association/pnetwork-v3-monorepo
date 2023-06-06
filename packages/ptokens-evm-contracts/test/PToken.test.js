@@ -1,10 +1,17 @@
 const { expect } = require('chai')
 const { ethers } = require('hardhat')
 
-const { QUEUE_TIME, PNETWORK_NETWORK_IDS } = require('./constants')
+const { QUEUE_TIME, PNETWORK_NETWORK_IDS, TELEPATHY_ROUTER_ADDRESS } = require('./constants')
 const { deployPToken } = require('./utils')
 
-let user, token, pToken, pRouter, pFactory, stateManager, epochsManager
+let user,
+  token,
+  pToken,
+  pRouter,
+  pFactory,
+  stateManager,
+  epochsManager,
+  fakeGovernanceMessageVerifier
 
 describe('PToken', () => {
   for (const decimals of [6, 18]) {
@@ -18,6 +25,7 @@ describe('PToken', () => {
 
         const signers = await ethers.getSigners()
         user = signers[1]
+        fakeGovernanceMessageVerifier = signers[2]
 
         // H A R D H A T
         pFactory = await PFactory.deploy()
@@ -26,7 +34,12 @@ describe('PToken', () => {
         stateManager = await StateManager.deploy(
           pFactory.address,
           QUEUE_TIME,
-          epochsManager.address
+          epochsManager.address,
+          TELEPATHY_ROUTER_ADDRESS,
+          fakeGovernanceMessageVerifier.address,
+          (
+            await ethers.provider.getNetwork()
+          ).chainId
         )
 
         token = await StandardToken.deploy(

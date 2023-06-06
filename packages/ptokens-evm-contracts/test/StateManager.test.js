@@ -86,6 +86,7 @@ describe('StateManager', () => {
     await network.provider.request({
       method: 'hardhat_reset',
     })
+    const chainId = (await ethers.provider.getNetwork()).chainId
 
     const PFactory = await ethers.getContractFactory('PFactory')
     const PRouter = await ethers.getContractFactory('PRouter')
@@ -109,7 +110,14 @@ describe('StateManager', () => {
     testNotReceiver = await TestNotReceiver.deploy()
     pRouter = await PRouter.deploy(pFactory.address)
     epochsManager = await EpochsManager.deploy()
-    stateManager = await StateManager.deploy(pFactory.address, QUEUE_TIME, epochsManager.address)
+    stateManager = await StateManager.deploy(
+      pFactory.address,
+      QUEUE_TIME,
+      epochsManager.address,
+      TELEPATHY_ROUTER_ADDRESS,
+      fakeGovernanceMessageVerifier.address,
+      chainId
+    )
     token = await StandardToken.deploy('Token', 'TKN', 18, ethers.utils.parseEther('100000000'))
     telepathyRouter = await ethers.getImpersonatedSigner(TELEPATHY_ROUTER_ADDRESS)
 
@@ -136,10 +144,6 @@ describe('StateManager', () => {
     )
 
     // NOTE: mock
-    await stateManager.enableGovernanceMessageVerifierForSourceChain(
-      1,
-      fakeGovernanceMessageVerifier.address
-    )
     const epoch = await epochsManager.currentEpoch() // NOTE: should be next epoch but to simplify testing we use the current one
     const coder = new ethers.utils.AbiCoder()
     const data =
@@ -158,7 +162,7 @@ describe('StateManager', () => {
         .slice(2)
     await stateManager
       .connect(telepathyRouter)
-      .handleTelepathy(1, fakeGovernanceMessageVerifier.address, data)
+      .handleTelepathy(chainId, fakeGovernanceMessageVerifier.address, data)
   })
 
   it('should be able to queue an operation', async () => {

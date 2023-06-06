@@ -77,8 +77,11 @@ contract StateManager is IStateManager, GovernanceMessageHandler, ReentrancyGuar
     constructor(
         address factory_,
         uint32 baseChallengePeriodDuration,
-        address epochsManager_
-    ) GovernanceMessageHandler() {
+        address epochsManager_,
+        address telepathyRouter,
+        address governanceMessageVerifier,
+        uint32 allowedSourceChainId
+    ) GovernanceMessageHandler(telepathyRouter, governanceMessageVerifier, allowedSourceChainId) {
         factory = factory_;
         epochsManager = epochsManager_;
         _baseChallengePeriodDuration = baseChallengePeriodDuration;

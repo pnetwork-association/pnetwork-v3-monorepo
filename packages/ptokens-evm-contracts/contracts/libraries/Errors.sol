@@ -34,7 +34,11 @@ library Errors {
     error InvalidHeaderBlock();
     error NotRouter(address sender, address router);
     error InvalidAmount(uint256 amount, uint256 expectedAmount);
-    error InvalidGovernanceMessageVerifier(address governanceMessagerVerifier);
+    error InvalidSourceChainId(uint32 sourceChainId, uint32 expectedSourceChainId);
+    error InvalidGovernanceMessageVerifier(
+        address governanceMessagerVerifier,
+        address expectedGovernanceMessageVerifier
+    );
     error InvalidSentinelRegistration(bytes1 kind);
     error InvalidGovernanceMessage(bytes message);
 }
