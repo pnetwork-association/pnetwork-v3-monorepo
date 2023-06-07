@@ -1,6 +1,6 @@
 const { ethers } = require('hardhat')
 const { QUEUE_TIME, PNETWORK_NETWORK_IDS, CHALLENGE_TIME } = require('../config')
-const { deployPToken } = require('../../test/utils')
+const { deployPToken } = require('../../tasks/deploy/deploy-ptoken.task')
 
 /* eslint-disable no-console */
 const main = async () => {

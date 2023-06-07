@@ -3,7 +3,8 @@ const { ethers } = require('hardhat')
 const { time } = require('@nomicfoundation/hardhat-network-helpers')
 
 const { QUEUE_TIME, PNETWORK_NETWORK_IDS, ZERO_ADDRESS } = require('./constants')
-const { deployPToken, getOptionMaskWithOptionEnabledForBit } = require('./utils')
+const { getOptionMaskWithOptionEnabledForBit } = require('./utils')
+const { deployPToken } = require('../tasks/deploy/deploy-ptoken.task')
 const Operation = require('./utils/Operation')
 
 let token,

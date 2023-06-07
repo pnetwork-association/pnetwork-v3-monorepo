@@ -4,15 +4,17 @@ const R = require('ramda')
 
 const {
   KEY_ADDRESS,
-  KEY_PTOKEN_UNDERLYING_ASSET_ADDRESS,
-  KEY_PTOKEN_UNDERLYING_ASSET_NETWORKID,
   KEY_PROUTER,
   KEY_PTOKEN_LIST,
   KEY_NETWORK_ID,
+  KEY_PTOKEN_UNDERLYING_ASSET_ADDRESS,
+  KEY_PTOKEN_UNDERLYING_ASSET_NETWORKID,
+  PARAM_NAME_PTOKEN_ADDRESS,
+  PARAM_DESC_PTOKEN_ADDRESS,
 } = require('../constants')
 
-const TASK_NAME_USER_SEND_TRANS = 'user-send:transfer'
-const TASK_DESC_USER_SEND_TRANS = 'Move pTokens form a chain to another one.'
+const TASK_NAME_USER_SEND_BURN = 'router:burn'
+const TASK_DESC_USER_SEND_BURN = 'Redeem pTokens.'
 
 const getAssetFromPToken = (pTokenAddress, config, hre) => {
   const findPToken = R.find(R.propEq(pTokenAddress, KEY_ADDRESS))
@@ -24,28 +26,20 @@ const getAssetFromPToken = (pTokenAddress, config, hre) => {
   ]
 }
 
-const transfer = async (
-  { pTokenAddress, destinationChainName, destinationAddress, amount },
-  hre
-) => {
+const burn = async (taskArgs, hre) => {
   const config = await getConfiguration()
   const signer = await hre.ethers.getSigner()
-  console.log(signer.address)
-
   const PRouter = await hre.ethers.getContractFactory('PRouter')
   const pRouter = await PRouter.attach(config.get(hre.network.name)[KEY_PROUTER][KEY_ADDRESS])
 
   const [underlyingAssetAddress, underlyingAssetChainName] = getAssetFromPToken(
-    pTokenAddress,
+    taskArgs.pTokenAddress,
     config,
     hre
   )
 
-  console.log(underlyingAssetAddress, underlyingAssetChainName)
-
   const currentChain = hre.network.name
   hre.changeNetwork(underlyingAssetChainName)
-  console.log(`Network changed to ${underlyingAssetChainName}`)
   const ERC20 = await hre.ethers.getContractFactory('ERC20')
   const asset = await ERC20.attach(underlyingAssetAddress)
   const underlyingAssetName = await asset.name()
@@ -53,23 +47,27 @@ const transfer = async (
   const underlyingAssetDecimals = await asset.decimals()
   hre.changeNetwork(currentChain)
 
-  const destinationNetworkId = config.get(destinationChainName)[KEY_NETWORK_ID]
+  const destinationNetworkId = config.get(hre.network.name)[KEY_NETWORK_ID]
   const underlyingAssetNetworkId = config.get(underlyingAssetChainName)[KEY_NETWORK_ID]
 
-  const parsedAmount = hre.ethers.utils.parseEther(amount)
-  console.log('Approving ...')
-  await asset.approve(pTokenAddress, parsedAmount)
-  console.log('Generating an UserOperation ...')
+  console.info(
+    `${taskArgs.amount} ptokens ${taskArgs.pTokenAddress} will be burned in order to reedem ${taskArgs.amount} ${underlyingAssetSymbol} (address: ${underlyingAssetAddress})`
+  )
+  console.info(`Account requesting the reedem: ${signer.address}`)
+  const parsedAmount = hre.ethers.utils.parseEther(taskArgs.amount)
+  console.info(`Approving ${taskArgs.amount} ptokens from ${taskArgs.pTokenAddress}`) // TODO check if there is a ptoken symbol
+  await asset.approve(taskArgs.pTokenAddress, parsedAmount)
+  console.info('Generating an UserOperation ...')
 
   const tx = await pRouter.userSend(
-    destinationAddress,
+    signer.address,
     destinationNetworkId,
     underlyingAssetName,
     underlyingAssetSymbol,
     underlyingAssetDecimals,
     underlyingAssetAddress,
     underlyingAssetNetworkId,
-    pTokenAddress,
+    taskArgs.pTokenAddress,
     parsedAmount,
     '0x',
     '0x'.padEnd(66, '0'),
@@ -80,28 +78,11 @@ const transfer = async (
   await tx.wait(1)
 }
 
-task(TASK_NAME_USER_SEND_TRANS, TASK_DESC_USER_SEND_TRANS)
-  .addPositionalParam(
-    'pTokenAddress',
-    'Address of the pTokens to be transferred',
-    undefined,
-    types.string
-  )
-  .addPositionalParam(
-    'destinationChainName',
-    'Destination chain name (ex. mainnet, mumbai ...)',
-    undefined,
-    types.string
-  )
-  .addPositionalParam(
-    'destinationAddress',
-    'The address receiving the tokens on the destination chain',
-    undefined,
-    types.string
-  )
+task(TASK_NAME_USER_SEND_BURN, TASK_DESC_USER_SEND_BURN)
+  .addPositionalParam(PARAM_NAME_PTOKEN_ADDRESS, PARAM_DESC_PTOKEN_ADDRESS, undefined, types.string)
   .addPositionalParam('amount', 'Amount of underlying asset to be used', undefined, types.string)
-  .setAction(transfer)
+  .setAction(burn)
 
 module.exports = {
-  TASK_NAME_USER_SEND_TRANS,
+  TASK_NAME_USER_SEND_BURN,
 }

@@ -17,8 +17,16 @@ module.exports = {
   // Contract names
   CONTRACT_NAME_PFACTORY: 'PFactory',
 
-  // Task names and descriptions
+  // Tasks names and descriptions
   TASK_NAME_DEPLOY_INIT: 'deploy:init',
   TASK_NAME_DEPLOY_CONTRACT: 'deploy:contract',
   TASK_NAME_GET_NETWORK_ID: 'get-network-id',
+
+  // Params names and descriptions
+  PARAM_NAME_DEST_CHAIN: 'destinationChainName',
+  PARAM_DESC_DEST_CHAIN: 'Destination chain name (ex. mainnet, mumbai ...)',
+  PARAM_NAME_DEST_ADDRESS: 'destinationAddress',
+  PARAM_DESC_DEST_ADDRESS: 'Where the pToken is destined to',
+  PARAM_NAME_PTOKEN_ADDRESS: 'pTokenAddress',
+  PARAM_DESC_PTOKEN_ADDRESS: 'Address of the pTokens to be redeemed',
 }

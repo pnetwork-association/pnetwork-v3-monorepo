@@ -1,11 +1,38 @@
 const R = require('ramda')
 const Store = require('data-store')
 const PATH_CONFIG_FILE = '/deployments.json'
-const { KEY_PTOKEN_LIST, KEY_UNDERLYING_ASSET_LIST } = require('../../constants')
+const {
+  KEY_PTOKEN_LIST,
+  KEY_UNDERLYING_ASSET_LIST,
+  KEY_NETWORK_ID,
+  TASK_NAME_GET_NETWORK_ID,
+} = require('../../constants')
 
 const getConfiguration = () => Promise.resolve(Store({ path: process.cwd() + PATH_CONFIG_FILE }))
 
 const PROPERTIES_REQUIRING_UNION = [KEY_PTOKEN_LIST, KEY_UNDERLYING_ASSET_LIST]
+
+const getSelectedChainId = hre => hre.network.config.chainId
+
+const addNewNetwork = (hre, _config) =>
+  hre
+    .run(TASK_NAME_GET_NETWORK_ID, {
+      quiet: true,
+      chainId: getSelectedChainId(hre),
+    })
+    .then(_networkId => updateConfiguration(_config, hre.network.name, KEY_NETWORK_ID, _networkId))
+
+const maybeAddNewNetwork = R.curry((hre, _config) =>
+  !_config.has(hre.network.name) ? addNewNetwork(hre, _config) : Promise.resolve(_config)
+)
+
+const maybeAddEmptyUnderlyingAssetList = R.curry((hre, _config) =>
+  _config.union(`${hre.network.name}.${KEY_UNDERLYING_ASSET_LIST}`, [])
+)
+
+const maybeAddEmptyPTokenList = R.curry((hre, _config) =>
+  _config.union(`${hre.network.name}.${KEY_PTOKEN_LIST}`, [])
+)
 
 const updateConfiguration = (...vargs) =>
   new Promise(resolve => {
@@ -26,4 +53,7 @@ const updateConfiguration = (...vargs) =>
 module.exports = {
   getConfiguration,
   updateConfiguration,
+  maybeAddNewNetwork,
+  maybeAddEmptyUnderlyingAssetList,
+  maybeAddEmptyPTokenList,
 }

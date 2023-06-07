@@ -3,10 +3,12 @@ const R = require('ramda')
 const { types } = require('hardhat/config')
 const { deployPFactoryTask } = require('./deploy-pfactory.task')
 
+const CONTRACT_NAME_STATEMANAGER = 'StateManager'
 const TASK_NAME_DEPLOY_STATEMANAGER = 'deploy:statemanager'
 const TASK_DESC_DEPLOY_STATEMANAGER =
   'Deploy a stateManager contract or attach to an existing one from the configuration.'
-const CONTRACT_NAME_STATEMANAGER = 'StateManager'
+const PARAM_NAME_CHALLENGE_PERIOD = 'challengePeriod'
+const PARAM_DESC_CHALLENGE_PERIOD = 'Set challenge period for pnetwork protocol state manager'
 
 const setStateManagerAddressInPFactory = R.curry(
   (_pFactory, _pStateManager) =>
@@ -35,8 +37,8 @@ const deployStateManagerTask = (taskArgs, hre) =>
 
 task(TASK_NAME_DEPLOY_STATEMANAGER, TASK_DESC_DEPLOY_STATEMANAGER)
   .addPositionalParam(
-    'challengePeriod',
-    'Set challenge period for pnetwork protocol state manager',
+    PARAM_NAME_CHALLENGE_PERIOD,
+    PARAM_DESC_CHALLENGE_PERIOD,
     undefined,
     types.string
   )

@@ -8,9 +8,13 @@ const {
   KEY_PROUTER,
   KEY_PTOKEN_LIST,
   KEY_NETWORK_ID,
+  PARAM_NAME_DEST_CHAIN,
+  PARAM_DESC_DEST_CHAIN,
+  PARAM_NAME_DEST_ADDRESS,
+  PARAM_DESC_DEST_ADDRESS,
 } = require('../constants')
 
-const TASK_NAME_USER_SEND_MINT = 'user-send:mint'
+const TASK_NAME_USER_SEND_MINT = 'router:mint'
 const TASK_DESC_USER_SEND_MINT = 'Mint new pTokens given an asset address.'
 
 const getPTokenFromAsset = (assetAddress, config, hre) => {
@@ -21,7 +25,7 @@ const getPTokenFromAsset = (assetAddress, config, hre) => {
   return pTokenAddress
 }
 
-const mint = async ({ assetAddress, destinationChainName, destinationAddress, amount }, hre) => {
+const mint = async (taskArgs, hre) => {
   const config = await getConfiguration()
   const signer = await hre.ethers.getSigner()
   console.log(signer.address)
@@ -30,26 +34,26 @@ const mint = async ({ assetAddress, destinationChainName, destinationAddress, am
   const ERC20 = await hre.ethers.getContractFactory('ERC20')
 
   const pRouter = await PRouter.attach(config.get(hre.network.name)[KEY_PROUTER][KEY_ADDRESS])
-  const asset = await ERC20.attach(assetAddress)
+  const asset = await ERC20.attach(taskArgs.assetAddress)
 
-  const pTokenAddress = getPTokenFromAsset(assetAddress, config, hre)
+  const pTokenAddress = getPTokenFromAsset(taskArgs.assetAddress, config, hre)
   const underlyingAssetNetworkId = config.get(hre.network.name)[KEY_NETWORK_ID]
-  const destinationNetworkId = config.get(destinationChainName)[KEY_NETWORK_ID]
+  const destinationNetworkId = config.get(taskArgs.destinationChainName)[KEY_NETWORK_ID]
 
-  const parsedAmount = hre.ethers.utils.parseEther(amount)
+  const parsedAmount = hre.ethers.utils.parseEther(taskArgs.amount)
   console.log('Approving ...')
   await asset.approve(pTokenAddress, parsedAmount)
   console.log('Generating an UserOperation ...')
 
   const tx = await pRouter.userSend(
-    destinationAddress,
+    taskArgs.destinationAddress,
     destinationNetworkId,
     await asset.name(),
     await asset.symbol(),
     await asset.decimals(),
-    assetAddress,
+    taskArgs.assetAddress,
     underlyingAssetNetworkId,
-    assetAddress,
+    taskArgs.assetAddress,
     parsedAmount,
     '0x',
     '0x'.padEnd(66, '0'),
@@ -62,18 +66,8 @@ const mint = async ({ assetAddress, destinationChainName, destinationAddress, am
 
 task(TASK_NAME_USER_SEND_MINT, TASK_DESC_USER_SEND_MINT)
   .addPositionalParam('assetAddress', 'Underlying asset address', undefined, types.string)
-  .addPositionalParam(
-    'destinationChainName',
-    'Destination chain name (ex. mainnet, mumbai ...)',
-    undefined,
-    types.string
-  )
-  .addPositionalParam(
-    'destinationAddress',
-    'Where the pToken is destined to',
-    undefined,
-    types.string
-  )
+  .addPositionalParam(PARAM_NAME_DEST_CHAIN, PARAM_DESC_DEST_CHAIN, undefined, types.string)
+  .addPositionalParam(PARAM_NAME_DEST_ADDRESS, PARAM_DESC_DEST_ADDRESS, undefined, types.string)
   .addPositionalParam('amount', 'Amount of underlying asset to be used', undefined, types.string)
   .setAction(mint)
 
