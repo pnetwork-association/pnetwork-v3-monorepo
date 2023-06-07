@@ -1,13 +1,15 @@
 const {
   KEY_PFACTORY,
-  CONTRACT_NAME_PFACTORY,
-  TASK_DESC_CONFIG_PFACTORY,
-  TASK_NAME_CONFIG_PFACTORY,
   KEY_ADDRESS,
   KEY_PROUTER,
   KEY_STATEMANAGER,
+  CONTRACT_NAME_PFACTORY,
 } = require('../constants')
 const { getConfiguration } = require('./lib/configuration-manager')
+
+const TASK_NAME_CONFIG_PFACTORY = 'config-pfactory'
+const TASK_DESC_CONFIG_PFACTORY =
+  'Config the pFactory contract with the pRouter and pStateManager in the configuration'
 
 const configPFactoryTask = (_, hre) =>
   console.info('Configuring pFactory ...') ||
@@ -37,11 +39,6 @@ const configPFactoryTask = (_, hre) =>
           _pFactory.setStateManager(_config.get(hre.network.name)[KEY_STATEMANAGER][KEY_ADDRESS]),
         ])
     )
-// .then(([_pFactory]) =>
-//   console.info('Renouncing ownership ...') ||
-//   Promise.all([
-//   _pFactory.renounceOwnership()
-// ]))
 
 task(TASK_NAME_CONFIG_PFACTORY, TASK_DESC_CONFIG_PFACTORY, configPFactoryTask)
 

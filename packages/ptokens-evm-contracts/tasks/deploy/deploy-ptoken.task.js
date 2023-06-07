@@ -2,8 +2,6 @@ const {
   KEY_ADDRESS,
   KEY_PFACTORY,
   KEY_NETWORK_ID,
-  TASK_DESC_DEPLOY_PTOKEN,
-  TASK_NAME_DEPLOY_PTOKEN,
   KEY_PROUTER,
   KEY_STATEMANAGER,
   KEY_PTOKEN_LIST,
@@ -20,6 +18,9 @@ const TASK_PARAM_GAS = 'gas'
 const TASK_PARAM_GASPRICE = 'gasPrice'
 const TASK_PARAM_UNDERLYING_ASSET_ADDRESS = 'underlyingAssetAddress'
 const TASK_PARAM_UNDERLYING_ASSET_CHAIN_NAME = 'underlyingAssetChainName'
+const TASK_NAME_DEPLOY_PTOKEN = 'deploy:ptoken'
+const TASK_DESC_DEPLOY_PTOKEN =
+  'Deploy a pToken contract or attach to an existing one from the configuration.'
 
 // TODO: export to ptokens-utils
 const rejectIfNil = R.curry((_errMsg, _thing) =>

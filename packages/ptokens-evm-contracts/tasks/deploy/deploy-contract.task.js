@@ -1,12 +1,9 @@
-const {
-  TASK_NAME_DEPLOY_INIT,
-  TASK_NAME_DEPLOY_CONTRACT,
-  TASK_DESC_DEPLOY_CONTRACT,
-  KEY_ADDRESS,
-} = require('../constants')
+const { TASK_NAME_DEPLOY_INIT, TASK_NAME_DEPLOY_CONTRACT, KEY_ADDRESS } = require('../constants')
 const { utils } = require('ptokens-utils')
 const { types } = require('hardhat/config')
 const { attachToContract, deployContractErrorHandler } = require('./lib/utils-contracts')
+
+const TASK_DESC_DEPLOY_CONTRACT = 'Deploy a contract.'
 
 const deployContractTask = (taskArgs, hre) =>
   hre

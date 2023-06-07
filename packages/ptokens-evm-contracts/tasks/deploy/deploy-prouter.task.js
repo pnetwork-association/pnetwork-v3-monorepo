@@ -1,12 +1,11 @@
-const {
-  KEY_PROUTER,
-  CONTRACT_NAME_PROUTER,
-  TASK_DESC_DEPLOY_PROUTER,
-  TASK_NAME_DEPLOY_PROUTER,
-  TASK_NAME_DEPLOY_CONTRACT,
-} = require('../constants')
+const { KEY_PROUTER, TASK_NAME_DEPLOY_CONTRACT } = require('../constants')
 const R = require('ramda')
 const { deployPFactoryTask } = require('./deploy-pfactory.task')
+
+const CONTRACT_NAME_PROUTER = 'PRouter'
+const TASK_NAME_DEPLOY_PROUTER = 'deploy:prouter'
+const TASK_DESC_DEPLOY_PROUTER =
+  'Deploy the pRouter contract or retrieve an existing one from the configuration.'
 
 const setRouterAddressInPFactory = R.curry(
   (_pFactory, _pRouter) =>

@@ -1,13 +1,12 @@
-const {
-  KEY_STATEMANAGER,
-  CONTRACT_NAME_STATEMANAGER,
-  TASK_DESC_DEPLOY_STATEMANAGER,
-  TASK_NAME_DEPLOY_STATEMANAGER,
-  TASK_NAME_DEPLOY_CONTRACT,
-} = require('../constants')
+const { KEY_STATEMANAGER, TASK_NAME_DEPLOY_CONTRACT } = require('../constants')
 const R = require('ramda')
 const { types } = require('hardhat/config')
 const { deployPFactoryTask } = require('./deploy-pfactory.task')
+
+const TASK_NAME_DEPLOY_STATEMANAGER = 'deploy:statemanager'
+const TASK_DESC_DEPLOY_STATEMANAGER =
+  'Deploy a stateManager contract or attach to an existing one from the configuration.'
+const CONTRACT_NAME_STATEMANAGER = 'StateManager'
 
 const setStateManagerAddressInPFactory = R.curry(
   (_pFactory, _pStateManager) =>

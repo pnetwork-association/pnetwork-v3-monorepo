@@ -1,6 +1,8 @@
 const R = require('ramda')
 const { types } = require('hardhat/config')
-const { TASK_NAME_GET_NETWORK_ID, TASK_DESC_GET_NETWORK_ID } = require('../constants')
+const { TASK_NAME_GET_NETWORK_ID } = require('../constants')
+
+const TASK_DESC_GET_NETWORK_ID = 'Get the pNetwork id for the given chain id'
 
 const maybePrintToStdoutAndReturn = R.curry((_quiet, _value) =>
   Promise.resolve(_quiet ? _value : console.log(_value) || _value)

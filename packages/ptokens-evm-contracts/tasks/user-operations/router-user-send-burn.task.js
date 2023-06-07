@@ -4,14 +4,15 @@ const R = require('ramda')
 
 const {
   KEY_ADDRESS,
-  TASK_NAME_USER_SEND_BURN,
-  TASK_DESC_USER_SEND_BURN,
-  KEY_PTOKEN_UNDERLYING_ASSET_ADDRESS,
-  KEY_PTOKEN_UNDERLYING_ASSET_NETWORKID,
   KEY_PROUTER,
   KEY_PTOKEN_LIST,
   KEY_NETWORK_ID,
+  KEY_PTOKEN_UNDERLYING_ASSET_ADDRESS,
+  KEY_PTOKEN_UNDERLYING_ASSET_NETWORKID,
 } = require('../constants')
+
+const TASK_NAME_USER_SEND_BURN = 'user-send:burn'
+const TASK_DESC_USER_SEND_BURN = 'Redeem pTokens.'
 
 const getAssetFromPToken = (pTokenAddress, config, hre) => {
   const findPToken = R.find(R.propEq(pTokenAddress, KEY_ADDRESS))

@@ -1,4 +1,4 @@
-const { TASK_NAME_SM_PEO } = require('../constants')
+const TASK_NAME_SM_PEO = 'state-manager:execute-operation'
 
 const protocolExecuteOperation = async (_, hre) => {
   const signer = await hre.ethers.getSigner()

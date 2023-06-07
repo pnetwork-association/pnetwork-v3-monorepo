@@ -4,12 +4,10 @@ const { getConfiguration, updateConfiguration } = require('./lib/configuration-m
 
 const getSelectedChainId = hre => hre.network.config.chainId
 
-const {
-  KEY_NETWORK_ID,
-  TASK_DESC_DEPLOY_INIT,
-  TASK_NAME_DEPLOY_INIT,
-  TASK_NAME_GET_NETWORK_ID,
-} = require('../constants')
+const { KEY_NETWORK_ID, TASK_NAME_DEPLOY_INIT, TASK_NAME_GET_NETWORK_ID } = require('../constants')
+
+const TASK_DESC_DEPLOY_INIT =
+  'Creates a new deployment configuration or returns the existing one for the selected network.'
 
 const addNewNetwork = (hre, _config) =>
   hre

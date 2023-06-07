@@ -4,14 +4,15 @@ const R = require('ramda')
 
 const {
   KEY_ADDRESS,
-  TASK_NAME_USER_SEND_TRANS,
-  TASK_DESC_USER_SEND_TRANS,
   KEY_PTOKEN_UNDERLYING_ASSET_ADDRESS,
   KEY_PTOKEN_UNDERLYING_ASSET_NETWORKID,
   KEY_PROUTER,
   KEY_PTOKEN_LIST,
   KEY_NETWORK_ID,
 } = require('../constants')
+
+const TASK_NAME_USER_SEND_TRANS = 'user-send:transfer'
+const TASK_DESC_USER_SEND_TRANS = 'Move pTokens form a chain to another one.'
 
 const getAssetFromPToken = (pTokenAddress, config, hre) => {
   const findPToken = R.find(R.propEq(pTokenAddress, KEY_ADDRESS))

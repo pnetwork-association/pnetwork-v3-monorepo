@@ -4,13 +4,14 @@ const R = require('ramda')
 
 const {
   KEY_ADDRESS,
-  TASK_NAME_USER_SEND_MINT,
-  TASK_DESC_USER_SEND_MINT,
   KEY_PTOKEN_UNDERLYING_ASSET_ADDRESS,
   KEY_PROUTER,
   KEY_PTOKEN_LIST,
   KEY_NETWORK_ID,
 } = require('../constants')
+
+const TASK_NAME_USER_SEND_MINT = 'user-send:mint'
+const TASK_DESC_USER_SEND_MINT = 'Mint new pTokens given an asset address.'
 
 const getPTokenFromAsset = (assetAddress, config, hre) => {
   const findAsset = R.find(R.propEq(assetAddress, KEY_PTOKEN_UNDERLYING_ASSET_ADDRESS))

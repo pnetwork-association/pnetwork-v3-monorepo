@@ -1,15 +1,12 @@
 const R = require('ramda')
 const {
   TASK_NAME_DEPLOY_INIT,
-  TASK_NAME_DEPLOY_ASSET,
-  TASK_DESC_DEPLOY_ASSET,
   KEY_ADDRESS,
   KEY_ASSET_NAME,
   KEY_ASSET_SYMBOL,
   KEY_ASSET_DECIMALS,
   KEY_ASSET_TOTAL_SUPPLY,
   KEY_UNDERLYING_ASSET_LIST,
-  CONTRACT_NAME_STANDARD_TOKEN,
 } = require('../constants')
 const { types } = require('hardhat/config')
 const { getConfiguration, updateConfiguration } = require('./lib/configuration-manager')
@@ -18,6 +15,9 @@ const TASK_PARAM_NAME = 'name'
 const TASK_PARAM_SYMBOL = 'symbol'
 const TASK_PARAM_DECIMALS = 'decimals'
 const TASK_PARAM_TOTAL_SUPPLY = 'totalSupply'
+const TASK_NAME_DEPLOY_ASSET = 'deploy:asset'
+const TASK_DESC_DEPLOY_ASSET = 'Deploy a pToken or a Token to be used as underlying asset'
+const CONTRACT_NAME_STANDARD_TOKEN = 'StandardToken'
 
 const findAssetInUnderlyingAssetList = R.curry(
   (hre, _config, _entry) =>
