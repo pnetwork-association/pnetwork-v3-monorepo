@@ -31,16 +31,6 @@ const rejectIfLength0 = R.curry((_errMsg, _array) =>
   _array.length === 0 ? Promise.reject(new Error(_errMsg)) : Promise.resolve(_array)
 )
 
-// const getPFactoryAddress = (hre, _config) =>
-//   Promise.resolve(_config.get(hre.network.name))
-//     .then(R.path([KEY_PFACTORY, KEY_ADDRESS]))
-//     .then(
-//       rejectIfNil(
-//         `Could not find any ${KEY_PFACTORY} address for '${hre.network.name}' network, is it deployed?`
-//       )
-//     )
-//     .then(_address => console.info(`Found ${KEY_PFACTORY} @ ${_address}`) || _address)
-
 const isAssetAddressEqualTo = _address => R.compose(R.equals(_address), R.prop(KEY_ADDRESS))
 
 const changeHardhatNetworkAndReturnArg = R.curry((hre, _chainName, _arg) =>

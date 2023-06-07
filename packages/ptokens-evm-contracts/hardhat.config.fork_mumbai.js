@@ -28,7 +28,10 @@ module.exports = {
   },
   networks: {
     hardhat: {
-      chainId: 0x01,
+      chainName: 'mumbai', // Used by fork-network task
+      chainId: 0x13882, // Necessary for proper hardhat configuration
+      port: 8547, // Used by fork-network task
+      hostname: '127.0.0.1', // Used by fork-network task
     },
   },
   gasReporter: {
@@ -39,3 +42,5 @@ module.exports = {
     runOnCompile: false,
   },
 }
+
+require('./tasks')

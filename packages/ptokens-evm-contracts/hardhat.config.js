@@ -12,7 +12,12 @@ require('@nomicfoundation/hardhat-toolbox')
 require('hardhat-tracer')
 require('hardhat-change-network')
 
+const sepoliaForkConfig = require('./hardhat.config.fork_sepolia')
+const mumbaiForkConfig = require('./hardhat.config.fork_mumbai')
+
 const getEnvironmentVariable = _envVar => process.env[_envVar] || ''
+const getUrl = config =>
+  'http://' + config.networks.hardhat.hostname + ':' + config.networks.hardhat.port
 
 /**
  * @type import('hardhat/config').HardhatUserConfig
@@ -32,27 +37,18 @@ module.exports = {
     },
   },
   networks: {
-    hardhat: {
-      /*forking: {
-      	url: "https://polygon-mumbai.g.alchemy.com/v2/g-1oufa00CC1Vs46vS3pc2qQtccg_6gp",
-      },*/
-      /*forking: {
-        url: `${getEnvironmentVariable('MAINNET_NODE')}`,
-        accounts: [getEnvironmentVariable('PK')]
-      }*/
-    },
     local: {
       url: 'http://localhost:8545',
     },
-    hardhat1: {
-      chainId: 1,
-      url: 'http://127.0.0.1:8545',
-      accounts: ['0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80'],
+    sepoliaFork: {
+      chainId: sepoliaForkConfig.networks.hardhat.chainId,
+      url: getUrl(sepoliaForkConfig),
+      accounts: [getEnvironmentVariable('TEST_PK')],
     },
-    hardhat2: {
-      chainId: Number(process.env.HARDHAT2_CHAIN_ID || 31337),
-      url: 'http://127.0.0.1:8546',
-      accounts: ['0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80'],
+    mumbaiFork: {
+      chainId: mumbaiForkConfig.networks.hardhat.chainId,
+      url: getUrl(mumbaiForkConfig),
+      accounts: [getEnvironmentVariable('TEST_PK')],
     },
     mainnet: {
       chainId: 0x01,
