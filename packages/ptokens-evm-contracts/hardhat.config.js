@@ -16,8 +16,6 @@ const sepoliaForkConfig = require('./hardhat.config.fork_sepolia')
 const mumbaiForkConfig = require('./hardhat.config.fork_mumbai')
 
 const getEnvironmentVariable = _envVar => process.env[_envVar] || ''
-const getUrl = config =>
-  'http://' + config.networks.hardhat.hostname + ':' + config.networks.hardhat.port
 
 /**
  * @type import('hardhat/config').HardhatUserConfig
@@ -37,17 +35,14 @@ module.exports = {
     },
   },
   networks: {
-    local: {
+    mumbaiFork: {
       url: 'http://localhost:8545',
-    },
-    sepoliaFork: {
-      chainId: sepoliaForkConfig.networks.hardhat.chainId,
-      url: getUrl(sepoliaForkConfig),
+      chainId: mumbaiForkConfig.networks.hardhat.chainId,
       accounts: [getEnvironmentVariable('TEST_PK')],
     },
-    mumbaiFork: {
-      chainId: mumbaiForkConfig.networks.hardhat.chainId,
-      url: getUrl(mumbaiForkConfig),
+    sepoliaFork: {
+      url: 'http://localhost:8546',
+      chainId: sepoliaForkConfig.networks.hardhat.chainId,
       accounts: [getEnvironmentVariable('TEST_PK')],
     },
     mainnet: {
