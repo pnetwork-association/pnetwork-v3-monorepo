@@ -1,11 +1,60 @@
-const { TASK_NAME_DEPLOY_INIT, TASK_NAME_DEPLOY_CONTRACT, KEY_ADDRESS } = require('../constants')
+const {
+  TASK_NAME_DEPLOY_INIT,
+  TASK_NAME_DEPLOY_CONTRACT,
+  KEY_ADDRESS,
+  KEY_UNDERLYING_ASSET_LIST,
+  KEY_PFACTORY,
+  KEY_PROUTER,
+  KEY_STATEMANAGER,
+  KEY_ASSET_NAME,
+  KEY_ASSET_SYMBOL,
+  KEY_ASSET_DECIMALS,
+  KEY_ASSET_TOTAL_SUPPLY,
+} = require('../constants')
 const { utils } = require('ptokens-utils')
 const { types } = require('hardhat/config')
 const { errors } = require('ptokens-utils')
+const { getConfiguration, updateConfiguration } = require('./lib/configuration-manager')
 const R = require('ramda')
-const { saveConfigurationEntry } = require('./lib/utils-contracts')
 
 const TASK_DESC_DEPLOY_CONTRACT = 'Deploy a contract.'
+
+const configEntryLookup = {
+  [KEY_UNDERLYING_ASSET_LIST]: (_taskArgs, _contractAddress) => ({
+    [KEY_ASSET_NAME]: _taskArgs.deployArgsArray[0],
+    [KEY_ASSET_SYMBOL]: _taskArgs.deployArgsArray[1],
+    [KEY_ASSET_DECIMALS]: _taskArgs.deployArgsArray[2],
+    [KEY_ASSET_TOTAL_SUPPLY]: _taskArgs.deployArgsArray[3],
+    [KEY_ADDRESS]: _contractAddress,
+  }),
+  [KEY_PFACTORY]: (_taskArgs, _contractAddress) => ({
+    [KEY_ADDRESS]: _contractAddress,
+  }),
+  [KEY_PROUTER]: (_taskArgs, _contractAddress) => ({
+    [KEY_ADDRESS]: _contractAddress,
+  }),
+  [KEY_STATEMANAGER]: (_taskArgs, _contractAddress) => ({
+    [KEY_ADDRESS]: _contractAddress,
+  }),
+}
+
+const createConfigEntryFromTaskArgs = (_taskArgs, _contractAddress) => {
+  const configEntryFn = configEntryLookup[_taskArgs.configurableName]
+  return configEntryFn ? configEntryFn(_taskArgs, _contractAddress) : _contractAddress
+}
+
+const saveConfigurationEntry = R.curry((hre, taskArgs, _contract) =>
+  getConfiguration()
+    .then(_config =>
+      updateConfiguration(
+        _config,
+        hre.network.name,
+        taskArgs.configurableName,
+        createConfigEntryFromTaskArgs(taskArgs, _contract.address)
+      )
+    )
+    .then(_ => _contract)
+)
 
 const attachToContract = R.curry((hre, taskArgs, _address) =>
   hre.ethers

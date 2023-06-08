@@ -7,12 +7,13 @@ const {
   KEY_PTOKEN_LIST,
   KEY_UNDERLYING_ASSET_LIST,
   CONTRACT_NAME_PFACTORY,
+  KEY_PTOKEN_UNDERLYING_ASSET_ADDRESS,
+  KEY_PTOKEN_UNDERLYING_ASSET_NETWORKID,
 } = require('../constants')
 const R = require('ramda')
 const { types } = require('hardhat/config')
-const { saveConfigurationEntry } = require('./lib/utils-contracts')
 const { attachToUnderlyingAsset } = require('./deploy-asset.task')
-const { getConfiguration } = require('./lib/configuration-manager')
+const { getConfiguration, updateConfiguration } = require('./lib/configuration-manager')
 
 const TASK_PARAM_GAS = 'gas'
 const TASK_PARAM_GASPRICE = 'gasPrice'
@@ -36,6 +37,20 @@ const isAssetAddressEqualTo = _address => R.compose(R.equals(_address), R.prop(K
 
 const changeHardhatNetworkAndReturnArg = R.curry((hre, _chainName, _arg) =>
   Promise.resolve(hre.changeNetwork(_chainName)).then(_ => _arg)
+)
+
+const saveConfigurationEntry = R.curry((hre, taskArgs, _contract) =>
+  getConfiguration()
+    .then(_config =>
+      updateConfiguration(_config, hre.network.name, KEY_PTOKEN_LIST, {
+        [KEY_PTOKEN_UNDERLYING_ASSET_ADDRESS]: taskArgs.underlyingAssetAddress,
+        [KEY_PTOKEN_UNDERLYING_ASSET_NETWORKID]: taskArgs.underlyingAssetChainName
+          ? taskArgs.underlyingAssetChainName
+          : hre.network.name,
+        [KEY_ADDRESS]: _contract.address,
+      })
+    )
+    .then(_ => _contract)
 )
 
 const getUnderlyingAsset = (taskArgs, hre) =>
@@ -153,10 +168,11 @@ const deployPToken = async (
     _underlyingAssetTokenAddress,
     _underlyingAssetChainId,
   ]
-  console.log(_gasLimit)
   if (R.isNotNil(_gasLimit)) args.push({ gasLimit: _gasLimit })
 
+  console.log(args)
   const transaction = await pFactory.deploy(...args)
+  console.log(transaction)
   const receipt = await transaction.wait()
   const event = receipt.events.find(({ event }) => event === 'PTokenDeployed')
   const { pTokenAddress } = event.args
@@ -168,10 +184,8 @@ const deployPTokenTask = (taskArgs, hre) =>
     .then(_ => checkStateManagerIsDeployed(hre))
     .then(_ => maybeOverwriteParamsWithDefaultValues(taskArgs, hre))
     .then(_taskArgs => getPTokenDeployArgs(_taskArgs, hre))
-    .then(_args => console.log(_args) || deployPToken(..._args))
-    .then(_pToken =>
-      saveConfigurationEntry(hre, R.assoc('configurableName', KEY_PTOKEN_LIST, taskArgs), _pToken)
-    )
+    .then(_args => deployPToken(..._args))
+    .then(_pToken => saveConfigurationEntry(hre, taskArgs, _pToken))
     .catch(_err =>
       _err.message.includes('cannot estimate gas')
         ? console.error(
