@@ -16,4 +16,20 @@ interface IGovernanceStateReader {
      * @param data The data
      */
     event GovernanceMessage(bytes data);
+
+    /*
+     * @notice Emit a GovernanceMessage event containing the guardians merkle root. This message will
+     *         be verified by GovernanceMessageVerifier.
+     *
+     * @param guardians
+     */
+    function propagateGuardians(address[] calldata guardians) external;
+
+    /*
+     * @notice Emit a GovernanceMessage event containing the sentinels merkle root for the current epoch. This message will
+     *         be verified by GovernanceMessageVerifier.
+     *
+     * @param sentinels
+     */
+    function propagateSentinels(address[] calldata sentinels) external;
 }

@@ -30,6 +30,8 @@ contract StateManager is IStateManager, GovernanceMessageHandler, ReentrancyGuar
     address public immutable factory;
     address public immutable epochsManager;
     uint32 private immutable _baseChallengePeriodDuration;
+    
+    // bytes32 public guardiansRoot;
 
     modifier onlySentinel(
         Operation calldata operation,
@@ -299,11 +301,17 @@ contract StateManager is IStateManager, GovernanceMessageHandler, ReentrancyGuar
     function _onGovernanceMessage(bytes memory message) internal override {
         bytes memory decodedMessage = abi.decode(message, (bytes));
         (bytes32 messageType, bytes memory data) = abi.decode(decodedMessage, (bytes32, bytes));
+
         if (messageType == Constants.GOVERNANCE_MESSAGE_SENTINELS) {
             (uint16 epoch, bytes32 sentinelRoot) = abi.decode(data, (uint16, bytes32));
             _epochsSentinelsRoot[epoch] = bytes32(sentinelRoot);
             return;
         }
+
+        // if (messageType == Constants.GOVERNANCE_MESSAGE_GUARDIANS) {
+        //     guardiansRoot = bytes32(data);
+        //     return;
+        // }
 
         revert Errors.InvalidGovernanceMessage(message);
     }

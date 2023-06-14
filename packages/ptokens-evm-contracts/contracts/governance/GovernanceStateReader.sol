@@ -14,6 +14,33 @@ contract GovernanceStateReader is IGovernanceStateReader {
     address public constant REGISTRATION_MANAGER = 0xCcdbBC9Dea73673dF74E1EE4D5faC8c6Ce1930ef;
     address public constant EPOCHS_MANAGER = 0xbA1067FB99Ad837F0e2895B57D1635Bdbefa789E;
 
+    /// @inheritdoc IGovernanceStateReader
+    function propagateGuardians(address[] calldata guardians) external {
+        // uint16 totalNumberOfGuardians = IRegistrationManager(REGISTRATION_MANAGER).totalNumberOfGuardians();
+        // uint16 numberOfValidGuardians;
+        // for (uint16 index = 0; i < guardians; ) {
+        //     if (IRegistrationManager(REGISTRATION_MANAGER).isGuardian()) {
+        //         unchecked {
+        //             ++numberOfValidGuardians;
+        //         }
+        //     }
+        //     unchecked {
+        //         ++index;
+        //     }
+        // }
+        // if (totalNumberOfGuardians != numberOfValidGuardians) {
+        //     revert Error.InvalidNumberOfGuardians();
+        // }
+        // bytes[] memory data = new bytes[](guardians.length);
+        // for (uint256 i = 0; i < guardians.length; i++) {
+        //     data[i] = abi.encodePacked(guardians[i]);
+        // }
+        // emit GovernanceMessage(
+        //     abi.encode(Constants.GOVERNANCE_MESSAGE_GUARDIAN, MerkleTree.getRoot(data))
+        // );
+    }
+
+    /// @inheritdoc IGovernanceStateReader
     function propagateSentinels(address[] calldata sentinels) external {
         // TODO: what does it happen in case of slashing?
         uint16 currentEpoch = IEpochsManager(EPOCHS_MANAGER).currentEpoch();
