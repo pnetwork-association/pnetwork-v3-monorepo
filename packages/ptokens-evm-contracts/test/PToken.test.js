@@ -1,7 +1,14 @@
 const { expect } = require('chai')
 const { ethers } = require('hardhat')
 
-const { QUEUE_TIME, PNETWORK_NETWORK_IDS, TELEPATHY_ROUTER_ADDRESS } = require('./constants')
+const {
+  BASE_CHALLENGE_PERIOD_DURATION,
+  K_CHALLENGE_PERIOD,
+  LOCKED_AMOUNT_CHALLENGE_PERIOD,
+  MAX_OPERATIONS_IN_QUEUE,
+  PNETWORK_NETWORK_IDS,
+  TELEPATHY_ROUTER_ADDRESS,
+} = require('./constants')
 const { deployPToken } = require('./utils')
 
 let user,
@@ -33,13 +40,16 @@ describe('PToken', () => {
         epochsManager = await EpochsManager.deploy()
         stateManager = await StateManager.deploy(
           pFactory.address,
-          QUEUE_TIME,
+          BASE_CHALLENGE_PERIOD_DURATION,
           epochsManager.address,
           TELEPATHY_ROUTER_ADDRESS,
           fakeGovernanceMessageVerifier.address,
           (
             await ethers.provider.getNetwork()
-          ).chainId
+          ).chainId,
+          LOCKED_AMOUNT_CHALLENGE_PERIOD,
+          K_CHALLENGE_PERIOD,
+          MAX_OPERATIONS_IN_QUEUE
         )
 
         token = await StandardToken.deploy(

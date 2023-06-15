@@ -41,4 +41,10 @@ library Errors {
     );
     error InvalidSentinelRegistration(bytes1 kind);
     error InvalidGovernanceMessage(bytes message);
+    error InvalidLockedAmountChallengePeriod(
+        uint256 lockedAmountChallengePeriod,
+        uint256 expectedLockedAmountChallengePeriod
+    );
+    error CallFailed();
+    error QueueFull();
 }

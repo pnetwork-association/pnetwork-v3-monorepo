@@ -6,7 +6,7 @@ import {MerkleTree} from "../libraries/MerkleTree.sol";
 import {Constants} from "../libraries/Constants.sol";
 
 contract MockGovernanceStateReader is IGovernanceStateReader {
-    function propagateSentinels(address[] calldata sentinels, uint16 epoch) external {
+    function propagateSentinels(address[] calldata sentinels) external {
         address[] memory sentinels = new address[](15);
         sentinels[0] = 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266;
         sentinels[1] = 0x70997970C51812dc3A010C7d01b50e0d17dc79C8;
@@ -31,8 +31,10 @@ contract MockGovernanceStateReader is IGovernanceStateReader {
         }
 
         bytes memory message = bytes(
-            abi.encode(Constants.GOVERNANCE_MESSAGE_SENTINELS, abi.encode(epoch, MerkleTree.getRoot(data)))
+            abi.encode(Constants.GOVERNANCE_MESSAGE_SENTINELS, abi.encode(1, MerkleTree.getRoot(data)))
         );
         emit GovernanceMessage(message);
     }
+
+    function propagateGuardians(address[] calldata guardians) external {}
 }

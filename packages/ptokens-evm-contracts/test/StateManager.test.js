@@ -3,10 +3,13 @@ const { ethers } = require('hardhat')
 const { time } = require('@nomicfoundation/hardhat-network-helpers')
 
 const {
-  QUEUE_TIME,
+  K_CHALLENGE_PERIOD,
+  LOCKED_AMOUNT_CHALLENGE_PERIOD,
   PNETWORK_NETWORK_IDS,
-  ZERO_ADDRESS,
+  BASE_CHALLENGE_PERIOD_DURATION,
   TELEPATHY_ROUTER_ADDRESS,
+  ZERO_ADDRESS,
+  MAX_OPERATIONS_IN_QUEUE,
 } = require('./constants')
 const { deployPToken, getOptionMaskWithOptionEnabledForBit } = require('./utils')
 const Operation = require('./utils/Operation')
@@ -112,11 +115,14 @@ describe('StateManager', () => {
     epochsManager = await EpochsManager.deploy()
     stateManager = await StateManager.deploy(
       pFactory.address,
-      QUEUE_TIME,
+      BASE_CHALLENGE_PERIOD_DURATION,
       epochsManager.address,
       TELEPATHY_ROUTER_ADDRESS,
       fakeGovernanceMessageVerifier.address,
-      chainId
+      chainId,
+      LOCKED_AMOUNT_CHALLENGE_PERIOD,
+      K_CHALLENGE_PERIOD,
+      MAX_OPERATIONS_IN_QUEUE
     )
     token = await StandardToken.deploy('Token', 'TKN', 18, ethers.utils.parseEther('100000000'))
     telepathyRouter = await ethers.getImpersonatedSigner(TELEPATHY_ROUTER_ADDRESS)
@@ -168,23 +174,39 @@ describe('StateManager', () => {
   it('should be able to queue an operation', async () => {
     const operation = await generateOperation()
 
-    await expect(stateManager.connect(relayer).protocolQueueOperation(operation))
-      .to.emit(stateManager, 'OperationQueued')
-      .withArgs(operation.serialize())
+    const relayerbalancePre = await ethers.provider.getBalance(relayer.address)
+    const tx = stateManager
+      .connect(relayer)
+      .protocolQueueOperation(operation, { value: LOCKED_AMOUNT_CHALLENGE_PERIOD })
+    await expect(tx).to.emit(stateManager, 'OperationQueued').withArgs(operation.serialize())
+
+    const receipt = await (await tx).wait(1)
+    const relayerbalancePost = await ethers.provider.getBalance(relayer.address)
+    expect(relayerbalancePost).to.be.eq(
+      relayerbalancePre
+        .sub(LOCKED_AMOUNT_CHALLENGE_PERIOD)
+        .sub(receipt.gasUsed.mul(receipt.effectiveGasPrice))
+    )
   })
 
   it('should not be able to queue the same operation twice', async () => {
     const operation = await generateOperation()
-    await stateManager.connect(relayer).protocolQueueOperation(operation)
+    await stateManager
+      .connect(relayer)
+      .protocolQueueOperation(operation, { value: LOCKED_AMOUNT_CHALLENGE_PERIOD })
     await expect(
-      stateManager.connect(relayer).protocolQueueOperation(operation)
+      stateManager
+        .connect(relayer)
+        .protocolQueueOperation(operation, { value: LOCKED_AMOUNT_CHALLENGE_PERIOD })
     ).to.be.revertedWithCustomError(stateManager, 'OperationAlreadyQueued')
   })
 
   it('a guardian should be able to cancel an operation within the challenge period', async () => {
     const operation = await generateOperation()
-    await stateManager.connect(relayer).protocolQueueOperation(operation)
-    await time.increase(QUEUE_TIME / 2)
+    await stateManager
+      .connect(relayer)
+      .protocolQueueOperation(operation, { value: LOCKED_AMOUNT_CHALLENGE_PERIOD })
+    await time.increase((await stateManager.getCurrentChallengePeriodDuration()) / 2)
     await expect(stateManager.connect(relayer).protocolGuardianCancelOperation(operation))
       .to.emit(stateManager, 'GuardianOperationCancelled')
       .withArgs(operation.serialize())
@@ -192,8 +214,10 @@ describe('StateManager', () => {
 
   it('a guardian should not be able to cancel an operation after the challenge period', async () => {
     const operation = await generateOperation()
-    await stateManager.connect(relayer).protocolQueueOperation(operation)
-    await time.increase(QUEUE_TIME)
+    await stateManager
+      .connect(relayer)
+      .protocolQueueOperation(operation, { value: LOCKED_AMOUNT_CHALLENGE_PERIOD })
+    await time.increase(await stateManager.getCurrentChallengePeriodDuration())
     await expect(
       stateManager.connect(relayer).protocolGuardianCancelOperation(operation)
     ).to.be.revertedWithCustomError(stateManager, 'ChallengePeriodTerminated')
@@ -217,7 +241,9 @@ describe('StateManager', () => {
     // FIXME
     const proof = [0]
     const operation = await generateOperation()
-    await stateManager.connect(relayer).protocolQueueOperation(operation)
+    await stateManager
+      .connect(relayer)
+      .protocolQueueOperation(operation, { value: LOCKED_AMOUNT_CHALLENGE_PERIOD })
     await stateManager.connect(guardian).protocolGuardianCancelOperation(operation)
     await stateManager.connect(sentinel).protocolGovernanceCancelOperation(operation, proof)
     await expect(
@@ -227,7 +253,9 @@ describe('StateManager', () => {
 
   it('should not be able to execute an operation before that the execution timestamp is reached', async () => {
     const operation = await generateOperation()
-    await stateManager.connect(relayer).protocolQueueOperation(operation)
+    await stateManager
+      .connect(relayer)
+      .protocolQueueOperation(operation, { value: LOCKED_AMOUNT_CHALLENGE_PERIOD })
     await expect(
       stateManager.connect(relayer).protocolExecuteOperation(operation)
     ).to.be.revertedWithCustomError(stateManager, 'ChallengePeriodNotTerminated')
@@ -235,24 +263,46 @@ describe('StateManager', () => {
 
   it('should be able to execute an operation', async () => {
     const operation = await generateOperation()
-    const balancePre = await pToken.balanceOf(operation.destinationAccount)
-    await stateManager.connect(relayer).protocolQueueOperation(operation)
-    await time.increase(QUEUE_TIME)
-    await expect(stateManager.connect(relayer).protocolExecuteOperation(operation))
+    const relayerbalancePre = await ethers.provider.getBalance(relayer.address)
+    const destinationAccountbalancePre = await pToken.balanceOf(operation.destinationAccount)
+
+    let tx = await stateManager
+      .connect(relayer)
+      .protocolQueueOperation(operation, { value: LOCKED_AMOUNT_CHALLENGE_PERIOD })
+    const receipt1 = await tx.wait(1)
+
+    await time.increase(await stateManager.getCurrentChallengePeriodDuration())
+
+    tx = stateManager.connect(relayer).protocolExecuteOperation(operation)
+    await expect(tx)
       .to.emit(stateManager, 'OperationExecuted')
       .withArgs(operation.serialize())
       .and.to.emit(pToken, 'Transfer')
       .withArgs(ZERO_ADDRESS, operation.destinationAccount, operation.assetAmount)
-    const balancePost = await pToken.balanceOf(operation.destinationAccount)
-    expect(balancePost).to.be.eq(balancePre.add(operation.assetAmount))
+    const receipt2 = await (await tx).wait(1)
+
+    const relayerbalancePost = await ethers.provider.getBalance(relayer.address)
+    const destinationAccountbalancePost = await pToken.balanceOf(operation.destinationAccount)
+
+    expect(destinationAccountbalancePost).to.be.eq(
+      destinationAccountbalancePre.add(operation.assetAmount)
+    )
+
+    expect(relayerbalancePost).to.be.eq(
+      relayerbalancePre
+        .sub(receipt1.gasUsed.mul(receipt1.effectiveGasPrice))
+        .sub(receipt2.gasUsed.mul(receipt2.effectiveGasPrice))
+    )
   })
 
   it('should be able to execute an operation and call stateManagedProtocolBurn', async () => {
     const operation = await generateOperation({
       optionsMask: getOptionMaskWithOptionEnabledForBit(0),
     })
-    await stateManager.connect(relayer).protocolQueueOperation(operation)
-    await time.increase(QUEUE_TIME)
+    await stateManager
+      .connect(relayer)
+      .protocolQueueOperation(operation, { value: LOCKED_AMOUNT_CHALLENGE_PERIOD })
+    await time.increase(await stateManager.getCurrentChallengePeriodDuration())
     await expect(stateManager.connect(relayer).protocolExecuteOperation(operation))
       .to.emit(stateManager, 'OperationExecuted')
       .withArgs(operation.serialize())
@@ -266,8 +316,10 @@ describe('StateManager', () => {
 
   it('should not be able to execute the same operation twice', async () => {
     const operation = await generateOperation()
-    await stateManager.connect(relayer).protocolQueueOperation(operation)
-    await time.increase(QUEUE_TIME)
+    await stateManager
+      .connect(relayer)
+      .protocolQueueOperation(operation, { value: LOCKED_AMOUNT_CHALLENGE_PERIOD })
+    await time.increase(await stateManager.getCurrentChallengePeriodDuration())
     await stateManager.connect(relayer).protocolExecuteOperation(operation)
     await expect(
       stateManager.connect(relayer).protocolExecuteOperation(operation)
@@ -280,8 +332,10 @@ describe('StateManager', () => {
       userData: expectedUserData,
       destinationAccount: testReceiver.address,
     })
-    await stateManager.connect(relayer).protocolQueueOperation(operation)
-    await time.increase(QUEUE_TIME)
+    await stateManager
+      .connect(relayer)
+      .protocolQueueOperation(operation, { value: LOCKED_AMOUNT_CHALLENGE_PERIOD })
+    await time.increase(await stateManager.getCurrentChallengePeriodDuration())
     await expect(stateManager.connect(relayer).protocolExecuteOperation(operation))
       .to.emit(stateManager, 'OperationExecuted')
       .withArgs(operation.serialize())
@@ -294,8 +348,10 @@ describe('StateManager', () => {
       userData: '0x01',
       destinationAccount: testNotReceiver.address,
     })
-    await stateManager.connect(relayer).protocolQueueOperation(operation)
-    await time.increase(QUEUE_TIME)
+    await stateManager
+      .connect(relayer)
+      .protocolQueueOperation(operation, { value: LOCKED_AMOUNT_CHALLENGE_PERIOD })
+    await time.increase(await stateManager.getCurrentChallengePeriodDuration())
     await expect(stateManager.connect(relayer).protocolExecuteOperation(operation))
       .to.emit(stateManager, 'OperationExecuted')
       .withArgs(operation.serialize())
@@ -306,8 +362,10 @@ describe('StateManager', () => {
       userData: '0x01',
       destinationAccount: user1.address,
     })
-    await stateManager.connect(relayer).protocolQueueOperation(operation)
-    await time.increase(QUEUE_TIME)
+    await stateManager
+      .connect(relayer)
+      .protocolQueueOperation(operation, { value: LOCKED_AMOUNT_CHALLENGE_PERIOD })
+    await time.increase(await stateManager.getCurrentChallengePeriodDuration())
     await expect(
       stateManager.connect(relayer).protocolExecuteOperation(operation)
     ).to.be.revertedWithCustomError(stateManager, 'NotContract')
@@ -320,7 +378,9 @@ describe('StateManager', () => {
       destinationAccount: user1.address,
     })
     await expect(
-      stateManager.connect(relayer).protocolQueueOperation(operation)
+      stateManager
+        .connect(relayer)
+        .protocolQueueOperation(operation, { value: LOCKED_AMOUNT_CHALLENGE_PERIOD })
     ).to.be.revertedWithCustomError(stateManager, 'LockDown')
   })
 
@@ -329,33 +389,38 @@ describe('StateManager', () => {
       userData: '0x01',
       destinationAccount: user1.address,
     })
-    await stateManager.connect(relayer).protocolQueueOperation(operation)
+    await stateManager
+      .connect(relayer)
+      .protocolQueueOperation(operation, { value: LOCKED_AMOUNT_CHALLENGE_PERIOD })
     await time.increase(epochDuration)
     await expect(
       stateManager.connect(relayer).protocolExecuteOperation(operation)
     ).to.be.revertedWithCustomError(stateManager, 'LockDown')
   })
 
-  it('should not be able to queue an operation because is missing less than 1 hour and 20 minutes', async () => {
+  it('should not be able to queue an operation because is missing less than 1 hour plus max challenge period', async () => {
     const currentEpoch = await epochsManager.currentEpoch()
     const startFirstEpochTimestamp = (await epochsManager.startFirstEpochTimestamp()).toNumber()
     const currentEpochEndTimestamp = startFirstEpochTimestamp + (currentEpoch + 1) * epochDuration
-    await time.increaseTo(currentEpochEndTimestamp - (3600 + 1200))
-    const operation = await generateOperation({
-      userData: '0x01',
-      destinationAccount: user1.address,
-    })
+
+    const maxChallengePeriod =
+      BASE_CHALLENGE_PERIOD_DURATION +
+      MAX_OPERATIONS_IN_QUEUE * MAX_OPERATIONS_IN_QUEUE * K_CHALLENGE_PERIOD -
+      K_CHALLENGE_PERIOD
+    await time.increaseTo(currentEpochEndTimestamp - (3600 + maxChallengePeriod))
+    const operation = await generateOperation()
     await expect(
-      stateManager.connect(relayer).protocolQueueOperation(operation)
+      stateManager
+        .connect(relayer)
+        .protocolQueueOperation(operation, { value: LOCKED_AMOUNT_CHALLENGE_PERIOD })
     ).to.be.revertedWithCustomError(stateManager, 'LockDown')
   })
 
   it('should not be able to execute an operation because is missing less then 1 hour before the ending of the current epoch', async () => {
-    const operation = await generateOperation({
-      userData: '0x01',
-      destinationAccount: user1.address,
-    })
-    await stateManager.connect(relayer).protocolQueueOperation(operation)
+    const operation = await generateOperation()
+    await stateManager
+      .connect(relayer)
+      .protocolQueueOperation(operation, { value: LOCKED_AMOUNT_CHALLENGE_PERIOD })
 
     const currentEpoch = await epochsManager.currentEpoch()
     const startFirstEpochTimestamp = (await epochsManager.startFirstEpochTimestamp()).toNumber()
@@ -365,5 +430,92 @@ describe('StateManager', () => {
     await expect(
       stateManager.connect(relayer).protocolExecuteOperation(operation)
     ).to.be.revertedWithCustomError(stateManager, 'LockDown')
+  })
+
+  it('the queue should behave correctly when is full and then all operations are cancelled', async () => {
+    const operations = []
+
+    for (
+      let numberOfOperations = 1;
+      numberOfOperations <= MAX_OPERATIONS_IN_QUEUE;
+      numberOfOperations++
+    ) {
+      const operation = await generateOperation()
+      await stateManager
+        .connect(relayer)
+        .protocolQueueOperation(operation, { value: LOCKED_AMOUNT_CHALLENGE_PERIOD })
+
+      const [startTimestamp, endTimestamp] = await stateManager.challengePeriodOf(operation)
+      const expectedCurrentChallengePeriodDuration =
+        BASE_CHALLENGE_PERIOD_DURATION +
+        numberOfOperations * numberOfOperations * K_CHALLENGE_PERIOD -
+        K_CHALLENGE_PERIOD
+      expect(expectedCurrentChallengePeriodDuration).to.be.eq(endTimestamp.sub(startTimestamp))
+
+      operations.push(operation)
+    }
+
+    await expect(
+      stateManager.connect(relayer).protocolQueueOperation(await generateOperation(), {
+        value: LOCKED_AMOUNT_CHALLENGE_PERIOD,
+      })
+    ).to.be.revertedWithCustomError(stateManager, 'QueueFull')
+
+    expect(await stateManager.numberOfOperationsInQueue()).to.be.eq(MAX_OPERATIONS_IN_QUEUE)
+
+    for (
+      let index = 0, numberOfOperations = MAX_OPERATIONS_IN_QUEUE;
+      index < MAX_OPERATIONS_IN_QUEUE;
+      index++, numberOfOperations--
+    ) {
+      const operation = operations[index]
+      const [startTimestamp, endTimestamp] = await stateManager.challengePeriodOf(operation)
+
+      const expectedCurrentChallengePeriodDuration =
+        BASE_CHALLENGE_PERIOD_DURATION +
+        numberOfOperations * numberOfOperations * K_CHALLENGE_PERIOD -
+        K_CHALLENGE_PERIOD
+      expect(expectedCurrentChallengePeriodDuration).to.be.eq(endTimestamp.sub(startTimestamp))
+
+      await stateManager.connect(guardian).protocolGuardianCancelOperation(operation)
+      await stateManager.connect(sentinel).protocolGovernanceCancelOperation(operation, [0])
+    }
+  })
+
+  it('the queue should behave correctly when is full and then all operations are executed', async () => {
+    const operations = []
+
+    for (
+      let numberOfOperations = 1;
+      numberOfOperations <= MAX_OPERATIONS_IN_QUEUE;
+      numberOfOperations++
+    ) {
+      const operation = await generateOperation()
+      await stateManager
+        .connect(relayer)
+        .protocolQueueOperation(operation, { value: LOCKED_AMOUNT_CHALLENGE_PERIOD })
+      operations.push(operation)
+    }
+
+    for (
+      let index = 0, numberOfOperations = MAX_OPERATIONS_IN_QUEUE;
+      index < MAX_OPERATIONS_IN_QUEUE;
+      index++, numberOfOperations--
+    ) {
+      const operation = operations[index]
+      const [startTimestamp, endTimestamp] = await stateManager.challengePeriodOf(operation)
+
+      const expectedCurrentChallengePeriodDuration =
+        BASE_CHALLENGE_PERIOD_DURATION +
+        numberOfOperations * numberOfOperations * K_CHALLENGE_PERIOD -
+        K_CHALLENGE_PERIOD
+      expect(expectedCurrentChallengePeriodDuration).to.be.eq(endTimestamp.sub(startTimestamp))
+
+      if (endTimestamp > (await time.latest())) {
+        await time.increaseTo(endTimestamp)
+      }
+
+      await stateManager.connect(relayer).protocolExecuteOperation(operation)
+    }
   })
 })

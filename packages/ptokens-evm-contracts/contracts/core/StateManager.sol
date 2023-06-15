@@ -29,9 +29,13 @@ contract StateManager is IStateManager, GovernanceMessageHandler, ReentrancyGuar
 
     address public immutable factory;
     address public immutable epochsManager;
-    uint32 private immutable _baseChallengePeriodDuration;
-    
+    uint32 public immutable baseChallengePeriodDuration;
+    uint16 public immutable kChallengePeriod;
+    uint16 public immutable maxOperationsInQueue;
+
     // bytes32 public guardiansRoot;
+    uint256 public lockedAmountChallengePeriod;
+    uint16 public numberOfOperationsInQueue;
 
     modifier onlySentinel(
         Operation calldata operation,
@@ -53,7 +57,7 @@ contract StateManager is IStateManager, GovernanceMessageHandler, ReentrancyGuar
         _;
     }
 
-    modifier onlyWhenIsNotInLockDown(uint32 lockDownDeltaSeconds) {
+    modifier onlyWhenIsNotInLockDown(bool addMaxChallengePeriodDuration) {
         uint16 currentEpoch = IEpochsManager(epochsManager).currentEpoch();
         if (_epochsSentinelsRoot[currentEpoch] == bytes32(0)) {
             revert Errors.LockDown();
@@ -65,11 +69,21 @@ contract StateManager is IStateManager, GovernanceMessageHandler, ReentrancyGuar
 
         // If a relayer queues a malicious operation shortly before lockdown mode begins, what happens?
         // When lockdown mode is initiated, both sentinels and guardians lose their ability to cancel operations.
-        //  Consequently, the malicious operation may be executed immediately after the lockdown period ends,
+        // Consequently, the malicious operation may be executed immediately after the lockdown period ends,
         // especially if the operation's queue time is significantly shorter than the lockdown duration.
-        // To mitigate this risk, operations should not be queued if they are to be initiated 20 minutes
-        //  (lockDownDeltaSeconds = 1200) prior to an hour before the endEpoch.
-        if (block.timestamp + lockDownDeltaSeconds >= currentEpochEndTimestamp - 3600) {
+        // To mitigate this risk, operations should not be queued if the max challenge period makes
+        // the operation challenge period finish after 1 hour before the end of an epoch.
+        if (
+            block.timestamp +
+                (
+                    addMaxChallengePeriodDuration
+                        ? baseChallengePeriodDuration +
+                            (maxOperationsInQueue * maxOperationsInQueue * kChallengePeriod) -
+                            kChallengePeriod
+                        : 0
+                ) >=
+            currentEpochEndTimestamp - 3600
+        ) {
             revert Errors.LockDown();
         }
 
@@ -78,15 +92,21 @@ contract StateManager is IStateManager, GovernanceMessageHandler, ReentrancyGuar
 
     constructor(
         address factory_,
-        uint32 baseChallengePeriodDuration,
+        uint32 baseChallengePeriodDuration_,
         address epochsManager_,
         address telepathyRouter,
         address governanceMessageVerifier,
-        uint32 allowedSourceChainId
+        uint32 allowedSourceChainId,
+        uint256 lockedAmountChallengePeriod_,
+        uint16 kChallengePeriod_,
+        uint16 maxOperationsInQueue_
     ) GovernanceMessageHandler(telepathyRouter, governanceMessageVerifier, allowedSourceChainId) {
         factory = factory_;
         epochsManager = epochsManager_;
-        _baseChallengePeriodDuration = baseChallengePeriodDuration;
+        baseChallengePeriodDuration = baseChallengePeriodDuration_;
+        lockedAmountChallengePeriod = lockedAmountChallengePeriod_;
+        kChallengePeriod = kChallengePeriod_;
+        maxOperationsInQueue = maxOperationsInQueue_;
     }
 
     /// @inheritdoc IStateManager
@@ -96,6 +116,17 @@ contract StateManager is IStateManager, GovernanceMessageHandler, ReentrancyGuar
         return _challengePeriodOf(operationId, operationStatus);
     }
 
+    function getCurrentChallengePeriodDuration() public view returns (uint64) {
+        uint32 localNumberOfOperationsInQueue = numberOfOperationsInQueue;
+        if (localNumberOfOperationsInQueue == 0) return baseChallengePeriodDuration;
+
+        return
+            baseChallengePeriodDuration +
+            (localNumberOfOperationsInQueue * localNumberOfOperationsInQueue * kChallengePeriod) -
+            kChallengePeriod;
+    }
+
+    /// @inheritdoc IStateManager
     function getSentinelsRootForEpoch(uint16 epoch) external view returns (bytes32) {
         return _epochsSentinelsRoot[epoch];
     }
@@ -126,7 +157,7 @@ contract StateManager is IStateManager, GovernanceMessageHandler, ReentrancyGuar
     /// @inheritdoc IStateManager
     function protocolGuardianCancelOperation(
         Operation calldata operation
-    ) external onlyWhenIsNotInLockDown(0) onlyGuardian("cancel") {
+    ) external onlyWhenIsNotInLockDown(false) onlyGuardian("cancel") {
         _protocolCancelOperation(operation, Actor.Guardian);
     }
 
@@ -142,12 +173,14 @@ contract StateManager is IStateManager, GovernanceMessageHandler, ReentrancyGuar
     function protocolSentinelCancelOperation(
         Operation calldata operation,
         bytes calldata proof
-    ) external onlyWhenIsNotInLockDown(0) onlySentinel(operation, proof, "cancel") {
+    ) external onlyWhenIsNotInLockDown(false) onlySentinel(operation, proof, "cancel") {
         _protocolCancelOperation(operation, Actor.Sentinel);
     }
 
     /// @inheritdoc IStateManager
-    function protocolExecuteOperation(Operation calldata operation) external onlyWhenIsNotInLockDown(0) nonReentrant {
+    function protocolExecuteOperation(
+        Operation calldata operation
+    ) external payable onlyWhenIsNotInLockDown(false) nonReentrant {
         bytes32 operationId = operationIdOf(operation);
 
         bytes1 operationStatus = _operationsStatus[operationId];
@@ -190,11 +223,30 @@ contract StateManager is IStateManager, GovernanceMessageHandler, ReentrancyGuar
 
         _operationsStatus[operationId] = Constants.OPERATION_EXECUTED;
         _operationsExecuteAction[operationId] = Action(_msgSender(), uint64(block.timestamp));
+
+        Action storage queuedAction = _operationsRelayerQueueAction[operationId];
+        (bool sent, ) = queuedAction.actor.call{value: lockedAmountChallengePeriod}("");
+        if (!sent) {
+            revert Errors.CallFailed();
+        }
+
+        unchecked {
+            --numberOfOperationsInQueue;
+        }
         emit OperationExecuted(operation);
     }
 
     /// @inheritdoc IStateManager
-    function protocolQueueOperation(Operation calldata operation) external onlyWhenIsNotInLockDown(1200) {
+    function protocolQueueOperation(Operation calldata operation) external payable onlyWhenIsNotInLockDown(true) {
+        uint256 expectedLockedAmountChallengePeriod = lockedAmountChallengePeriod;
+        if (msg.value != expectedLockedAmountChallengePeriod) {
+            revert Errors.InvalidLockedAmountChallengePeriod(msg.value, expectedLockedAmountChallengePeriod);
+        }
+
+        if (numberOfOperationsInQueue >= maxOperationsInQueue) {
+            revert Errors.QueueFull();
+        }
+
         bytes32 operationId = operationIdOf(operation);
 
         bytes1 operationStatus = _operationsStatus[operationId];
@@ -208,6 +260,9 @@ contract StateManager is IStateManager, GovernanceMessageHandler, ReentrancyGuar
 
         _operationsRelayerQueueAction[operationId] = Action(_msgSender(), uint64(block.timestamp));
         _operationsStatus[operationId] = Constants.OPERATION_QUEUED;
+        unchecked {
+            ++numberOfOperationsInQueue;
+        }
 
         emit OperationQueued(operation);
     }
@@ -217,21 +272,12 @@ contract StateManager is IStateManager, GovernanceMessageHandler, ReentrancyGuar
         if (operationStatus != Constants.OPERATION_QUEUED) return (0, 0);
 
         Action storage queueAction = _operationsRelayerQueueAction[operationId];
-        // NOTE: no need to check if queueAction valid since if operationStatus = Constants.OPERATION_QUEUED we are sure that is valid
         uint64 startTimestamp = queueAction.timestamp;
-        uint64 endTimestamp = startTimestamp + _baseChallengePeriodDuration;
+        uint64 endTimestamp = startTimestamp + getCurrentChallengePeriodDuration();
         if (_operationsTotalCancelActions[operationId] == 0) {
             return (startTimestamp, endTimestamp);
         }
 
-        // TODO: Is it usefull to check _operationsGovernanceCancelAction? if _operationsTotalCancelActions = 1 it's impossible that
-        // the cancellation action comes from the governance since a vote lasts more than baseChallengePeriodDuration
-        // if _operationsTotalCancelActions = 2 the _challengePeriodOf is useless since 2 means that the operation must be cancelled.abi
-        /*if (_operationsGovernanceCancelAction[operationId].actor != address(0)) {
-            endTimestamp += 432000; // +5days
-        }*/
-
-        // NOTE: Is the increasing value equal for both actors? if it is we can avoid to read from storage and just endTimestamp += _operationsTotalCancelActions * 432000
         if (_operationsGuardianCancelAction[operationId].actor != address(0)) {
             endTimestamp += 432000; // +5days
         }
@@ -266,7 +312,7 @@ contract StateManager is IStateManager, GovernanceMessageHandler, ReentrancyGuar
                 revert Errors.GovernanceOperationAlreadyCancelled(operation);
             }
 
-            _operationsGovernanceCancelAction[operationId];
+            _operationsGovernanceCancelAction[operationId] = action;
             emit GovernanceOperationCancelled(operation);
         }
         if (actor == Actor.Guardian) {
@@ -290,7 +336,11 @@ contract StateManager is IStateManager, GovernanceMessageHandler, ReentrancyGuar
             ++_operationsTotalCancelActions[operationId];
         }
         if (_operationsTotalCancelActions[operationId] == 2) {
+            unchecked {
+                --numberOfOperationsInQueue;
+            }
             _operationsStatus[operationId] = Constants.OPERATION_CANCELLED;
+            // TODO: Where should we send the lockedAmountChallengePeriod?
             emit OperationCancelled(operation);
         }
     }
