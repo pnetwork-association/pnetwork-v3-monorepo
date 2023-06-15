@@ -91,6 +91,15 @@ interface IStateManager is IGovernanceMessageHandler {
     function challengePeriodOf(Operation calldata operation) external view returns (uint64, uint64);
 
     /*
+     * @notice Returns the sentinels merkle root for a given epoch.
+     *
+     * @param epoch
+     *
+     * @return bytes32 representing the sentinels merkle root for a given epoch.
+     */
+    function getSentinelsRootForEpoch(uint16 epoch) external view returns (bytes32);
+
+    /*
      * @notice Calculates the operation id.
      *
      * @param operation
@@ -129,7 +138,7 @@ interface IStateManager is IGovernanceMessageHandler {
      * @param operation
      *
      */
-    function protocolExecuteOperation(Operation calldata operation) external;
+    function protocolExecuteOperation(Operation calldata operation) external payable;
 
     /*
      * @notice Queue an operation.
@@ -137,5 +146,5 @@ interface IStateManager is IGovernanceMessageHandler {
      * @param operation
      *
      */
-    function protocolQueueOperation(Operation calldata operation) external;
+    function protocolQueueOperation(Operation calldata operation) external payable;
 }

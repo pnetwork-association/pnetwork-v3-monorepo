@@ -1,5 +1,4 @@
 const { deployPToken } = require('../test/utils')
-const { QUEUE_TIME, CHALLENGE_TIME } = require('./config')
 
 task('pnetwork-deploy-v3-contracts', 'Deploy v3 contracts providing an underlying asset')
   .addPositionalParam('underlyingAssetName')
@@ -7,10 +6,15 @@ task('pnetwork-deploy-v3-contracts', 'Deploy v3 contracts providing an underlyin
   .addPositionalParam('underlyingAssetDecimals')
   .addPositionalParam('underlyingAssetAddress')
   .addPositionalParam('underlyingAssetNetworkId')
-  .setAction(async taskArgs => {
-    console.log(taskArgs)
-    console.log(`queueTime: ${QUEUE_TIME} \nchallengeTime: ${CHALLENGE_TIME} \n`)
-    await main(taskArgs)
+  .addPositionalParam('baseChallengePeriodDuration')
+  .addPositionalParam('telepathyRouter')
+  .addPositionalParam('governanceMessageVerifier')
+  .addPositionalParam('allowedSourceChainId')
+  .addPositionalParam('lockedAmountChallengePeriod')
+  .addPositionalParam('kChallengePeriod')
+  .addPositionalParam('maxOperationsInQueue')
+  .setAction(async _args => {
+    await main(_args)
       // eslint-disable-next-line no-process-exit
       .then(() => process.exit(0))
       .catch(error => {
@@ -21,25 +25,31 @@ task('pnetwork-deploy-v3-contracts', 'Deploy v3 contracts providing an underlyin
   })
 
 /* eslint-disable no-console */
-const main = async config => {
+const main = async _args => {
   const StateManager = await ethers.getContractFactory('StateManager')
   const PRouter = await ethers.getContractFactory('PRouter')
   const PFactory = await ethers.getContractFactory('PFactory')
   const EpochsManager = await ethers.getContractFactory('EpochsManager')
 
   console.log('Deploying EpochsManager ...')
-  const pEpochsManager = await EpochsManager.deploy(CHALLENGE_TIME)
+  const pEpochsManager = await EpochsManager.deploy()
   console.log('Deploying PFactory ...')
   const pFactory = await PFactory.deploy()
   console.log('Deploying PRouter ...')
   const pRouter = await PRouter.deploy(pFactory.address)
   console.log('Deploying StateManager ...')
+
   const stateManager = await StateManager.deploy(
     pFactory.address,
+    _args.baseChallengePeriodDuration,
     pEpochsManager.address,
-    QUEUE_TIME
+    _args.telepathyRouter,
+    _args.governanceMessageVerifier,
+    _args.allowedSourceChainId,
+    _args.lockedAmountChallengePeriod,
+    _args.kChallengePeriod,
+    _args.maxOperationsInQueue
   )
-  console.log('Deploying Token ...')
 
   console.log('Setting pRouter ...')
   await pFactory.setRouter(pRouter.address)
@@ -50,11 +60,11 @@ const main = async config => {
 
   console.log('Deploying pToken ...')
   const pToken = await deployPToken(
-    config.underlyingAssetName,
-    config.underlyingAssetSymbol,
-    config.underlyingAssetDecimals,
-    config.underlyingAssetAddress,
-    config.underlyingAssetNetworkId,
+    _args.underlyingAssetName,
+    _args.underlyingAssetSymbol,
+    _args.underlyingAssetDecimals,
+    _args.underlyingAssetAddress,
+    _args.underlyingAssetNetworkId,
     {
       pFactory,
     }
