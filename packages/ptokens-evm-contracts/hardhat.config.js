@@ -12,8 +12,8 @@ require('@nomicfoundation/hardhat-toolbox')
 require('hardhat-tracer')
 require('hardhat-change-network')
 
-const sepoliaForkConfig = require('./hardhat.config.fork_sepolia')
-const mumbaiForkConfig = require('./hardhat.config.fork_mumbai')
+const fork1Config = require('./hardhat.config.fork1')
+const fork2Config = require('./hardhat.config.fork2')
 
 const getEnvironmentVariable = _envVar => process.env[_envVar] || ''
 
@@ -35,14 +35,14 @@ module.exports = {
     },
   },
   networks: {
-    mumbaiFork: {
+    fork1: {
       url: 'http://localhost:8545',
-      chainId: mumbaiForkConfig.networks.hardhat.chainId,
+      chainId: fork1Config.networks.hardhat.chainId,
       accounts: [getEnvironmentVariable('TEST_PK')],
     },
-    sepoliaFork: {
+    fork2: {
       url: 'http://localhost:8546',
-      chainId: sepoliaForkConfig.networks.hardhat.chainId,
+      chainId: fork2Config.networks.hardhat.chainId,
       accounts: [getEnvironmentVariable('TEST_PK')],
     },
     mainnet: {
