@@ -8,8 +8,10 @@ const {
   getStateManagerAddress,
 } = require('../lib/configuration-manager')
 
-const TASK_PARAM_SHOW = 'show'
-const TASK_PARAM_SHOW_DESC = 'Show result instead of saving it to a file'
+const TASK_FLAG_SHOW = 'show'
+const TASK_FLAG_SHOW_DESC = 'Show result instead of saving it to a file'
+const TASK_FLAG_MONGO_LOCALHOST = 'localhost'
+const TASK_FLAG_MONGO_LOCALHOST_DESC = 'Set localhost into the mongo url (good for testing)'
 const TASK_NAME_APPS_GENERATE_RELAYER = 'apps:generate-relayer-config'
 const TASK_DESC_APPS_GENERATE_RELAYER =
   'Generate relayer configuration from the given network name.'
@@ -28,12 +30,15 @@ const showConfiguration = (_what, _configuration) =>
   console.info(`# ${_what} configuration`) || console.info(prettyStringify(_configuration))
 
 const maybeSaveConfiguration = R.curry((taskArgs, _what, _path, _configuration) =>
-  taskArgs[TASK_PARAM_SHOW]
+  taskArgs[TASK_FLAG_SHOW]
     ? showConfiguration(_what, _configuration)
     : saveConfiguration(_what, _path, _configuration)
 )
 
-const generateListenerConfiguration = hre =>
+const getMongoUrlFromTaskArgs = taskArgs =>
+  taskArgs[TASK_FLAG_MONGO_LOCALHOST] ? 'mongodb://localhost:27017' : 'mongodb://mongodb:27017'
+
+const generateListenerConfiguration = (taskArgs, hre) =>
   Promise.all([getPRouterAddress(hre), getNetworkId(hre)]).then(
     ([_pRouterAddress, _networkId]) => ({
       [constants.config.KEY_CHAIN_TYPE]: 'EVM',
@@ -48,17 +53,17 @@ const generateListenerConfiguration = hre =>
       ],
       [constants.config.KEY_DB]: {
         [constants.config.KEY_NAME]: 'listener',
-        [constants.config.KEY_URL]: 'mongodb://mongodb:27017',
         [constants.config.KEY_TABLE_EVENTS]: 'events',
+        [constants.config.KEY_URL]: getMongoUrlFromTaskArgs(taskArgs),
       },
     })
   )
 
-const generateRequestProcessorConfiguration = hre =>
+const generateRequestProcessorConfiguration = (taskArgs, hre) =>
   Promise.all([getStateManagerAddress(hre), getNetworkId(hre)]).then(
     ([_stateManagerAddress, _networkId]) => ({
       [constants.config.KEY_CHAIN_TYPE]: 'EVM',
-      [constants.config.KEY_CHALLENGE_PERIOD]: 3, // FIXME
+      [constants.config.KEY_CHALLENGE_PERIOD]: 1, // FIXME
       [constants.config.KEY_NETWORK_ID]: _networkId,
       [constants.config.KEY_CHAIN_NAME]: hre.network.name,
       [constants.config.KEY_STATE_MANAGER]: _stateManagerAddress,
@@ -66,14 +71,14 @@ const generateRequestProcessorConfiguration = hre =>
       [constants.config.KEY_PROVIDER_URL]: hre.network.config.url,
       [constants.config.KEY_DB]: {
         [constants.config.KEY_NAME]: 'listener',
-        [constants.config.KEY_URL]: 'mongodb://mongodb:27017',
         [constants.config.KEY_TABLE_EVENTS]: 'events',
+        [constants.config.KEY_URL]: getMongoUrlFromTaskArgs(taskArgs),
       },
     })
   )
 
 const saveRelayerProcessorConfiguration = (taskArgs, hre) =>
-  generateRequestProcessorConfiguration(hre).then(
+  generateRequestProcessorConfiguration(taskArgs, hre).then(
     maybeSaveConfiguration(
       taskArgs,
       'Request Processor',
@@ -82,7 +87,7 @@ const saveRelayerProcessorConfiguration = (taskArgs, hre) =>
   )
 
 const saveRelayerListenerConfiguration = (taskArgs, hre) =>
-  generateListenerConfiguration(hre).then(
+  generateListenerConfiguration(taskArgs, hre).then(
     maybeSaveConfiguration(
       taskArgs,
       'Listener',
@@ -99,4 +104,6 @@ task(
   TASK_NAME_APPS_GENERATE_RELAYER,
   TASK_DESC_APPS_GENERATE_RELAYER,
   generateRelayerConfigurationTask
-).addFlag(TASK_PARAM_SHOW, TASK_PARAM_SHOW_DESC)
+)
+  .addFlag(TASK_FLAG_SHOW, TASK_FLAG_SHOW_DESC)
+  .addFlag(TASK_FLAG_MONGO_LOCALHOST, TASK_FLAG_MONGO_LOCALHOST_DESC)
