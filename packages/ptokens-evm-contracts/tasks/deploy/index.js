@@ -5,7 +5,6 @@ const deployPRouter = require('./deploy-prouter.task')
 const deployContract = require('./deploy-contract.task')
 const deployPFactory = require('./deploy-pfactory.task')
 const deployStateManager = require('./deploy-state-manager.task')
-const configPFactoryTask = require('./config-pfactory.task')
 
 module.exports = {
   deployInit,
@@ -15,5 +14,4 @@ module.exports = {
   deployPFactory,
   deployContract,
   deployStateManager,
-  configPFactoryTask,
 }
