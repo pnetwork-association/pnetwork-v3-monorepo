@@ -2,11 +2,15 @@ const R = require('ramda')
 const Store = require('data-store')
 const PATH_CONFIG_FILE = '/deployments.json'
 const {
-  KEY_PTOKEN_LIST,
-  KEY_UNDERLYING_ASSET_LIST,
+  KEY_PROUTER,
+  KEY_ADDRESS,
   KEY_NETWORK_ID,
+  KEY_PTOKEN_LIST,
+  KEY_STATEMANAGER,
+  KEY_UNDERLYING_ASSET_LIST,
   TASK_NAME_GET_NETWORK_ID,
-} = require('../../constants')
+} = require('../constants')
+const { utils } = require('ptokens-utils')
 
 const getConfiguration = () => Promise.resolve(Store({ path: process.cwd() + PATH_CONFIG_FILE }))
 
@@ -50,10 +54,40 @@ const updateConfiguration = (...vargs) =>
     return resolve(config)
   })
 
+const getDeploymentForNetworkName = hre =>
+  getConfiguration().then(_config => _config.get(hre.network.name))
+
+const getPRouterAddress = hre =>
+  getDeploymentForNetworkName(hre).then(R.path([KEY_PROUTER, KEY_ADDRESS]))
+
+const getStateManagerAddress = hre =>
+  getDeploymentForNetworkName(hre).then(R.path([KEY_STATEMANAGER, KEY_ADDRESS]))
+
+const getNetworkId = hre => getDeploymentForNetworkName(hre).then(R.prop(KEY_NETWORK_ID))
+
+const checkStateManagerIsDeployed = hre =>
+  getStateManagerAddress(hre).then(
+    utils.promises.rejectIfNil(
+      `Could not find any StateManager address for '${hre.network.name}', have you deployed it?`
+    )
+  )
+
+const checkPRouterIsDeployed = hre =>
+  getPRouterAddress(hre).then(
+    utils.promises.rejectIfNil(
+      `Could not find any PRouter address for '${hre.network.name}', have you deployed it?`
+    )
+  )
+
 module.exports = {
+  getNetworkId,
   getConfiguration,
-  updateConfiguration,
+  getPRouterAddress,
   maybeAddNewNetwork,
-  maybeAddEmptyUnderlyingAssetList,
+  updateConfiguration,
+  getStateManagerAddress,
+  checkPRouterIsDeployed,
   maybeAddEmptyPTokenList,
+  checkStateManagerIsDeployed,
+  maybeAddEmptyUnderlyingAssetList,
 }

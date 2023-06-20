@@ -14,7 +14,7 @@ const {
 const { utils } = require('ptokens-utils')
 const { types } = require('hardhat/config')
 const { errors } = require('ptokens-utils')
-const { getConfiguration, updateConfiguration } = require('./lib/configuration-manager')
+const { getConfiguration, updateConfiguration } = require('../lib/configuration-manager')
 const R = require('ramda')
 
 const TASK_DESC_DEPLOY_CONTRACT = 'Deploy a contract.'

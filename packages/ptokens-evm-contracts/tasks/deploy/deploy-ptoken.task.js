@@ -2,8 +2,6 @@ const {
   KEY_ADDRESS,
   KEY_PFACTORY,
   KEY_NETWORK_ID,
-  KEY_PROUTER,
-  KEY_STATEMANAGER,
   KEY_PTOKEN_LIST,
   KEY_UNDERLYING_ASSET_LIST,
   CONTRACT_NAME_PFACTORY,
@@ -13,20 +11,20 @@ const {
 const R = require('ramda')
 const { types } = require('hardhat/config')
 const { attachToUnderlyingAsset } = require('./deploy-asset.task')
-const { getConfiguration, updateConfiguration } = require('./lib/configuration-manager')
+const {
+  getConfiguration,
+  updateConfiguration,
+  checkPRouterIsDeployed,
+  checkStateManagerIsDeployed,
+} = require('../lib/configuration-manager')
 
 const TASK_PARAM_GAS = 'gas'
 const TASK_PARAM_GASPRICE = 'gasPrice'
 const TASK_PARAM_UNDERLYING_ASSET_ADDRESS = 'underlyingAssetAddress'
-const TASK_PARAM_UNDERLYING_ASSET_CHAIN_NAME = 'underlyingAssetChainName'
+const TASK_PARAM_UNDERLYING_ASSET_CHAIN_NAME = 'assetChainName'
 const TASK_NAME_DEPLOY_PTOKEN = 'deploy:ptoken'
 const TASK_DESC_DEPLOY_PTOKEN =
   'Deploy a pToken contract or attach to an existing one from the configuration.'
-
-// TODO: export to ptokens-utils
-const rejectIfNil = R.curry((_errMsg, _thing) =>
-  R.isNil(_thing) ? Promise.reject(new Error(_errMsg)) : Promise.resolve(_thing)
-)
 
 // TODO: export to ptokens-utils
 const rejectIfLength0 = R.curry((_errMsg, _array) =>
@@ -101,26 +99,6 @@ const getFactoryContract = hre =>
             )
           )
         : Promise.reject(_err)
-    )
-
-const checkStateManagerIsDeployed = hre =>
-  getConfiguration()
-    .then(_config => _config.get(hre.network.name))
-    .then(R.path([KEY_STATEMANAGER, KEY_ADDRESS]))
-    .then(
-      rejectIfNil(
-        `Could not find any StateManager address for '${hre.network.name}', have you deployed it?`
-      )
-    )
-
-const checkPRouterIsDeployed = hre =>
-  getConfiguration()
-    .then(_config => _config.get(hre.network.name))
-    .then(R.path([KEY_PROUTER, KEY_ADDRESS]))
-    .then(
-      rejectIfNil(
-        `Could not find any PRouter address for '${hre.network.name}', have you deployed it?`
-      )
     )
 
 const getPTokenDeployArgs = (taskArgs, hre) =>

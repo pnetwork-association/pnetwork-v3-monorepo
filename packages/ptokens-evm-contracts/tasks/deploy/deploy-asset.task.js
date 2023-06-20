@@ -9,7 +9,7 @@ const {
   KEY_UNDERLYING_ASSET_LIST,
 } = require('../constants')
 const { types } = require('hardhat/config')
-const { getConfiguration, updateConfiguration } = require('./lib/configuration-manager')
+const { getConfiguration, updateConfiguration } = require('../lib/configuration-manager')
 
 const TASK_PARAM_NAME = 'name'
 const TASK_PARAM_SYMBOL = 'symbol'

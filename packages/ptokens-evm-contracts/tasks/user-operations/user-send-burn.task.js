@@ -1,5 +1,5 @@
 const { types } = require('hardhat/config')
-const { getConfiguration } = require('../deploy/lib/configuration-manager')
+const { getConfiguration } = require('../lib/configuration-manager')
 const R = require('ramda')
 
 const {
