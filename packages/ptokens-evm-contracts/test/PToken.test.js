@@ -2,7 +2,7 @@ const { expect } = require('chai')
 const { ethers } = require('hardhat')
 
 const { QUEUE_TIME, PNETWORK_NETWORK_IDS } = require('./constants')
-const { deployPToken } = require('./utils')
+const { deployPToken } = require('../tasks/deploy/deploy-ptoken.task')
 
 let user, token, pToken, pRouter, pFactory, stateManager
 

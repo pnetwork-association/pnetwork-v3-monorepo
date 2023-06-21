@@ -22,7 +22,7 @@
     "node/no-extraneous-require": [
       "error",
       {
-        "allowModules": ["mongodb-memory-server", "mongodb"]
+        "allowModules": ["mongodb-memory-server", "mongodb", "hardhat-change-network"]
       }
     ]
   }
