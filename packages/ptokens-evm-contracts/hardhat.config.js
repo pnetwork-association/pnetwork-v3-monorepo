@@ -17,6 +17,7 @@ const fork2Config = require('./hardhat.config.fork2')
 const fork3Config = require('./hardhat.config.fork3')
 
 const getEnvironmentVariable = _envVar => process.env[_envVar] || ''
+const maybeGetAccounts = _envVar => (process.env[_envVar] ? [process.env[_envVar]] : undefined)
 
 /**
  * @type import('hardhat/config').HardhatUserConfig
@@ -39,51 +40,51 @@ module.exports = {
     fork1: {
       url: 'http://localhost:8545',
       chainId: fork1Config.networks.hardhat.chainId,
-      accounts: [getEnvironmentVariable('TEST_PK')],
+      accounts: maybeGetAccounts('TEST_PK'),
     },
     fork2: {
       url: 'http://localhost:8546',
       chainId: fork2Config.networks.hardhat.chainId,
-      accounts: [getEnvironmentVariable('TEST_PK')],
+      accounts: maybeGetAccounts('TEST_PK'),
     },
     fork3: {
       url: 'http://localhost:8547',
       chainId: fork3Config.networks.hardhat.chainId,
-      accounts: [getEnvironmentVariable('TEST_PK')],
+      accounts: maybeGetAccounts('TEST_PK'),
     },
     mainnet: {
       chainId: 0x01,
       url: getEnvironmentVariable('MAINNET_NODE'),
-      accounts: [getEnvironmentVariable('PK')],
+      accounts: maybeGetAccounts('PK'),
       gasPrice: 20e9,
     },
     polygon: {
       chainId: 0x89,
       url: getEnvironmentVariable('POLYGON_NODE'),
-      accounts: [getEnvironmentVariable('PK')],
+      accounts: maybeGetAccounts('PK'),
       gasPrice: 400e9,
     },
     mumbai: {
       chainId: 80001,
       url: getEnvironmentVariable('MUMBAI_NODE'),
-      accounts: [getEnvironmentVariable('PK')],
+      accounts: maybeGetAccounts('PK'),
       gasPrice: 400e9,
     },
     bsc: {
       chainId: 0x38,
       url: getEnvironmentVariable('BSC_NODE'),
-      accounts: [getEnvironmentVariable('PK')],
+      accounts: maybeGetAccounts('PK'),
       gasPrice: 5e9,
     },
     sepolia: {
       chainId: 0xaa36a7,
       url: getEnvironmentVariable('SEPOLIA_NODE'),
-      accounts: [getEnvironmentVariable('PK')],
+      accounts: maybeGetAccounts('PK'),
     },
     goerli: {
       chainId: 0x05,
       url: getEnvironmentVariable('GOERLI_NODE'),
-      accounts: [getEnvironmentVariable('PK')],
+      accounts: maybeGetAccounts('PK'),
     },
   },
   etherscan: {

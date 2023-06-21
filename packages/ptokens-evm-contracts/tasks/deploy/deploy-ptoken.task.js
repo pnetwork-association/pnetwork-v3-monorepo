@@ -147,9 +147,7 @@ const deployPToken = async (
     ]
     // if (R.isNotNil(_gasLimit)) args.push({ gasLimit: _gasLimit })
 
-    console.log(args)
     const transaction = await pFactory.deploy(...args)
-    console.log(transaction)
     const receipt = await transaction.wait()
     const event = receipt.events.find(({ event }) => event === 'PTokenDeployed')
     const { pTokenAddress } = event.args
