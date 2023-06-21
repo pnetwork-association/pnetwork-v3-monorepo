@@ -14,6 +14,7 @@ require('hardhat-change-network')
 
 const fork1Config = require('./hardhat.config.fork1')
 const fork2Config = require('./hardhat.config.fork2')
+const fork3Config = require('./hardhat.config.fork3')
 
 const getEnvironmentVariable = _envVar => process.env[_envVar] || ''
 
@@ -45,6 +46,11 @@ module.exports = {
       chainId: fork2Config.networks.hardhat.chainId,
       accounts: [getEnvironmentVariable('TEST_PK')],
     },
+    fork3: {
+      url: 'http://localhost:8547',
+      chainId: fork3Config.networks.hardhat.chainId,
+      accounts: [getEnvironmentVariable('TEST_PK')],
+    },
     mainnet: {
       chainId: 0x01,
       url: getEnvironmentVariable('MAINNET_NODE'),
@@ -72,6 +78,11 @@ module.exports = {
     sepolia: {
       chainId: 0xaa36a7,
       url: getEnvironmentVariable('SEPOLIA_NODE'),
+      accounts: [getEnvironmentVariable('PK')],
+    },
+    goerli: {
+      chainId: 0x05,
+      url: getEnvironmentVariable('GOERLI_NODE'),
       accounts: [getEnvironmentVariable('PK')],
     },
   },

@@ -12,6 +12,7 @@
     "lint": "eslint .",
     "fork1": "npx hardhat node --config hardhat.config.fork1.js --port 8545",
     "fork2": "npx hardhat node --config hardhat.config.fork2.js --port 8546",
+    "fork3": "npx hardhat node --config hardhat.config.fork3.js --port 8547",
     "compile": "npx hardhat compile",
     "contracts:lint-and-format": "prettier --write \"./contracts/**/*.+(sol)\" && solhint ./contracts --fix",
     "contracts:prepende-license": "npx hardhat prepend-spdx-license",
