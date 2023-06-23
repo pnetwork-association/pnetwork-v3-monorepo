@@ -207,7 +207,7 @@ describe('StateManager', () => {
       .connect(relayer)
       .protocolQueueOperation(operation, { value: LOCKED_AMOUNT_CHALLENGE_PERIOD })
     await time.increase((await stateManager.getCurrentChallengePeriodDuration()) / 2)
-    await expect(stateManager.connect(relayer).protocolGuardianCancelOperation(operation))
+    await expect(stateManager.connect(relayer).protocolGuardianCancelOperation(operation, '0x'))
       .to.emit(stateManager, 'GuardianOperationCancelled')
       .withArgs(operation.serialize())
   })
@@ -219,14 +219,14 @@ describe('StateManager', () => {
       .protocolQueueOperation(operation, { value: LOCKED_AMOUNT_CHALLENGE_PERIOD })
     await time.increase(await stateManager.getCurrentChallengePeriodDuration())
     await expect(
-      stateManager.connect(relayer).protocolGuardianCancelOperation(operation)
+      stateManager.connect(relayer).protocolGuardianCancelOperation(operation, '0x')
     ).to.be.revertedWithCustomError(stateManager, 'ChallengePeriodTerminated')
   })
 
   it('a guardian should not be able to cancel an operation that has not been queued', async () => {
     const fakeOperation = new Operation()
     await expect(
-      stateManager.connect(relayer).protocolGuardianCancelOperation(fakeOperation)
+      stateManager.connect(relayer).protocolGuardianCancelOperation(fakeOperation, '0x')
     ).to.be.revertedWithCustomError(stateManager, 'OperationNotQueued')
   })
 
@@ -244,7 +244,7 @@ describe('StateManager', () => {
     await stateManager
       .connect(relayer)
       .protocolQueueOperation(operation, { value: LOCKED_AMOUNT_CHALLENGE_PERIOD })
-    await stateManager.connect(guardian).protocolGuardianCancelOperation(operation)
+    await stateManager.connect(guardian).protocolGuardianCancelOperation(operation, '0x')
     await stateManager.connect(sentinel).protocolGovernanceCancelOperation(operation, proof)
     await expect(
       stateManager.connect(relayer).protocolExecuteOperation(operation)
@@ -477,7 +477,7 @@ describe('StateManager', () => {
         K_CHALLENGE_PERIOD
       expect(expectedCurrentChallengePeriodDuration).to.be.eq(endTimestamp.sub(startTimestamp))
 
-      await stateManager.connect(guardian).protocolGuardianCancelOperation(operation)
+      await stateManager.connect(guardian).protocolGuardianCancelOperation(operation, '0x')
       await stateManager.connect(sentinel).protocolGovernanceCancelOperation(operation, [0])
     }
   })

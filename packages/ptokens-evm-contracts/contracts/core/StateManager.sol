@@ -3,7 +3,6 @@
 pragma solidity 0.8.17;
 
 import {ReentrancyGuard} from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
-import {ECDSA} from "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import {IEpochsManager} from "@pnetwork/dao-v2-contracts/contracts/interfaces/IEpochsManager.sol";
 import {GovernanceMessageHandler} from "../governance/GovernanceMessageHandler.sol";
 import {IPRouter} from "../interfaces/IPRouter.sol";
@@ -37,17 +36,11 @@ contract StateManager is IStateManager, GovernanceMessageHandler, ReentrancyGuar
     uint256 public lockedAmountChallengePeriod;
     uint16 public numberOfOperationsInQueue;
 
-    modifier onlySentinel(
-        Operation calldata operation,
-        bytes calldata proof,
-        string memory action
-    ) {
-        // TODO: check if msg.sender is a sentinel
-        address sentinel = ECDSA.recover(sha256(abi.encode(action, operationIdOf(operation))), proof);
+    modifier onlySentinel(bytes calldata proof, string memory action) {
         _;
     }
 
-    modifier onlyGuardian(string memory action) {
+    modifier onlyGuardian(bytes calldata proof, string memory action) {
         // TODO: check if msg.sender is a guardian
         _;
     }
@@ -156,8 +149,9 @@ contract StateManager is IStateManager, GovernanceMessageHandler, ReentrancyGuar
 
     /// @inheritdoc IStateManager
     function protocolGuardianCancelOperation(
-        Operation calldata operation
-    ) external onlyWhenIsNotInLockDown(false) onlyGuardian("cancel") {
+        Operation calldata operation,
+        bytes calldata proof
+    ) external onlyWhenIsNotInLockDown(false) onlyGuardian(proof, "cancel") {
         _protocolCancelOperation(operation, Actor.Guardian);
     }
 
@@ -173,7 +167,7 @@ contract StateManager is IStateManager, GovernanceMessageHandler, ReentrancyGuar
     function protocolSentinelCancelOperation(
         Operation calldata operation,
         bytes calldata proof
-    ) external onlyWhenIsNotInLockDown(false) onlySentinel(operation, proof, "cancel") {
+    ) external onlyWhenIsNotInLockDown(false) onlySentinel(proof, "cancel") {
         _protocolCancelOperation(operation, Actor.Sentinel);
     }
 

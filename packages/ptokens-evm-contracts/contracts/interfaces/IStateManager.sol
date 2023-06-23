@@ -112,14 +112,16 @@ interface IStateManager is IGovernanceMessageHandler {
      * @notice A Guardian instruct a cancel action. If 2 actors agree on it the operation is cancelled.
      *
      * @param operation
+     * @param proof
      *
      */
-    function protocolGuardianCancelOperation(Operation calldata operation) external;
+    function protocolGuardianCancelOperation(Operation calldata operation, bytes calldata proof) external;
 
     /*
      * @notice The Governance instruct a cancel action. If 2 actors agree on it the operation is cancelled.
      *
      * @param operation
+     * @param proof
      *
      */
     function protocolGovernanceCancelOperation(Operation calldata operation, bytes calldata proof) external;
@@ -128,6 +130,7 @@ interface IStateManager is IGovernanceMessageHandler {
      * @notice A Sentinel instruct a cancel action. If 2 actors agree on it the operation is cancelled.
      *
      * @param operation
+     * @param proof
      *
      */
     function protocolSentinelCancelOperation(Operation calldata operation, bytes calldata proof) external;
