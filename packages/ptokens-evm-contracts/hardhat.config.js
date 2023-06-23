@@ -1,4 +1,5 @@
 require('dotenv').config()
+require('hardhat-tracer')
 require('@nomiclabs/hardhat-ethers')
 require('@nomiclabs/hardhat-etherscan')
 require('@openzeppelin/hardhat-upgrades')
@@ -11,20 +12,12 @@ require('@nomicfoundation/hardhat-toolbox')
 require('hardhat-tracer')
 require('hardhat-change-network')
 
-/**
- * User tasks
- */
-require('./tasks/governance-message-relayer')
-require('./tasks/user-send.js')
-require('./tasks/deploy-ERC20-token.js')
-require('./tasks/deploy-governance-state-reader.js')
-require('./tasks/deploy-governance-message-verifier.js')
-require('./tasks/deploy-v3-contracts.js')
-require('./tasks/propagate-sentinels.js')
-require('./tasks/read-sentinels-root.js')
-require('./tasks/test/governance-message-handler.js')
+const fork1Config = require('./hardhat.config.fork1')
+const fork2Config = require('./hardhat.config.fork2')
+const fork3Config = require('./hardhat.config.fork3')
 
 const getEnvironmentVariable = _envVar => process.env[_envVar] || ''
+const maybeGetAccounts = _envVar => (process.env[_envVar] ? [process.env[_envVar]] : undefined)
 
 /**
  * @type import('hardhat/config').HardhatUserConfig
@@ -44,42 +37,61 @@ module.exports = {
     },
   },
   networks: {
-    hardhat: {},
+    fork1: {
+      url: 'http://localhost:8545',
+      chainId: fork1Config.networks.hardhat.chainId,
+      accounts: maybeGetAccounts('TEST_PK'),
+    },
+    fork2: {
+      url: 'http://localhost:8546',
+      chainId: fork2Config.networks.hardhat.chainId,
+      accounts: maybeGetAccounts('TEST_PK'),
+    },
+    fork3: {
+      url: 'http://localhost:8547',
+      chainId: fork3Config.networks.hardhat.chainId,
+      accounts: maybeGetAccounts('TEST_PK'),
+    },
     mainnet: {
+      chainId: 0x01,
       url: getEnvironmentVariable('MAINNET_NODE'),
-      accounts: [getEnvironmentVariable('PK')],
-      gasPrice: 45e9,
+      accounts: maybeGetAccounts('PK'),
+      gasPrice: 20e9,
     },
     polygon: {
+      chainId: 0x89,
       url: getEnvironmentVariable('POLYGON_NODE'),
-      accounts: [getEnvironmentVariable('PK')],
+      accounts: maybeGetAccounts('PK'),
       gasPrice: 400e9,
     },
     mumbai: {
+      chainId: 80001,
       url: getEnvironmentVariable('MUMBAI_NODE'),
-      accounts: [getEnvironmentVariable('PK')],
-      gasPrice: 10e9,
+      accounts: maybeGetAccounts('PK'),
+      gasPrice: 400e9,
     },
     bsc: {
+      chainId: 0x38,
       url: getEnvironmentVariable('BSC_NODE'),
-      accounts: [getEnvironmentVariable('PK')],
-      gasPrice: 3e9,
+      accounts: maybeGetAccounts('PK'),
+      gasPrice: 5e9,
     },
     sepolia: {
+      chainId: 0xaa36a7,
       url: getEnvironmentVariable('SEPOLIA_NODE'),
-      accounts: [getEnvironmentVariable('PK')],
+      accounts: maybeGetAccounts('PK'),
     },
     goerli: {
+      chainId: 0x05,
       url: getEnvironmentVariable('GOERLI_NODE'),
-      accounts: [getEnvironmentVariable('PK')],
-      gasPrice: 250e9,
+      accounts: maybeGetAccounts('PK'),
     },
   },
   etherscan: {
     apiKey: {
       mainnet: getEnvironmentVariable('ETHERSCAN_API_KEY'),
       polygon: getEnvironmentVariable('POLYGONSCAN_API_KEY'),
-      bsc: getEnvironmentVariable('BSCSCAN_API_KEY'),
+      mumbai: getEnvironmentVariable('POLYGONSCAN_API_KEY'),
     },
     customChains: [
       {
@@ -102,7 +114,7 @@ module.exports = {
         network: 'mumbai',
         chainId: 80001,
         urls: {
-          apiURL: 'https://api.mumbai.polygonscan.com/api',
+          apiURL: 'https://api-testnet.polygonscan.com/',
           browserURL: 'https://mumbai.polygonscan.com/',
         },
       },
@@ -127,3 +139,8 @@ module.exports = {
     timeout: 100000000,
   },
 }
+
+/**
+ * User tasks
+ */
+require('./tasks')

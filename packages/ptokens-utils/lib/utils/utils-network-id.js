@@ -3,6 +3,8 @@ const constants = require('../constants')
 const getBlockchainTypeFromChainId = _networkId =>
   new Promise((resolve, reject) => {
     switch (_networkId) {
+      case constants.networkIds.HARDHAT1:
+      case constants.networkIds.HARDHAT2:
       case constants.networkIds.ETHEREUM_MAINNET:
       case constants.networkIds.ETHEREUM_ROPSTEN:
       case constants.networkIds.ETHEREUM_RINKEBY:
