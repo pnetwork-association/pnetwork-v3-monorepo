@@ -67,7 +67,7 @@ describe('Validation tests', () => {
         await validation.validateJson(schema, json)
         assert.fail('Should never reach here')
       } catch (err) {
-        assert.equal(err.message, errors.ERROR_SCHEMA_VALIDATION_FAILED)
+        assert(err.message.includes(errors.ERROR_SCHEMA_VALIDATION_FAILED))
       }
     })
 

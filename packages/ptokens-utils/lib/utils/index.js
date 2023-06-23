@@ -1,6 +1,7 @@
 const tick = require('./bench-tick')
 const fsUtils = require('./utils-fs')
 const dateUtils = require('./utils-date')
+const promises = require('./utils-promises')
 const ramdaExtUtils = require('./utils-ramda-ext')
 const regexpUtils = require('./utils-regexp')
 const randomUtils = require('./utils-random')
@@ -17,6 +18,7 @@ module.exports = {
   ...ramdaExtUtils,
   ...getChainSymbol,
   ...networkIdUtils,
+  promises,
   bench: tick,
   date: dateUtils,
   ...getEventId,

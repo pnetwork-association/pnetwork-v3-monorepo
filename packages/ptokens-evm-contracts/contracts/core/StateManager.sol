@@ -90,7 +90,7 @@ contract StateManager is IStateManager, GovernanceMessageHandler, ReentrancyGuar
     }
 
     /// @inheritdoc IStateManager
-    function challengePeriodOf(Operation calldata operation) external view returns (uint64, uint64) {
+    function challengePeriodOf(Operation calldata operation) public view returns (uint64, uint64) {
         bytes32 operationId = operationIdOf(operation);
         bytes1 operationStatus = _operationsStatus[operationId];
         return _challengePeriodOf(operationId, operationStatus);
@@ -156,9 +156,6 @@ contract StateManager is IStateManager, GovernanceMessageHandler, ReentrancyGuar
         } else if (operationStatus == Constants.OPERATION_CANCELLED) {
             revert Errors.OperationAlreadyCancelled(operation);
         } else if (operationStatus == Constants.OPERATION_NULL) {
-            revert Errors.OperationNotQueued(operation);
-        }
-        if (operationStatus != Constants.OPERATION_QUEUED) {
             revert Errors.OperationNotQueued(operation);
         }
 
