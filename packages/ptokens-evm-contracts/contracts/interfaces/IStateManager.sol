@@ -100,6 +100,15 @@ interface IStateManager is IGovernanceMessageHandler {
     function getSentinelsRootForEpoch(uint16 epoch) external view returns (bytes32);
 
     /*
+     * @notice Return the status of an operation.
+     *
+     * @param operation
+     *
+     * @return (bytes1) the operation status.
+     */
+    function operationStatusOf(Operation calldata operation) external view returns (bytes1);
+
+    /*
      * @notice Calculates the operation id.
      *
      * @param operation

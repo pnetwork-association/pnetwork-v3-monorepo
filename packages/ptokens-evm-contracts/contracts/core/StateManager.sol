@@ -148,6 +148,11 @@ contract StateManager is IStateManager, GovernanceMessageHandler, ReentrancyGuar
     }
 
     /// @inheritdoc IStateManager
+    function operationStatusOf(Operation calldata operation) external view returns (bytes1) {
+        return _operationsStatus[operationIdOf(operation)];
+    }
+
+    /// @inheritdoc IStateManager
     function protocolGuardianCancelOperation(
         Operation calldata operation,
         bytes calldata proof
