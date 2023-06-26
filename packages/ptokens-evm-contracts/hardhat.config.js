@@ -86,6 +86,18 @@ module.exports = {
       url: getEnvironmentVariable('GOERLI_NODE'),
       accounts: maybeGetAccounts('PK'),
     },
+    arbitrum: {
+      chainId: 0xa4b1,
+      url: getEnvironmentVariable('ARBITRUM_NODE'),
+      accounts: maybeGetAccounts('PK'),
+      gasPrice: 0.1e9,
+    },
+    gnosis: {
+      chainId: 0x64,
+      url: getEnvironmentVariable('GNOSIS_CHAIN_NODE'),
+      accounts: maybeGetAccounts('PK'),
+      gasPrice: 5e9,
+    },
   },
   etherscan: {
     apiKey: {
@@ -124,6 +136,14 @@ module.exports = {
         urls: {
           apiURL: 'https://api.mumbai.polygonscan.com/api',
           browserURL: 'https://mumbai.polygonscan.com/',
+        },
+      },
+      {
+        network: 'arbitrum',
+        chainId: 42161,
+        urls: {
+          apiURL: 'https://api.mumbai.polygonscan.com/api',
+          browserURL: 'https://api.arbiscan.io',
         },
       },
     ],

@@ -96,6 +96,9 @@ const main = async _args => {
     stateManager: stateManager.address,
     pToken: pToken.address,
     epochsManager: epochsManager.address,
+    initArgs: {
+      ..._args,
+    },
   })
 }
 
