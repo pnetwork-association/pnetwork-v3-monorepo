@@ -52,7 +52,7 @@ const main = async _args => {
   const EpochsManager = await ethers.getContractFactory('EpochsManager')
 
   console.log('Deploying EpochsManager ...')
-  const pEpochsManager = await EpochsManager.deploy()
+  const epochsManager = await EpochsManager.deploy()
   console.log('Deploying PFactory ...')
   const pFactory = await PFactory.deploy()
   console.log('Deploying PRouter ...')
@@ -62,7 +62,7 @@ const main = async _args => {
   const stateManager = await StateManager.deploy(
     pFactory.address,
     _args.baseChallengePeriodDuration,
-    pEpochsManager.address,
+    epochsManager.address,
     _args.telepathyRouter,
     _args.governanceMessageVerifier,
     _args.allowedSourceChainId,
@@ -95,7 +95,7 @@ const main = async _args => {
     pRouter: pRouter.address,
     stateManager: stateManager.address,
     pToken: pToken.address,
-    dummyEpochsManager: pEpochsManager.address,
+    epochsManager: epochsManager.address,
   })
 }
 
