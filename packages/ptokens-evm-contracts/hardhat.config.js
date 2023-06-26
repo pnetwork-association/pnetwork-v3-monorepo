@@ -97,7 +97,7 @@ module.exports = {
       url: getEnvironmentVariable('GNOSIS_CHAIN_NODE'),
       accounts: maybeGetAccounts('PK'),
       gasPrice: 5e9,
-    },
+    }
   },
   etherscan: {
     apiKey: {
