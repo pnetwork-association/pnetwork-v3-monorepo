@@ -162,8 +162,8 @@ const main = async (
 }
 
 task(
-  'governance-message-relayer',
-  'Start relayer that will propagate an Governance Message from Polygon to Ethereum given the transaction hash'
+  'governance-message-relayer:verify-message',
+  'Verify a Polygon event on ethereum and propagate it on another chain using telepathy protocol'
 )
   .addPositionalParam('transactionHash')
   .addPositionalParam('rootChainAddress')

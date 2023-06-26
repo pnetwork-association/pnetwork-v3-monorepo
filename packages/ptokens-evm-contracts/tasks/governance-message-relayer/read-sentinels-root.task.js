@@ -1,4 +1,4 @@
-task('read-sentinels-root', 'Read the sentinels root values')
+task('governance-message-relayer:read-sentinels-root', 'Read the sentinels root values')
   .addPositionalParam('stateManager')
   .addPositionalParam('epoch')
   .setAction(async _args => {

@@ -1,4 +1,4 @@
-task('propagate-sentinels', 'Start the sentinel addresses propagation')
+task('governance-message-relayer:propagate-sentinels', 'Start the sentinel addresses propagation')
   //.addPositionalParam('registrationManager')
   //.addPositionalParam('epochsManager')
   .addPositionalParam('governanceStateReader')
