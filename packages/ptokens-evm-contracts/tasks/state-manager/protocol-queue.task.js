@@ -1,47 +1,39 @@
-const TASK_NAME_SM_PEO = 'statemanager:queue'
+const { types } = require('hardhat/config')
+const { getStateManagerAddress } = require('../lib/configuration-manager')
+const {
+  getUserOperationAbiArgsFromReport,
+} = require('ptokens-request-processor/lib/evm/evm-abi-manager')
 
-const protocolExecuteOperation = async (_, hre) => {
-  const signer = await hre.ethers.getSigner()
-  console.log(signer.address)
+const TASK_NAME_PROTOCOL_QUEUE = 'statemanager:queue'
+const TASK_DESC_PROTOCOL_QUEUE = 'Perform a queue operation on the deployed StateManager contract'
+const TASK_PARAM_JSON = 'json'
+const TASK_PARAM_JSON_DESC = 'Stringified JSON of the event report stored in mongo by a listener.'
 
+const protocolExecuteOperation = async (taskArgs, hre) => {
+  const stateManagerAddress = await getStateManagerAddress(hre)
+
+  console.info(`StateManager contract detected @ ${stateManagerAddress}`)
   const StateManagerContract = await hre.ethers.getContractFactory('StateManager')
+  const StateManager = await StateManagerContract.attach(stateManagerAddress)
 
-  const StateManager = await StateManagerContract.attach(
-    '0x220f1347d38ABb3CebF94897a998db0EF58ef5E6'
-  )
+  console.info('Calling protocolQueueOperation...')
 
-  console.log(StateManagerContract)
-  // const parsedAmount = hre.ethers.utils.parseEther(amount)
-  // console.log('Approving ...')
-  // await token.approve(pTokenAddress, parsedAmount)
-  console.log('Generating an UserOperation ...')
+  const json = JSON.parse(taskArgs[TASK_PARAM_JSON])
 
-  const tx = await StateManager.protocolQueueOperation(
-    [
-      '0x1207c4de0a8f60a982a453403b2a9c25a8f1514a3d9706f760743e85413fb9f3',
-      '0x3953cd8f3679aee486d51fd831eec05411cd3c5d4454da3abd81cc0cd91d1bb5',
-      '0x0000000000000000000000000000000000000000000000000000000000000000',
-      '52389',
-      18,
-      '100000000000000000000',
-      '0xdB4791bb0946E621C1Fd2C5542bd541c6C7280A6',
-      '0xadc11660',
-      '0xadc11660',
-      '0xadc11660',
-      '0xa41657bf225F8Ec7E2010C89c3F084172948264D',
-      'Token',
-      'TKN',
-      '0x',
-    ],
-    {
-      gasLimit: 200000,
-    }
-  )
-  await tx.wait(1)
+  const args = await getUserOperationAbiArgsFromReport(json)
+  console.log(args)
+  const tx = await StateManager.protocolQueueOperation(args[0], { value: 1 })
+  const receipt = await tx.wait(1)
+
+  console.info(`Tx mined @ ${receipt.transactionHash}`)
 }
 
-task(TASK_NAME_SM_PEO, TASK_NAME_SM_PEO, protocolExecuteOperation)
+task(
+  TASK_NAME_PROTOCOL_QUEUE,
+  TASK_DESC_PROTOCOL_QUEUE,
+  protocolExecuteOperation
+).addPositionalParam(TASK_PARAM_JSON, TASK_PARAM_JSON_DESC, undefined, types.string)
 
 module.exports = {
-  TASK_NAME_SM_PEO,
+  TASK_NAME_PROTOCOL_QUEUE,
 }

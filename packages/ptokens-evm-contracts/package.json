@@ -50,6 +50,7 @@
     "hardhat-spdx-license-identifier": "^2.1.0",
     "hardhat-tracer": "^2.3.2",
     "ptokens-constants": "*",
+    "ptokens-request-processor": "*",
     "ptokens-utils": "*",
     "ramda": "^0.29.0",
     "safe-buffer": "^5.2.1",
