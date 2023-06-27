@@ -1,6 +1,5 @@
 const R = require('ramda')
 const {
-  TASK_NAME_DEPLOY_INIT,
   KEY_ADDRESS,
   KEY_ASSET_NAME,
   KEY_ASSET_SYMBOL,
@@ -9,6 +8,7 @@ const {
   KEY_UNDERLYING_ASSET_LIST,
 } = require('../constants')
 const { types } = require('hardhat/config')
+const { TASK_NAME_DEPLOY_INIT } = require('./deploy-init.task')
 const { getConfiguration, updateConfiguration } = require('../lib/configuration-manager')
 
 const TASK_PARAM_NAME = 'name'

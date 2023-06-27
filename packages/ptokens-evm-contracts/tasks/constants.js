@@ -17,10 +17,6 @@ module.exports = {
   // Contract names
   CONTRACT_NAME_PFACTORY: 'PFactory',
 
-  // Tasks names and descriptions
-  TASK_NAME_DEPLOY_INIT: 'deploy:init',
-  TASK_NAME_DEPLOY_CONTRACT: 'deploy:contract',
-
   // Params names and descriptions
   PARAM_NAME_DEST_CHAIN: 'destinationChainName',
   PARAM_DESC_DEST_CHAIN: 'Destination chain name (ex. mainnet, mumbai ...)',

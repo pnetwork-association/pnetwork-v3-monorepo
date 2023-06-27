@@ -1,7 +1,8 @@
 const R = require('ramda')
 const { types } = require('hardhat/config')
 const { deployPFactoryTask } = require('./deploy-pfactory.task')
-const { KEY_STATEMANAGER, TASK_NAME_DEPLOY_CONTRACT } = require('../constants')
+const { KEY_STATEMANAGER } = require('../constants')
+const { TASK_NAME_DEPLOY_CONTRACT } = require('../deploy/deploy-contract.task')
 
 const CONTRACT_NAME_STATEMANAGER = 'StateManager'
 const TASK_NAME_DEPLOY_STATEMANAGER = 'deploy:statemanager'

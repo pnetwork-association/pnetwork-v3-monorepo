@@ -1,6 +1,7 @@
-const { KEY_PROUTER, TASK_NAME_DEPLOY_CONTRACT } = require('../constants')
 const R = require('ramda')
+const { KEY_PROUTER } = require('../constants')
 const { deployPFactoryTask } = require('./deploy-pfactory.task')
+const { TASK_NAME_DEPLOY_CONTRACT } = require('../deploy/deploy-contract.task')
 
 const CONTRACT_NAME_PROUTER = 'PRouter'
 const TASK_NAME_DEPLOY_PROUTER = 'deploy:prouter'
