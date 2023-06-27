@@ -1,7 +1,6 @@
 const { types } = require('hardhat/config')
 const { getConfiguration } = require('../lib/configuration-manager')
 const R = require('ramda')
-
 const {
   KEY_ADDRESS,
   KEY_PTOKEN_UNDERLYING_ASSET_ADDRESS,
@@ -15,10 +14,12 @@ const {
   PARAM_DESC_DEST_ADDRESS,
   PARAM_NAME_PTOKEN_ADDRESS,
   PARAM_DESC_PTOKEN_ADDRESS,
+  TASK_PARAM_GASPRICE,
+  TASK_PARAM_GASLIMIT,
 } = require('../constants')
 
-const TASK_NAME_USER_SEND_TRANS = 'router:transfer'
-const TASK_DESC_USER_SEND_TRANS = 'Move pTokens form a chain to another one.'
+const TASK_NAME = 'router:transfer'
+const TASK_DESC = 'Move pTokens form a chain to another one.'
 
 const getAssetFromPToken = (pTokenAddress, config, hre) => {
   const findPToken = R.find(R.propEq(pTokenAddress, KEY_ADDRESS))
@@ -77,13 +78,14 @@ const transfer = async (taskArgs, hre) => {
     '0x',
     '0x'.padEnd(66, '0'),
     {
-      gasLimit: 200000,
+      gasPrice: taskArgs[TASK_PARAM_GASPRICE],
+      gasLimit: taskArgs[TASK_PARAM_GASLIMIT],
     }
   )
   await tx.wait(1)
 }
 
-task(TASK_NAME_USER_SEND_TRANS, TASK_DESC_USER_SEND_TRANS)
+task(TASK_NAME, TASK_DESC)
   .addPositionalParam(PARAM_NAME_PTOKEN_ADDRESS, PARAM_DESC_PTOKEN_ADDRESS, undefined, types.string)
   .addPositionalParam(PARAM_NAME_DEST_CHAIN, PARAM_DESC_DEST_CHAIN, undefined, types.string)
   .addPositionalParam(PARAM_NAME_DEST_ADDRESS, PARAM_DESC_DEST_ADDRESS, undefined, types.string)
@@ -91,5 +93,5 @@ task(TASK_NAME_USER_SEND_TRANS, TASK_DESC_USER_SEND_TRANS)
   .setAction(transfer)
 
 module.exports = {
-  TASK_NAME_USER_SEND_TRANS,
+  TASK_NAME,
 }

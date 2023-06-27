@@ -1,9 +1,10 @@
 const { types } = require('hardhat/config')
 const R = require('ramda')
-
 const {
   KEY_ADDRESS,
   KEY_PTOKEN_LIST,
+  TASK_PARAM_GASPRICE,
+  TASK_PARAM_GASLIMIT,
   KEY_PTOKEN_UNDERLYING_ASSET_ADDRESS,
 } = require('../constants')
 const {
@@ -13,8 +14,8 @@ const {
   getDeploymentForNetworkName,
 } = require('../lib/configuration-manager')
 
-const TASK_NAME_ROUTER_MINT = 'router:mint'
-const TASK_DESC_ROUTER_MINT = 'Mint new pTokens given an asset address.'
+const TASK_NAME = 'router:mint'
+const TASK_DESC = 'Mint new pTokens given an asset address.'
 const TASK_PARAM_ASSET_ADDRESS = 'assetAddress'
 const TASK_PARAM_DESC_ASSET_ADDRESS = 'Underlying asset address'
 const TASK_PARAM_DEST_CHAIN = 'destinationChainName'
@@ -68,14 +69,17 @@ const mint = async (taskArgs, hre) => {
     parsedAmount,
     userData,
     optionsMask,
-    { gasLimit: 200000 }
+    {
+      gasPrice: taskArgs[TASK_PARAM_GASPRICE],
+      gasLimit: taskArgs[TASK_PARAM_GASLIMIT],
+    }
   )
   const receipt = await tx.wait(1)
 
   console.info(`Tx mined @ ${receipt.transactionHash}`)
 }
 
-task(TASK_NAME_ROUTER_MINT, TASK_DESC_ROUTER_MINT)
+task(TASK_NAME, TASK_DESC)
   .addPositionalParam(
     TASK_PARAM_ASSET_ADDRESS,
     TASK_PARAM_DESC_ASSET_ADDRESS,
@@ -93,5 +97,5 @@ task(TASK_NAME_ROUTER_MINT, TASK_DESC_ROUTER_MINT)
   .setAction(mint)
 
 module.exports = {
-  TASK_NAME_ROUTER_MINT,
+  TASK_NAME,
 }

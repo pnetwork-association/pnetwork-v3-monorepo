@@ -24,4 +24,10 @@ module.exports = {
   PARAM_DESC_DEST_ADDRESS: 'Where the pToken is destined to',
   PARAM_NAME_PTOKEN_ADDRESS: 'pTokenAddress',
   PARAM_DESC_PTOKEN_ADDRESS: 'Address of the pTokens to be redeemed',
+
+  // Global task parameters
+  TASK_PARAM_GASPRICE: 'gasPrice',
+  TASK_PARAM_GASLIMIT: 'gasLimit',
+  TASK_PARAM_GASPRICE_DESC: 'Specify the gas price',
+  TASK_PARAM_GASLIMIT_DESC: 'Specify the gas limit',
 }
