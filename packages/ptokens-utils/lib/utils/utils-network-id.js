@@ -11,7 +11,7 @@ const getBlockchainTypeFromChainId = _networkId =>
       case constants.networkIds.ETHEREUM_SEPOLIA:
       case constants.networkIds.ETHEREUM_GOERLI:
       case constants.networkIds.BSC_MAINNET:
-      case constants.networkIds.XDAI_MAINNET:
+      case constants.networkIds.GNOSIS_MAINNET:
       case constants.networkIds.INTERIM_CHAIN:
       case constants.networkIds.FANTOM_MAINNET:
       case constants.networkIds.LUXOCHAIN_MAINNET:

@@ -65,6 +65,11 @@ const getStateManagerAddress = hre =>
 
 const getNetworkId = hre => getDeploymentForNetworkName(hre).then(R.prop(KEY_NETWORK_ID))
 
+const getNetworkIdFromChainName = _networkName =>
+  getConfiguration()
+    .then(_config => _config.get(_networkName))
+    .then(R.prop(KEY_NETWORK_ID))
+
 const checkStateManagerIsDeployed = hre =>
   getStateManagerAddress(hre).then(
     utils.promises.rejectIfNil(
@@ -88,6 +93,8 @@ module.exports = {
   getStateManagerAddress,
   checkPRouterIsDeployed,
   maybeAddEmptyPTokenList,
+  getNetworkIdFromChainName,
   checkStateManagerIsDeployed,
+  getDeploymentForNetworkName,
   maybeAddEmptyUnderlyingAssetList,
 }
