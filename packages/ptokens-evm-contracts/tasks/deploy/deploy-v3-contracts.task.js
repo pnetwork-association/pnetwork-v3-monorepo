@@ -3,7 +3,7 @@ const deployPToken = async (
   _underlyingAssetSymbol,
   _underlyingAssetDecimals,
   _underlyingAssetTokenAddress,
-  _underlyingAssetChainId,
+  _underlyingAssetNetworkId,
   { pFactory }
 ) => {
   const PToken = await ethers.getContractFactory('PToken')
@@ -12,7 +12,7 @@ const deployPToken = async (
     _underlyingAssetSymbol,
     _underlyingAssetDecimals,
     _underlyingAssetTokenAddress,
-    _underlyingAssetChainId
+    _underlyingAssetNetworkId
   )
   const receipt = await transaction.wait()
   const event = receipt.events.find(({ event }) => event === 'PTokenDeployed')

@@ -1,15 +1,11 @@
-const TASK_NAME_SM_PEO = 'statemanager:queue'
+const TASK_NAME_SM_PEO = 'statemanager:execute'
 
 const protocolExecuteOperation = async (_args, { ethers }) => {
   const StateManager = await ethers.getContractFactory('StateManager')
   const stateManager = await StateManager.attach(_args.stateManager)
 
-  console.log('Reading lockedAmountChallengePeriod ...')
-  const lockedAmountChallengePeriod = await stateManager.lockedAmountChallengePeriod()
-  console.log('lockedAmountChallengePeriod = ', lockedAmountChallengePeriod.toString())
-
-  console.log('Generating an UserOperation ...')
-  const tx = await stateManager.protocolQueueOperation(
+  console.log('Executing the UserOperation ...')
+  const tx = await stateManager.protocolExecuteOperation(
     [
       _args.originBlockHash,
       _args.originTransactionHash,
@@ -27,10 +23,11 @@ const protocolExecuteOperation = async (_args, { ethers }) => {
       _args.userData,
     ],
     {
-      value: lockedAmountChallengePeriod,
       gasLimit: 4000000,
     }
   )
+
+  console.log(tx.hash)
   await tx.wait(1)
 }
 
