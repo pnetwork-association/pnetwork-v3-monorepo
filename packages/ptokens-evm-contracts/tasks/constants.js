@@ -20,7 +20,6 @@ module.exports = {
   // Tasks names and descriptions
   TASK_NAME_DEPLOY_INIT: 'deploy:init',
   TASK_NAME_DEPLOY_CONTRACT: 'deploy:contract',
-  TASK_NAME_GET_NETWORK_ID: 'get-network-id',
 
   // Params names and descriptions
   PARAM_NAME_DEST_CHAIN: 'destinationChainName',

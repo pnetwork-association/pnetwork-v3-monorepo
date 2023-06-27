@@ -8,9 +8,9 @@ const {
   KEY_PTOKEN_LIST,
   KEY_STATEMANAGER,
   KEY_UNDERLYING_ASSET_LIST,
-  TASK_NAME_GET_NETWORK_ID,
 } = require('../constants')
 const { utils } = require('ptokens-utils')
+const { TASK_NAME_GET_NETWORK_ID } = require('../get-network-id')
 
 const getConfiguration = () => Promise.resolve(Store({ path: process.cwd() + PATH_CONFIG_FILE }))
 
