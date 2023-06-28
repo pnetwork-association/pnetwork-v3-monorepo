@@ -38,6 +38,25 @@ const getProtocolOperationAbi = _operationName => [
   'error InvalidNetwork(bytes4 networkId)',
 ]
 
+const getProtocolGuardianCancelOperationAbi = () => [
+  `function protocolGuardianCancelOperation(${userOperationTuple} calldata operation, bytes calldata proof)`,
+  'error OperationAlreadyQueued(bytes32 operationId)',
+  'error OperationAlreadyExecuted(bytes32 operationId)',
+  'error OperationCancelled(bytes32 operationId)',
+  'error OperationNotQueued(bytes32 operationId)',
+  'error ExecuteTimestampNotReached(uint64 executeTimestamp)',
+  'error InvalidUnderlyingAssetName(string underlyingAssetName, string expectedUnderlyingAssetName)',
+  'error InvalidUnderlyingAssetSymbol(string underlyingAssetSymbol, string expectedUnderlyingAssetSymbol)',
+  'error InvalidUnderlyingAssetDecimals(uint256 underlyingAssetDecimals, uint256 expectedUnderlyingAssetDecimals)',
+  'error InvalidAssetParameters(uint256 assetAmount, address assetTokenAddress)',
+  'error SenderIsNotRouter()',
+  'error SenderIsNotStateManager()',
+  'error InvalidUserOperation()',
+  'error NoUserOperation()',
+  'error PTokenNotCreated(address pTokenAddress)',
+  'error InvalidNetwork(bytes4 networkId)',
+]
+
 const getOperationStatusOfAbi = () => [
   `function operationStatusOf(${userOperationTuple} calldata operation) public view returns (bytes1)`,
 ]
@@ -63,7 +82,6 @@ const logUserOperationFromAbiArgs = (_operationName, _args) => {
 
 const getProtocolQueueOperationAbi = () => getProtocolOperationAbi('protocolQueueOperation')
 const getProtocolExecuteOperationAbi = () => getProtocolOperationAbi('protocolExecuteOperation')
-const getProtocolCancelOperationAbi = () => getProtocolOperationAbi('protocolCancelOperation')
 
 const getUserOperationAbiArgsFromReport = _eventReport => [
   [
@@ -91,6 +109,6 @@ module.exports = {
   logUserOperationFromAbiArgs,
   getProtocolQueueOperationAbi,
   getProtocolExecuteOperationAbi,
-  getProtocolCancelOperationAbi,
   getUserOperationAbiArgsFromReport,
+  getProtocolGuardianCancelOperationAbi,
 }

@@ -10,8 +10,8 @@ const { STATE_TO_BE_DISMISSED_REQUESTS } = require('../state/constants')
 const { callContractFunctionAndAwait } = require('./evm-call-contract-function')
 const {
   logUserOperationFromAbiArgs,
-  getProtocolCancelOperationAbi,
   getUserOperationAbiArgsFromReport,
+  getProtocolGuardianCancelOperationAbi,
 } = require('./evm-abi-manager')
 const { readIdentityFile } = require('../read-identity-file')
 
@@ -52,7 +52,7 @@ const makeDismissalContractCall = R.curry(
         return reject(new Error(`${ERROR_INVALID_EVENT_NAME}: ${eventName}`))
       }
 
-      const abi = getProtocolCancelOperationAbi()
+      const abi = getProtocolGuardianCancelOperationAbi()
       const contractAddress = _stateManager
       const functionName = 'protocolCancelOperation'
       const args = getUserOperationAbiArgsFromReport(_eventReport)
