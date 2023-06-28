@@ -8,6 +8,10 @@ const {
 } = require('./constants')
 const R = require('ramda')
 
+const addDetectedReportsToState = R.curry((_state, _detected) =>
+  R.assoc(STATE_DETECTED_DB_REPORTS, _detected, _state)
+)
+
 const addProposalsReportsToState = R.curry((_state, _proposals) => {
   const proposedReports = _state[STATE_PROPOSED_DB_REPORTS]
   const allProposedTxs =
@@ -43,6 +47,7 @@ const removeFinalizedEventsFromState = removeKeyFromState(STATE_FINALIZED_DB_REP
 const removeDismissedEventsFromState = removeKeyFromState(STATE_DISMISSED_DB_REPORTS)
 
 module.exports = {
+  addDetectedReportsToState,
   addFinalizedEventsToState,
   addProposalsReportsToState,
   addDismissedReportsToState,

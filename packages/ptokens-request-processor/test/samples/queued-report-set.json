@@ -1,6 +1,6 @@
 [
   {
-    "status": "detected",
+    "status": "proposed",
     "eventName": "OperationQueued",
     "nonce": "6648",
     "destinationAccount": "0xdDb5f4535123DAa5aE343c24006F4075aBAF5F7B",
@@ -29,7 +29,7 @@
     "_id": "operationqueued_0x472a0730ed6fee11afda30c2701e8c5a0b8559f17b576c5c6447861e94146f31"
   },
   {
-    "status": "detected",
+    "status": "proposed",
     "eventName": "OperationQueued",
     "nonce": "6648",
     "destinationAccount": "0xdDb5f4535123DAa5aE343c24006F4075aBAF5F7B",
@@ -58,7 +58,7 @@
     "_id": "operationqueued_0x09ef065ad6793a8f76d0cf3e02af4fead0b859d5eb196d1d172570916fd047dd"
   },
   {
-    "status": "detected",
+    "status": "proposed",
     "eventName": "OperationQueued",
     "nonce": "6648",
     "destinationAccount": "0xdDb5f4535123DAa5aE343c24006F4075aBAF5F7B",
@@ -87,7 +87,7 @@
     "_id": "operationqueued_0x0373cb2ceeafd11a18902d21a0edbd7f3651ee3cea09442a12c060115a97bda1"
   },
   {
-    "status": "detected",
+    "status": "proposed",
     "eventName": "OperationQueued",
     "nonce": "6911",
     "destinationAccount": "0xdDb5f4535123DAa5aE343c24006F4075aBAF5F7B",

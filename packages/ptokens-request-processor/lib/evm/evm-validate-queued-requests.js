@@ -16,6 +16,8 @@ const isRequestInvalid = R.curry(
         _request[constants.db.KEY_ID].split('_')[1]
     )
 )
+
+// TODO: rename to getInvalidQueuedOperations
 const filterOutInvalidQueuedRequestsAndPutInState = _state => {
   logger.info('Getting EVM on chain requests and putting in state...')
   const onChainRequests = _state[STATE_QUEUED_DB_REPORTS]

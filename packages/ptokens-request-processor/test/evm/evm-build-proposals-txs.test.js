@@ -53,22 +53,25 @@ describe('Build proposals test for EVM', () => {
       )
 
       expect(mockQueueOperation).toHaveBeenCalledTimes(1)
-      expect(mockQueueOperation).toHaveBeenCalledWith([
-        '0xbaa9e89896c03366c3578a4568a6defd4b127e4b09bb06b67a12cb1a4c332376',
-        '0x0907eefad58dfcb2cbfad66d29accd4d6ddc345851ec1d180b23122084fa2834',
-        '0x0000000000000000000000000000000000000000000000000000000000000000',
-        '6648',
-        18,
-        '1000000000000000000',
-        '0x49a5D1CF92772328Ad70f51894FD632a14dF12C9',
-        '0xe15503e4',
-        '0xe15503e4',
-        '0xe15503e4',
-        '0xdDb5f4535123DAa5aE343c24006F4075aBAF5F7B',
-        'Token',
-        'TKN',
-        '0x',
-      ])
+      expect(mockQueueOperation).toHaveBeenCalledWith(
+        [
+          '0xbaa9e89896c03366c3578a4568a6defd4b127e4b09bb06b67a12cb1a4c332376',
+          '0x0907eefad58dfcb2cbfad66d29accd4d6ddc345851ec1d180b23122084fa2834',
+          '0x0000000000000000000000000000000000000000000000000000000000000000',
+          '6648',
+          18,
+          '1000000000000000000',
+          '0x49a5D1CF92772328Ad70f51894FD632a14dF12C9',
+          '0xe15503e4',
+          '0xe15503e4',
+          '0xe15503e4',
+          '0xdDb5f4535123DAa5aE343c24006F4075aBAF5F7B',
+          'Token',
+          'TKN',
+          '0x',
+        ],
+        { value: 1 }
+      )
       expect(result).toStrictEqual({
         ...eventReport,
         [constants.db.KEY_STATUS]: constants.db.txStatus.PROPOSED,
@@ -76,43 +79,6 @@ describe('Build proposals test for EVM', () => {
         [constants.db.KEY_PROPOSAL_TS]: expect.any(String),
       })
     })
-
-    // it('Should handle the timeout error correctly', async () => {
-    //   const ethers = require('ethers')
-
-    //   const mockProtocolQueueOperation = jest.fn().mockResolvedValue({
-    //     wait: jest
-    //       .fn()
-    //       .mockImplementation(() => logic.sleepForXMilliseconds(1000)),
-    //   })
-
-    //   jest
-    //     .spyOn(ethers, 'Contract')
-    //     .mockImplementation(
-    //       jestMockContractConstructor(
-    //         'protocolQueueOperation',
-    //         mockProtocolQueueOperation
-    //       )
-    //     )
-
-    //   const {
-    //     makeProposalContractCall,
-    //   } = require('../../lib/evm/evm-build-proposals-txs')
-
-    //   const wallet = ethers.Wallet.createRandom()
-    //   const stateManagerAddress = '0xC8E4270a6EF24B67eD38046318Fc8FC2d312f73C'
-
-    //   await validation.validateJson(constants.db.schemas.eventReport, eventReport)
-
-    //   const txTimeout = 100 //ms
-    //   const result = await makeProposalContractCall(
-    //     wallet,
-    //     stateManagerAddress,
-    //     txTimeout,
-    //     eventReport
-    //   )
-    //   expect(result).toStrictEqual(eventReport)
-    // })
   })
 
   describe('buildProposalsTxsAndPutInState', () => {
@@ -193,6 +159,7 @@ describe('Build proposals test for EVM', () => {
             'TKN',
             '0x',
           ],
+          { value: 1 },
         ],
         expect.anything(),
         1000
@@ -217,6 +184,7 @@ describe('Build proposals test for EVM', () => {
             'TKN',
             '0x',
           ],
+          { value: 1 },
         ],
         expect.anything(),
         1000
@@ -318,6 +286,7 @@ describe('Build proposals test for EVM', () => {
             'TKN',
             '0x',
           ],
+          { value: 1 },
         ],
         expect.anything(),
         1000
@@ -342,6 +311,7 @@ describe('Build proposals test for EVM', () => {
             'TKN',
             '0x',
           ],
+          { value: 1 },
         ],
         expect.anything(),
         1000
@@ -366,6 +336,7 @@ describe('Build proposals test for EVM', () => {
             'TKN',
             '0x',
           ],
+          { value: 1 },
         ],
         expect.anything(),
         1000
@@ -390,6 +361,7 @@ describe('Build proposals test for EVM', () => {
             'TKN',
             '0x',
           ],
+          { value: 1 },
         ],
         expect.anything(),
         1000

@@ -1,4 +1,3 @@
-const { jestMockContractConstructor } = require('./mock/jest-utils')
 const R = require('ramda')
 const { db, logic } = require('ptokens-utils')
 
@@ -54,6 +53,13 @@ describe('Main EVM flow for transaction proposal tests', () => {
           hash: proposedTxHashes[1],
         },
       ]
+
+      jest.spyOn(logic, 'sleepForXMilliseconds').mockImplementation(_ => Promise.resolve())
+      jest
+        .spyOn(logic, 'sleepThenReturnArg')
+        .mockImplementation(R.curry((_, _r) => Promise.resolve(_r)))
+
+      const mockOperationStatusOf = jest.fn().mockResolvedValue('0x00')
       const mockQueueOperation = jest.fn().mockResolvedValue({
         wait: jest
           .fn()
@@ -61,16 +67,10 @@ describe('Main EVM flow for transaction proposal tests', () => {
           .mockResolvedValueOnce(expectedCallResult[1]),
       })
 
-      jest.spyOn(logic, 'sleepForXMilliseconds').mockImplementation(_ => Promise.resolve())
-      jest
-        .spyOn(logic, 'sleepThenReturnArg')
-        .mockImplementation(R.curry((_, _r) => Promise.resolve(_r)))
-
-      jest
-        .spyOn(ethers, 'Contract')
-        .mockImplementation(
-          jestMockContractConstructor('protocolQueueOperation', mockQueueOperation)
-        )
+      jest.spyOn(ethers, 'Contract').mockImplementation(() => ({
+        protocolQueueOperation: mockQueueOperation,
+        operationStatusOf: mockOperationStatusOf,
+      }))
 
       jest.spyOn(fs, 'readFile').mockResolvedValue(privKey)
 

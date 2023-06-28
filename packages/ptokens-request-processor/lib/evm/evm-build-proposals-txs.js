@@ -46,8 +46,9 @@ const queueOperationErrorHandler = R.curry((resolve, reject, _eventReport, _err)
     return reject(_err)
   }
 })
+
 const makeProposalContractCall = R.curry(
-  (_wallet, _managerContract, _txTimeout, _eventReport) =>
+  (_wallet, _managerAddress, _txTimeout, _eventReport) =>
     new Promise((resolve, reject) => {
       const id = _eventReport[constants.db.KEY_ID]
       const eventName = _eventReport[constants.db.KEY_EVENT_NAME]
@@ -58,8 +59,11 @@ const makeProposalContractCall = R.curry(
 
       const abi = getProtocolQueueOperationAbi()
       const args = getUserOperationAbiArgsFromReport(_eventReport)
+
+      const lockedAmountChallengePeriod = 1
+      args.push({ value: lockedAmountChallengePeriod })
       const functionName = 'protocolQueueOperation'
-      const contract = new ethers.Contract(_managerContract, abi, _wallet)
+      const contract = new ethers.Contract(_managerAddress, abi, _wallet)
 
       logger.info(`Executing _id: ${id}`)
       logUserOperationFromAbiArgs(functionName, args)
@@ -73,12 +77,12 @@ const makeProposalContractCall = R.curry(
 )
 
 const sendProposalTransactions = R.curry(
-  (_eventReports, _manager, _timeOut, _wallet) =>
+  (_eventReports, _managerAddress, _timeOut, _wallet) =>
     logger.info(`Sending proposals w/ address ${_wallet.address}`) ||
     logic
       .executePromisesSequentially(
         _eventReports,
-        makeProposalContractCall(_wallet, _manager, _timeOut)
+        makeProposalContractCall(_wallet, _managerAddress, _timeOut)
       )
       .then(logic.getFulfilledPromisesValues)
 )

@@ -20,6 +20,7 @@ describe('Tests for queued requests detection and dismissal', () => {
     const uri = global.__MONGO_URI__
     const dbName = global.__MONGO_DB_NAME__
     const table = 'test'
+    const privKey = '0xdf57089febbacf7ba0bc227dafbffa9fc08a93fdc68e1e42411a14efcf23656e'
 
     beforeAll(async () => {
       collection = await db.getCollection(uri, dbName, table)
@@ -42,30 +43,41 @@ describe('Tests for queued requests detection and dismissal', () => {
 
     it('Should put invalid transactions to be dismissed into state', async () => {
       const { logic } = require('ptokens-utils')
+      const fs = require('fs/promises')
+      const ethers = require('ethers')
+
+      const expectedCallResult = [
+        {
+          hash: '0xd656ffac17b71e2ea2e24f72cd4c15c909a0ebe1696f8ead388eb268268f1cbf',
+        },
+        {
+          hash: '0x2c7e8870be7643d97699bbcf3396dfb13217ee54a6784abfcacdb1e077fe201f',
+        },
+        {
+          hash: '0xbaa9e89896c03366c3578a4568a6defd4b127e4b09bb06b67a12cb1a4c332376',
+        },
+      ]
 
       jest.spyOn(logic, 'sleepForXMilliseconds').mockImplementation(_ => Promise.resolve())
       jest
         .spyOn(logic, 'sleepThenReturnArg')
         .mockImplementation(R.curry((_, _r) => Promise.resolve(_r)))
 
-      const evmBuildDismissalModule = require('../../lib/evm/evm-build-dismissal-txs')
+      const mockOperationStatusOf = jest.fn().mockResolvedValue('0x01')
+      const mockCancelOperation = jest.fn().mockResolvedValue({
+        wait: jest
+          .fn()
+          .mockResolvedValueOnce(expectedCallResult[0])
+          .mockResolvedValueOnce(expectedCallResult[1])
+          .mockResolvedValueOnce(expectedCallResult[2]),
+      })
 
-      jest.spyOn(evmBuildDismissalModule, 'maybeBuildDismissalTxsAndPutInState').mockImplementation(
-        R.assoc(STATE_DISMISSED_DB_REPORTS, [
-          {
-            ...queuedReports[0],
-            [constants.db.KEY_STATUS]: constants.db.txStatus.CANCELLED,
-          },
-          {
-            ...queuedReports[1],
-            [constants.db.KEY_STATUS]: constants.db.txStatus.CANCELLED,
-          },
-          {
-            ...queuedReports[2],
-            [constants.db.KEY_STATUS]: constants.db.txStatus.CANCELLED,
-          },
-        ])
-      )
+      jest.spyOn(ethers, 'Contract').mockImplementation(() => ({
+        protocolCancelOperation: mockCancelOperation,
+        operationStatusOf: mockOperationStatusOf,
+      }))
+
+      jest.spyOn(fs, 'readFile').mockResolvedValue(privKey)
 
       const {
         maybeProcessNewRequestsAndDismiss,
@@ -89,6 +101,8 @@ describe('Tests for queued requests detection and dismissal', () => {
         [constants.db.KEY_STATUS]: constants.db.txStatus.CANCELLED,
       })
 
+      expect(mockOperationStatusOf).toHaveBeenCalledTimes(4)
+      expect(mockCancelOperation).toHaveBeenCalledTimes(3)
       expect(cancelledReports.map(R.prop(constants.db.KEY_ID))).toStrictEqual([
         queuedReports[0][constants.db.KEY_ID],
         queuedReports[1][constants.db.KEY_ID],
@@ -102,6 +116,12 @@ describe('Tests for queued requests detection and dismissal', () => {
       expect(result).not.toHaveProperty(STATE_TO_BE_DISMISSED_REQUESTS)
       expect(result).not.toHaveProperty(STATE_DISMISSED_DB_REPORTS)
       expect(result).toHaveProperty(constants.state.KEY_IDENTITY_FILE)
+
+      const cancelledEvents = await db.findReports(collection, {
+        [constants.db.KEY_STATUS]: constants.db.txStatus.CANCELLED,
+      })
+
+      expect(cancelledEvents).toHaveLength(3)
     })
   })
 })

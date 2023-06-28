@@ -38,6 +38,10 @@ const getProtocolOperationAbi = _operationName => [
   'error InvalidNetwork(bytes4 networkId)',
 ]
 
+const getOperationStatusOfAbi = () => [
+  `function operationStatusOf(${userOperationTuple} calldata operation) public view returns (bytes1)`,
+]
+
 const logUserOperationFromAbiArgs = (_operationName, _args) => {
   logger.info(`function ${_operationName}([`)
   logger.info(`  bytes32 originBlockHash ${_args[0][0]}`)
@@ -83,6 +87,7 @@ const getUserOperationAbiArgsFromReport = _eventReport => [
 ]
 
 module.exports = {
+  getOperationStatusOfAbi,
   logUserOperationFromAbiArgs,
   getProtocolQueueOperationAbi,
   getProtocolExecuteOperationAbi,

@@ -48,6 +48,7 @@ const maybeUpdateFinalizedEventsInDb = maybeUpdateEventsInDb(STATE_FINALIZED_DB_
 const maybeUpdateDismissedEventsInDb = maybeUpdateEventsInDb(STATE_DISMISSED_DB_REPORTS)
 
 module.exports = {
+  updateEventInDb,
   maybeUpdateProposedEventsInDb,
   maybeUpdateFinalizedEventsInDb,
   maybeUpdateDismissedEventsInDb,
