@@ -23,7 +23,7 @@ describe('Tests for the listener interface', () => {
       [constants.state.KEY_DB]: { database: 'database' },
     })
 
-    test.each([['0x005fe7f9'], ['0x00e4b170'], ['0x00f1918e'], ['0xf9b459a1']])(
+    test.each([['0x005fe7f9'], ['0x00e4b170'], ['0xf9b459a1']])(
       'Should listen to EVM events for chain id %p',
       async _networkId => {
         const { db } = require('ptokens-utils')

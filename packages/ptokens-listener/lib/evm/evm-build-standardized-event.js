@@ -37,7 +37,11 @@ const bitIntToString = R.tryCatch(_n => _n.toString(), R.always(null))
 
 const addEventName = _eventLog => R.assoc(constants.db.KEY_EVENT_NAME, _eventLog.name)
 
-const setStatusToDetected = R.assoc(constants.db.KEY_STATUS, constants.db.txStatus.DETECTED)
+const setCorrectStatus = R.curry((_parsedLog, _obj) =>
+  _parsedLog.name === constants.db.eventNames.QUEUED_OPERATION
+    ? R.assoc(constants.db.KEY_STATUS, constants.db.txStatus.PROPOSED, _obj)
+    : R.assoc(constants.db.KEY_STATUS, constants.db.txStatus.DETECTED, _obj)
+)
 
 const addFieldFromEventArgs = (_eventValue, _destKey, _conversionFunction, _standardEvent) =>
   logger.debug(`Adding ${_eventValue} to "${_destKey}"`) ||
@@ -65,7 +69,7 @@ const maybeAddFieldFromEventArgs = R.curry(
 
 const addInfoFromParsedLog = (_parsedLog, _obj) =>
   Promise.resolve(_obj)
-    .then(setStatusToDetected)
+    .then(setCorrectStatus(_parsedLog))
     .then(addEventName(_parsedLog))
     .then(
       maybeAddFieldFromEventArgs(_parsedLog.args, ['nonce'], constants.db.KEY_NONCE, bitIntToString)

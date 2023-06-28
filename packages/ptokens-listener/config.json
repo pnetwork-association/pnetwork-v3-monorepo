@@ -1,19 +1,19 @@
 {
-  "chain-name": "telos",
-  "chain-type": "eos",
-  "chain-id": "0x0",
+  "chain-type": "EVM",
+  "network-id": "0xfc8ebb2b",
+  "chain-name": "arbitrum",
+  "provider-url": "https://twilight-multi-shadow.arbitrum-mainnet.quiknode.pro/547666915375cbcc1df5ccf1d4c505c641839a3a/",
   "events": [
     {
-      "name": "redeem",
-      "contracts": ["btc.ptokens", "ltc.ptokens"]
-    },
-    {
-      "name": "pegin",
-      "contracts": ["xbsc.ptokens"]
+      "contracts": [
+        "0xf84552a4B276B47718b8E25E8151eF749D64C4A6"
+      ],
+      "name": "OperationQueued(tuple(bytes32 originBlockHash, bytes32 originTransactionHash, bytes32 optionsMask, uint256 nonce, uint256 underlyingAssetDecimals, uint256 amount, address underlyingAssetTokenAddress, bytes4 originNetworkId, bytes4 destinationNetworkId, bytes4 underlyingAssetNetworkId, string destinationAccount, string underlyingAssetName, string underlyingAssetSymbol, bytes userData) operation)"
     }
   ],
   "db": {
-    "url": "127.0.0.1"
-  },
-  "provider-url": "provider-url"
+    "name": "pnetwork",
+    "table-events": "events",
+    "url": "mongodb://localhost:27017"
+  }
 }
