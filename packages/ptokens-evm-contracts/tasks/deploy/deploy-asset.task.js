@@ -98,4 +98,9 @@ task(TASK_NAME_DEPLOY_ASSET, TASK_DESC_DEPLOY_ASSET, deployAssetTask)
 
 module.exports = {
   attachToUnderlyingAsset,
+  addNewUnderlyingAssetToConfig,
+  TASK_PARAM_NAME,
+  TASK_PARAM_SYMBOL,
+  TASK_PARAM_DECIMALS,
+  TASK_PARAM_TOTAL_SUPPLY,
 }

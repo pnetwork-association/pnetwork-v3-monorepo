@@ -188,4 +188,7 @@ task(TASK_NAME_DEPLOY_PTOKEN, TASK_DESC_DEPLOY_PTOKEN, deployPTokenTask)
 module.exports = {
   getUnderlyingAsset,
   deployPToken,
+  saveConfigurationEntry,
+  TASK_PARAM_UNDERLYING_ASSET_ADDRESS,
+  TASK_PARAM_UNDERLYING_ASSET_CHAIN_NAME,
 }

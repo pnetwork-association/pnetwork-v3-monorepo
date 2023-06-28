@@ -115,5 +115,6 @@ subtask(TASK_NAME_DEPLOY_CONTRACT, TASK_DESC_DEPLOY_CONTRACT)
   .setAction(deployContractTask)
 
 module.exports = {
+  createConfigEntryFromTaskArgs,
   TASK_NAME_DEPLOY_CONTRACT,
 }
