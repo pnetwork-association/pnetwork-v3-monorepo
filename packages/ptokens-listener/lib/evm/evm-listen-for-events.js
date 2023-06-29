@@ -11,6 +11,9 @@ const { processEventLog } = require('./evm-process-event-log')
 
 const listenFromFilter = (_providerUrl, _networkId, _filter, _interface, _callback) =>
   logger.info(`Listening for event from ${_filter.address} with topics [${_filter.topics}]`) ||
+  // FIXME: https://github.com/ethers-io/ethers.js/issues/4104
+  // (there should be a way to automatically restart this and not falling into
+  // Error: could not coalesce error (error={ "code": -32000, "message": "filter not found" })
   getEthersProvider(_providerUrl).then(_provider =>
     _provider.on(_filter, processEventLog(_networkId, _interface, _callback))
   )

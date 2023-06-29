@@ -25,6 +25,12 @@ const getListenerForBlockchainType = _blockchainType => {
   }
 }
 
+process.on('unhandledRejection', (reason, p) => {
+  logger.error('Unhandled Rejection at: Promise', p, 'reason:', reason)
+  // application specific logging, throwing an error, or other logic here
+  process.exit(1)
+})
+
 const listenForEvents = _state =>
   utils
     .getBlockchainTypeFromChainId(_state[constants.state.KEY_NETWORK_ID])
