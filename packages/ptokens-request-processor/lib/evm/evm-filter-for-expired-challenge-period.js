@@ -1,69 +1,78 @@
 const R = require('ramda')
-const errors = require('../errors')
+const ethers = require('ethers')
 const constants = require('ptokens-constants')
 const { utils } = require('ptokens-utils')
 const { logger } = require('../get-logger')
+const { getChallengePeriodOfAbi, getUserOperationAbiArgsFromReport } = require('./evm-abi-manager')
 const { STATE_PROPOSED_DB_REPORTS } = require('../state/constants')
 
-const getExpirationDate = R.curry(
-  (_challengePeriod, _proposedEventTimestamp) =>
-    new Promise((resolve, reject) =>
-      utils.isNotNil(_proposedEventTimestamp)
-        ? resolve(utils.date.addMinutesToDate(_challengePeriod, new Date(_proposedEventTimestamp)))
-        : reject(
-            new Error(`${errors.ERROR_INVALID_PROPOSED_TIMESTAMP} '${_proposedEventTimestamp}'`)
-          )
-    )
-)
+const ERROR_OPERATION_NOT_EXPIRED = 'Not over basic challenge period'
 
-const getEventProposedTimestamp = _event =>
-  Promise.resolve(R.prop(constants.db.KEY_PROPOSAL_TS, _event))
-
-const getCurrentDate = () => new Date()
-
-const isChallengePeriodExpired = R.curry((_challengePeriod, _proposedEvent) =>
-  getEventProposedTimestamp(_proposedEvent)
-    .then(getExpirationDate(_challengePeriod))
-    .then(_expirationDate => {
-      const now = getCurrentDate()
+const returnEventIfExpiredChallengePeriod = R.curry(
+  (_proposedEvent, _expirationDate) =>
+    new Promise(resolve => {
+      const now = new Date()
       const slicedTxHash = _proposedEvent[constants.db.KEY_TX_HASH].slice(0, 10)
-      logger.debug('%s: %s > %s => %s', slicedTxHash, now, _expirationDate, now > _expirationDate)
-      return now > _expirationDate ? _proposedEvent : null
+      const isExpired = now > _expirationDate
+      logger.debug('%s: %s > %s => %s', slicedTxHash, now, _expirationDate, isExpired)
+      return isExpired ? resolve(_proposedEvent) : resolve(null)
     })
-    .catch(_err =>
-      _err.message === errors.ERROR_INVALID_PROPOSED_TIMESTAMP
-        ? // FIXME: use schemas to access key _id
-          logger.warn(
-            `Anomaly: detected ${_proposedEvent['_id']} with timestamp is Nil, skipping...`
-          ) || Promise.resolve(null)
-        : Promise.reject(_err)
-    )
 )
 
-const keepExpiredProposedEvents = R.curry(
-  (_challengePeriod, _proposedEvents) =>
-    logger.info(`Checking ${R.length(_proposedEvents)} events for expiration...`) ||
-    Promise.all(_proposedEvents.map(isChallengePeriodExpired(_challengePeriod))).then(
-      utils.removeNilsFromList
-    )
+const maybeGetExpirationDate = (
+  _stateManagerContract,
+  _basicChallengePeriodMinutes,
+  _proposedEvent
+) =>
+  Promise.resolve(new Date(_proposedEvent[constants.db.KEY_PROPOSAL_TS]))
+    .then(utils.date.addMinutesToDate(_basicChallengePeriodMinutes))
+    .then(_basicExpirationTimestamp => {
+      const now = new Date()
+      const slicedTxHash = _proposedEvent[constants.db.KEY_TX_HASH].slice(0, 10)
+      const checkChallengePeriodOnChain = now > _basicExpirationTimestamp
+      if (!checkChallengePeriodOnChain) {
+        logger.debug(
+          '%s: %s > %s (basic) => %s (skipping)',
+          slicedTxHash,
+          now,
+          _basicExpirationTimestamp,
+          checkChallengePeriodOnChain
+        )
+        return Promise.reject(new Error(ERROR_OPERATION_NOT_EXPIRED))
+      }
+
+      return Promise.resolve(getUserOperationAbiArgsFromReport(_proposedEvent)).then(_args =>
+        _stateManagerContract.challengePeriodOf(..._args)
+      )
+    })
+
+const checkIfOperationIsExpiredOrReject = _err =>
+  _err.message.includes(ERROR_OPERATION_NOT_EXPIRED) ? Promise.resolve(null) : Promise.reject(_err)
+
+const isOperationExpired = R.curry((_stateManagerContract, _basicChallengePeriod, _proposedEvent) =>
+  maybeGetExpirationDate(_stateManagerContract, _basicChallengePeriod, _proposedEvent)
+    .then(([_, _endTs]) => parseInt(_endTs))
+    .then(_endTs => new Date(_endTs))
+    .then(returnEventIfExpiredChallengePeriod(_proposedEvent))
+    .catch(checkIfOperationIsExpiredOrReject)
 )
 
 const filterForExpiredProposalsAndPutThemInState = _state =>
-  new Promise((resolve, reject) => {
-    const challengePeriod = _state[constants.state.KEY_CHALLENGE_PERIOD]
+  new Promise(resolve => {
+    const abi = getChallengePeriodOfAbi()
+    const providerUrl = _state[constants.state.KEY_PROVIDER_URL]
+    const provider = new ethers.JsonRpcProvider(providerUrl)
     const proposedEvents = _state[STATE_PROPOSED_DB_REPORTS] || []
+    const stateManagerAddress = _state[constants.state.KEY_STATE_MANAGER_ADDRESS]
+    const stateManager = new ethers.Contract(stateManagerAddress, abi, provider)
+    const basicChallengePeriod = _state[constants.state.KEY_CHALLENGE_PERIOD]
 
-    if (R.isNil(challengePeriod)) {
-      return reject(
-        new Error(`Invalid value for '${constants.state.KEY_CHALLENGE_PERIOD}': ${challengePeriod}`)
-      )
-    }
-
-    return keepExpiredProposedEvents(challengePeriod, proposedEvents)
+    return Promise.all(proposedEvents.map(isOperationExpired(stateManager, basicChallengePeriod)))
+      .then(utils.removeNilsFromList)
       .then(
-        _filteredReports =>
-          logger.info(`Found ${R.length(_filteredReports)} expired events...`) ||
-          R.assoc(STATE_PROPOSED_DB_REPORTS, _filteredReports, _state)
+        _expiredOperations =>
+          logger.info(`Found ${R.length(_expiredOperations)} expired events...`) ||
+          R.assoc(STATE_PROPOSED_DB_REPORTS, _expiredOperations, _state)
       )
       .then(resolve)
   })

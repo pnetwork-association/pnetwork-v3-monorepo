@@ -34,7 +34,7 @@ const addFinalizedTxHashToEvent = R.curry((_event, _finalizedTxHash) => {
 const executeOperationErrorHandler = R.curry((resolve, reject, _eventReport, _err) =>
   _err.message.includes(errors.ERROR_OPERATION_ALREADY_EXECUTED)
     ? resolve(addFinalizedTxHashToEvent(_eventReport, '0x'))
-    : resolve(addErrorToEvent(_eventReport, _err))
+    : logger.error(_err) || resolve(addErrorToEvent(_eventReport, _err))
 )
 
 const makeFinalContractCall = R.curry(
@@ -51,12 +51,12 @@ const makeFinalContractCall = R.curry(
       const contractAddress = _stateManager
       const functionName = 'protocolExecuteOperation'
       const args = getUserOperationAbiArgsFromReport(_eventReport)
-      const contract = new ethers.Contract(contractAddress, abi, _wallet)
+      const stateManager = new ethers.Contract(contractAddress, abi, _wallet)
 
       logger.info(`Executing _id: ${id}`)
       logUserOperationFromAbiArgs(functionName, args)
 
-      return callContractFunctionAndAwait(functionName, args, contract, _txTimeout)
+      return callContractFunctionAndAwait(functionName, args, stateManager, _txTimeout)
         .then(R.prop(constants.evm.ethers.KEY_TX_HASH))
         .then(addFinalizedTxHashToEvent(_eventReport))
         .then(resolve)

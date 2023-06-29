@@ -1,4 +1,3 @@
-const { jestMockContractConstructor } = require('./mock/jest-utils')
 const {
   STATE_ONCHAIN_REQUESTS,
   STATE_DETECTED_DB_REPORTS,
@@ -64,16 +63,23 @@ describe('Main EVM flow for transaction proposal tests', () => {
           .mockResolvedValueOnce(expectedCallResults[1]),
       })
 
+      const mockChallengePeriodOf = jest
+        .fn()
+        .mockResolvedValueOnce([1680615440000, 1680616620000])
+        .mockResolvedValueOnce([1680615440000, 1680619040000])
+        .mockResolvedValueOnce([1680615440000, 1680622640000])
+        .mockResolvedValueOnce([1680615440000, 1680616620000])
+        .mockResolvedValueOnce([1680615440000, 1680616620000])
+
       jest.spyOn(logic, 'sleepForXMilliseconds').mockImplementation(_ => Promise.resolve())
       jest
         .spyOn(logic, 'sleepThenReturnArg')
         .mockImplementation(R.curry((_, _r) => Promise.resolve(_r)))
 
-      jest
-        .spyOn(ethers, 'Contract')
-        .mockImplementation(
-          jestMockContractConstructor('protocolExecuteOperation', mockExecuteOperation)
-        )
+      jest.spyOn(ethers, 'Contract').mockImplementation(() => ({
+        protocolExecuteOperation: mockExecuteOperation,
+        challengePeriodOf: mockChallengePeriodOf,
+      }))
 
       jest.spyOn(fs, 'readFile').mockResolvedValue(privKey)
 

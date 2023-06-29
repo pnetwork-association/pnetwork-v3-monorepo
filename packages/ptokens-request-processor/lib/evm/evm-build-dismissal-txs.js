@@ -32,7 +32,7 @@ const cancelOperationErrorHandler = R.curry((resolve, reject, _eventReport, _err
   _err.message.includes(errors.ERROR_OPERATION_NOT_QUEUED) ||
   _err.message.includes(errors.ERROR_CHALLENGE_PERIOD_TERMINATED)
     ? resolve(addCancelledTxHashToEvent(_eventReport, '0x'))
-    : resolve(addErrorToEvent(_eventReport, _err))
+    : logger.error(_err) || resolve(addErrorToEvent(_eventReport, _err))
 )
 
 const makeDismissalContractCall = R.curry(

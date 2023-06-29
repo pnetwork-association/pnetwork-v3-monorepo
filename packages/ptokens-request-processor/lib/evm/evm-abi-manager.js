@@ -78,6 +78,13 @@ const getOperationStatusOfAbi = () => {
   return R.concat(abi, stataManagerErrors)
 }
 
+const getChallengePeriodOfAbi = () => {
+  const abi = [
+    `function challengePeriodOf(${userOperationTuple} calldata operation) public view returns (uint64, uint64)`,
+  ]
+  return R.concat(abi, stataManagerErrors)
+}
+
 const logUserOperationFromAbiArgs = (_operationName, _args) => {
   logger.info(`function ${_operationName}([`)
   logger.info(`  bytes32 originBlockHash ${_args[0][0]}`)
@@ -123,6 +130,7 @@ const getUserOperationAbiArgsFromReport = _eventReport => [
 
 module.exports = {
   getOperationStatusOfAbi,
+  getChallengePeriodOfAbi,
   logUserOperationFromAbiArgs,
   getProtocolQueueOperationAbi,
   getProtocolExecuteOperationAbi,
