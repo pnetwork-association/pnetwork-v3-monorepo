@@ -1,10 +1,11 @@
-const ethers = require('ethers')
-
-const constants = require('ptokens-constants')
-const { logger } = require('../get-logger')
-const { logic, errors } = require('ptokens-utils')
-const { ERROR_INVALID_EVENT_NAME, ERROR_OPERATION_ALREADY_EXECUTED } = require('../errors')
 const R = require('ramda')
+const ethers = require('ethers')
+const errors = require('../errors')
+const constants = require('ptokens-constants')
+const { logic } = require('ptokens-utils')
+const { logger } = require('../get-logger')
+const { addErrorToEvent } = require('../add-error-to-event')
+const { readIdentityFile } = require('../read-identity-file')
 const { addFinalizedEventsToState } = require('../state/state-operations.js')
 const { STATE_PROPOSED_DB_REPORTS } = require('../state/constants')
 const {
@@ -16,7 +17,6 @@ const {
   getProtocolExecuteOperationAbi,
   getUserOperationAbiArgsFromReport,
 } = require('./evm-abi-manager')
-const { readIdentityFile } = require('../read-identity-file')
 
 // TODO: factor out (check evm-build-proposals-txs)
 const addFinalizedTxHashToEvent = R.curry((_event, _finalizedTxHash) => {
@@ -31,19 +31,11 @@ const addFinalizedTxHashToEvent = R.curry((_event, _finalizedTxHash) => {
   return Promise.resolve(_event)
 })
 
-const executeOperationErrorHandler = R.curry((resolve, reject, _eventReport, _err) => {
-  const reportId = _eventReport[constants.db.KEY_ID]
-  if (_err.message.includes(errors.ERROR_TIMEOUT)) {
-    logger.error(`Tx for ${reportId} failed:`, _err.message)
-    return reject(_eventReport)
-  } else if (_err.message.includes(ERROR_OPERATION_ALREADY_EXECUTED)) {
-    logger.error(`Tx for ${reportId} has already been executed`)
-    return resolve(addFinalizedTxHashToEvent(_eventReport, '0x'))
-  } else {
-    logger.error(`Tx for ${reportId} failed with error: ${_err.message}`)
-    return reject(_err)
-  }
-})
+const executeOperationErrorHandler = R.curry((resolve, reject, _eventReport, _err) =>
+  _err.message.includes(errors.ERROR_OPERATION_ALREADY_EXECUTED)
+    ? resolve(addFinalizedTxHashToEvent(_eventReport, '0x'))
+    : resolve(addErrorToEvent(_eventReport, _err))
+)
 
 const makeFinalContractCall = R.curry(
   (_wallet, _stateManager, _txTimeout, _eventReport) =>
@@ -52,7 +44,7 @@ const makeFinalContractCall = R.curry(
       const eventName = _eventReport[constants.db.KEY_EVENT_NAME]
 
       if (!R.includes(eventName, R.values(constants.db.eventNames))) {
-        return reject(new Error(`${ERROR_INVALID_EVENT_NAME}: ${eventName}`))
+        return reject(new Error(`${errors.ERROR_INVALID_EVENT_NAME}: ${eventName}`))
       }
 
       const abi = getProtocolExecuteOperationAbi()
@@ -72,16 +64,17 @@ const makeFinalContractCall = R.curry(
     })
 )
 
-const sendFinalTransactions = R.curry(
-  (_eventReports, _stateManager, _timeOut, _wallet) =>
-    logger.info(`Sending final txs w/ address ${_wallet.address}`) ||
-    logic
-      .executePromisesSequentially(
-        _eventReports,
-        makeFinalContractCall(_wallet, _stateManager, _timeOut)
-      )
-      .then(logic.getFulfilledPromisesValues)
-)
+const sendFinalTransactions = R.curry(async (_eventReports, _stateManager, _timeOut, _wallet) => {
+  logger.info(`Sending final txs w/ address ${_wallet.address}`)
+  const newReports = []
+  for (const report of _eventReports) {
+    const newReport = await makeFinalContractCall(_wallet, _stateManager, _timeOut, report)
+    newReports.push(newReport)
+    await logic.sleepForXMilliseconds(1000) // TODO: make configurable
+  }
+
+  return newReports
+})
 
 // TODO: function very similar to the one for building proposals...factor out?
 const buildFinalTxsAndPutInState = _state =>

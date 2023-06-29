@@ -33,11 +33,11 @@ const addProposedTxHashToEvent = R.curry(
     })
 )
 
-const queueOperationErrorHandler = R.curry((resolve, reject, _eventReport, _err) => {
+const queueOperationErrorHandler = R.curry((resolve, reject, _eventReport, _err) =>
   _err.message.includes(errors.ERROR_OPERATION_ALREADY_QUEUED)
     ? resolve(addProposedTxHashToEvent(_eventReport, '0x'))
     : resolve(addErrorToEvent(_eventReport, _err))
-})
+)
 
 const makeProposalContractCall = R.curry(
   (_wallet, _managerAddress, _txTimeout, _eventReport) =>
