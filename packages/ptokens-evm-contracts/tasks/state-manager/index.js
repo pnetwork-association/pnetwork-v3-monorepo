@@ -1,8 +1,9 @@
 const { types } = require('hardhat/config')
-const protocolExecute = require('./protocol-execute.task')
+const statusOf = require('./protocol-status-of.task')
 const protocolQueue = require('./protocol-queue.task')
 const protocolCancel = require('./protocol-cancel.task')
-const getProperties = require('./get-properties')
+const protocolExecute = require('./protocol-execute.task')
+const getProperties = require('./protocol-get-properties.task')
 const {
   TASK_PARAM_GASPRICE,
   TASK_PARAM_GASLIMIT,
@@ -20,8 +21,9 @@ const setCommonOptionalParams = () =>
 setCommonOptionalParams()
 
 module.exports = {
-  ...protocolExecute,
+  ...statusOf,
   ...getProperties,
   ...protocolQueue,
   ...protocolCancel,
+  ...protocolExecute,
 }
