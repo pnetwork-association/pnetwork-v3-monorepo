@@ -41,21 +41,21 @@ const maybeGetExpirationDate = (
         return Promise.reject(new Error(ERROR_OPERATION_NOT_EXPIRED))
       }
 
-      return Promise.resolve(getUserOperationAbiArgsFromReport(_proposedEvent)).then(_args =>
-        _stateManagerContract.challengePeriodOf(..._args)
-      )
+      return Promise.resolve(getUserOperationAbiArgsFromReport(_proposedEvent))
+        .then(_args => _stateManagerContract.challengePeriodOf(..._args))
+        .then(([_, _endTs]) => parseInt(_endTs))
+        .then(R.multiply(1000)) // We need the ts in ms
+        .then(_endTs => new Date(_endTs))
     })
 
 const checkIfOperationIsExpiredOrReject = _err =>
   _err.message.includes(ERROR_OPERATION_NOT_EXPIRED) ? Promise.resolve(null) : Promise.reject(_err)
 
-const isOperationExpired = R.curry((_stateManagerContract, _basicChallengePeriod, _proposedEvent) =>
+const isOperationExpired = (_stateManagerContract, _basicChallengePeriod, _proposedEvent) =>
+  logger.debug(`Checking expiration of ${_proposedEvent[constants.db.KEY_ID]}...`) ||
   maybeGetExpirationDate(_stateManagerContract, _basicChallengePeriod, _proposedEvent)
-    .then(([_, _endTs]) => parseInt(_endTs))
-    .then(_endTs => new Date(_endTs))
     .then(returnEventIfExpiredChallengePeriod(_proposedEvent))
     .catch(checkIfOperationIsExpiredOrReject)
-)
 
 const filterForExpiredProposalsAndPutThemInState = _state =>
   new Promise(resolve => {
@@ -67,7 +67,10 @@ const filterForExpiredProposalsAndPutThemInState = _state =>
     const stateManager = new ethers.Contract(stateManagerAddress, abi, provider)
     const basicChallengePeriod = _state[constants.state.KEY_CHALLENGE_PERIOD]
 
-    return Promise.all(proposedEvents.map(isOperationExpired(stateManager, basicChallengePeriod)))
+    logger.info(`Checking if ${proposedEvents.length} have expired...`)
+    return Promise.all(
+      proposedEvents.map(_report => isOperationExpired(stateManager, basicChallengePeriod, _report))
+    )
       .then(utils.removeNilsFromList)
       .then(
         _expiredOperations =>

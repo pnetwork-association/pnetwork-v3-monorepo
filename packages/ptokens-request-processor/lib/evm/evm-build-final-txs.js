@@ -31,11 +31,17 @@ const addFinalizedTxHashToEvent = R.curry((_event, _finalizedTxHash) => {
   return Promise.resolve(_event)
 })
 
-const executeOperationErrorHandler = R.curry((resolve, reject, _eventReport, _err) =>
-  _err.message.includes(errors.ERROR_OPERATION_ALREADY_EXECUTED)
-    ? resolve(addFinalizedTxHashToEvent(_eventReport, '0x'))
-    : logger.error(_err) || resolve(addErrorToEvent(_eventReport, _err))
-)
+const executeOperationErrorHandler = R.curry((resolve, reject, _eventReport, _err) => {
+  if (_err.message.includes(errors.ERROR_OPERATION_ALREADY_EXECUTED)) {
+    return resolve(addFinalizedTxHashToEvent(_eventReport, '0x'))
+  } else if (_err.message.includes(errors.ERROR_CHALLENGE_PERIOD_NOT_TERMINATED)) {
+    logger.error(_err.message)
+    return resolve(null)
+  } else {
+    logger.error(_err)
+    return resolve(addErrorToEvent(_eventReport, _err))
+  }
+})
 
 const makeFinalContractCall = R.curry(
   (_wallet, _stateManager, _txTimeout, _eventReport) =>
@@ -69,7 +75,8 @@ const sendFinalTransactions = R.curry(async (_eventReports, _stateManager, _time
   const newReports = []
   for (const report of _eventReports) {
     const newReport = await makeFinalContractCall(_wallet, _stateManager, _timeOut, report)
-    newReports.push(newReport)
+    // If null, means there was an handled error which we need to retry later
+    if (newReport !== null) newReports.push(newReport)
     await logic.sleepForXMilliseconds(1000) // TODO: make configurable
   }
 

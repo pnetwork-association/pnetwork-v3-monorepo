@@ -6,6 +6,7 @@ module.exports = {
   ERROR_OPERATION_ALREADY_QUEUED: 'OperationAlreadyQueued',
   ERROR_OPERATION_ALREADY_EXECUTED: 'OperationAlreadyExecuted',
   ERROR_CHALLENGE_PERIOD_TERMINATED: 'ChallengePeriodTerminated',
+  ERROR_CHALLENGE_PERIOD_NOT_TERMINATED: 'ChallengePeriodNotTerminated',
   ERROR_REPLACEMENT_UNDERPRICED: 'replacement transaction underpriced',
   ERROR_INVALID_PROPOSED_TIMESTAMP: 'Invalid proposed timestamp',
 }

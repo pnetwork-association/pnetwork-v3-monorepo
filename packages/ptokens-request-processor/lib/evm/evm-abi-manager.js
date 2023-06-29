@@ -105,7 +105,19 @@ const logUserOperationFromAbiArgs = (_operationName, _args) => {
 }
 
 const getLockedAmountChallengePeriodAbi = () => [
-  'function lockedAmountChallengePeriod() public view return (uint256)',
+  {
+    inputs: [],
+    name: 'lockedAmountChallengePeriod',
+    outputs: [
+      {
+        internalType: 'uint256',
+        name: '',
+        type: 'uint256',
+      },
+    ],
+    stateMutability: 'view',
+    type: 'function',
+  },
 ]
 
 const getProtocolQueueOperationAbi = () => getProtocolOperationAbi('protocolQueueOperation')

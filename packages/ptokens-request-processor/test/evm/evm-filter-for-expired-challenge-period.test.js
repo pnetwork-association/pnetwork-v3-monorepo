@@ -16,11 +16,11 @@ describe('Challenge period expired report filtering', () => {
 
       const mockChallengePeriodOf = jest
         .fn()
-        .mockResolvedValueOnce([1680615440000, 1680616620000])
-        .mockResolvedValueOnce([1680615440000, 1680619040000])
-        .mockResolvedValueOnce([1680615440000, 1680622640000])
-        .mockResolvedValueOnce([1680615440000, 1680616620000])
-        .mockResolvedValueOnce([1680615440000, 1680616620000])
+        .mockResolvedValueOnce([1680615440, 1680616620])
+        .mockResolvedValueOnce([1680615440, 1680619040])
+        .mockResolvedValueOnce([1680615440, 1680622640])
+        .mockResolvedValueOnce([1680615440, 1680616620])
+        .mockResolvedValueOnce([1680615440, 1680616620])
 
       jest.useFakeTimers({ now: Date.parse(now) })
       jest

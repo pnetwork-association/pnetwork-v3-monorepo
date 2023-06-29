@@ -65,11 +65,11 @@ describe('Main EVM flow for transaction proposal tests', () => {
 
       const mockChallengePeriodOf = jest
         .fn()
-        .mockResolvedValueOnce([1680615440000, 1680616620000])
-        .mockResolvedValueOnce([1680615440000, 1680619040000])
-        .mockResolvedValueOnce([1680615440000, 1680622640000])
-        .mockResolvedValueOnce([1680615440000, 1680616620000])
-        .mockResolvedValueOnce([1680615440000, 1680616620000])
+        .mockResolvedValueOnce([1680615440, 1680616620])
+        .mockResolvedValueOnce([1680615440, 1680619040])
+        .mockResolvedValueOnce([1680615440, 1680622640])
+        .mockResolvedValueOnce([1680615440, 1680616620])
+        .mockResolvedValueOnce([1680615440, 1680616620])
 
       jest.spyOn(logic, 'sleepForXMilliseconds').mockImplementation(_ => Promise.resolve())
       jest
