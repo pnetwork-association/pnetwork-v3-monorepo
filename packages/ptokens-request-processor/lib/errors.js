@@ -7,4 +7,5 @@ module.exports = {
   ERROR_OPERATION_ALREADY_EXECUTED: 'OperationAlreadyExecuted',
   ERROR_CHALLENGE_PERIOD_TERMINATED: 'ChallengePeriodTerminated',
   ERROR_REPLACEMENT_UNDERPRICED: 'replacement transaction underpriced',
+  ERROR_INVALID_PROPOSED_TIMESTAMP: 'Invalid proposed timestamp',
 }

@@ -1,18 +1,18 @@
+const R = require('ramda')
+const errors = require('../errors')
 const constants = require('ptokens-constants')
-
 const { utils } = require('ptokens-utils')
 const { logger } = require('../get-logger')
-const R = require('ramda')
 const { STATE_PROPOSED_DB_REPORTS } = require('../state/constants')
-
-const ERROR_INVALID_PROPOSED_TIMESTAMP = 'Invalid proposed timestamp!'
 
 const getExpirationDate = R.curry(
   (_challengePeriod, _proposedEventTimestamp) =>
     new Promise((resolve, reject) =>
       utils.isNotNil(_proposedEventTimestamp)
         ? resolve(utils.date.addMinutesToDate(_challengePeriod, new Date(_proposedEventTimestamp)))
-        : reject(ERROR_INVALID_PROPOSED_TIMESTAMP)
+        : reject(
+            new Error(`${errors.ERROR_INVALID_PROPOSED_TIMESTAMP} '${_proposedEventTimestamp}'`)
+          )
     )
 )
 
@@ -31,7 +31,7 @@ const isChallengePeriodExpired = R.curry((_challengePeriod, _proposedEvent) =>
       return now > _expirationDate ? _proposedEvent : null
     })
     .catch(_err =>
-      _err.message === ERROR_INVALID_PROPOSED_TIMESTAMP
+      _err.message === errors.ERROR_INVALID_PROPOSED_TIMESTAMP
         ? // FIXME: use schemas to access key _id
           logger.warn(
             `Anomaly: detected ${_proposedEvent['_id']} with timestamp is Nil, skipping...`
