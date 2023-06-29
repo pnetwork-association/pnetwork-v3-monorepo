@@ -40,7 +40,14 @@ const addNewUnderlyingAssetToConfig = R.curry((taskArgs, hre, _config, _contract
   createUnderlyingAssetConfigurationEntry(taskArgs, _contract)
     .then(R.assoc(KEY_ADDRESS, _contract.address))
     .then(_entry =>
-      updateConfiguration(_config, hre.network.name, KEY_UNDERLYING_ASSET_LIST, _entry)
+      R.not(
+        R.any(
+          R.equals(_entry),
+          R.defaultTo([], _config.get(hre.network.name)[KEY_UNDERLYING_ASSET_LIST])
+        )
+      )
+        ? updateConfiguration(_config, hre.network.name, KEY_UNDERLYING_ASSET_LIST, _entry)
+        : null
     )
     .then(_ => _contract)
 )

@@ -37,14 +37,24 @@ const changeHardhatNetworkAndReturnArg = R.curry((hre, _chainName, _arg) =>
   Promise.resolve(hre.changeNetwork(_chainName)).then(_ => _arg)
 )
 
+const createPtokenAssetEntry = taskArgs =>
+  Promise.resolve({
+    [KEY_PTOKEN_UNDERLYING_ASSET_ADDRESS]: taskArgs[TASK_PARAM_UNDERLYING_ASSET_ADDRESS],
+    [KEY_PTOKEN_UNDERLYING_ASSET_NETWORKID]: taskArgs[TASK_PARAM_UNDERLYING_ASSET_CHAIN_NAME],
+  })
+
 const saveConfigurationEntry = R.curry((hre, taskArgs, _contract) =>
   getConfiguration()
-    .then(_config =>
-      updateConfiguration(_config, hre.network.name, KEY_PTOKEN_LIST, {
-        [KEY_PTOKEN_UNDERLYING_ASSET_ADDRESS]: taskArgs[TASK_PARAM_UNDERLYING_ASSET_ADDRESS],
-        [KEY_PTOKEN_UNDERLYING_ASSET_NETWORKID]: taskArgs[TASK_PARAM_UNDERLYING_ASSET_CHAIN_NAME],
-        [KEY_ADDRESS]: _contract.address,
-      })
+    .then(_config => Promise.all([_config, createPtokenAssetEntry(taskArgs)]))
+    .then(([_config, _entry]) =>
+      Promise.all([_config, R.assoc(KEY_ADDRESS, _contract.address, _entry)])
+    )
+    .then(([_config, _entry]) =>
+      R.not(
+        R.any(R.equals(_entry), R.defaultTo([], _config.get(hre.network.name)[KEY_PTOKEN_LIST]))
+      )
+        ? updateConfiguration(_config, hre.network.name, KEY_PTOKEN_LIST, _entry)
+        : null
     )
     .then(_ => _contract)
 )
