@@ -60,6 +60,7 @@ describe('Main EVM flow for transaction proposal tests', () => {
         .mockImplementation(R.curry((_, _r) => Promise.resolve(_r)))
 
       const mockOperationStatusOf = jest.fn().mockResolvedValue('0x00')
+      const mockLockedAmountChallengePeriod = jest.fn().mockResolvedValue(1)
       const mockQueueOperation = jest.fn().mockResolvedValue({
         wait: jest
           .fn()
@@ -70,6 +71,7 @@ describe('Main EVM flow for transaction proposal tests', () => {
       jest.spyOn(ethers, 'Contract').mockImplementation(() => ({
         protocolQueueOperation: mockQueueOperation,
         operationStatusOf: mockOperationStatusOf,
+        lockedAmountChallengePeriod: mockLockedAmountChallengePeriod,
       }))
 
       jest.spyOn(fs, 'readFile').mockResolvedValue(privKey)
@@ -85,6 +87,7 @@ describe('Main EVM flow for transaction proposal tests', () => {
       } = require('../../lib/evm/evm-process-proposal-txs')
       const result = await maybeProcessNewRequestsAndPropose(state)
 
+      expect(mockLockedAmountChallengePeriod).toHaveBeenCalledTimes(1)
       expect(result).toHaveProperty(constants.state.KEY_DB)
       expect(result).not.toHaveProperty(STATE_ONCHAIN_REQUESTS)
       expect(result).not.toHaveProperty(STATE_DETECTED_DB_REPORTS)

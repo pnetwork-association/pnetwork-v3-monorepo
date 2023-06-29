@@ -14,6 +14,7 @@ const {
   logUserOperationFromAbiArgs,
   getProtocolQueueOperationAbi,
   getUserOperationAbiArgsFromReport,
+  getLockedAmountChallengePeriodAbi,
 } = require('./evm-abi-manager')
 const { readIdentityFile } = require('../read-identity-file')
 const { addErrorToEvent } = require('../add-error-to-event')
@@ -40,7 +41,7 @@ const queueOperationErrorHandler = R.curry((resolve, reject, _eventReport, _err)
 )
 
 const makeProposalContractCall = R.curry(
-  (_wallet, _managerAddress, _txTimeout, _eventReport) =>
+  (_wallet, _managerAddress, _txTimeout, _amountToLock, _eventReport) =>
     new Promise((resolve, reject) => {
       const id = _eventReport[constants.db.KEY_ID]
       const eventName = _eventReport[constants.db.KEY_EVENT_NAME]
@@ -52,12 +53,11 @@ const makeProposalContractCall = R.curry(
       const abi = getProtocolQueueOperationAbi()
       const args = getUserOperationAbiArgsFromReport(_eventReport)
 
-      const lockedAmountChallengePeriod = 1
-      args.push({ value: lockedAmountChallengePeriod })
+      args.push({ value: _amountToLock })
       const functionName = 'protocolQueueOperation'
       const contract = new ethers.Contract(_managerAddress, abi, _wallet)
 
-      logger.info(`Executing _id: ${id}`)
+      logger.info(`Queueing _id: ${id} w/ locked amount ${_amountToLock}`)
       logUserOperationFromAbiArgs(functionName, args)
 
       return callContractFunctionAndAwait(functionName, args, contract, _txTimeout)
@@ -69,11 +69,17 @@ const makeProposalContractCall = R.curry(
 )
 
 const sendProposalTransactions = R.curry(
-  async (_eventReports, _stateManager, _timeOut, _wallet) => {
+  async (_eventReports, _stateManager, _timeOut, _wallet, _amountToLock) => {
     logger.info(`Sending proposals w/ address ${_wallet.address}`)
     const newReports = []
     for (const report of _eventReports) {
-      const newReport = await makeProposalContractCall(_wallet, _stateManager, _timeOut, report)
+      const newReport = await makeProposalContractCall(
+        _wallet,
+        _stateManager,
+        _timeOut,
+        _amountToLock,
+        report
+      )
       newReports.push(newReport)
       await logic.sleepForXMilliseconds(1000) // TODO: make configurable
     }
@@ -82,10 +88,22 @@ const sendProposalTransactions = R.curry(
   }
 )
 
+const getLockedAmountChallengePeriod = (_stateManagerAddress, _provider) =>
+  new Promise(resolve => {
+    const abi = getLockedAmountChallengePeriodAbi()
+    const stateManagerContract = new ethers.Contract(_stateManagerAddress, abi, _provider)
+
+    return resolve(stateManagerContract.lockedAmountChallengePeriod())
+  })
+
 const buildProposalsTxsAndPutInState = _state =>
   new Promise(resolve => {
     logger.info('Building proposals txs...')
     const detectedEvents = _state[STATE_DETECTED_DB_REPORTS]
+
+    if (detectedEvents.length === 0)
+      return logger.info('No new operations detected...') || resolve(_state)
+
     const destinationNetworkId = _state[constants.state.KEY_NETWORK_ID]
     const providerUrl = _state[constants.state.KEY_PROVIDER_URL]
     const identityGpgFile = _state[constants.state.KEY_IDENTITY_FILE]
@@ -97,8 +115,21 @@ const buildProposalsTxsAndPutInState = _state =>
       checkEventsHaveExpectedDestinationChainId(destinationNetworkId, detectedEvents)
         // FIXME: use gpg decrypt
         .then(_ => readIdentityFile(identityGpgFile))
-        .then(_privateKey => new ethers.Wallet(_privateKey, provider))
-        .then(sendProposalTransactions(detectedEvents, managerAddress, txTimeout))
+        .then(_privateKey =>
+          Promise.all([
+            new ethers.Wallet(_privateKey, provider),
+            getLockedAmountChallengePeriod(managerAddress, provider),
+          ])
+        )
+        .then(([_wallet, _amountToLock]) =>
+          sendProposalTransactions(
+            detectedEvents,
+            managerAddress,
+            txTimeout,
+            _wallet,
+            _amountToLock
+          )
+        )
         .then(addProposalsReportsToState(_state))
         .then(resolve)
     )

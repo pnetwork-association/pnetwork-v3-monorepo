@@ -45,10 +45,12 @@ describe('Build proposals test for EVM', () => {
       await validation.validateJson(constants.db.schemas.eventReport, eventReport)
 
       const txTimeout = 1000 //ms
+      const amountToLock = 1
       const result = await makeProposalContractCall(
         wallet,
         stateManagerAddress,
         txTimeout,
+        amountToLock,
         eventReport
       )
 
@@ -97,7 +99,11 @@ describe('Build proposals test for EVM', () => {
       jest.spyOn(fs, 'readFile').mockResolvedValue(privKey)
       jest.spyOn(ethers, 'JsonRpcProvider').mockResolvedValue({})
       jest.spyOn(ethers, 'Wallet').mockImplementation(_ => jest.fn())
-      jest.spyOn(ethers, 'Contract').mockImplementation(_ => jest.fn())
+
+      const mockLockedAmountChallengePeriod = jest.fn().mockResolvedValue(1)
+      jest.spyOn(ethers, 'Contract').mockImplementation(() => ({
+        lockedAmountChallengePeriod: mockLockedAmountChallengePeriod,
+      }))
 
       const proposedTxHashes = [
         '0xd656ffac17b71e2ea2e24f72cd4c15c909a0ebe1696f8ead388eb268268f1cbf',
@@ -189,6 +195,7 @@ describe('Build proposals test for EVM', () => {
         expect.anything(),
         1000
       )
+      expect(mockLockedAmountChallengePeriod).toHaveBeenCalledTimes(1)
       expect(result).toHaveProperty(STATE_PROPOSED_DB_REPORTS)
       expect(result).toHaveProperty(STATE_DETECTED_DB_REPORTS)
       expect(result).toHaveProperty(constants.state.KEY_NETWORK_ID)
@@ -224,7 +231,11 @@ describe('Build proposals test for EVM', () => {
       jest.spyOn(fs, 'readFile').mockResolvedValue(privKey)
       jest.spyOn(ethers, 'JsonRpcProvider').mockResolvedValue({})
       jest.spyOn(ethers, 'Wallet').mockImplementation(_ => jest.fn())
-      jest.spyOn(ethers, 'Contract').mockImplementation(_ => jest.fn())
+
+      const mockLockedAmountChallengePeriod = jest.fn().mockResolvedValue(1)
+      jest.spyOn(ethers, 'Contract').mockImplementation(() => ({
+        lockedAmountChallengePeriod: mockLockedAmountChallengePeriod,
+      }))
 
       const expectedCallResult = [
         new Error(errors.ERROR_TIMEOUT),
@@ -373,6 +384,7 @@ describe('Build proposals test for EVM', () => {
       expect(result).toHaveProperty(constants.state.KEY_IDENTITY_FILE)
       expect(result).toHaveProperty(constants.state.KEY_STATE_MANAGER_ADDRESS)
       expect(result).toHaveProperty(constants.state.KEY_TX_TIMEOUT)
+      expect(mockLockedAmountChallengePeriod).toHaveBeenCalledTimes(1)
       expect(result[STATE_DETECTED_DB_REPORTS]).toHaveLength(4)
       expect(result[STATE_PROPOSED_DB_REPORTS]).toHaveLength(4)
       expect(result[STATE_PROPOSED_DB_REPORTS][1]).toEqual(

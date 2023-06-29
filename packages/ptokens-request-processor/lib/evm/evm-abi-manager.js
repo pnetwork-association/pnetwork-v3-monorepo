@@ -20,7 +20,7 @@ const userOperationTuple =
   'bytes userData, ' +
   ')'
 
-const stataManagerErrors = [
+const stateManagerErrors = [
   `error OperationAlreadyQueued(${userOperationTuple} operation)`,
   `error OperationAlreadyExecuted(${userOperationTuple} operation)`,
   `error OperationAlreadyCancelled(${userOperationTuple} operation)`,
@@ -61,28 +61,28 @@ const stataManagerErrors = [
 
 const getProtocolOperationAbi = _operationName => {
   const abi = [`function ${_operationName}(${userOperationTuple} calldata operation)`]
-  return R.concat(abi, stataManagerErrors)
+  return R.concat(abi, stateManagerErrors)
 }
 
 const getProtocolGuardianCancelOperationAbi = () => {
   const abi = [
     `function protocolGuardianCancelOperation(${userOperationTuple} calldata operation, bytes calldata proof)`,
   ]
-  return R.concat(abi, stataManagerErrors)
+  return R.concat(abi, stateManagerErrors)
 }
 
 const getOperationStatusOfAbi = () => {
   const abi = [
     `function operationStatusOf(${userOperationTuple} calldata operation) public view returns (bytes1)`,
   ]
-  return R.concat(abi, stataManagerErrors)
+  return R.concat(abi, stateManagerErrors)
 }
 
 const getChallengePeriodOfAbi = () => {
   const abi = [
     `function challengePeriodOf(${userOperationTuple} calldata operation) public view returns (uint64, uint64)`,
   ]
-  return R.concat(abi, stataManagerErrors)
+  return R.concat(abi, stateManagerErrors)
 }
 
 const logUserOperationFromAbiArgs = (_operationName, _args) => {
@@ -103,6 +103,10 @@ const logUserOperationFromAbiArgs = (_operationName, _args) => {
   logger.info(`  bytes userData ${_args[0][13]}`)
   logger.info('])')
 }
+
+const getLockedAmountChallengePeriodAbi = () => [
+  'function lockedAmountChallengePeriod() public view return (uint256)',
+]
 
 const getProtocolQueueOperationAbi = () => getProtocolOperationAbi('protocolQueueOperation')
 const getProtocolExecuteOperationAbi = () => getProtocolOperationAbi('protocolExecuteOperation')
@@ -135,5 +139,6 @@ module.exports = {
   getProtocolQueueOperationAbi,
   getProtocolExecuteOperationAbi,
   getUserOperationAbiArgsFromReport,
+  getLockedAmountChallengePeriodAbi,
   getProtocolGuardianCancelOperationAbi,
 }
