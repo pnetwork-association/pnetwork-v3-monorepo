@@ -13,6 +13,7 @@ const {
   getProtocolGuardianCancelOperationAbi,
 } = require('./evm-abi-manager')
 const { readIdentityFile } = require('../read-identity-file')
+const { addErrorToEvent } = require('../add-error-to-event')
 
 // TODO: factor out (check evm-build-proposals-txs)
 const addCancelledTxHashToEvent = R.curry((_event, _finalizedTxHash) => {
@@ -23,17 +24,6 @@ const addCancelledTxHashToEvent = R.curry((_event, _finalizedTxHash) => {
   _event[constants.db.KEY_FINAL_TX_TS] = cancelledTimestamp
   _event[constants.db.KEY_FINAL_TX_HASH] = _finalizedTxHash
   _event[constants.db.KEY_STATUS] = constants.db.txStatus.CANCELLED
-
-  return Promise.resolve(_event)
-})
-
-const addErrorToEvent = R.curry((_event, _err) => {
-  const id = _event[constants.db.KEY_ID]
-  logger.debug(`Adding error to ${id.slice(0, 20)}...`)
-  const timestamp = new Date().toISOString()
-  _event[constants.db.KEY_FINAL_TX_TS] = timestamp
-  _event[constants.db.KEY_STATUS] = constants.db.txStatus.FAILED
-  _event[constants.db.KEY_ERROR] = _err.toString()
 
   return Promise.resolve(_event)
 })

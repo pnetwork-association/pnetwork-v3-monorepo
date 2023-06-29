@@ -289,7 +289,7 @@ describe('Build proposals test for EVM', () => {
           { value: 1 },
         ],
         expect.anything(),
-        1000
+        txTimeout
       )
       expect(callContractFunctionAndAwaitSpy).toHaveBeenNthCalledWith(
         2,
@@ -314,7 +314,7 @@ describe('Build proposals test for EVM', () => {
           { value: 1 },
         ],
         expect.anything(),
-        1000
+        txTimeout
       )
       expect(callContractFunctionAndAwaitSpy).toHaveBeenNthCalledWith(
         3,
@@ -339,7 +339,7 @@ describe('Build proposals test for EVM', () => {
           { value: 1 },
         ],
         expect.anything(),
-        1000
+        txTimeout
       )
       expect(callContractFunctionAndAwaitSpy).toHaveBeenNthCalledWith(
         4,
@@ -364,7 +364,7 @@ describe('Build proposals test for EVM', () => {
           { value: 1 },
         ],
         expect.anything(),
-        1000
+        txTimeout
       )
       expect(result).toHaveProperty(STATE_PROPOSED_DB_REPORTS)
       expect(result).toHaveProperty(STATE_DETECTED_DB_REPORTS)
@@ -374,8 +374,8 @@ describe('Build proposals test for EVM', () => {
       expect(result).toHaveProperty(constants.state.KEY_STATE_MANAGER_ADDRESS)
       expect(result).toHaveProperty(constants.state.KEY_TX_TIMEOUT)
       expect(result[STATE_DETECTED_DB_REPORTS]).toHaveLength(4)
-      expect(result[STATE_PROPOSED_DB_REPORTS]).toHaveLength(1)
-      expect(result[STATE_PROPOSED_DB_REPORTS][0]).toEqual(
+      expect(result[STATE_PROPOSED_DB_REPORTS]).toHaveLength(4)
+      expect(result[STATE_PROPOSED_DB_REPORTS][1]).toEqual(
         expect.objectContaining({
           [constants.db.KEY_ID]: detectedEvents[1][constants.db.KEY_ID],
           [constants.db.KEY_STATUS]: constants.db.txStatus.PROPOSED,

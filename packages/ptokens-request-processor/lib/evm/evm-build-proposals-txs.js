@@ -1,10 +1,9 @@
-const ethers = require('ethers')
-const constants = require('ptokens-constants')
-
-const { logger } = require('../get-logger')
-const { errors, logic } = require('ptokens-utils')
-const { ERROR_INVALID_EVENT_NAME, ERROR_OPERATION_ALREADY_QUEUED } = require('../errors')
 const R = require('ramda')
+const ethers = require('ethers')
+const errors = require('../errors')
+const constants = require('ptokens-constants')
+const { logic } = require('ptokens-utils')
+const { logger } = require('../get-logger')
 const { addProposalsReportsToState } = require('../state/state-operations.js')
 const { STATE_DETECTED_DB_REPORTS } = require('../state/constants')
 const {
@@ -17,6 +16,7 @@ const {
   getUserOperationAbiArgsFromReport,
 } = require('./evm-abi-manager')
 const { readIdentityFile } = require('../read-identity-file')
+const { addErrorToEvent } = require('../add-error-to-event')
 
 // TODO: factor out (check evm-build-final-txs)
 const addProposedTxHashToEvent = R.curry(
@@ -34,17 +34,9 @@ const addProposedTxHashToEvent = R.curry(
 )
 
 const queueOperationErrorHandler = R.curry((resolve, reject, _eventReport, _err) => {
-  const reportId = _eventReport[constants.db.KEY_ID]
-  if (_err.message.includes(errors.ERROR_TIMEOUT)) {
-    logger.error(`Tx for ${reportId} failed:`, _err.message)
-    return reject(_eventReport)
-  } else if (_err.message.includes(ERROR_OPERATION_ALREADY_QUEUED)) {
-    logger.error(`Tx for ${reportId} has already been queued`)
-    return addProposedTxHashToEvent(_eventReport, '0x').then(resolve)
-  } else {
-    logger.error(`Tx for ${reportId} failed with error: ${_err.message}`)
-    return reject(_err)
-  }
+  _err.message.includes(errors.ERROR_OPERATION_ALREADY_QUEUED)
+    ? resolve(addProposedTxHashToEvent(_eventReport, '0x'))
+    : resolve(addErrorToEvent(_eventReport, _err))
 })
 
 const makeProposalContractCall = R.curry(
@@ -54,7 +46,7 @@ const makeProposalContractCall = R.curry(
       const eventName = _eventReport[constants.db.KEY_EVENT_NAME]
 
       if (!R.includes(eventName, R.values(constants.db.eventNames))) {
-        return reject(new Error(`${ERROR_INVALID_EVENT_NAME}: ${eventName}`))
+        return reject(new Error(`${errors.ERROR_INVALID_EVENT_NAME}: ${eventName}`))
       }
 
       const abi = getProtocolQueueOperationAbi()
@@ -77,14 +69,17 @@ const makeProposalContractCall = R.curry(
 )
 
 const sendProposalTransactions = R.curry(
-  (_eventReports, _managerAddress, _timeOut, _wallet) =>
-    logger.info(`Sending proposals w/ address ${_wallet.address}`) ||
-    logic
-      .executePromisesSequentially(
-        _eventReports,
-        makeProposalContractCall(_wallet, _managerAddress, _timeOut)
-      )
-      .then(logic.getFulfilledPromisesValues)
+  async (_eventReports, _stateManager, _timeOut, _wallet) => {
+    logger.info(`Sending proposals w/ address ${_wallet.address}`)
+    const newReports = []
+    for (const report of _eventReports) {
+      const newReport = await makeProposalContractCall(_wallet, _stateManager, _timeOut, report)
+      newReports.push(newReport)
+      await logic.sleepForXMilliseconds(1000) // TODO: make configurable
+    }
+
+    return newReports
+  }
 )
 
 const buildProposalsTxsAndPutInState = _state =>
