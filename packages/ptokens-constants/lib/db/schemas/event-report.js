@@ -1,5 +1,6 @@
 const {
   KEY_ID,
+  KEY_ERROR,
   KEY_STATUS,
   KEY_EVENT_NAME,
 
@@ -152,6 +153,9 @@ module.exports = {
     [KEY_FINAL_TX_TS]: {
       type: ['string', 'null'],
       format: 'date-time',
+    },
+    [KEY_ERROR]: {
+      type: ['string', 'null'],
     },
   },
 }
