@@ -11,7 +11,7 @@ const {
   getPRouterAddress,
   getNetworkId,
   getNetworkIdFromChainName,
-  getDeploymentForNetworkName,
+  getDeploymentFromHRE,
 } = require('../lib/configuration-manager')
 
 const TASK_NAME = 'router:mint'
@@ -24,7 +24,7 @@ const TASK_PARAM_DEST_ADDRESS = 'destinationAddress'
 const TASK_PARAM_DEST_ADDRESS_DESC = 'Where the pToken is destined to.'
 
 const getPTokenFromAsset = (hre, _assetAddress) =>
-  getDeploymentForNetworkName(hre)
+  getDeploymentFromHRE(hre)
     .then(R.prop(KEY_PTOKEN_LIST))
     .then(R.find(R.propEq(_assetAddress, KEY_PTOKEN_UNDERLYING_ASSET_ADDRESS)))
     .then(R.prop(KEY_ADDRESS))
