@@ -55,21 +55,23 @@ const transfer = async (taskArgs, hre) => {
   const pRouterAddress = await getPRouterAddress(hre)
   const pRouterFactory = await hre.ethers.getContractFactory('PRouter')
   const pRouter = await pRouterFactory.attach(pRouterAddress)
+
+  const pTokenAddress = pTokenConfiguration[KEY_ADDRESS]
+  const pTokenFactory = await hre.ethers.getContractFactory('PToken')
+  const pToken = await pTokenFactory.attach(pTokenAddress)
+  const pTokenDecimals = await pToken.decimals()
   console.log('Signer is:', signer.address)
 
   const destinationAddress = taskArgs[TASK_PARAM_DEST_ADDRESS]
   const destinationNetworkId = await getNetworkIdFromChainName(taskArgs[TASK_PARAM_DEST_CHAIN_NAME])
   const underlyingAssetName = underlyingAssetConfiguration[KEY_ASSET_NAME]
   const underlyingAssetSymbol = underlyingAssetConfiguration[KEY_ASSET_SYMBOL]
-  const underlyingAssetDecimals = parseInt(underlyingAssetConfiguration[KEY_ASSET_DECIMALS])
+  const underlyingAssetDecimals = underlyingAssetConfiguration[KEY_ASSET_DECIMALS]
   const underlyingAssetAddress = underlyingAssetConfiguration[KEY_ADDRESS]
   const underlyingAssetNetworkId = await getNetworkIdFromChainName(
     pTokenConfiguration[KEY_PTOKEN_UNDERLYING_ASSET_NETWORKID]
   )
-  const parsedAmount = hre.ethers.utils.parseUnits(
-    taskArgs[TASK_PARAM_AMOUNT],
-    underlyingAssetDecimals
-  )
+  const parsedAmount = hre.ethers.utils.parseUnits(taskArgs[TASK_PARAM_AMOUNT], pTokenDecimals)
 
   const args = [
     destinationAddress,
