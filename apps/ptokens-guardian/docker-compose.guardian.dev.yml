@@ -59,6 +59,3 @@ services:
     restart: unless-stopped
     command: ./index.js pollForRequestsAndDismiss
     network_mode: host
-
-volumes:
-  database:

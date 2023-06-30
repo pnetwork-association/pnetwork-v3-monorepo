@@ -1,29 +1,64 @@
-# TODO: maybe dynamically generated from a custom YAML file?
+#
+# NOTE: Generate the relative *.config.json using
+# npx hardhat --network arbitrum apps:generate-configs --localhost
+#
+# NOTE: This dev docker-compose file use the mongo db instance
+# on localhost, that's why you need to specify the --localhost
+# flag above.
+#
 version: '3'
 services:
-  sepolia-listener:
+  arbitrum-listener:
     image: ${IMAGE_EVM_LISTENER}:${VERSION_LISTENER:-latest}
     volumes:
-      - './sepolia.listener.config.json:${APP_CONFIG_JSON}'
+      - './arbitrum.listener.config.json:${APP_CONFIG_JSON}'
       - './logs:${APP_FOLDER_LOGS}'
     restart: unless-stopped
     depends_on: ['mongodb']
 
-  sepolia-proposer:
+  arbitrum-proposer:
     image: ${IMAGE_EVM_PROCESSOR}:${VERSION_PROCESSOR:-latest}
     volumes:
       - './private-key:${PRIVATE_KEY_FILE}'
-      - './sepolia.processor.config.json:${APP_CONFIG_JSON}'
+      - './arbitrum.processor.config.json:${APP_CONFIG_JSON}'
       - './logs:${APP_FOLDER_LOGS}'
     restart: unless-stopped
     command: ./index.js pollForRequestsAndPropose
     depends_on: ['mongodb']
 
-  sepolia-finalizer:
+  arbitrum-finalizer:
     image: ${IMAGE_EVM_PROCESSOR}:${VERSION_PROCESSOR:-latest}
     volumes:
       - './private-key:${PRIVATE_KEY_FILE}'
-      - './sepolia.processor.config.json:${APP_CONFIG_JSON}'
+      - './arbitrum.processor.config.json:${APP_CONFIG_JSON}'
+      - './logs:${APP_FOLDER_LOGS}'
+    restart: unless-stopped
+    command: ./index.js processFinalTransactions
+    depends_on: ['mongodb']
+
+  gnosis-listener:
+    image: ${IMAGE_EVM_LISTENER}:${VERSION_LISTENER:-latest}
+    volumes:
+      - './gnosis.listener.config.json:${APP_CONFIG_JSON}'
+      - './logs:${APP_FOLDER_LOGS}'
+    restart: unless-stopped
+    depends_on: ['mongodb']
+
+  gnosis-proposer:
+    image: ${IMAGE_EVM_PROCESSOR}:${VERSION_PROCESSOR:-latest}
+    volumes:
+      - './private-key:${PRIVATE_KEY_FILE}'
+      - './gnosis.processor.config.json:${APP_CONFIG_JSON}'
+      - './logs:${APP_FOLDER_LOGS}'
+    restart: unless-stopped
+    command: ./index.js pollForRequestsAndPropose
+    depends_on: ['mongodb']
+
+  gnosis-finalizer:
+    image: ${IMAGE_EVM_PROCESSOR}:${VERSION_PROCESSOR:-latest}
+    volumes:
+      - './private-key:${PRIVATE_KEY_FILE}'
+      - './gnosis.processor.config.json:${APP_CONFIG_JSON}'
       - './logs:${APP_FOLDER_LOGS}'
     restart: unless-stopped
     command: ./index.js processFinalTransactions

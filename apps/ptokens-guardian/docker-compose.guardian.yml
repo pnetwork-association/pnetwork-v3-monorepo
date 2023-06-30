@@ -1,27 +1,60 @@
-# TODO: maybe dynamically generated from a custom YAML file?
+#
+# NOTE: Generate the relative *.config.json using
+# npx hardhat --network arbitrum apps:generate-configs --localhost
+#
+# NOTE: This dev docker-compose file use the mongo db instance
+# on localhost, that's why you need to specify the --localhost
+# flag above.
+#
 version: '3'
 services:
-  listener-requests:
+  gnosis-requests:
     image: ${IMAGE_EVM_LISTENER}:${VERSION_LISTENER:-latest}
     volumes:
-      - './requests-listener.config.json:${APP_CONFIG_JSON}'
+      - './gnosis.listener.requests.config.json:${APP_CONFIG_JSON}'
       - './logs:${APP_FOLDER_LOGS}'
     restart: unless-stopped
     depends_on: ['mongodb']
 
-  listener-queue:
+  gnosis-queue:
     image: ${IMAGE_EVM_LISTENER}:${VERSION_LISTENER:-latest}
     volumes:
-      - './queue-listener.config.json:${APP_CONFIG_JSON}'
+      - './gnosis.listener.queue.config.json:${APP_CONFIG_JSON}'
       - './logs:${APP_FOLDER_LOGS}'
     restart: unless-stopped
     depends_on: ['mongodb']
 
-  request-processor-bsc:
+  gnosis-processor:
     image: ${IMAGE_EVM_PROCESSOR}:${VERSION_PROCESSOR:-latest}
     volumes:
       - './private-key:${PRIVATE_KEY_FILE}'
-      - './processor.config.json:${APP_CONFIG_JSON}'
+      - './gnosis.processor.config.json:${APP_CONFIG_JSON}'
+      - './logs:${APP_FOLDER_LOGS}'
+    restart: unless-stopped
+    command: ./index.js pollForRequestsAndDismiss
+    depends_on: ['mongodb']
+
+  arbitrum-requests:
+    image: ${IMAGE_EVM_LISTENER}:${VERSION_LISTENER:-latest}
+    volumes:
+      - './arbitrum.listener.requests.config.json:${APP_CONFIG_JSON}'
+      - './logs:${APP_FOLDER_LOGS}'
+    restart: unless-stopped
+    depends_on: ['mongodb']
+
+  arbitrum-queue:
+    image: ${IMAGE_EVM_LISTENER}:${VERSION_LISTENER:-latest}
+    volumes:
+      - './arbitrum.listener.queue.config.json:${APP_CONFIG_JSON}'
+      - './logs:${APP_FOLDER_LOGS}'
+    restart: unless-stopped
+    depends_on: ['mongodb']
+
+  arbitrum-processor:
+    image: ${IMAGE_EVM_PROCESSOR}:${VERSION_PROCESSOR:-latest}
+    volumes:
+      - './private-key:${PRIVATE_KEY_FILE}'
+      - './arbitrum.processor.config.json:${APP_CONFIG_JSON}'
       - './logs:${APP_FOLDER_LOGS}'
     restart: unless-stopped
     command: ./index.js pollForRequestsAndDismiss

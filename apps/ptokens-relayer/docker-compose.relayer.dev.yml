@@ -63,6 +63,3 @@ services:
     restart: unless-stopped
     command: ./index.js processFinalTransactions
     network_mode: host
-
-volumes:
-  database:
