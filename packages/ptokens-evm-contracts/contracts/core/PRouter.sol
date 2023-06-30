@@ -9,6 +9,7 @@ import {IPFactory} from "../interfaces/IPFactory.sol";
 import {Network} from "../libraries/Network.sol";
 import {Roles} from "../libraries/Roles.sol";
 import {Errors} from "../libraries/Errors.sol";
+import {Utils} from "../libraries/Utils.sol";
 
 contract PRouter is IPRouter, Context {
     address public immutable factory;
@@ -80,7 +81,7 @@ contract PRouter is IPRouter, Context {
             underlyingAssetTokenAddress,
             underlyingAssetNetworkId,
             assetTokenAddress,
-            assetAmount,
+            Utils.normalizeAmount(assetAmount, underlyingAssetDecimals, true),
             userData,
             optionsMask
         );

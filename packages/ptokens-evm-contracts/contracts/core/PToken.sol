@@ -103,7 +103,7 @@ contract PToken is IPToken, ERC20 {
 
     /// @inheritdoc IPToken
     function stateManagedProtocolMint(address account, uint256 amount) external onlyStateManager {
-        _mint(account, Utils.normalizeAmount(amount, _underlyingAssetDecimals, true));
+        _mint(account, amount);
     }
 
     /// @inheritdoc IPToken
