@@ -43,7 +43,7 @@ const burn = async (taskArgs, hre) => {
     `${taskArgs.amount} ptokens ${taskArgs.pTokenAddress} will be burned in order to reedem ${taskArgs.amount} ${underlyingAssetSymbol} (address: ${underlyingAssetAddress})`
   )
   console.info(`Account requesting the reedem: ${signer.address}`)
-  const parsedAmount = hre.ethers.utils.parseEther(taskArgs.amount)
+  const parsedAmount = hre.ethers.utils.parseUnits(taskArgs.amount, 18)
   await asset.approve(signer.address, parsedAmount)
   console.info(`Redeeming ${taskArgs.amount} ${ptokenSymbol} to address ${signer.address}`)
   const tx = await ptoken.burn(parsedAmount, {
@@ -51,7 +51,9 @@ const burn = async (taskArgs, hre) => {
     gasLimit: taskArgs[TASK_PARAM_GASLIMIT],
   })
 
-  await tx.wait(1)
+  const receipt = await tx.wait(1)
+
+  console.info(`Tx mined @ ${receipt.transactionHash}`)
 }
 
 task(TASK_NAME, TASK_DESC)
