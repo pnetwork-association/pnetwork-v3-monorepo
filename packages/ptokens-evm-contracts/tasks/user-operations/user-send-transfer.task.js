@@ -1,4 +1,5 @@
 const { types } = require('hardhat/config')
+const { getOptionMaskWithOptionEnabledForBit } = require('../../test/utils/index')
 const {
   getPRouterAddress,
   getDeploymentFromHRE,
@@ -72,6 +73,7 @@ const transfer = async (taskArgs, hre) => {
     pTokenConfiguration[KEY_PTOKEN_UNDERLYING_ASSET_NETWORKID]
   )
   const parsedAmount = hre.ethers.utils.parseUnits(taskArgs[TASK_PARAM_AMOUNT], pTokenDecimals)
+  const optionsMask = getOptionMaskWithOptionEnabledForBit(0)
 
   const args = [
     destinationAddress,
@@ -84,7 +86,7 @@ const transfer = async (taskArgs, hre) => {
     taskArgs.pTokenAddress,
     parsedAmount,
     '0x',
-    '0x'.padEnd(66, '0'),
+    optionsMask,
     {
       gasPrice: taskArgs[TASK_PARAM_GASPRICE],
       gasLimit: taskArgs[TASK_PARAM_GASLIMIT],
