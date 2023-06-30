@@ -9,7 +9,6 @@ require('hardhat-spdx-license-identifier')
 require('hardhat-log-remover')
 require('solidity-coverage')
 require('@nomicfoundation/hardhat-toolbox')
-require('hardhat-tracer')
 require('hardhat-change-network')
 
 const fork1Config = require('./hardhat.config.fork1')

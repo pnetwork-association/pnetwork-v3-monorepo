@@ -1,6 +1,4 @@
 const {
-  TASK_NAME_DEPLOY_INIT,
-  TASK_NAME_DEPLOY_CONTRACT,
   KEY_ADDRESS,
   KEY_UNDERLYING_ASSET_LIST,
   KEY_PFACTORY,
@@ -14,10 +12,12 @@ const {
 const { utils } = require('ptokens-utils')
 const { types } = require('hardhat/config')
 const { errors } = require('ptokens-utils')
+const { TASK_NAME_DEPLOY_INIT } = require('./deploy-init.task')
 const { getConfiguration, updateConfiguration } = require('../lib/configuration-manager')
 const R = require('ramda')
 
-const TASK_DESC_DEPLOY_CONTRACT = 'Deploy a contract.'
+const TASK_NAME_DEPLOY_CONTRACT = 'deploy:contract'
+const TASK_DESC_DEPLOY_CONTRACT = 'Subtask to deploy a contract.'
 
 const configEntryLookup = {
   [KEY_UNDERLYING_ASSET_LIST]: (_taskArgs, _contractAddress) => ({
@@ -113,3 +113,8 @@ subtask(TASK_NAME_DEPLOY_CONTRACT, TASK_DESC_DEPLOY_CONTRACT)
     types.json
   )
   .setAction(deployContractTask)
+
+module.exports = {
+  createConfigEntryFromTaskArgs,
+  TASK_NAME_DEPLOY_CONTRACT,
+}

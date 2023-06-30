@@ -8,9 +8,9 @@ const {
   KEY_PTOKEN_LIST,
   KEY_STATEMANAGER,
   KEY_UNDERLYING_ASSET_LIST,
-  TASK_NAME_GET_NETWORK_ID,
 } = require('../constants')
 const { utils } = require('ptokens-utils')
+const { TASK_NAME_GET_NETWORK_ID } = require('../get-network-id')
 
 const getConfiguration = () => Promise.resolve(Store({ path: process.cwd() + PATH_CONFIG_FILE }))
 
@@ -54,16 +54,18 @@ const updateConfiguration = (...vargs) =>
     return resolve(config)
   })
 
-const getDeploymentForNetworkName = hre =>
+const getDeploymentFromNetworkName = _networkName =>
+  getConfiguration().then(_config => _config.get(_networkName))
+
+const getDeploymentFromHRE = hre =>
   getConfiguration().then(_config => _config.get(hre.network.name))
 
-const getPRouterAddress = hre =>
-  getDeploymentForNetworkName(hre).then(R.path([KEY_PROUTER, KEY_ADDRESS]))
+const getPRouterAddress = hre => getDeploymentFromHRE(hre).then(R.path([KEY_PROUTER, KEY_ADDRESS]))
 
 const getStateManagerAddress = hre =>
-  getDeploymentForNetworkName(hre).then(R.path([KEY_STATEMANAGER, KEY_ADDRESS]))
+  getDeploymentFromHRE(hre).then(R.path([KEY_STATEMANAGER, KEY_ADDRESS]))
 
-const getNetworkId = hre => getDeploymentForNetworkName(hre).then(R.prop(KEY_NETWORK_ID))
+const getNetworkId = hre => getDeploymentFromHRE(hre).then(R.prop(KEY_NETWORK_ID))
 
 const getNetworkIdFromChainName = _networkName =>
   getConfiguration()
@@ -90,11 +92,12 @@ module.exports = {
   getPRouterAddress,
   maybeAddNewNetwork,
   updateConfiguration,
+  getDeploymentFromHRE,
   getStateManagerAddress,
   checkPRouterIsDeployed,
   maybeAddEmptyPTokenList,
   getNetworkIdFromChainName,
   checkStateManagerIsDeployed,
-  getDeploymentForNetworkName,
+  getDeploymentFromNetworkName,
   maybeAddEmptyUnderlyingAssetList,
 }

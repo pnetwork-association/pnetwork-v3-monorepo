@@ -6,6 +6,7 @@ const deployContract = require('./deploy-contract.task')
 const deployPFactory = require('./deploy-pfactory.task')
 const deployStateManager = require('./deploy-state-manager.task')
 const deployV3Contracts = require('./deploy-v3-contracts.task')
+const generateConfig = require('./deploy-copy-config.task')
 
 module.exports = {
   deployInit,
@@ -16,4 +17,5 @@ module.exports = {
   deployContract,
   deployStateManager,
   deployV3Contracts,
+  generateConfig,
 }

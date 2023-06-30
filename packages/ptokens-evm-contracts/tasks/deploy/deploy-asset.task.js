@@ -1,6 +1,5 @@
 const R = require('ramda')
 const {
-  TASK_NAME_DEPLOY_INIT,
   KEY_ADDRESS,
   KEY_ASSET_NAME,
   KEY_ASSET_SYMBOL,
@@ -9,6 +8,7 @@ const {
   KEY_UNDERLYING_ASSET_LIST,
 } = require('../constants')
 const { types } = require('hardhat/config')
+const { TASK_NAME_DEPLOY_INIT } = require('./deploy-init.task')
 const { getConfiguration, updateConfiguration } = require('../lib/configuration-manager')
 
 const TASK_PARAM_NAME = 'name'
@@ -40,7 +40,14 @@ const addNewUnderlyingAssetToConfig = R.curry((taskArgs, hre, _config, _contract
   createUnderlyingAssetConfigurationEntry(taskArgs, _contract)
     .then(R.assoc(KEY_ADDRESS, _contract.address))
     .then(_entry =>
-      updateConfiguration(_config, hre.network.name, KEY_UNDERLYING_ASSET_LIST, _entry)
+      R.not(
+        R.any(
+          R.equals(_entry),
+          R.defaultTo([], _config.get(hre.network.name)[KEY_UNDERLYING_ASSET_LIST])
+        )
+      )
+        ? updateConfiguration(_config, hre.network.name, KEY_UNDERLYING_ASSET_LIST, _entry)
+        : null
     )
     .then(_ => _contract)
 )
@@ -98,4 +105,9 @@ task(TASK_NAME_DEPLOY_ASSET, TASK_DESC_DEPLOY_ASSET, deployAssetTask)
 
 module.exports = {
   attachToUnderlyingAsset,
+  addNewUnderlyingAssetToConfig,
+  TASK_PARAM_NAME,
+  TASK_PARAM_SYMBOL,
+  TASK_PARAM_DECIMALS,
+  TASK_PARAM_TOTAL_SUPPLY,
 }

@@ -1,4 +1,7 @@
-const TASK_NAME_SM_PEO = 'statemanager:execute'
+const { TASK_PARAM_GASPRICE, TASK_PARAM_GASLIMIT } = require('../constants')
+
+const TASK_NAME = 'statemanager:execute'
+const TASK_DESC = 'Execute an operation'
 
 const protocolExecuteOperation = async (_args, { ethers }) => {
   const StateManager = await ethers.getContractFactory('StateManager')
@@ -23,7 +26,8 @@ const protocolExecuteOperation = async (_args, { ethers }) => {
       _args.userData,
     ],
     {
-      gasLimit: 4000000,
+      gasLimit: _args[TASK_PARAM_GASLIMIT],
+      gasPrice: _args[TASK_PARAM_GASPRICE],
     }
   )
 
@@ -31,7 +35,7 @@ const protocolExecuteOperation = async (_args, { ethers }) => {
   await tx.wait(1)
 }
 
-task(TASK_NAME_SM_PEO, TASK_NAME_SM_PEO, protocolExecuteOperation)
+task(TASK_NAME, TASK_DESC, protocolExecuteOperation)
   .addPositionalParam('stateManager')
   .addPositionalParam('originBlockHash')
   .addPositionalParam('originTransactionHash')
@@ -49,5 +53,5 @@ task(TASK_NAME_SM_PEO, TASK_NAME_SM_PEO, protocolExecuteOperation)
   .addPositionalParam('userData')
 
 module.exports = {
-  TASK_NAME_SM_PEO,
+  TASK_NAME,
 }

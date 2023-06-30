@@ -1,3 +1,4 @@
+const R = require('ramda')
 const { logger } = require('../get-logger')
 const constants = require('ptokens-constants')
 
@@ -19,13 +20,17 @@ const userOperationTuple =
   'bytes userData, ' +
   ')'
 
-const getProtocolOperationAbi = _operationName => [
-  `function ${_operationName}(${userOperationTuple} calldata operation)`,
-  'error OperationAlreadyQueued(bytes32 operationId)',
-  'error OperationAlreadyExecuted(bytes32 operationId)',
-  'error OperationCancelled(bytes32 operationId)',
-  'error OperationNotQueued(bytes32 operationId)',
-  'error ExecuteTimestampNotReached(uint64 executeTimestamp)',
+const stateManagerErrors = [
+  `error OperationAlreadyQueued(${userOperationTuple} operation)`,
+  `error OperationAlreadyExecuted(${userOperationTuple} operation)`,
+  `error OperationAlreadyCancelled(${userOperationTuple} operation)`,
+  `error OperationCancelled(${userOperationTuple} operation)`,
+  `error OperationNotQueued(${userOperationTuple} operation)`,
+  `error GovernanceOperationAlreadyCancelled(${userOperationTuple} operation)`,
+  `error GuardianOperationAlreadyCancelled(${userOperationTuple} operation)`,
+  `error SentinelOperationAlreadyCancelled(${userOperationTuple} operation)`,
+  'error ChallengePeriodNotTerminated(uint64 startTimestamp, uint64 endTimestamp)',
+  'error ChallengePeriodTerminated(uint64 startTimestamp, uint64 endTimestamp)',
   'error InvalidUnderlyingAssetName(string underlyingAssetName, string expectedUnderlyingAssetName)',
   'error InvalidUnderlyingAssetSymbol(string underlyingAssetSymbol, string expectedUnderlyingAssetSymbol)',
   'error InvalidUnderlyingAssetDecimals(uint256 underlyingAssetDecimals, uint256 expectedUnderlyingAssetDecimals)',
@@ -36,7 +41,49 @@ const getProtocolOperationAbi = _operationName => [
   'error NoUserOperation()',
   'error PTokenNotCreated(address pTokenAddress)',
   'error InvalidNetwork(bytes4 networkId)',
+  'error NotContract(address addr)',
+  'error LockDown()',
+  'error InvalidGovernanceStateReader(address expectedGovernanceStateReader, address governanceStateReader)',
+  'error InvalidTopic(bytes32 expectedTopic, bytes32 topic)',
+  'error InvalidReceiptsRootMerkleProof()',
+  'error InvalidRootHashMerkleProof()',
+  'error InvalidHeaderBlock()',
+  'error NotRouter(address sender, address router)',
+  'error InvalidAmount(uint256 amount, uint256 expectedAmount)',
+  'error InvalidSourceChainId(uint32 sourceChainId, uint32 expectedSourceChainId)',
+  'error InvalidGovernanceMessageVerifier(address governanceMessagerVerifier,address expectedGovernanceMessageVerifier)',
+  'error InvalidSentinelRegistration(bytes1 kind)',
+  'error InvalidGovernanceMessage(bytes message)',
+  'error InvalidLockedAmountChallengePeriod(uint256 lockedAmountChallengePeriod,uint256 expectedLockedAmountChallengePeriod)',
+  'error CallFailed()',
+  'error QueueFull()',
 ]
+
+const getProtocolOperationAbi = _operationName => {
+  const abi = [`function ${_operationName}(${userOperationTuple} calldata operation)`]
+  return R.concat(abi, stateManagerErrors)
+}
+
+const getProtocolGuardianCancelOperationAbi = () => {
+  const abi = [
+    `function protocolGuardianCancelOperation(${userOperationTuple} calldata operation, bytes calldata proof)`,
+  ]
+  return R.concat(abi, stateManagerErrors)
+}
+
+const getOperationStatusOfAbi = () => {
+  const abi = [
+    `function operationStatusOf(${userOperationTuple} calldata operation) public view returns (bytes1)`,
+  ]
+  return R.concat(abi, stateManagerErrors)
+}
+
+const getChallengePeriodOfAbi = () => {
+  const abi = [
+    `function challengePeriodOf(${userOperationTuple} calldata operation) public view returns (uint64, uint64)`,
+  ]
+  return R.concat(abi, stateManagerErrors)
+}
 
 const logUserOperationFromAbiArgs = (_operationName, _args) => {
   logger.info(`function ${_operationName}([`)
@@ -57,9 +104,24 @@ const logUserOperationFromAbiArgs = (_operationName, _args) => {
   logger.info('])')
 }
 
+const getLockedAmountChallengePeriodAbi = () => [
+  {
+    inputs: [],
+    name: 'lockedAmountChallengePeriod',
+    outputs: [
+      {
+        internalType: 'uint256',
+        name: '',
+        type: 'uint256',
+      },
+    ],
+    stateMutability: 'view',
+    type: 'function',
+  },
+]
+
 const getProtocolQueueOperationAbi = () => getProtocolOperationAbi('protocolQueueOperation')
 const getProtocolExecuteOperationAbi = () => getProtocolOperationAbi('protocolExecuteOperation')
-const getProtocolCancelOperationAbi = () => getProtocolOperationAbi('protocolCancelOperation')
 
 const getUserOperationAbiArgsFromReport = _eventReport => [
   [
@@ -83,9 +145,12 @@ const getUserOperationAbiArgsFromReport = _eventReport => [
 ]
 
 module.exports = {
+  getOperationStatusOfAbi,
+  getChallengePeriodOfAbi,
   logUserOperationFromAbiArgs,
   getProtocolQueueOperationAbi,
   getProtocolExecuteOperationAbi,
-  getProtocolCancelOperationAbi,
   getUserOperationAbiArgsFromReport,
+  getLockedAmountChallengePeriodAbi,
+  getProtocolGuardianCancelOperationAbi,
 }

@@ -90,16 +90,18 @@ const main = async _args => {
     }
   )
 
-  console.log({
-    pFactory: pFactory.address,
-    pRouter: pRouter.address,
-    stateManager: stateManager.address,
-    pToken: pToken.address,
-    epochsManager: epochsManager.address,
-    initArgs: {
-      ..._args,
-    },
-  })
+  console.log(
+    JSON.stringify({
+      pFactory: pFactory.address,
+      pRouter: pRouter.address,
+      stateManager: stateManager.address,
+      pToken: pToken.address,
+      epochsManager: epochsManager.address,
+      initArgs: {
+        ..._args,
+      },
+    })
+  )
 }
 
 /* eslint-enable no-console */

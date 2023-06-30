@@ -1,6 +1,7 @@
 module.exports = {
   KEY_ID: '_id',
   KEY_NONCE: 'nonce',
+  KEY_ERROR: 'error',
   KEY_DESTINATION_ACCOUNT: 'destinationAccount',
   KEY_DESTINATION_NETWORK_ID: 'destinationNetworkId',
   KEY_UNDERLYING_ASSET_NAME: 'underlyingAssetName',

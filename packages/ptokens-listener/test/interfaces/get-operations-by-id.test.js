@@ -5,7 +5,7 @@ describe('Tests for the getOperationsById interface', () => {
       jest.resetModules()
     })
 
-    test.each([['0x005fe7f9'], ['0x00e4b170'], ['0x00f1918e'], ['0xf9b459a1']])(
+    test.each([['0x005fe7f9'], ['0x00e4b170'], ['0xf9b459a1']])(
       'Should get operations linked to Operation ID for chain id %p',
       async _networkId => {
         const getOperationsModule = require('../../lib/evm/evm-get-operations-by-id')

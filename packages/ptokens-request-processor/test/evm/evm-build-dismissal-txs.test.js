@@ -2,13 +2,14 @@ const {
   STATE_TO_BE_DISMISSED_REQUESTS,
   STATE_DISMISSED_DB_REPORTS,
 } = require('../../lib/state/constants')
-const { ERROR_OPERATION_NOT_QUEUED, ERROR_REPLACEMENT_UNDERPRICED } = require('../../lib/errors')
+const errors = require('../../lib/errors')
 const constants = require('ptokens-constants')
-const { errors } = require('ptokens-utils')
+const pTokensUtils = require('ptokens-utils')
 const queuedReports = require('../samples/queued-report-set')
 
 describe('Build dismissal test for EVM', () => {
   describe('maybeBuildDismissalTxsAndPutInState', () => {
+    const emptyProof = '0x'
     const privKey = '0xdf57089febbacf7ba0bc227dafbffa9fc08a93fdc68e1e42411a14efcf23656e'
     const gpgEncryptedFile = './identity.gpg'
 
@@ -70,7 +71,7 @@ describe('Build dismissal test for EVM', () => {
       expect(callContractFunctionAndAwaitSpy).toHaveBeenCalledTimes(2)
       expect(callContractFunctionAndAwaitSpy).toHaveBeenNthCalledWith(
         1,
-        'protocolCancelOperation',
+        'protocolGuardianCancelOperation',
         [
           [
             '0xbaa9e89896c03366c3578a4568a6defd4b127e4b09bb06b67a12cb1a4c332376',
@@ -88,13 +89,14 @@ describe('Build dismissal test for EVM', () => {
             'TKN',
             '0x',
           ],
+          emptyProof,
         ],
         expect.anything(),
         1000
       )
       expect(callContractFunctionAndAwaitSpy).toHaveBeenNthCalledWith(
         2,
-        'protocolCancelOperation',
+        'protocolGuardianCancelOperation',
         [
           [
             '0xbaa9e89896c03366c3578a4568a6defd4b127e4b09bb06b67a12cb1a4c332376',
@@ -112,6 +114,7 @@ describe('Build dismissal test for EVM', () => {
             'TKN',
             '0x',
           ],
+          emptyProof,
         ],
         expect.anything(),
         1000
@@ -153,21 +156,14 @@ describe('Build dismissal test for EVM', () => {
       jest.spyOn(ethers, 'Wallet').mockImplementation(_ => jest.fn())
       jest.spyOn(ethers, 'Contract').mockImplementation(_ => jest.fn())
 
-      const expectedCallResult = [
-        new Error(errors.ERROR_TIMEOUT),
-        new Error(ERROR_OPERATION_NOT_QUEUED), // this report will go through
-        new Error(ERROR_REPLACEMENT_UNDERPRICED),
-        new Error('Generic Error'),
-      ]
-
       const callContractFunctionModule = require('../../lib/evm/evm-call-contract-function')
 
       const callContractFunctionAndAwaitSpy = jest
         .spyOn(callContractFunctionModule, 'callContractFunctionAndAwait')
-        .mockRejectedValueOnce(expectedCallResult[0])
-        .mockRejectedValueOnce(expectedCallResult[1])
-        .mockRejectedValueOnce(expectedCallResult[2])
-        .mockRejectedValueOnce(expectedCallResult[3])
+        .mockRejectedValueOnce(new Error(pTokensUtils.errors.ERROR_TIMEOUT))
+        .mockRejectedValueOnce(new Error(errors.ERROR_OPERATION_NOT_QUEUED)) // this report will go through
+        .mockRejectedValueOnce(new Error(errors.ERROR_REPLACEMENT_UNDERPRICED))
+        .mockRejectedValueOnce(new Error('Generic Error'))
 
       const txTimeout = 1000
       const destinationNetworkId = '0xe15503e4'
@@ -197,7 +193,7 @@ describe('Build dismissal test for EVM', () => {
       expect(callContractFunctionAndAwaitSpy).toHaveBeenCalledTimes(4)
       expect(callContractFunctionAndAwaitSpy).toHaveBeenNthCalledWith(
         1,
-        'protocolCancelOperation',
+        'protocolGuardianCancelOperation',
         [
           [
             '0xbaa9e89896c03366c3578a4568a6defd4b127e4b09bb06b67a12cb1a4c332376',
@@ -215,13 +211,14 @@ describe('Build dismissal test for EVM', () => {
             'TKN',
             '0x',
           ],
+          emptyProof,
         ],
         expect.anything(),
         1000
       )
       expect(callContractFunctionAndAwaitSpy).toHaveBeenNthCalledWith(
         2,
-        'protocolCancelOperation',
+        'protocolGuardianCancelOperation',
         [
           [
             '0xbaa9e89896c03366c3578a4568a6defd4b127e4b09bb06b67a12cb1a4c332376',
@@ -239,13 +236,14 @@ describe('Build dismissal test for EVM', () => {
             'TKN',
             '0x',
           ],
+          emptyProof,
         ],
         expect.anything(),
         1000
       )
       expect(callContractFunctionAndAwaitSpy).toHaveBeenNthCalledWith(
         3,
-        'protocolCancelOperation',
+        'protocolGuardianCancelOperation',
         [
           [
             '0xbaa9e89896c03366c3578a4568a6defd4b127e4b09bb06b67a12cb1a4c332376',
@@ -263,13 +261,14 @@ describe('Build dismissal test for EVM', () => {
             'TKN',
             '0x',
           ],
+          emptyProof,
         ],
         expect.anything(),
         1000
       )
       expect(callContractFunctionAndAwaitSpy).toHaveBeenNthCalledWith(
         4,
-        'protocolCancelOperation',
+        'protocolGuardianCancelOperation',
         [
           [
             '0xf085786d855e220305a67f95653bd9345956b211095b7403e54da1b40699cb86',
@@ -287,6 +286,7 @@ describe('Build dismissal test for EVM', () => {
             'TKN',
             '0xc0ffee',
           ],
+          emptyProof,
         ],
         expect.anything(),
         1000
@@ -299,8 +299,8 @@ describe('Build dismissal test for EVM', () => {
       expect(result).toHaveProperty(constants.state.KEY_STATE_MANAGER_ADDRESS)
       expect(result).toHaveProperty(constants.state.KEY_TX_TIMEOUT)
       expect(result[STATE_TO_BE_DISMISSED_REQUESTS]).toHaveLength(4)
-      expect(result[STATE_DISMISSED_DB_REPORTS]).toHaveLength(1)
-      expect(result[STATE_DISMISSED_DB_REPORTS][0]).toEqual(
+      expect(result[STATE_DISMISSED_DB_REPORTS]).toHaveLength(4)
+      expect(result[STATE_DISMISSED_DB_REPORTS][1]).toEqual(
         expect.objectContaining({
           [constants.db.KEY_ID]: queuedReports[1][constants.db.KEY_ID],
           [constants.db.KEY_STATUS]: constants.db.txStatus.CANCELLED,

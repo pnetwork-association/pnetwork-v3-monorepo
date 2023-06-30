@@ -40,7 +40,7 @@ const getDetectedEventsFromDbAndPutInState = _state =>
 
 const getQueuedEventsFromDbAndPutInState = _state =>
   getValidEventsWithStatusAndPutInState(
-    constants.db.txStatus.DETECTED,
+    constants.db.txStatus.PROPOSED,
     STATE_QUEUED_DB_REPORTS,
     constants.db.KEY_DESTINATION_NETWORK_ID,
     constants.db.eventNames.QUEUED_OPERATION,

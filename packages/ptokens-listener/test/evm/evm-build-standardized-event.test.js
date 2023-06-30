@@ -412,7 +412,7 @@ describe('Event building for EVM', () => {
       const expected = {
         [constants.db.KEY_ID]:
           'operationqueued_0x0373cb2ceeafd11a18902d21a0edbd7f3651ee3cea09442a12c060115a97bda1',
-        [constants.db.KEY_STATUS]: constants.db.txStatus.DETECTED,
+        [constants.db.KEY_STATUS]: constants.db.txStatus.PROPOSED,
         [constants.db.KEY_EVENT_NAME]: constants.db.eventNames.QUEUED_OPERATION,
 
         [constants.db.KEY_NONCE]: '6648',
@@ -468,7 +468,7 @@ describe('Event building for EVM', () => {
       const expected = {
         [constants.db.KEY_ID]:
           'operationqueued_0x32fe2ff93d26184c87287d7b8d3d92f48f6224dd79b353eadeacf1e399378c08',
-        [constants.db.KEY_STATUS]: constants.db.txStatus.DETECTED,
+        [constants.db.KEY_STATUS]: constants.db.txStatus.PROPOSED,
         [constants.db.KEY_EVENT_NAME]: constants.db.eventNames.QUEUED_OPERATION,
 
         [constants.db.KEY_NONCE]: '6911',

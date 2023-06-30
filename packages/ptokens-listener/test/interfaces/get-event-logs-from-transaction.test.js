@@ -5,7 +5,7 @@ describe('Tests for the getEventLogsFromTransaction interface', () => {
       jest.resetModules()
     })
 
-    test.each([['0x005fe7f9'], ['0x00e4b170'], ['0x00f1918e'], ['0xf9b459a1']])(
+    test.each([['0x005fe7f9'], ['0x00e4b170'], ['0xf9b459a1']])(
       'Should get EVM event logs for chain id %p',
       async _networkId => {
         const getEventLogsModule = require('../../lib/evm/evm-get-event-logs-from-transaction')

@@ -1,7 +1,6 @@
 const R = require('ramda')
 const { logic } = require('ptokens-utils')
 const { logger } = require('../get-logger')
-const { getOnChainQueuedRequestsAndPutInState } = require('./evm-get-on-chain-queued-requests')
 const {
   getQueuedEventsFromDbAndPutInState,
   getValidMatchingEventsAndPutInState,
@@ -16,13 +15,16 @@ const {
   removeToBeDismissedEventsFromState,
 } = require('../state/state-operations')
 const constants = require('ptokens-constants')
+const {
+  filterOutQueuedOperationsWithWrongStatusAndPutInState,
+} = require('./evm-filter-out-onchain-requests')
 
 const pollForRequestsErrorHandler = R.curry((_pollForRequestsLoop, _err) => Promise.reject(_err))
 
 const maybeProcessNewRequestsAndDismiss = _state =>
-  logger.info('Polling for new requests EVM...') ||
-  getOnChainQueuedRequestsAndPutInState(_state)
-    .then(getQueuedEventsFromDbAndPutInState)
+  logger.info('Checking for any EVM operations to cancel...') ||
+  getQueuedEventsFromDbAndPutInState(_state)
+    .then(filterOutQueuedOperationsWithWrongStatusAndPutInState)
     .then(getValidMatchingEventsAndPutInState)
     .then(filterOutInvalidQueuedRequestsAndPutInState)
     .then(removeOnChainRequestsFromState)

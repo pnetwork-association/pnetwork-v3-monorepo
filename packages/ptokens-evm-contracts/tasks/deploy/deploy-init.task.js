@@ -1,5 +1,4 @@
 const R = require('ramda')
-const { TASK_NAME_DEPLOY_INIT } = require('../constants')
 const {
   getConfiguration,
   maybeAddNewNetwork,
@@ -7,6 +6,7 @@ const {
   maybeAddEmptyUnderlyingAssetList,
 } = require('../lib/configuration-manager')
 
+const TASK_NAME_DEPLOY_INIT = 'deploy:init'
 const TASK_DESC_DEPLOY_INIT =
   'Creates a new deployment configuration or returns the existing one for the selected network.'
 
@@ -19,3 +19,7 @@ const deployInit = (_, hre) =>
     .then(R.prop(hre.network.name))
 
 task(TASK_NAME_DEPLOY_INIT, TASK_DESC_DEPLOY_INIT, deployInit)
+
+module.exports = {
+  TASK_NAME_DEPLOY_INIT,
+}
