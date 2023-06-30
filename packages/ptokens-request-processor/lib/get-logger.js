@@ -1,9 +1,11 @@
 const log4js = require('log4js')
+const config = require('../config')
 const pTokensUtils = require('ptokens-utils')
+const constants = require('ptokens-constants')
 
 const loggingParams = {
   stdoutLevel: 'debug',
-  logFileRelativePath: './logs/request-processor.log',
+  logFileRelativePath: `./logs/${config[constants.config.KEY_CHAIN_NAME]}-processor.log`,
 }
 
 log4js.configure(pTokensUtils.logger.getDefaultConfiguration(loggingParams))
