@@ -81,7 +81,10 @@ contract PRouter is IPRouter, Context {
             underlyingAssetTokenAddress,
             underlyingAssetNetworkId,
             assetTokenAddress,
-            Utils.normalizeAmount(assetAmount, underlyingAssetDecimals, true),
+            // NOTE: pTokens on host chains have always 18 decimals.
+            Network.isCurrentNetwork(underlyingAssetNetworkId)
+                ? Utils.normalizeAmount(assetAmount, underlyingAssetDecimals, true)
+                : assetAmount,
             userData,
             optionsMask
         );
