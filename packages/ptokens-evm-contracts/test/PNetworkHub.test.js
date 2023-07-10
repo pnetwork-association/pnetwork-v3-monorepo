@@ -514,4 +514,121 @@ describe('PNetworkHub', () => {
       await hub.connect(relayer).protocolExecuteOperation(operation)
     }
   })
+
+  it('should be able to call userSend to wrap only tokens', async () => {
+    const assetAmount = ethers.utils.parseEther('1000')
+    const data = {
+      destinationAccount: owner.address,
+      destinationNetworkId: PNETWORK_NETWORK_IDS.ethereumMainnet,
+      underlyingAssetName: await token.name(),
+      underlyingAssetSymbol: await token.symbol(),
+      underlyingAssetDecimals: await token.decimals(),
+      underlyingAssetTokenAddress: token.address,
+      underlyingAssetNetworkId: PNETWORK_NETWORK_IDS.hardhat,
+      assetTokenAddress: token.address,
+      assetAmount,
+      protocolFeeAssetTokenAddress: ZERO_ADDRESS,
+      protocolFeeAssetAmount: '0',
+      userData: '0x',
+      optionsMask: '0x'.padEnd(66, '0'),
+    }
+
+    await token.approve(pToken.address, assetAmount)
+    await expect(hub.userSend(...Object.values(data))).to.emit(hub, 'UserOperation')
+  })
+
+  it('should not be able to call userSend to wrap only tokens specifying protocolFeeAssetAmount or protocolFeeAssetTokenAddress or protocolFeeAssetAmount and protocolFeeAssetTokenAddress', async () => {
+    const assetAmount = ethers.utils.parseEther('1000')
+    const data = {
+      destinationAccount: owner.address,
+      destinationNetworkId: PNETWORK_NETWORK_IDS.ethereumMainnet,
+      underlyingAssetName: await token.name(),
+      underlyingAssetSymbol: await token.symbol(),
+      underlyingAssetDecimals: await token.decimals(),
+      underlyingAssetTokenAddress: token.address,
+      underlyingAssetNetworkId: PNETWORK_NETWORK_IDS.hardhat,
+      assetTokenAddress: token.address,
+      assetAmount,
+      protocolFeeAssetTokenAddress: ZERO_ADDRESS,
+      protocolFeeAssetAmount: assetAmount,
+      userData: '0x',
+      optionsMask: '0x'.padEnd(66, '0'),
+    }
+    await expect(hub.userSend(...Object.values(data))).to.be.revertedWithCustomError(
+      hub,
+      'InvalidProtocolFeeAssetParameters'
+    )
+
+    data.protocolFeeAssetAmount = '0'
+    data.protocolFeeAssetTokenAddress = token.address
+    await expect(hub.userSend(...Object.values(data))).to.be.revertedWithCustomError(
+      hub,
+      'InvalidProtocolFeeAssetParameters'
+    )
+
+    data.protocolFeeAssetAmount = assetAmount
+    await expect(hub.userSend(...Object.values(data))).to.be.revertedWithCustomError(
+      hub,
+      'InvalidProtocolFeeAssetParameters'
+    )
+  })
+
+  it('should be able to call userSend to send userData', async () => {
+    const protocolFeeAssetAmount = ethers.utils.parseEther('1000')
+    const data = {
+      destinationAccount: owner.address,
+      destinationNetworkId: PNETWORK_NETWORK_IDS.ethereumMainnet,
+      underlyingAssetName: await token.name(),
+      underlyingAssetSymbol: await token.symbol(),
+      underlyingAssetDecimals: await token.decimals(),
+      underlyingAssetTokenAddress: token.address,
+      underlyingAssetNetworkId: PNETWORK_NETWORK_IDS.hardhat,
+      assetTokenAddress: ZERO_ADDRESS,
+      assetAmount: '0',
+      protocolFeeAssetTokenAddress: token.address,
+      protocolFeeAssetAmount,
+      userData: '0x00',
+      optionsMask: '0x'.padEnd(66, '0'),
+    }
+
+    await token.approve(pToken.address, protocolFeeAssetAmount)
+    await expect(hub.userSend(...Object.values(data))).to.emit(hub, 'UserOperation')
+  })
+
+  it('should not be able to call userSend to send userData specifying assetAmount or assetTokenAddress or and assetTokenAddress and assetTokenAmount', async () => {
+    const protocolFeeAssetAmount = ethers.utils.parseEther('1000')
+    const data = {
+      destinationAccount: owner.address,
+      destinationNetworkId: PNETWORK_NETWORK_IDS.ethereumMainnet,
+      underlyingAssetName: await token.name(),
+      underlyingAssetSymbol: await token.symbol(),
+      underlyingAssetDecimals: await token.decimals(),
+      underlyingAssetTokenAddress: token.address,
+      underlyingAssetNetworkId: PNETWORK_NETWORK_IDS.hardhat,
+      assetTokenAddress: token.address,
+      assetAmount: '1',
+      protocolFeeAssetTokenAddress: token.address,
+      protocolFeeAssetAmount,
+      userData: '0x00',
+      optionsMask: '0x'.padEnd(66, '0'),
+    }
+
+    await expect(hub.userSend(...Object.values(data))).to.be.revertedWithCustomError(
+      hub,
+      'InvalidProtocolFeeAssetParameters'
+    )
+
+    data.assetAmount = '0'
+    await expect(hub.userSend(...Object.values(data))).to.be.revertedWithCustomError(
+      hub,
+      'InvalidAssetParameters'
+    )
+
+    data.assetAmount = '1'
+    data.assetTokenAddress = ZERO_ADDRESS
+    await expect(hub.userSend(...Object.values(data))).to.be.revertedWithCustomError(
+      hub,
+      'InvalidAssetParameters'
+    )
+  })
 })

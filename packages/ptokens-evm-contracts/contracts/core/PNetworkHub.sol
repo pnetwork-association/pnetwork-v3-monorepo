@@ -2,6 +2,7 @@
 
 pragma solidity 0.8.17;
 
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {ReentrancyGuard} from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import {IEpochsManager} from "@pnetwork/dao-v2-contracts/contracts/interfaces/IEpochsManager.sol";
 import {GovernanceMessageHandler} from "../governance/GovernanceMessageHandler.sol";
@@ -9,10 +10,35 @@ import {IPToken} from "../interfaces/IPToken.sol";
 import {IPFactory} from "../interfaces/IPFactory.sol";
 import {IPNetworkHub} from "../interfaces/IPNetworkHub.sol";
 import {IPReceiver} from "../interfaces/IPReceiver.sol";
-import {Errors} from "../libraries/Errors.sol";
 import {Constants} from "../libraries/Constants.sol";
 import {Utils} from "../libraries/Utils.sol";
 import {Network} from "../libraries/Network.sol";
+
+error OperationAlreadyQueued(IPNetworkHub.Operation operation);
+error OperationAlreadyExecuted(IPNetworkHub.Operation operation);
+error OperationAlreadyCancelled(IPNetworkHub.Operation operation);
+error OperationCancelled(IPNetworkHub.Operation operation);
+error OperationNotQueued(IPNetworkHub.Operation operation);
+error GovernanceOperationAlreadyCancelled(IPNetworkHub.Operation operation);
+error GuardianOperationAlreadyCancelled(IPNetworkHub.Operation operation);
+error SentinelOperationAlreadyCancelled(IPNetworkHub.Operation operation);
+error ChallengePeriodNotTerminated(uint64 startTimestamp, uint64 endTimestamp);
+error ChallengePeriodTerminated(uint64 startTimestamp, uint64 endTimestamp);
+error InvalidAssetParameters(uint256 assetAmount, address assetTokenAddress);
+error InvalidProtocolFeeAssetParameters(uint256 protocolFeeAssetAmount, address protocolFeeAssetTokenAddress);
+error InvalidUserOperation();
+error NoUserOperation();
+error PTokenNotCreated(address pTokenAddress);
+error InvalidNetwork(bytes4 networkId);
+error NotContract(address addr);
+error LockDown();
+error InvalidGovernanceMessage(bytes message);
+error InvalidLockedAmountChallengePeriod(
+    uint256 lockedAmountChallengePeriod,
+    uint256 expectedLockedAmountChallengePeriod
+);
+error CallFailed();
+error QueueFull();
 
 contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard {
     mapping(bytes32 => Action) private _operationsRelayerQueueAction;
@@ -29,6 +55,7 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
     uint32 public immutable baseChallengePeriodDuration;
     uint16 public immutable kChallengePeriod;
     uint16 public immutable maxOperationsInQueue;
+    //bytes4 public immutable interimChainNetworkId;
 
     // bytes32 public guardiansRoot;
     uint256 public lockedAmountChallengePeriod;
@@ -51,7 +78,7 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
     modifier onlyWhenIsNotInLockDown(bool addMaxChallengePeriodDuration) {
         uint16 currentEpoch = IEpochsManager(epochsManager).currentEpoch();
         if (_epochsSentinelsRoot[currentEpoch] == bytes32(0)) {
-            revert Errors.LockDown();
+            revert LockDown();
         }
 
         uint256 epochDuration = IEpochsManager(epochsManager).epochDuration();
@@ -75,7 +102,7 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
                 ) >=
             currentEpochEndTimestamp - 3600
         ) {
-            revert Errors.LockDown();
+            revert LockDown();
         }
 
         _;
@@ -91,13 +118,17 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
         uint256 lockedAmountChallengePeriod_,
         uint16 kChallengePeriod_,
         uint16 maxOperationsInQueue_
-    ) GovernanceMessageHandler(telepathyRouter, governanceMessageVerifier, allowedSourceChainId) {
+    )
+        //bytes4 interimChainNetworkId_
+        GovernanceMessageHandler(telepathyRouter, governanceMessageVerifier, allowedSourceChainId)
+    {
         factory = factory_;
         epochsManager = epochsManager_;
         baseChallengePeriodDuration = baseChallengePeriodDuration_;
         lockedAmountChallengePeriod = lockedAmountChallengePeriod_;
         kChallengePeriod = kChallengePeriod_;
         maxOperationsInQueue = maxOperationsInQueue_;
+        //interimChainNetworkId = interimChainNetworkId_;
     }
 
     /// @inheritdoc IPNetworkHub
@@ -182,50 +213,55 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
 
         OperationStatus operationStatus = _operationsStatus[operationId];
         if (operationStatus == OperationStatus.Executed) {
-            revert Errors.OperationAlreadyExecuted(operation);
+            revert OperationAlreadyExecuted(operation);
         } else if (operationStatus == OperationStatus.Cancelled) {
-            revert Errors.OperationAlreadyCancelled(operation);
+            revert OperationAlreadyCancelled(operation);
         } else if (operationStatus == OperationStatus.Null) {
-            revert Errors.OperationNotQueued(operation);
+            revert OperationNotQueued(operation);
         }
 
         (uint64 startTimestamp, uint64 endTimestamp) = _challengePeriodOf(operationId, operationStatus);
         if (uint64(block.timestamp) < endTimestamp) {
-            revert Errors.ChallengePeriodNotTerminated(startTimestamp, endTimestamp);
+            revert ChallengePeriodNotTerminated(startTimestamp, endTimestamp);
         }
+
+        address pTokenAddress = IPFactory(factory).getPTokenAddress(
+            operation.underlyingAssetName,
+            operation.underlyingAssetSymbol,
+            operation.underlyingAssetDecimals,
+            operation.underlyingAssetTokenAddress,
+            operation.underlyingAssetNetworkId
+        );
+
+        // _takeProtocolFee(operation, pTokenAddress);
+
+        /*if (interimChainNetworkId != operation.destinationNetworkId) {
+            _releaseOperationLockedAmountChallengePeriod(operationId)
+            emit UserOperation
+            return;
+        }*/
 
         address destinationAddress = Utils.parseAddress(operation.destinationAccount);
         if (operation.assetAmount > 0) {
-            address pTokenAddress = IPFactory(factory).getPTokenAddress(
-                operation.underlyingAssetName,
-                operation.underlyingAssetSymbol,
-                operation.underlyingAssetDecimals,
-                operation.underlyingAssetTokenAddress,
-                operation.underlyingAssetNetworkId
-            );
             IPToken(pTokenAddress).protocolMint(destinationAddress, operation.assetAmount);
 
             if (Utils.isBitSet(operation.optionsMask, 0)) {
                 if (!Network.isCurrentNetwork(operation.underlyingAssetNetworkId)) {
-                    revert Errors.InvalidNetwork(operation.underlyingAssetNetworkId);
+                    revert InvalidNetwork(operation.underlyingAssetNetworkId);
                 }
                 IPToken(pTokenAddress).protocolBurn(destinationAddress, operation.assetAmount);
             }
         }
 
         if (operation.userData.length > 0) {
-            if (destinationAddress.code.length == 0) revert Errors.NotContract(destinationAddress);
+            if (destinationAddress.code.length == 0) revert NotContract(destinationAddress);
             try IPReceiver(destinationAddress).receiveUserData(operation.userData) {} catch {}
         }
 
         _operationsStatus[operationId] = OperationStatus.Executed;
         _operationsExecuteAction[operationId] = Action(_msgSender(), uint64(block.timestamp));
 
-        Action storage queuedAction = _operationsRelayerQueueAction[operationId];
-        (bool sent, ) = queuedAction.actor.call{value: lockedAmountChallengePeriod}("");
-        if (!sent) {
-            revert Errors.CallFailed();
-        }
+        _releaseOperationLockedAmountChallengePeriod(operationId);
 
         unchecked {
             --numberOfOperationsInQueue;
@@ -233,26 +269,55 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
         emit OperationExecuted(operation);
     }
 
+    function _releaseOperationLockedAmountChallengePeriod(bytes32 operationId) internal {
+        Action storage queuedAction = _operationsRelayerQueueAction[operationId];
+        (bool sent, ) = queuedAction.actor.call{value: lockedAmountChallengePeriod}("");
+        if (!sent) {
+            revert CallFailed();
+        }
+    }
+
+    function _takeProtocolFee(Operation calldata operation, address pTokenAddress) internal {
+        // take protocol fee and emit an user operation
+        uint256 assetAmountWithoutFees = operation.assetAmount;
+
+        // assetTokenAddress = pTokenAddress = ptoken on interim chain
+        /*emit UserOperation(
+            gasleft(),
+            operation.destinationAccount,
+            operation.destinationNetworkId,
+            operation.underlyingAssetName,
+            operation.underlyingAssetSymbol,
+            operation.underlyingAssetDecimals,
+            operation.underlyingAssetTokenAddress,
+            operation.underlyingAssetNetworkId,
+            pTokenAddress,
+            assetAmountWithoutFees,
+            operation.userData,
+            operation.optionsMask
+        );*/
+    }
+
     /// @inheritdoc IPNetworkHub
     function protocolQueueOperation(Operation calldata operation) external payable onlyWhenIsNotInLockDown(true) {
         uint256 expectedLockedAmountChallengePeriod = lockedAmountChallengePeriod;
         if (msg.value != expectedLockedAmountChallengePeriod) {
-            revert Errors.InvalidLockedAmountChallengePeriod(msg.value, expectedLockedAmountChallengePeriod);
+            revert InvalidLockedAmountChallengePeriod(msg.value, expectedLockedAmountChallengePeriod);
         }
 
         if (numberOfOperationsInQueue >= maxOperationsInQueue) {
-            revert Errors.QueueFull();
+            revert QueueFull();
         }
 
         bytes32 operationId = operationIdOf(operation);
 
         OperationStatus operationStatus = _operationsStatus[operationId];
         if (operationStatus == OperationStatus.Executed) {
-            revert Errors.OperationAlreadyExecuted(operation);
+            revert OperationAlreadyExecuted(operation);
         } else if (operationStatus == OperationStatus.Cancelled) {
-            revert Errors.OperationAlreadyCancelled(operation);
+            revert OperationAlreadyCancelled(operation);
         } else if (operationStatus == OperationStatus.Queued) {
-            revert Errors.OperationAlreadyQueued(operation);
+            revert OperationAlreadyQueued(operation);
         }
 
         _operationsRelayerQueueAction[operationId] = Action(_msgSender(), uint64(block.timestamp));
@@ -275,46 +340,70 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
         bytes4 underlyingAssetNetworkId,
         address assetTokenAddress,
         uint256 assetAmount,
+        address protocolFeeAssetTokenAddress,
+        uint256 protocolFeeAssetAmount,
         bytes calldata userData,
         bytes32 optionsMask
     ) external {
+        address msgSender = _msgSender();
+
         if (
             (assetAmount > 0 && assetTokenAddress == address(0)) ||
             (assetAmount == 0 && assetTokenAddress != address(0))
         ) {
-            revert Errors.InvalidAssetParameters(assetAmount, assetTokenAddress);
+            revert InvalidAssetParameters(assetAmount, assetTokenAddress);
         }
 
+        address pTokenAddress = IPFactory(factory).getPTokenAddress(
+            underlyingAssetName,
+            underlyingAssetSymbol,
+            underlyingAssetDecimals,
+            underlyingAssetTokenAddress,
+            underlyingAssetNetworkId
+        );
+        if (pTokenAddress.code.length == 0) {
+            revert PTokenNotCreated(pTokenAddress);
+        }
+
+        bool isCurrentNetwork = Network.isCurrentNetwork(destinationNetworkId);
+
         if (assetAmount > 0) {
-            address pTokenAddress = IPFactory(factory).getPTokenAddress(
-                underlyingAssetName,
-                underlyingAssetSymbol,
-                underlyingAssetDecimals,
-                underlyingAssetTokenAddress,
-                underlyingAssetNetworkId
-            );
-
-            if (pTokenAddress.code.length == 0) {
-                revert Errors.PTokenNotCreated(pTokenAddress);
+            if (protocolFeeAssetAmount > 0 || protocolFeeAssetTokenAddress != address(0)) {
+                revert InvalidProtocolFeeAssetParameters(protocolFeeAssetAmount, protocolFeeAssetTokenAddress);
             }
 
-            address msgSender = _msgSender();
-
-            if (underlyingAssetTokenAddress == assetTokenAddress && Network.isCurrentNetwork(destinationNetworkId)) {
+            // mint on the same chain
+            if (underlyingAssetTokenAddress == assetTokenAddress && isCurrentNetwork) {
                 IPToken(pTokenAddress).userMint(msgSender, assetAmount);
-            } else if (
-                underlyingAssetTokenAddress == assetTokenAddress && !Network.isCurrentNetwork(destinationNetworkId)
-            ) {
+                // pegin
+            } else if (underlyingAssetTokenAddress == assetTokenAddress && !isCurrentNetwork) {
                 IPToken(pTokenAddress).userMintAndBurn(msgSender, assetAmount);
-            } else if (pTokenAddress == assetTokenAddress && !Network.isCurrentNetwork(destinationNetworkId)) {
+                // pegout
+            } else if (pTokenAddress == assetTokenAddress && !isCurrentNetwork) {
                 IPToken(pTokenAddress).userBurn(msgSender, assetAmount);
-            } else if (pTokenAddress == assetTokenAddress && Network.isCurrentNetwork(destinationNetworkId)) {
-                IPToken(pTokenAddress).burn(assetAmount);
-            } else {
-                revert Errors.InvalidUserOperation();
             }
-        } else if (userData.length == 0) {
-            revert Errors.NoUserOperation();
+            /*else if (pTokenAddress == assetTokenAddress && isCurrentNetwork) {
+                IPToken(pTokenAddress).burn(assetAmount);
+            }*/
+            else {
+                revert InvalidUserOperation();
+            }
+        } else if (userData.length > 0) {
+            if (protocolFeeAssetAmount == 0 || protocolFeeAssetTokenAddress == address(0)) {
+                revert InvalidProtocolFeeAssetParameters(protocolFeeAssetAmount, protocolFeeAssetTokenAddress);
+            }
+
+            // pegin
+            if (underlyingAssetTokenAddress == protocolFeeAssetTokenAddress && !isCurrentNetwork) {
+                IPToken(pTokenAddress).userMintAndBurn(msgSender, protocolFeeAssetAmount);
+                // pegout
+            } else if (pTokenAddress == protocolFeeAssetTokenAddress && !isCurrentNetwork) {
+                IPToken(pTokenAddress).userBurn(msgSender, protocolFeeAssetAmount);
+            } else {
+                revert InvalidUserOperation();
+            }
+        } else {
+            revert NoUserOperation();
         }
 
         emit UserOperation(
@@ -331,6 +420,10 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
             Network.isCurrentNetwork(underlyingAssetNetworkId)
                 ? Utils.normalizeAmount(assetAmount, underlyingAssetDecimals, true)
                 : assetAmount,
+            protocolFeeAssetTokenAddress,
+            Network.isCurrentNetwork(underlyingAssetNetworkId)
+                ? Utils.normalizeAmount(protocolFeeAssetAmount, underlyingAssetDecimals, true)
+                : protocolFeeAssetAmount,
             userData,
             optionsMask
         );
@@ -366,22 +459,22 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
 
         OperationStatus operationStatus = _operationsStatus[operationId];
         if (operationStatus == OperationStatus.Executed) {
-            revert Errors.OperationAlreadyExecuted(operation);
+            revert OperationAlreadyExecuted(operation);
         } else if (operationStatus == OperationStatus.Cancelled) {
-            revert Errors.OperationAlreadyCancelled(operation);
+            revert OperationAlreadyCancelled(operation);
         } else if (operationStatus == OperationStatus.Null) {
-            revert Errors.OperationNotQueued(operation);
+            revert OperationNotQueued(operation);
         }
 
         (uint64 startTimestamp, uint64 endTimestamp) = _challengePeriodOf(operationId, operationStatus);
         if (uint64(block.timestamp) >= endTimestamp) {
-            revert Errors.ChallengePeriodTerminated(startTimestamp, endTimestamp);
+            revert ChallengePeriodTerminated(startTimestamp, endTimestamp);
         }
 
         Action memory action = Action(_msgSender(), uint64(block.timestamp));
         if (actor == Actor.Governance) {
             if (_operationsGovernanceCancelAction[operationId].actor != address(0)) {
-                revert Errors.GovernanceOperationAlreadyCancelled(operation);
+                revert GovernanceOperationAlreadyCancelled(operation);
             }
 
             _operationsGovernanceCancelAction[operationId] = action;
@@ -389,7 +482,7 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
         }
         if (actor == Actor.Guardian) {
             if (_operationsGuardianCancelAction[operationId].actor != address(0)) {
-                revert Errors.GuardianOperationAlreadyCancelled(operation);
+                revert GuardianOperationAlreadyCancelled(operation);
             }
 
             _operationsGuardianCancelAction[operationId] = action;
@@ -397,7 +490,7 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
         }
         if (actor == Actor.Sentinel) {
             if (_operationsSentinelCancelAction[operationId].actor != address(0)) {
-                revert Errors.SentinelOperationAlreadyCancelled(operation);
+                revert SentinelOperationAlreadyCancelled(operation);
             }
 
             _operationsSentinelCancelAction[operationId] = action;
@@ -432,6 +525,6 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
         //     return;
         // }
 
-        revert Errors.InvalidGovernanceMessage(message);
+        revert InvalidGovernanceMessage(message);
     }
 }
