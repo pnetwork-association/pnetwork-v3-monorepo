@@ -9,10 +9,12 @@ module.exports = class Operation {
       nonce = 0,
       underlyingAssetDecimals = 0,
       assetAmount = '0',
+      protocolFeeAssetAmount = '0',
       underlyingAssetTokenAddress = '0x'.padEnd(42, '0'),
       originNetworkId = PNETWORK_NETWORK_IDS.hardhat,
       destinationNetworkId = PNETWORK_NETWORK_IDS.hardhat,
       underlyingAssetNetworkId = PNETWORK_NETWORK_IDS.hardhat,
+      forwardDestinationNetworkId = PNETWORK_NETWORK_IDS.ethereumMainnet,
       destinationAccount = '0x'.padEnd(42, '0'),
       underlyingAssetName = 'NAME',
       underlyingAssetSymbol = 'SYMBOL',
@@ -33,6 +35,8 @@ module.exports = class Operation {
     this.underlyingAssetName = underlyingAssetName
     this.underlyingAssetSymbol = underlyingAssetSymbol
     this.userData = userData
+    this.protocolFeeAssetAmount = protocolFeeAssetAmount
+    this.forwardDestinationNetworkId = forwardDestinationNetworkId
   }
 
   serialize() {
@@ -43,9 +47,11 @@ module.exports = class Operation {
       this.nonce,
       this.underlyingAssetDecimals,
       this.assetAmount,
+      this.protocolFeeAssetAmount,
       this.underlyingAssetTokenAddress,
       this.originNetworkId,
       this.destinationNetworkId,
+      this.forwardDestinationNetworkId,
       this.underlyingAssetNetworkId,
       this.destinationAccount,
       this.underlyingAssetName,

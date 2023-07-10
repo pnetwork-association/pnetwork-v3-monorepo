@@ -17,8 +17,10 @@ const Operation = require('./utils/Operation')
 let token,
   owner,
   pToken,
+  pTokenInterim,
   pFactory,
   hub,
+  hubInterim,
   guardian,
   sentinel,
   relayer,
@@ -31,7 +33,7 @@ let token,
   epochDuration
 
 describe('PNetworkHub', () => {
-  const generateOperation = async (_opts = {}) => {
+  const generateOperation = async (_opts = {}, _hub = hub) => {
     const {
       destinationAccount = owner.address,
       destinationNetworkId = PNETWORK_NETWORK_IDS.hardhat,
@@ -42,12 +44,19 @@ describe('PNetworkHub', () => {
       underlyingAssetNetworkId = PNETWORK_NETWORK_IDS.hardhat,
       assetTokenAddress = token.address,
       assetAmount = ethers.utils.parseEther('1000'),
+      protocolFeeAssetTokenAddress = ZERO_ADDRESS,
+      protocolFeeAssetAmount = '0',
       userData = '0x',
       optionsMask = '0x'.padEnd(66, '0'),
     } = _opts
 
-    await token.approve(pToken.address, assetAmount)
-    const transaction = hub.userSend(
+    if (_hub.address === hub.address) {
+      await token.approve(pToken.address, assetAmount)
+    } else if (_hub.address === hubInterim.address) {
+      await token.approve(pTokenInterim.address, assetAmount)
+    }
+
+    const transaction = _hub.userSend(
       destinationAccount,
       destinationNetworkId,
       underlyingAssetName,
@@ -57,10 +66,12 @@ describe('PNetworkHub', () => {
       underlyingAssetNetworkId,
       assetTokenAddress,
       assetAmount,
+      protocolFeeAssetTokenAddress,
+      protocolFeeAssetAmount,
       userData,
       optionsMask
     )
-    await expect(transaction).to.emit(hub, 'UserOperation')
+    await expect(transaction).to.emit(_hub, 'UserOperation')
 
     const nonce = 1
     const { blockHash, transactionHash } = await (await transaction).wait()
@@ -79,6 +90,8 @@ describe('PNetworkHub', () => {
       destinationAccount,
       underlyingAssetName,
       underlyingAssetSymbol,
+      protocolFeeAssetAmount: '0',
+      forwardDestinationNetworkId: PNETWORK_NETWORK_IDS.ethereumMainnet,
       userData,
     })
   }
@@ -110,6 +123,18 @@ describe('PNetworkHub', () => {
     pFactory = await PFactory.deploy()
     testNotReceiver = await TestNotReceiver.deploy()
     epochsManager = await EpochsManager.deploy()
+    hubInterim = await PNetworkHub.deploy(
+      pFactory.address,
+      BASE_CHALLENGE_PERIOD_DURATION,
+      epochsManager.address,
+      TELEPATHY_ROUTER_ADDRESS,
+      fakeGovernanceMessageVerifier.address,
+      chainId,
+      LOCKED_AMOUNT_CHALLENGE_PERIOD,
+      K_CHALLENGE_PERIOD,
+      MAX_OPERATIONS_IN_QUEUE,
+      PNETWORK_NETWORK_IDS.hardhat
+    )
     hub = await PNetworkHub.deploy(
       pFactory.address,
       BASE_CHALLENGE_PERIOD_DURATION,
@@ -119,8 +144,10 @@ describe('PNetworkHub', () => {
       chainId,
       LOCKED_AMOUNT_CHALLENGE_PERIOD,
       K_CHALLENGE_PERIOD,
-      MAX_OPERATIONS_IN_QUEUE
+      MAX_OPERATIONS_IN_QUEUE,
+      PNETWORK_NETWORK_IDS.ethereumMainnet
     )
+
     token = await StandardToken.deploy('Token', 'TKN', 18, ethers.utils.parseEther('100000000'))
     telepathyRouter = await ethers.getImpersonatedSigner(TELEPATHY_ROUTER_ADDRESS)
 
@@ -132,7 +159,7 @@ describe('PNetworkHub', () => {
     })
 
     await pFactory.setHub(hub.address)
-    await pFactory.renounceOwnership()
+    // await pFactory.renounceOwnership()
 
     pToken = await deployPToken(
       await token.name(),
@@ -144,6 +171,20 @@ describe('PNetworkHub', () => {
         pFactory,
       }
     )
+
+    await pFactory.setHub(hubInterim.address)
+    pTokenInterim = await deployPToken(
+      await token.name(),
+      await token.symbol(),
+      await token.decimals(),
+      token.address,
+      PNETWORK_NETWORK_IDS.hardhat,
+      {
+        pFactory,
+      }
+    )
+
+    await pFactory.setHub(hub.address)
 
     // NOTE: mock
     const epoch = await epochsManager.currentEpoch() // NOTE: should be next epoch but to simplify testing we use the current one
@@ -163,6 +204,10 @@ describe('PNetworkHub', () => {
         )
         .slice(2)
     await hub
+      .connect(telepathyRouter)
+      .handleTelepathy(chainId, fakeGovernanceMessageVerifier.address, data)
+
+    await hubInterim
       .connect(telepathyRouter)
       .handleTelepathy(chainId, fakeGovernanceMessageVerifier.address, data)
   })
@@ -257,7 +302,7 @@ describe('PNetworkHub', () => {
     ).to.be.revertedWithCustomError(hub, 'ChallengePeriodNotTerminated')
   })
 
-  it('should be able to execute an operation', async () => {
+  it('should be able to execute an operation on the destination chain', async () => {
     const operation = await generateOperation()
     const relayerbalancePre = await ethers.provider.getBalance(relayer.address)
     const destinationAccountbalancePre = await pToken.balanceOf(operation.destinationAccount)
@@ -283,6 +328,35 @@ describe('PNetworkHub', () => {
     expect(destinationAccountbalancePost).to.be.eq(
       destinationAccountbalancePre.add(operation.assetAmount)
     )
+
+    expect(relayerbalancePost).to.be.eq(
+      relayerbalancePre
+        .sub(receipt1.gasUsed.mul(receipt1.effectiveGasPrice))
+        .sub(receipt2.gasUsed.mul(receipt2.effectiveGasPrice))
+    )
+  })
+
+  it('should be able to execute an operation on the interim chain', async () => {
+    await pFactory.setHub(hubInterim.address)
+    const operation = await generateOperation(undefined, hubInterim)
+    const relayerbalancePre = await ethers.provider.getBalance(relayer.address)
+
+    let tx = await hubInterim
+      .connect(relayer)
+      .protocolQueueOperation(operation, { value: LOCKED_AMOUNT_CHALLENGE_PERIOD })
+    const receipt1 = await tx.wait(1)
+
+    await time.increase(await hubInterim.getCurrentChallengePeriodDuration())
+
+    tx = hubInterim.connect(relayer).protocolExecuteOperation(operation)
+    await expect(tx).to.emit(hubInterim, 'UserOperation').and.to.emit(pTokenInterim, 'Transfer')
+    // TODO: .withArgs(ZERO_ADDRESS, dao.address, amountWithoutFee)
+    const receipt2 = await (await tx).wait(1)
+
+    const relayerbalancePost = await ethers.provider.getBalance(relayer.address)
+    const destinationAccountbalancePost = await pToken.balanceOf(operation.destinationAccount)
+
+    expect(destinationAccountbalancePost).to.be.eq(0)
 
     expect(relayerbalancePost).to.be.eq(
       relayerbalancePre

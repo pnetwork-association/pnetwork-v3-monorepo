@@ -39,6 +39,7 @@ error InvalidLockedAmountChallengePeriod(
 );
 error CallFailed();
 error QueueFull();
+error InvalidProtocolFee(IPNetworkHub.Operation operation);
 
 contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard {
     mapping(bytes32 => Action) private _operationsRelayerQueueAction;
@@ -55,7 +56,7 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
     uint32 public immutable baseChallengePeriodDuration;
     uint16 public immutable kChallengePeriod;
     uint16 public immutable maxOperationsInQueue;
-    //bytes4 public immutable interimChainNetworkId;
+    bytes4 public immutable interimChainNetworkId;
 
     // bytes32 public guardiansRoot;
     uint256 public lockedAmountChallengePeriod;
@@ -117,18 +118,16 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
         uint32 allowedSourceChainId,
         uint256 lockedAmountChallengePeriod_,
         uint16 kChallengePeriod_,
-        uint16 maxOperationsInQueue_
-    )
-        //bytes4 interimChainNetworkId_
-        GovernanceMessageHandler(telepathyRouter, governanceMessageVerifier, allowedSourceChainId)
-    {
+        uint16 maxOperationsInQueue_,
+        bytes4 interimChainNetworkId_
+    ) GovernanceMessageHandler(telepathyRouter, governanceMessageVerifier, allowedSourceChainId) {
         factory = factory_;
         epochsManager = epochsManager_;
         baseChallengePeriodDuration = baseChallengePeriodDuration_;
         lockedAmountChallengePeriod = lockedAmountChallengePeriod_;
         kChallengePeriod = kChallengePeriod_;
         maxOperationsInQueue = maxOperationsInQueue_;
-        //interimChainNetworkId = interimChainNetworkId_;
+        interimChainNetworkId = interimChainNetworkId_;
     }
 
     /// @inheritdoc IPNetworkHub
@@ -164,12 +163,14 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
                     operation.nonce,
                     operation.destinationAccount,
                     operation.destinationNetworkId,
+                    operation.forwardDestinationNetworkId,
                     operation.underlyingAssetName,
                     operation.underlyingAssetSymbol,
                     operation.underlyingAssetDecimals,
                     operation.underlyingAssetTokenAddress,
                     operation.underlyingAssetNetworkId,
                     operation.assetAmount,
+                    operation.protocolFeeAssetAmount,
                     operation.userData,
                     operation.optionsMask
                 )
@@ -233,23 +234,55 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
             operation.underlyingAssetNetworkId
         );
 
-        // _takeProtocolFee(operation, pTokenAddress);
+        uint256 effectiveOperationAssetAmount = operation.assetAmount;
 
-        /*if (interimChainNetworkId != operation.destinationNetworkId) {
-            _releaseOperationLockedAmountChallengePeriod(operationId)
-            emit UserOperation
-            return;
-        }*/
+        // NOTE: if we are on the interim chain we must take the fee
+        if (interimChainNetworkId == Network.getCurrentNetworkId()) {
+            effectiveOperationAssetAmount = _takeProtocolFee(operation, pTokenAddress);
 
+            // NOTE: if we are on interim chain but the effective destination chain (forwardDestinationNetworkId) is another one
+            // we have to emit an user Operation without protocol fee and with effectiveOperationAssetAmount and forwardDestinationNetworkId as
+            // destinationNetworkId in order to proxy the Operation on the destination chain.
+            if (interimChainNetworkId != operation.forwardDestinationNetworkId) {
+                _releaseOperationLockedAmountChallengePeriod(operationId);
+                emit UserOperation(
+                    gasleft(),
+                    operation.destinationAccount,
+                    operation.forwardDestinationNetworkId,
+                    operation.underlyingAssetName,
+                    operation.underlyingAssetSymbol,
+                    operation.underlyingAssetDecimals,
+                    operation.underlyingAssetTokenAddress,
+                    operation.underlyingAssetNetworkId,
+                    pTokenAddress,
+                    effectiveOperationAssetAmount,
+                    address(0),
+                    0,
+                    bytes4(0),
+                    operation.userData,
+                    operation.optionsMask
+                );
+
+                emit OperationExecuted(operation);
+                return;
+            }
+        }
+
+        // NOTE: Execute the operation on the target blockchain. If destinationNetworkId is equivalent to
+        // interimChainNetworkId, then the effectiveOperationAssetAmount would be the result of operation.assetAmount minus
+        // the associated fee. However, if destinationNetworkId is not the same as interimChainNetworkId, the effectiveOperationAssetAmount
+        // is equivalent to operation.assetAmount. In this case, as the operation originates from the interim chain, the operation.assetAmount
+        // doesn't include the fee. This is because when the UserOperation event is triggered, and the interimChainNetworkId
+        // does not equal operation.destinationNetworkId, the event contains the effectiveOperationAssetAmount.
         address destinationAddress = Utils.parseAddress(operation.destinationAccount);
-        if (operation.assetAmount > 0) {
-            IPToken(pTokenAddress).protocolMint(destinationAddress, operation.assetAmount);
+        if (effectiveOperationAssetAmount > 0) {
+            IPToken(pTokenAddress).protocolMint(destinationAddress, effectiveOperationAssetAmount);
 
             if (Utils.isBitSet(operation.optionsMask, 0)) {
                 if (!Network.isCurrentNetwork(operation.underlyingAssetNetworkId)) {
                     revert InvalidNetwork(operation.underlyingAssetNetworkId);
                 }
-                IPToken(pTokenAddress).protocolBurn(destinationAddress, operation.assetAmount);
+                IPToken(pTokenAddress).protocolBurn(destinationAddress, effectiveOperationAssetAmount);
             }
         }
 
@@ -258,44 +291,8 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
             try IPReceiver(destinationAddress).receiveUserData(operation.userData) {} catch {}
         }
 
-        _operationsStatus[operationId] = OperationStatus.Executed;
-        _operationsExecuteAction[operationId] = Action(_msgSender(), uint64(block.timestamp));
-
         _releaseOperationLockedAmountChallengePeriod(operationId);
-
-        unchecked {
-            --numberOfOperationsInQueue;
-        }
         emit OperationExecuted(operation);
-    }
-
-    function _releaseOperationLockedAmountChallengePeriod(bytes32 operationId) internal {
-        Action storage queuedAction = _operationsRelayerQueueAction[operationId];
-        (bool sent, ) = queuedAction.actor.call{value: lockedAmountChallengePeriod}("");
-        if (!sent) {
-            revert CallFailed();
-        }
-    }
-
-    function _takeProtocolFee(Operation calldata operation, address pTokenAddress) internal {
-        // take protocol fee and emit an user operation
-        uint256 assetAmountWithoutFees = operation.assetAmount;
-
-        // assetTokenAddress = pTokenAddress = ptoken on interim chain
-        /*emit UserOperation(
-            gasleft(),
-            operation.destinationAccount,
-            operation.destinationNetworkId,
-            operation.underlyingAssetName,
-            operation.underlyingAssetSymbol,
-            operation.underlyingAssetDecimals,
-            operation.underlyingAssetTokenAddress,
-            operation.underlyingAssetNetworkId,
-            pTokenAddress,
-            assetAmountWithoutFees,
-            operation.userData,
-            operation.optionsMask
-        );*/
     }
 
     /// @inheritdoc IPNetworkHub
@@ -372,20 +369,13 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
                 revert InvalidProtocolFeeAssetParameters(protocolFeeAssetAmount, protocolFeeAssetTokenAddress);
             }
 
-            // mint on the same chain
             if (underlyingAssetTokenAddress == assetTokenAddress && isCurrentNetwork) {
                 IPToken(pTokenAddress).userMint(msgSender, assetAmount);
-                // pegin
             } else if (underlyingAssetTokenAddress == assetTokenAddress && !isCurrentNetwork) {
                 IPToken(pTokenAddress).userMintAndBurn(msgSender, assetAmount);
-                // pegout
             } else if (pTokenAddress == assetTokenAddress && !isCurrentNetwork) {
                 IPToken(pTokenAddress).userBurn(msgSender, assetAmount);
-            }
-            /*else if (pTokenAddress == assetTokenAddress && isCurrentNetwork) {
-                IPToken(pTokenAddress).burn(assetAmount);
-            }*/
-            else {
+            } else {
                 revert InvalidUserOperation();
             }
         } else if (userData.length > 0) {
@@ -393,10 +383,8 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
                 revert InvalidProtocolFeeAssetParameters(protocolFeeAssetAmount, protocolFeeAssetTokenAddress);
             }
 
-            // pegin
             if (underlyingAssetTokenAddress == protocolFeeAssetTokenAddress && !isCurrentNetwork) {
                 IPToken(pTokenAddress).userMintAndBurn(msgSender, protocolFeeAssetAmount);
-                // pegout
             } else if (pTokenAddress == protocolFeeAssetTokenAddress && !isCurrentNetwork) {
                 IPToken(pTokenAddress).userBurn(msgSender, protocolFeeAssetAmount);
             } else {
@@ -409,7 +397,7 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
         emit UserOperation(
             gasleft(),
             destinationAccount,
-            destinationNetworkId,
+            interimChainNetworkId,
             underlyingAssetName,
             underlyingAssetSymbol,
             underlyingAssetDecimals,
@@ -424,6 +412,7 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
             Network.isCurrentNetwork(underlyingAssetNetworkId)
                 ? Utils.normalizeAmount(protocolFeeAssetAmount, underlyingAssetDecimals, true)
                 : protocolFeeAssetAmount,
+            destinationNetworkId,
             userData,
             optionsMask
         );
@@ -452,6 +441,24 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
         }
 
         return (startTimestamp, endTimestamp);
+    }
+
+    function _onGovernanceMessage(bytes memory message) internal override {
+        bytes memory decodedMessage = abi.decode(message, (bytes));
+        (bytes32 messageType, bytes memory data) = abi.decode(decodedMessage, (bytes32, bytes));
+
+        if (messageType == Constants.GOVERNANCE_MESSAGE_SENTINELS) {
+            (uint16 epoch, bytes32 sentinelRoot) = abi.decode(data, (uint16, bytes32));
+            _epochsSentinelsRoot[epoch] = bytes32(sentinelRoot);
+            return;
+        }
+
+        // if (messageType == Constants.GOVERNANCE_MESSAGE_GUARDIANS) {
+        //     guardiansRoot = bytes32(data);
+        //     return;
+        // }
+
+        revert InvalidGovernanceMessage(message);
     }
 
     function _protocolCancelOperation(Operation calldata operation, Actor actor) internal {
@@ -510,21 +517,37 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
         }
     }
 
-    function _onGovernanceMessage(bytes memory message) internal override {
-        bytes memory decodedMessage = abi.decode(message, (bytes));
-        (bytes32 messageType, bytes memory data) = abi.decode(decodedMessage, (bytes32, bytes));
+    function _releaseOperationLockedAmountChallengePeriod(bytes32 operationId) internal {
+        _operationsStatus[operationId] = OperationStatus.Executed;
+        _operationsExecuteAction[operationId] = Action(_msgSender(), uint64(block.timestamp));
 
-        if (messageType == Constants.GOVERNANCE_MESSAGE_SENTINELS) {
-            (uint16 epoch, bytes32 sentinelRoot) = abi.decode(data, (uint16, bytes32));
-            _epochsSentinelsRoot[epoch] = bytes32(sentinelRoot);
-            return;
+        Action storage queuedAction = _operationsRelayerQueueAction[operationId];
+        (bool sent, ) = queuedAction.actor.call{value: lockedAmountChallengePeriod}("");
+        if (!sent) {
+            revert CallFailed();
         }
 
-        // if (messageType == Constants.GOVERNANCE_MESSAGE_GUARDIANS) {
-        //     guardiansRoot = bytes32(data);
-        //     return;
-        // }
+        unchecked {
+            --numberOfOperationsInQueue;
+        }
+    }
 
-        revert InvalidGovernanceMessage(message);
+    function _takeProtocolFee(Operation calldata operation, address pTokenAddress) internal returns (uint256) {
+        // NOTE: operation.assetAmount > 0 && operation.userData.length > 0 should never happens
+        if (operation.assetAmount > 0) {
+            uint256 fee = 1; // TODO: subtract fee
+            IPToken(pTokenAddress).protocolMint(address(this), fee);
+            // TODO: send it to the DAO
+            return operation.assetAmount - 1;
+        }
+
+        if (operation.userData.length > 0 && operation.protocolFeeAssetAmount > 0) {
+            // Take fee using pTokenAddress and operation.protocolFeeAssetAmount
+            IPToken(pTokenAddress).protocolMint(address(this), operation.protocolFeeAssetAmount);
+            // TODO: send it to the DAO
+            return 0;
+        }
+
+        revert InvalidProtocolFee(operation);
     }
 }
