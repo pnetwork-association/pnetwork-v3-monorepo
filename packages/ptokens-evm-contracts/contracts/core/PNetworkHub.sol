@@ -21,7 +21,7 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
     mapping(bytes32 => Action) private _operationsSentinelCancelAction;
     mapping(bytes32 => Action) private _operationsExecuteAction;
     mapping(bytes32 => uint8) private _operationsTotalCancelActions;
-    mapping(bytes32 => bytes1) private _operationsStatus;
+    mapping(bytes32 => OperationStatus) private _operationsStatus;
     mapping(uint16 => bytes32) private _epochsSentinelsRoot;
 
     address public immutable factory;
@@ -103,7 +103,7 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
     /// @inheritdoc IPNetworkHub
     function challengePeriodOf(Operation calldata operation) public view returns (uint64, uint64) {
         bytes32 operationId = operationIdOf(operation);
-        bytes1 operationStatus = _operationsStatus[operationId];
+        OperationStatus operationStatus = _operationsStatus[operationId];
         return _challengePeriodOf(operationId, operationStatus);
     }
 
@@ -146,7 +146,7 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
     }
 
     /// @inheritdoc IPNetworkHub
-    function operationStatusOf(Operation calldata operation) external view returns (bytes1) {
+    function operationStatusOf(Operation calldata operation) external view returns (OperationStatus) {
         return _operationsStatus[operationIdOf(operation)];
     }
 
@@ -180,12 +180,12 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
     ) external payable onlyWhenIsNotInLockDown(false) nonReentrant {
         bytes32 operationId = operationIdOf(operation);
 
-        bytes1 operationStatus = _operationsStatus[operationId];
-        if (operationStatus == Constants.OPERATION_EXECUTED) {
+        OperationStatus operationStatus = _operationsStatus[operationId];
+        if (operationStatus == OperationStatus.Executed) {
             revert Errors.OperationAlreadyExecuted(operation);
-        } else if (operationStatus == Constants.OPERATION_CANCELLED) {
+        } else if (operationStatus == OperationStatus.Cancelled) {
             revert Errors.OperationAlreadyCancelled(operation);
-        } else if (operationStatus == Constants.OPERATION_NULL) {
+        } else if (operationStatus == OperationStatus.Null) {
             revert Errors.OperationNotQueued(operation);
         }
 
@@ -218,7 +218,7 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
             try IPReceiver(destinationAddress).receiveUserData(operation.userData) {} catch {}
         }
 
-        _operationsStatus[operationId] = Constants.OPERATION_EXECUTED;
+        _operationsStatus[operationId] = OperationStatus.Executed;
         _operationsExecuteAction[operationId] = Action(_msgSender(), uint64(block.timestamp));
 
         Action storage queuedAction = _operationsRelayerQueueAction[operationId];
@@ -246,17 +246,17 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
 
         bytes32 operationId = operationIdOf(operation);
 
-        bytes1 operationStatus = _operationsStatus[operationId];
-        if (operationStatus == Constants.OPERATION_EXECUTED) {
+        OperationStatus operationStatus = _operationsStatus[operationId];
+        if (operationStatus == OperationStatus.Executed) {
             revert Errors.OperationAlreadyExecuted(operation);
-        } else if (operationStatus == Constants.OPERATION_CANCELLED) {
+        } else if (operationStatus == OperationStatus.Cancelled) {
             revert Errors.OperationAlreadyCancelled(operation);
-        } else if (operationStatus == Constants.OPERATION_QUEUED) {
+        } else if (operationStatus == OperationStatus.Queued) {
             revert Errors.OperationAlreadyQueued(operation);
         }
 
         _operationsRelayerQueueAction[operationId] = Action(_msgSender(), uint64(block.timestamp));
-        _operationsStatus[operationId] = Constants.OPERATION_QUEUED;
+        _operationsStatus[operationId] = OperationStatus.Queued;
         unchecked {
             ++numberOfOperationsInQueue;
         }
@@ -336,9 +336,12 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
         );
     }
 
-    function _challengePeriodOf(bytes32 operationId, bytes1 operationStatus) internal view returns (uint64, uint64) {
+    function _challengePeriodOf(
+        bytes32 operationId,
+        OperationStatus operationStatus
+    ) internal view returns (uint64, uint64) {
         // TODO: What is the challenge period of an already executed/cancelled operation
-        if (operationStatus != Constants.OPERATION_QUEUED) return (0, 0);
+        if (operationStatus != OperationStatus.Queued) return (0, 0);
 
         Action storage queueAction = _operationsRelayerQueueAction[operationId];
         uint64 startTimestamp = queueAction.timestamp;
@@ -361,12 +364,12 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
     function _protocolCancelOperation(Operation calldata operation, Actor actor) internal {
         bytes32 operationId = operationIdOf(operation);
 
-        bytes1 operationStatus = _operationsStatus[operationId];
-        if (operationStatus == Constants.OPERATION_EXECUTED) {
+        OperationStatus operationStatus = _operationsStatus[operationId];
+        if (operationStatus == OperationStatus.Executed) {
             revert Errors.OperationAlreadyExecuted(operation);
-        } else if (operationStatus == Constants.OPERATION_CANCELLED) {
+        } else if (operationStatus == OperationStatus.Cancelled) {
             revert Errors.OperationAlreadyCancelled(operation);
-        } else if (operationStatus == Constants.OPERATION_NULL) {
+        } else if (operationStatus == OperationStatus.Null) {
             revert Errors.OperationNotQueued(operation);
         }
 
@@ -408,7 +411,7 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
             unchecked {
                 --numberOfOperationsInQueue;
             }
-            _operationsStatus[operationId] = Constants.OPERATION_CANCELLED;
+            _operationsStatus[operationId] = OperationStatus.Cancelled;
             // TODO: Where should we send the lockedAmountChallengePeriod?
             emit OperationCancelled(operation);
         }

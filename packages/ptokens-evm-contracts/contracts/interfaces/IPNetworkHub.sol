@@ -17,36 +17,12 @@ interface IPNetworkHub is IGovernanceMessageHandler {
         Sentinel
     }
 
-    /**
-     * @dev Emitted when an user operation is generated.
-     *
-     * @param nonce The nonce
-     * @param destinationAccount The account to which the funds will be delivered
-     * @param destinationNetworkId The destination network id
-     * @param underlyingAssetName The name of the underlying asset
-     * @param underlyingAssetSymbol The symbol of the underlying asset
-     * @param underlyingAssetDecimals The number of decimals of the underlying asset
-     * @param underlyingAssetTokenAddress The address of the underlying asset
-     * @param underlyingAssetNetworkId The network id of the underlying asset
-     * @param assetTokenAddress The asset address
-     * @param assetAmount The asset mount
-     * @param userData The user data
-     * @param optionsMask The options
-     */
-    event UserOperation(
-        uint256 nonce,
-        string destinationAccount,
-        bytes4 destinationNetworkId,
-        string underlyingAssetName,
-        string underlyingAssetSymbol,
-        uint256 underlyingAssetDecimals,
-        address underlyingAssetTokenAddress,
-        bytes4 underlyingAssetNetworkId,
-        address assetTokenAddress,
-        uint256 assetAmount,
-        bytes userData,
-        bytes32 optionsMask
-    );
+    enum OperationStatus {
+        Null,
+        Queued,
+        Executed,
+        Cancelled
+    }
 
     struct Operation {
         bytes32 originBlockHash;
@@ -112,6 +88,37 @@ interface IPNetworkHub is IGovernanceMessageHandler {
      */
     event SentinelOperationCancelled(Operation operation);
 
+    /**
+     * @dev Emitted when an user operation is generated.
+     *
+     * @param nonce The nonce
+     * @param destinationAccount The account to which the funds will be delivered
+     * @param destinationNetworkId The destination network id
+     * @param underlyingAssetName The name of the underlying asset
+     * @param underlyingAssetSymbol The symbol of the underlying asset
+     * @param underlyingAssetDecimals The number of decimals of the underlying asset
+     * @param underlyingAssetTokenAddress The address of the underlying asset
+     * @param underlyingAssetNetworkId The network id of the underlying asset
+     * @param assetTokenAddress The asset address
+     * @param assetAmount The asset mount
+     * @param userData The user data
+     * @param optionsMask The options
+     */
+    event UserOperation(
+        uint256 nonce,
+        string destinationAccount,
+        bytes4 destinationNetworkId,
+        string underlyingAssetName,
+        string underlyingAssetSymbol,
+        uint256 underlyingAssetDecimals,
+        address underlyingAssetTokenAddress,
+        bytes4 underlyingAssetNetworkId,
+        address assetTokenAddress,
+        uint256 assetAmount,
+        bytes userData,
+        bytes32 optionsMask
+    );
+
     /*
      * @notice Calculates the operation challenge period.
      *
@@ -135,9 +142,9 @@ interface IPNetworkHub is IGovernanceMessageHandler {
      *
      * @param operation
      *
-     * @return (bytes1) the operation status.
+     * @return (OperationStatus) the operation status.
      */
-    function operationStatusOf(Operation calldata operation) external view returns (bytes1);
+    function operationStatusOf(Operation calldata operation) external view returns (OperationStatus);
 
     /*
      * @notice Calculates the operation id.
