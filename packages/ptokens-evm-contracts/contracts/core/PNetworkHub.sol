@@ -5,18 +5,16 @@ pragma solidity 0.8.17;
 import {ReentrancyGuard} from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import {IEpochsManager} from "@pnetwork/dao-v2-contracts/contracts/interfaces/IEpochsManager.sol";
 import {GovernanceMessageHandler} from "../governance/GovernanceMessageHandler.sol";
-import {IPRouter} from "../interfaces/IPRouter.sol";
 import {IPToken} from "../interfaces/IPToken.sol";
 import {IPFactory} from "../interfaces/IPFactory.sol";
-import {IStateManager} from "../interfaces/IStateManager.sol";
+import {IPNetworkHub} from "../interfaces/IPNetworkHub.sol";
 import {IPReceiver} from "../interfaces/IPReceiver.sol";
-import {Roles} from "../libraries/Roles.sol";
 import {Errors} from "../libraries/Errors.sol";
 import {Constants} from "../libraries/Constants.sol";
 import {Utils} from "../libraries/Utils.sol";
 import {Network} from "../libraries/Network.sol";
 
-contract StateManager is IStateManager, GovernanceMessageHandler, ReentrancyGuard {
+contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard {
     mapping(bytes32 => Action) private _operationsRelayerQueueAction;
     mapping(bytes32 => Action) private _operationsGovernanceCancelAction;
     mapping(bytes32 => Action) private _operationsGuardianCancelAction;
@@ -102,7 +100,7 @@ contract StateManager is IStateManager, GovernanceMessageHandler, ReentrancyGuar
         maxOperationsInQueue = maxOperationsInQueue_;
     }
 
-    /// @inheritdoc IStateManager
+    /// @inheritdoc IPNetworkHub
     function challengePeriodOf(Operation calldata operation) public view returns (uint64, uint64) {
         bytes32 operationId = operationIdOf(operation);
         bytes1 operationStatus = _operationsStatus[operationId];
@@ -119,12 +117,12 @@ contract StateManager is IStateManager, GovernanceMessageHandler, ReentrancyGuar
             kChallengePeriod;
     }
 
-    /// @inheritdoc IStateManager
+    /// @inheritdoc IPNetworkHub
     function getSentinelsRootForEpoch(uint16 epoch) external view returns (bytes32) {
         return _epochsSentinelsRoot[epoch];
     }
 
-    /// @inheritdoc IStateManager
+    /// @inheritdoc IPNetworkHub
     function operationIdOf(Operation calldata operation) public pure returns (bytes32) {
         return
             sha256(
@@ -147,12 +145,12 @@ contract StateManager is IStateManager, GovernanceMessageHandler, ReentrancyGuar
             );
     }
 
-    /// @inheritdoc IStateManager
+    /// @inheritdoc IPNetworkHub
     function operationStatusOf(Operation calldata operation) external view returns (bytes1) {
         return _operationsStatus[operationIdOf(operation)];
     }
 
-    /// @inheritdoc IStateManager
+    /// @inheritdoc IPNetworkHub
     function protocolGuardianCancelOperation(
         Operation calldata operation,
         bytes calldata proof
@@ -160,7 +158,7 @@ contract StateManager is IStateManager, GovernanceMessageHandler, ReentrancyGuar
         _protocolCancelOperation(operation, Actor.Guardian);
     }
 
-    /// @inheritdoc IStateManager
+    /// @inheritdoc IPNetworkHub
     function protocolGovernanceCancelOperation(
         Operation calldata operation,
         bytes calldata proof
@@ -168,7 +166,7 @@ contract StateManager is IStateManager, GovernanceMessageHandler, ReentrancyGuar
         _protocolCancelOperation(operation, Actor.Governance);
     }
 
-    /// @inheritdoc IStateManager
+    /// @inheritdoc IPNetworkHub
     function protocolSentinelCancelOperation(
         Operation calldata operation,
         bytes calldata proof
@@ -176,7 +174,7 @@ contract StateManager is IStateManager, GovernanceMessageHandler, ReentrancyGuar
         _protocolCancelOperation(operation, Actor.Sentinel);
     }
 
-    /// @inheritdoc IStateManager
+    /// @inheritdoc IPNetworkHub
     function protocolExecuteOperation(
         Operation calldata operation
     ) external payable onlyWhenIsNotInLockDown(false) nonReentrant {
@@ -205,13 +203,13 @@ contract StateManager is IStateManager, GovernanceMessageHandler, ReentrancyGuar
                 operation.underlyingAssetTokenAddress,
                 operation.underlyingAssetNetworkId
             );
-            IPToken(pTokenAddress).stateManagedProtocolMint(destinationAddress, operation.assetAmount);
+            IPToken(pTokenAddress).protocolMint(destinationAddress, operation.assetAmount);
 
             if (Utils.isBitSet(operation.optionsMask, 0)) {
                 if (!Network.isCurrentNetwork(operation.underlyingAssetNetworkId)) {
                     revert Errors.InvalidNetwork(operation.underlyingAssetNetworkId);
                 }
-                IPToken(pTokenAddress).stateManagedProtocolBurn(destinationAddress, operation.assetAmount);
+                IPToken(pTokenAddress).protocolBurn(destinationAddress, operation.assetAmount);
             }
         }
 
@@ -235,7 +233,7 @@ contract StateManager is IStateManager, GovernanceMessageHandler, ReentrancyGuar
         emit OperationExecuted(operation);
     }
 
-    /// @inheritdoc IStateManager
+    /// @inheritdoc IPNetworkHub
     function protocolQueueOperation(Operation calldata operation) external payable onlyWhenIsNotInLockDown(true) {
         uint256 expectedLockedAmountChallengePeriod = lockedAmountChallengePeriod;
         if (msg.value != expectedLockedAmountChallengePeriod) {
@@ -264,6 +262,78 @@ contract StateManager is IStateManager, GovernanceMessageHandler, ReentrancyGuar
         }
 
         emit OperationQueued(operation);
+    }
+
+    /// @inheritdoc IPNetworkHub
+    function userSend(
+        string calldata destinationAccount,
+        bytes4 destinationNetworkId,
+        string calldata underlyingAssetName,
+        string calldata underlyingAssetSymbol,
+        uint256 underlyingAssetDecimals,
+        address underlyingAssetTokenAddress,
+        bytes4 underlyingAssetNetworkId,
+        address assetTokenAddress,
+        uint256 assetAmount,
+        bytes calldata userData,
+        bytes32 optionsMask
+    ) external {
+        if (
+            (assetAmount > 0 && assetTokenAddress == address(0)) ||
+            (assetAmount == 0 && assetTokenAddress != address(0))
+        ) {
+            revert Errors.InvalidAssetParameters(assetAmount, assetTokenAddress);
+        }
+
+        if (assetAmount > 0) {
+            address pTokenAddress = IPFactory(factory).getPTokenAddress(
+                underlyingAssetName,
+                underlyingAssetSymbol,
+                underlyingAssetDecimals,
+                underlyingAssetTokenAddress,
+                underlyingAssetNetworkId
+            );
+
+            if (pTokenAddress.code.length == 0) {
+                revert Errors.PTokenNotCreated(pTokenAddress);
+            }
+
+            address msgSender = _msgSender();
+
+            if (underlyingAssetTokenAddress == assetTokenAddress && Network.isCurrentNetwork(destinationNetworkId)) {
+                IPToken(pTokenAddress).userMint(msgSender, assetAmount);
+            } else if (
+                underlyingAssetTokenAddress == assetTokenAddress && !Network.isCurrentNetwork(destinationNetworkId)
+            ) {
+                IPToken(pTokenAddress).userMintAndBurn(msgSender, assetAmount);
+            } else if (pTokenAddress == assetTokenAddress && !Network.isCurrentNetwork(destinationNetworkId)) {
+                IPToken(pTokenAddress).userBurn(msgSender, assetAmount);
+            } else if (pTokenAddress == assetTokenAddress && Network.isCurrentNetwork(destinationNetworkId)) {
+                IPToken(pTokenAddress).burn(assetAmount);
+            } else {
+                revert Errors.InvalidUserOperation();
+            }
+        } else if (userData.length == 0) {
+            revert Errors.NoUserOperation();
+        }
+
+        emit UserOperation(
+            gasleft(),
+            destinationAccount,
+            destinationNetworkId,
+            underlyingAssetName,
+            underlyingAssetSymbol,
+            underlyingAssetDecimals,
+            underlyingAssetTokenAddress,
+            underlyingAssetNetworkId,
+            assetTokenAddress,
+            // NOTE: pTokens on host chains have always 18 decimals.
+            Network.isCurrentNetwork(underlyingAssetNetworkId)
+                ? Utils.normalizeAmount(assetAmount, underlyingAssetDecimals, true)
+                : assetAmount,
+            userData,
+            optionsMask
+        );
     }
 
     function _challengePeriodOf(bytes32 operationId, bytes1 operationStatus) internal view returns (uint64, uint64) {

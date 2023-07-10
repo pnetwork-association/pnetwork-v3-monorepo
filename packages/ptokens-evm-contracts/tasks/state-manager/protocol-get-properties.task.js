@@ -1,12 +1,12 @@
 const { getStateManagerAddress } = require('../lib/configuration-manager')
 
-const TASK_NAME_GET_PROPERTIES = 'statemanager:get-properties'
-const TASK_DESC_GET_PROPERTIES = 'Get StateManager contract properties'
+const TASK_NAME_GET_PROPERTIES = 'pnetworkhub:get-properties'
+const TASK_DESC_GET_PROPERTIES = 'Get PNetworkHub contract properties'
 
 const getPropertyTask = async (taskArgs, hre) => {
   const stateManagerAddress = await getStateManagerAddress(hre)
-  const StateManagerContract = await hre.ethers.getContractFactory('StateManager')
-  const stateManager = await StateManagerContract.attach(stateManagerAddress)
+  const StateManagerContract = await hre.ethers.getContractFactory('PNetworkHub')
+  const hub = await StateManagerContract.attach(stateManagerAddress)
 
   const properties = [
     'allowedSourceChainId',
@@ -22,7 +22,7 @@ const getPropertyTask = async (taskArgs, hre) => {
   ]
 
   for (let i = 0; i < properties.length; i++) {
-    console.info(properties[i], await stateManager[properties[i]]())
+    console.info(properties[i], await hub[properties[i]]())
   }
 }
 

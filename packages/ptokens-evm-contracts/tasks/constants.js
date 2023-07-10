@@ -9,7 +9,7 @@ module.exports = {
   KEY_ADDRESS: 'address',
   KEY_PTOKEN_UNDERLYING_ASSET_ADDRESS: 'underlyingAssetAddress',
   KEY_PTOKEN_UNDERLYING_ASSET_NETWORKID: 'underlyingAssetNetworkId',
-  KEY_STATEMANAGER: 'stateManager',
+  KEY_PNETWORKHUB: 'hub',
   KEY_PROUTER: 'pRouter',
   KEY_PFACTORY: 'pFactory',
   KEY_CHALLENGE_PERIOD: 'challegePeriod',

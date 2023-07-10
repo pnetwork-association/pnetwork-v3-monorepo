@@ -35,7 +35,5 @@ interface IPFactory {
         bytes4 underlyingAssetNetworkId
     ) external view returns (address);
 
-    function setRouter(address _router) external;
-
-    function setStateManager(address _stateManager) external;
+    function setHub(address _hub) external;
 }

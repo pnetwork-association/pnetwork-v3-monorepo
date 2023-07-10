@@ -63,7 +63,7 @@ const generateConfig = async (taskArgs, hre) => {
     .then(_networkId => addNetworkId(hre.network.name, 'networkId', _networkId))
     .then(translateConfig(hre, configJSON, 'pFactory'))
     .then(translateConfig(hre, configJSON, 'pRouter'))
-    .then(translateConfig(hre, configJSON, 'stateManager'))
+    .then(translateConfig(hre, configJSON, 'hub'))
     .then(
       addPropsToConfig(
         hre.network.name,
@@ -78,7 +78,7 @@ const generateConfig = async (taskArgs, hre) => {
           'governanceMessageVerifier',
         ],
         [
-          configJSON.stateManager,
+          configJSON.hub,
           configJSON.initArgs.baseChallengePeriodDuration,
           configJSON.initArgs.allowedSourceChainId,
           configJSON.initArgs.lockedAmountChallengePeriod,
@@ -87,7 +87,7 @@ const generateConfig = async (taskArgs, hre) => {
           configJSON.initArgs.telepathyRouter,
           configJSON.initArgs.governanceMessageVerifier,
         ],
-        'stateManager'
+        'hub'
       )
     )
     .then(translateConfig(hre, configJSON, 'epochsManager'))

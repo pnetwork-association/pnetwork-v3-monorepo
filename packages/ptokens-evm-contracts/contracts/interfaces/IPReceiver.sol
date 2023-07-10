@@ -10,7 +10,7 @@ pragma solidity 0.8.17;
  */
 interface IPReceiver {
     /*
-     * @notice Function called when userData.length > 0 within StateManager.protocolExecuteOperation.
+     * @notice Function called when userData.length > 0 within PNetworkHub.protocolExecuteOperation.
      *
      * @param userData
      */

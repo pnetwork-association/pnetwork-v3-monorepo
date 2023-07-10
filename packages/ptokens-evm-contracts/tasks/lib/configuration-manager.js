@@ -6,7 +6,7 @@ const {
   KEY_ADDRESS,
   KEY_NETWORK_ID,
   KEY_PTOKEN_LIST,
-  KEY_STATEMANAGER,
+  KEY_PNETWORKHUB,
   KEY_UNDERLYING_ASSET_LIST,
 } = require('../constants')
 const { utils } = require('ptokens-utils')
@@ -63,7 +63,7 @@ const getDeploymentFromHRE = hre =>
 const getPRouterAddress = hre => getDeploymentFromHRE(hre).then(R.path([KEY_PROUTER, KEY_ADDRESS]))
 
 const getStateManagerAddress = hre =>
-  getDeploymentFromHRE(hre).then(R.path([KEY_STATEMANAGER, KEY_ADDRESS]))
+  getDeploymentFromHRE(hre).then(R.path([KEY_PNETWORKHUB, KEY_ADDRESS]))
 
 const getNetworkId = hre => getDeploymentFromHRE(hre).then(R.prop(KEY_NETWORK_ID))
 
@@ -75,7 +75,7 @@ const getNetworkIdFromChainName = _networkName =>
 const checkStateManagerIsDeployed = hre =>
   getStateManagerAddress(hre).then(
     utils.promises.rejectIfNil(
-      `Could not find any StateManager address for '${hre.network.name}', have you deployed it?`
+      `Could not find any PNetworkHub address for '${hre.network.name}', have you deployed it?`
     )
   )
 

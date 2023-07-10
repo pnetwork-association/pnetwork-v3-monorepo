@@ -11,23 +11,15 @@ const {
 } = require('./constants')
 const { deployPToken } = require('./utils')
 
-let user,
-  token,
-  pToken,
-  pRouter,
-  pFactory,
-  stateManager,
-  epochsManager,
-  fakeGovernanceMessageVerifier
+let user, token, pToken, pFactory, hub, epochsManager, fakeGovernanceMessageVerifier
 
 describe('PToken', () => {
   for (const decimals of [6, 18]) {
     describe(`${decimals} decimals`, () => {
       beforeEach(async () => {
-        const StateManager = await ethers.getContractFactory('StateManager')
+        const PNetworkHub = await ethers.getContractFactory('PNetworkHub')
         const StandardToken = await ethers.getContractFactory('StandardToken')
         const PFactory = await ethers.getContractFactory('PFactory')
-        const PRouter = await ethers.getContractFactory('PRouter')
         const EpochsManager = await ethers.getContractFactory('EpochsManager')
 
         const signers = await ethers.getSigners()
@@ -36,9 +28,8 @@ describe('PToken', () => {
 
         // H A R D H A T
         pFactory = await PFactory.deploy()
-        pRouter = await PRouter.deploy(pFactory.address)
         epochsManager = await EpochsManager.deploy()
-        stateManager = await StateManager.deploy(
+        hub = await PNetworkHub.deploy(
           pFactory.address,
           BASE_CHALLENGE_PERIOD_DURATION,
           epochsManager.address,
@@ -59,8 +50,7 @@ describe('PToken', () => {
           ethers.utils.parseUnits('100000000', decimals)
         )
 
-        await pFactory.setRouter(pRouter.address)
-        await pFactory.setStateManager(stateManager.address)
+        await pFactory.setHub(hub.address)
         await pFactory.renounceOwnership()
 
         pToken = await deployPToken(

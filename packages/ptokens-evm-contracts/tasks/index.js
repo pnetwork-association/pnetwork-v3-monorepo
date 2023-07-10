@@ -4,7 +4,7 @@ const deploy = require('./deploy')
 const getNetworkId = require('./get-network-id')
 const governanceMessageRelayer = require('./governance-message-relayer')
 const userOperations = require('./user-operations')
-const stateManager = require('./state-manager')
+const hub = require('./state-manager')
 
 module.exports = {
   apps,
@@ -12,6 +12,6 @@ module.exports = {
   erc20,
   getNetworkId,
   governanceMessageRelayer,
-  stateManager,
+  hub,
   userOperations,
 }

@@ -3,7 +3,7 @@ const {
   KEY_UNDERLYING_ASSET_LIST,
   KEY_PFACTORY,
   KEY_PROUTER,
-  KEY_STATEMANAGER,
+  KEY_PNETWORKHUB,
   KEY_ASSET_NAME,
   KEY_ASSET_SYMBOL,
   KEY_ASSET_DECIMALS,
@@ -33,7 +33,7 @@ const configEntryLookup = {
   [KEY_PROUTER]: (_taskArgs, _contractAddress) => ({
     [KEY_ADDRESS]: _contractAddress,
   }),
-  [KEY_STATEMANAGER]: (_taskArgs, _contractAddress) => ({
+  [KEY_PNETWORKHUB]: (_taskArgs, _contractAddress) => ({
     [KEY_ADDRESS]: _contractAddress,
   }),
 }

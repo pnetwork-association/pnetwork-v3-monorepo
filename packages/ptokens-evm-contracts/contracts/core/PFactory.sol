@@ -6,8 +6,7 @@ import {PToken} from "../core/PToken.sol";
 import {IPFactory} from "../interfaces/IPFactory.sol";
 
 contract PFactory is IPFactory, Ownable {
-    address public router;
-    address public stateManager;
+    address public hub;
 
     function deploy(
         string memory underlyingAssetName,
@@ -23,8 +22,7 @@ contract PFactory is IPFactory, Ownable {
                 underlyingAssetDecimals,
                 underlyingAssetTokenAddress,
                 underlyingAssetNetworkId,
-                router,
-                stateManager
+                hub
             )
         );
 
@@ -50,8 +48,7 @@ contract PFactory is IPFactory, Ownable {
                     underlyingAssetDecimals,
                     underlyingAssetTokenAddress,
                     underlyingAssetNetworkId,
-                    router,
-                    stateManager
+                    hub
                 )
             );
     }
@@ -88,11 +85,7 @@ contract PFactory is IPFactory, Ownable {
             );
     }
 
-    function setRouter(address _router) external onlyOwner {
-        router = _router;
-    }
-
-    function setStateManager(address _stateManager) external onlyOwner {
-        stateManager = _stateManager;
+    function setHub(address hub_) external onlyOwner {
+        hub = hub_;
     }
 }

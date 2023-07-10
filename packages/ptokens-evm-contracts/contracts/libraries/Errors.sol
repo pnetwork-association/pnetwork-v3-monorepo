@@ -2,25 +2,24 @@
 
 pragma solidity ^0.8.17;
 
-import {IStateManager} from "../interfaces/IStateManager.sol";
+import {IPNetworkHub} from "../interfaces/IPNetworkHub.sol";
 
 library Errors {
-    error OperationAlreadyQueued(IStateManager.Operation operation);
-    error OperationAlreadyExecuted(IStateManager.Operation operation);
-    error OperationAlreadyCancelled(IStateManager.Operation operation);
-    error OperationCancelled(IStateManager.Operation operation);
-    error OperationNotQueued(IStateManager.Operation operation);
-    error GovernanceOperationAlreadyCancelled(IStateManager.Operation operation);
-    error GuardianOperationAlreadyCancelled(IStateManager.Operation operation);
-    error SentinelOperationAlreadyCancelled(IStateManager.Operation operation);
+    error OperationAlreadyQueued(IPNetworkHub.Operation operation);
+    error OperationAlreadyExecuted(IPNetworkHub.Operation operation);
+    error OperationAlreadyCancelled(IPNetworkHub.Operation operation);
+    error OperationCancelled(IPNetworkHub.Operation operation);
+    error OperationNotQueued(IPNetworkHub.Operation operation);
+    error GovernanceOperationAlreadyCancelled(IPNetworkHub.Operation operation);
+    error GuardianOperationAlreadyCancelled(IPNetworkHub.Operation operation);
+    error SentinelOperationAlreadyCancelled(IPNetworkHub.Operation operation);
     error ChallengePeriodNotTerminated(uint64 startTimestamp, uint64 endTimestamp);
     error ChallengePeriodTerminated(uint64 startTimestamp, uint64 endTimestamp);
     error InvalidUnderlyingAssetName(string underlyingAssetName, string expectedUnderlyingAssetName);
     error InvalidUnderlyingAssetSymbol(string underlyingAssetSymbol, string expectedUnderlyingAssetSymbol);
     error InvalidUnderlyingAssetDecimals(uint256 underlyingAssetDecimals, uint256 expectedUnderlyingAssetDecimals);
     error InvalidAssetParameters(uint256 assetAmount, address assetTokenAddress);
-    error SenderIsNotRouter();
-    error SenderIsNotStateManager();
+    error SenderIsNotHub();
     error InvalidUserOperation();
     error NoUserOperation();
     error PTokenNotCreated(address pTokenAddress);

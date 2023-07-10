@@ -14,22 +14,14 @@ import {Errors} from "../libraries/Errors.sol";
 contract PToken is IPToken, ERC20 {
     using SafeERC20 for IERC20Metadata;
 
-    address public immutable router;
-    address public immutable stateManager;
+    address public immutable hub;
     address public immutable underlyingAssetTokenAddress;
     bytes4 public immutable underlyingAssetNetworkId;
     uint256 private immutable _underlyingAssetDecimals;
 
-    modifier onlyRouter() {
-        if (_msgSender() != router) {
-            revert Errors.SenderIsNotRouter();
-        }
-        _;
-    }
-
-    modifier onlyStateManager() {
-        if (_msgSender() != stateManager) {
-            revert Errors.SenderIsNotStateManager();
+    modifier onlyHub() {
+        if (_msgSender() != hub) {
+            revert Errors.SenderIsNotHub();
         }
         _;
     }
@@ -40,8 +32,7 @@ contract PToken is IPToken, ERC20 {
         uint256 underlyingAssetDecimals,
         address underlyingAssetTokenAddress_,
         bytes4 underlyingAssetNetworkId_,
-        address router_,
-        address stateManager_
+        address hub_
     ) ERC20(string.concat("p", underlyingAssetName), string.concat("p", underlyingAssetSymbol)) {
         if (Network.isCurrentNetwork(underlyingAssetNetworkId_)) {
             string memory expectedUnderlyingAssetName = IERC20Metadata(underlyingAssetTokenAddress_).name();
@@ -69,8 +60,7 @@ contract PToken is IPToken, ERC20 {
         underlyingAssetNetworkId = underlyingAssetNetworkId_;
         underlyingAssetTokenAddress = underlyingAssetTokenAddress_;
         _underlyingAssetDecimals = underlyingAssetDecimals;
-        router = router_;
-        stateManager = stateManager_;
+        hub = hub_;
     }
 
     /// @inheritdoc IPToken
@@ -84,12 +74,22 @@ contract PToken is IPToken, ERC20 {
     }
 
     /// @inheritdoc IPToken
-    function routedUserMint(address account, uint256 amount) external onlyRouter {
+    function protocolMint(address account, uint256 amount) external onlyHub {
+        _mint(account, amount);
+    }
+
+    /// @inheritdoc IPToken
+    function protocolBurn(address account, uint256 amount) external onlyHub {
+        _burnAndReleaseCollateral(account, amount);
+    }
+
+    /// @inheritdoc IPToken
+    function userMint(address account, uint256 amount) external onlyHub {
         _takeCollateralAndMint(account, amount);
     }
 
     /// @inheritdoc IPToken
-    function routedUserMintAndBurn(address account, uint256 amount) external onlyRouter {
+    function userMintAndBurn(address account, uint256 amount) external onlyHub {
         _takeCollateral(account, amount);
         uint256 normalizedAmount = Utils.normalizeAmount(amount, _underlyingAssetDecimals, true);
         emit Transfer(address(0), account, normalizedAmount);
@@ -97,18 +97,8 @@ contract PToken is IPToken, ERC20 {
     }
 
     /// @inheritdoc IPToken
-    function routedUserBurn(address account, uint256 amount) external onlyRouter {
+    function userBurn(address account, uint256 amount) external onlyHub {
         _burn(account, amount);
-    }
-
-    /// @inheritdoc IPToken
-    function stateManagedProtocolMint(address account, uint256 amount) external onlyStateManager {
-        _mint(account, amount);
-    }
-
-    /// @inheritdoc IPToken
-    function stateManagedProtocolBurn(address account, uint256 amount) external onlyStateManager {
-        _burnAndReleaseCollateral(account, amount);
     }
 
     function _burnAndReleaseCollateral(address account, uint256 amount) internal {

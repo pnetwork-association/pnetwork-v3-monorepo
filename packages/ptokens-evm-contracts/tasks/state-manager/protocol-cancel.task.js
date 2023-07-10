@@ -5,17 +5,17 @@ const {
   getUserOperationAbiArgsFromReport,
 } = require('ptokens-request-processor/lib/evm/evm-abi-manager')
 
-const TASK_NAME = 'statemanager:cancel'
-const TASK_DESC = 'Perform a Guardian cancel operation on the deployed StateManager contract'
+const TASK_NAME = 'pnetworkhub:cancel'
+const TASK_DESC = 'Perform a Guardian cancel operation on the deployed PNetworkHub contract'
 const TASK_PARAM_JSON = 'json'
 const TASK_PARAM_JSON_DESC = 'Stringified JSON of the event report stored in mongo by a listener.'
 
 const protocolExecuteOperation = async (taskArgs, hre) => {
   const stateManagerAddress = await getStateManagerAddress(hre)
 
-  console.info(`StateManager contract detected @ ${stateManagerAddress}`)
-  const StateManagerContract = await hre.ethers.getContractFactory('StateManager')
-  const StateManager = await StateManagerContract.attach(stateManagerAddress)
+  console.info(`PNetworkHub contract detected @ ${stateManagerAddress}`)
+  const StateManagerContract = await hre.ethers.getContractFactory('PNetworkHub')
+  const PNetworkHub = await StateManagerContract.attach(stateManagerAddress)
 
   console.info('Calling protocolGuardianCancelOperation...')
 
@@ -25,7 +25,7 @@ const protocolExecuteOperation = async (taskArgs, hre) => {
   const args = await getUserOperationAbiArgsFromReport(json)
   args.push(proof)
   console.log(args)
-  const tx = await StateManager.protocolGuardianCancelOperation(...args, {
+  const tx = await PNetworkHub.protocolGuardianCancelOperation(...args, {
     gasLimit: taskArgs[TASK_PARAM_GASLIMIT],
     gasPrice: taskArgs[TASK_PARAM_GASPRICE],
   })

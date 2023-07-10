@@ -17,9 +17,8 @@ const Operation = require('./utils/Operation')
 let token,
   owner,
   pToken,
-  pRouter,
   pFactory,
-  stateManager,
+  hub,
   guardian,
   sentinel,
   relayer,
@@ -31,7 +30,7 @@ let token,
   fakeGovernanceMessageVerifier,
   epochDuration
 
-describe('StateManager', () => {
+describe('PNetworkHub', () => {
   const generateOperation = async (_opts = {}) => {
     const {
       destinationAccount = owner.address,
@@ -48,7 +47,7 @@ describe('StateManager', () => {
     } = _opts
 
     await token.approve(pToken.address, assetAmount)
-    const transaction = pRouter.userSend(
+    const transaction = hub.userSend(
       destinationAccount,
       destinationNetworkId,
       underlyingAssetName,
@@ -61,7 +60,7 @@ describe('StateManager', () => {
       userData,
       optionsMask
     )
-    await expect(transaction).to.emit(pRouter, 'UserOperation')
+    await expect(transaction).to.emit(hub, 'UserOperation')
 
     const nonce = 1
     const { blockHash, transactionHash } = await (await transaction).wait()
@@ -92,8 +91,7 @@ describe('StateManager', () => {
     const chainId = (await ethers.provider.getNetwork()).chainId
 
     const PFactory = await ethers.getContractFactory('PFactory')
-    const PRouter = await ethers.getContractFactory('PRouter')
-    const StateManager = await ethers.getContractFactory('StateManager')
+    const PNetworkHub = await ethers.getContractFactory('PNetworkHub')
     const StandardToken = await ethers.getContractFactory('StandardToken')
     const TestReceiver = await ethers.getContractFactory('TestReceiver')
     const TestNotReceiver = await ethers.getContractFactory('TestNotReceiver')
@@ -111,9 +109,8 @@ describe('StateManager', () => {
     testReceiver = await TestReceiver.deploy()
     pFactory = await PFactory.deploy()
     testNotReceiver = await TestNotReceiver.deploy()
-    pRouter = await PRouter.deploy(pFactory.address)
     epochsManager = await EpochsManager.deploy()
-    stateManager = await StateManager.deploy(
+    hub = await PNetworkHub.deploy(
       pFactory.address,
       BASE_CHALLENGE_PERIOD_DURATION,
       epochsManager.address,
@@ -134,8 +131,7 @@ describe('StateManager', () => {
       value: ethers.utils.parseEther('1'),
     })
 
-    await pFactory.setRouter(pRouter.address)
-    await pFactory.setStateManager(stateManager.address)
+    await pFactory.setHub(hub.address)
     await pFactory.renounceOwnership()
 
     pToken = await deployPToken(
@@ -166,7 +162,7 @@ describe('StateManager', () => {
           ]
         )
         .slice(2)
-    await stateManager
+    await hub
       .connect(telepathyRouter)
       .handleTelepathy(chainId, fakeGovernanceMessageVerifier.address, data)
   })
@@ -175,10 +171,10 @@ describe('StateManager', () => {
     const operation = await generateOperation()
 
     const relayerbalancePre = await ethers.provider.getBalance(relayer.address)
-    const tx = stateManager
+    const tx = hub
       .connect(relayer)
       .protocolQueueOperation(operation, { value: LOCKED_AMOUNT_CHALLENGE_PERIOD })
-    await expect(tx).to.emit(stateManager, 'OperationQueued').withArgs(operation.serialize())
+    await expect(tx).to.emit(hub, 'OperationQueued').withArgs(operation.serialize())
 
     const receipt = await (await tx).wait(1)
     const relayerbalancePost = await ethers.provider.getBalance(relayer.address)
@@ -191,74 +187,74 @@ describe('StateManager', () => {
 
   it('should not be able to queue the same operation twice', async () => {
     const operation = await generateOperation()
-    await stateManager
+    await hub
       .connect(relayer)
       .protocolQueueOperation(operation, { value: LOCKED_AMOUNT_CHALLENGE_PERIOD })
     await expect(
-      stateManager
+      hub
         .connect(relayer)
         .protocolQueueOperation(operation, { value: LOCKED_AMOUNT_CHALLENGE_PERIOD })
-    ).to.be.revertedWithCustomError(stateManager, 'OperationAlreadyQueued')
+    ).to.be.revertedWithCustomError(hub, 'OperationAlreadyQueued')
   })
 
   it('a guardian should be able to cancel an operation within the challenge period', async () => {
     const operation = await generateOperation()
-    await stateManager
+    await hub
       .connect(relayer)
       .protocolQueueOperation(operation, { value: LOCKED_AMOUNT_CHALLENGE_PERIOD })
-    await time.increase((await stateManager.getCurrentChallengePeriodDuration()) / 2)
-    await expect(stateManager.connect(relayer).protocolGuardianCancelOperation(operation, '0x'))
-      .to.emit(stateManager, 'GuardianOperationCancelled')
+    await time.increase((await hub.getCurrentChallengePeriodDuration()) / 2)
+    await expect(hub.connect(relayer).protocolGuardianCancelOperation(operation, '0x'))
+      .to.emit(hub, 'GuardianOperationCancelled')
       .withArgs(operation.serialize())
   })
 
   it('a guardian should not be able to cancel an operation after the challenge period', async () => {
     const operation = await generateOperation()
-    await stateManager
+    await hub
       .connect(relayer)
       .protocolQueueOperation(operation, { value: LOCKED_AMOUNT_CHALLENGE_PERIOD })
-    await time.increase(await stateManager.getCurrentChallengePeriodDuration())
+    await time.increase(await hub.getCurrentChallengePeriodDuration())
     await expect(
-      stateManager.connect(relayer).protocolGuardianCancelOperation(operation, '0x')
-    ).to.be.revertedWithCustomError(stateManager, 'ChallengePeriodTerminated')
+      hub.connect(relayer).protocolGuardianCancelOperation(operation, '0x')
+    ).to.be.revertedWithCustomError(hub, 'ChallengePeriodTerminated')
   })
 
   it('a guardian should not be able to cancel an operation that has not been queued', async () => {
     const fakeOperation = new Operation()
     await expect(
-      stateManager.connect(relayer).protocolGuardianCancelOperation(fakeOperation, '0x')
-    ).to.be.revertedWithCustomError(stateManager, 'OperationNotQueued')
+      hub.connect(relayer).protocolGuardianCancelOperation(fakeOperation, '0x')
+    ).to.be.revertedWithCustomError(hub, 'OperationNotQueued')
   })
 
   it('should not be able to execute an operation that has not been queued', async () => {
     const fakeOperation = new Operation()
     await expect(
-      stateManager.connect(relayer).protocolExecuteOperation(fakeOperation)
-    ).to.be.revertedWithCustomError(stateManager, 'OperationNotQueued')
+      hub.connect(relayer).protocolExecuteOperation(fakeOperation)
+    ).to.be.revertedWithCustomError(hub, 'OperationNotQueued')
   })
 
   it('should not be able to execute an operation that has been cancelled', async () => {
     // FIXME
     const proof = [0]
     const operation = await generateOperation()
-    await stateManager
+    await hub
       .connect(relayer)
       .protocolQueueOperation(operation, { value: LOCKED_AMOUNT_CHALLENGE_PERIOD })
-    await stateManager.connect(guardian).protocolGuardianCancelOperation(operation, '0x')
-    await stateManager.connect(sentinel).protocolGovernanceCancelOperation(operation, proof)
+    await hub.connect(guardian).protocolGuardianCancelOperation(operation, '0x')
+    await hub.connect(sentinel).protocolGovernanceCancelOperation(operation, proof)
     await expect(
-      stateManager.connect(relayer).protocolExecuteOperation(operation)
-    ).to.be.revertedWithCustomError(stateManager, 'OperationAlreadyCancelled')
+      hub.connect(relayer).protocolExecuteOperation(operation)
+    ).to.be.revertedWithCustomError(hub, 'OperationAlreadyCancelled')
   })
 
   it('should not be able to execute an operation before that the execution timestamp is reached', async () => {
     const operation = await generateOperation()
-    await stateManager
+    await hub
       .connect(relayer)
       .protocolQueueOperation(operation, { value: LOCKED_AMOUNT_CHALLENGE_PERIOD })
     await expect(
-      stateManager.connect(relayer).protocolExecuteOperation(operation)
-    ).to.be.revertedWithCustomError(stateManager, 'ChallengePeriodNotTerminated')
+      hub.connect(relayer).protocolExecuteOperation(operation)
+    ).to.be.revertedWithCustomError(hub, 'ChallengePeriodNotTerminated')
   })
 
   it('should be able to execute an operation', async () => {
@@ -266,16 +262,16 @@ describe('StateManager', () => {
     const relayerbalancePre = await ethers.provider.getBalance(relayer.address)
     const destinationAccountbalancePre = await pToken.balanceOf(operation.destinationAccount)
 
-    let tx = await stateManager
+    let tx = await hub
       .connect(relayer)
       .protocolQueueOperation(operation, { value: LOCKED_AMOUNT_CHALLENGE_PERIOD })
     const receipt1 = await tx.wait(1)
 
-    await time.increase(await stateManager.getCurrentChallengePeriodDuration())
+    await time.increase(await hub.getCurrentChallengePeriodDuration())
 
-    tx = stateManager.connect(relayer).protocolExecuteOperation(operation)
+    tx = hub.connect(relayer).protocolExecuteOperation(operation)
     await expect(tx)
-      .to.emit(stateManager, 'OperationExecuted')
+      .to.emit(hub, 'OperationExecuted')
       .withArgs(operation.serialize())
       .and.to.emit(pToken, 'Transfer')
       .withArgs(ZERO_ADDRESS, operation.destinationAccount, operation.assetAmount)
@@ -295,16 +291,16 @@ describe('StateManager', () => {
     )
   })
 
-  it('should be able to execute an operation and call stateManagedProtocolBurn', async () => {
+  it('should be able to execute an operation and call protocolBurn', async () => {
     const operation = await generateOperation({
       optionsMask: getOptionMaskWithOptionEnabledForBit(0),
     })
-    await stateManager
+    await hub
       .connect(relayer)
       .protocolQueueOperation(operation, { value: LOCKED_AMOUNT_CHALLENGE_PERIOD })
-    await time.increase(await stateManager.getCurrentChallengePeriodDuration())
-    await expect(stateManager.connect(relayer).protocolExecuteOperation(operation))
-      .to.emit(stateManager, 'OperationExecuted')
+    await time.increase(await hub.getCurrentChallengePeriodDuration())
+    await expect(hub.connect(relayer).protocolExecuteOperation(operation))
+      .to.emit(hub, 'OperationExecuted')
       .withArgs(operation.serialize())
       .and.to.emit(pToken, 'Transfer')
       .withArgs(ZERO_ADDRESS, operation.destinationAccount, operation.assetAmount)
@@ -316,14 +312,14 @@ describe('StateManager', () => {
 
   it('should not be able to execute the same operation twice', async () => {
     const operation = await generateOperation()
-    await stateManager
+    await hub
       .connect(relayer)
       .protocolQueueOperation(operation, { value: LOCKED_AMOUNT_CHALLENGE_PERIOD })
-    await time.increase(await stateManager.getCurrentChallengePeriodDuration())
-    await stateManager.connect(relayer).protocolExecuteOperation(operation)
+    await time.increase(await hub.getCurrentChallengePeriodDuration())
+    await hub.connect(relayer).protocolExecuteOperation(operation)
     await expect(
-      stateManager.connect(relayer).protocolExecuteOperation(operation)
-    ).to.be.revertedWithCustomError(stateManager, 'OperationAlreadyExecuted')
+      hub.connect(relayer).protocolExecuteOperation(operation)
+    ).to.be.revertedWithCustomError(hub, 'OperationAlreadyExecuted')
   })
 
   it('should be able to execute an operation that contains user data', async () => {
@@ -332,12 +328,12 @@ describe('StateManager', () => {
       userData: expectedUserData,
       destinationAccount: testReceiver.address,
     })
-    await stateManager
+    await hub
       .connect(relayer)
       .protocolQueueOperation(operation, { value: LOCKED_AMOUNT_CHALLENGE_PERIOD })
-    await time.increase(await stateManager.getCurrentChallengePeriodDuration())
-    await expect(stateManager.connect(relayer).protocolExecuteOperation(operation))
-      .to.emit(stateManager, 'OperationExecuted')
+    await time.increase(await hub.getCurrentChallengePeriodDuration())
+    await expect(hub.connect(relayer).protocolExecuteOperation(operation))
+      .to.emit(hub, 'OperationExecuted')
       .withArgs(operation.serialize())
       .and.to.emit(testReceiver, 'UserDataReceived')
       .withArgs(expectedUserData)
@@ -348,12 +344,12 @@ describe('StateManager', () => {
       userData: '0x01',
       destinationAccount: testNotReceiver.address,
     })
-    await stateManager
+    await hub
       .connect(relayer)
       .protocolQueueOperation(operation, { value: LOCKED_AMOUNT_CHALLENGE_PERIOD })
-    await time.increase(await stateManager.getCurrentChallengePeriodDuration())
-    await expect(stateManager.connect(relayer).protocolExecuteOperation(operation))
-      .to.emit(stateManager, 'OperationExecuted')
+    await time.increase(await hub.getCurrentChallengePeriodDuration())
+    await expect(hub.connect(relayer).protocolExecuteOperation(operation))
+      .to.emit(hub, 'OperationExecuted')
       .withArgs(operation.serialize())
   })
 
@@ -362,13 +358,13 @@ describe('StateManager', () => {
       userData: '0x01',
       destinationAccount: user1.address,
     })
-    await stateManager
+    await hub
       .connect(relayer)
       .protocolQueueOperation(operation, { value: LOCKED_AMOUNT_CHALLENGE_PERIOD })
-    await time.increase(await stateManager.getCurrentChallengePeriodDuration())
+    await time.increase(await hub.getCurrentChallengePeriodDuration())
     await expect(
-      stateManager.connect(relayer).protocolExecuteOperation(operation)
-    ).to.be.revertedWithCustomError(stateManager, 'NotContract')
+      hub.connect(relayer).protocolExecuteOperation(operation)
+    ).to.be.revertedWithCustomError(hub, 'NotContract')
   })
 
   it('should not be able to queue an operation because the sentinels root for the current epoch has not been received yet', async () => {
@@ -378,10 +374,10 @@ describe('StateManager', () => {
       destinationAccount: user1.address,
     })
     await expect(
-      stateManager
+      hub
         .connect(relayer)
         .protocolQueueOperation(operation, { value: LOCKED_AMOUNT_CHALLENGE_PERIOD })
-    ).to.be.revertedWithCustomError(stateManager, 'LockDown')
+    ).to.be.revertedWithCustomError(hub, 'LockDown')
   })
 
   it('should not be able to execute an operation because the sentinels root for the current epoch has not been received yet', async () => {
@@ -389,13 +385,13 @@ describe('StateManager', () => {
       userData: '0x01',
       destinationAccount: user1.address,
     })
-    await stateManager
+    await hub
       .connect(relayer)
       .protocolQueueOperation(operation, { value: LOCKED_AMOUNT_CHALLENGE_PERIOD })
     await time.increase(epochDuration)
     await expect(
-      stateManager.connect(relayer).protocolExecuteOperation(operation)
-    ).to.be.revertedWithCustomError(stateManager, 'LockDown')
+      hub.connect(relayer).protocolExecuteOperation(operation)
+    ).to.be.revertedWithCustomError(hub, 'LockDown')
   })
 
   it('should not be able to queue an operation because is missing less than 1 hour plus max challenge period', async () => {
@@ -410,15 +406,15 @@ describe('StateManager', () => {
     await time.increaseTo(currentEpochEndTimestamp - (3600 + maxChallengePeriod))
     const operation = await generateOperation()
     await expect(
-      stateManager
+      hub
         .connect(relayer)
         .protocolQueueOperation(operation, { value: LOCKED_AMOUNT_CHALLENGE_PERIOD })
-    ).to.be.revertedWithCustomError(stateManager, 'LockDown')
+    ).to.be.revertedWithCustomError(hub, 'LockDown')
   })
 
   it('should not be able to execute an operation because is missing less then 1 hour before the ending of the current epoch', async () => {
     const operation = await generateOperation()
-    await stateManager
+    await hub
       .connect(relayer)
       .protocolQueueOperation(operation, { value: LOCKED_AMOUNT_CHALLENGE_PERIOD })
 
@@ -428,8 +424,8 @@ describe('StateManager', () => {
     await time.increaseTo(currentEpochEndTimestamp - 1800)
 
     await expect(
-      stateManager.connect(relayer).protocolExecuteOperation(operation)
-    ).to.be.revertedWithCustomError(stateManager, 'LockDown')
+      hub.connect(relayer).protocolExecuteOperation(operation)
+    ).to.be.revertedWithCustomError(hub, 'LockDown')
   })
 
   it('the queue should behave correctly when is full and then all operations are cancelled', async () => {
@@ -441,11 +437,11 @@ describe('StateManager', () => {
       numberOfOperations++
     ) {
       const operation = await generateOperation()
-      await stateManager
+      await hub
         .connect(relayer)
         .protocolQueueOperation(operation, { value: LOCKED_AMOUNT_CHALLENGE_PERIOD })
 
-      const [startTimestamp, endTimestamp] = await stateManager.challengePeriodOf(operation)
+      const [startTimestamp, endTimestamp] = await hub.challengePeriodOf(operation)
       const expectedCurrentChallengePeriodDuration =
         BASE_CHALLENGE_PERIOD_DURATION +
         numberOfOperations * numberOfOperations * K_CHALLENGE_PERIOD -
@@ -456,12 +452,12 @@ describe('StateManager', () => {
     }
 
     await expect(
-      stateManager.connect(relayer).protocolQueueOperation(await generateOperation(), {
+      hub.connect(relayer).protocolQueueOperation(await generateOperation(), {
         value: LOCKED_AMOUNT_CHALLENGE_PERIOD,
       })
-    ).to.be.revertedWithCustomError(stateManager, 'QueueFull')
+    ).to.be.revertedWithCustomError(hub, 'QueueFull')
 
-    expect(await stateManager.numberOfOperationsInQueue()).to.be.eq(MAX_OPERATIONS_IN_QUEUE)
+    expect(await hub.numberOfOperationsInQueue()).to.be.eq(MAX_OPERATIONS_IN_QUEUE)
 
     for (
       let index = 0, numberOfOperations = MAX_OPERATIONS_IN_QUEUE;
@@ -469,7 +465,7 @@ describe('StateManager', () => {
       index++, numberOfOperations--
     ) {
       const operation = operations[index]
-      const [startTimestamp, endTimestamp] = await stateManager.challengePeriodOf(operation)
+      const [startTimestamp, endTimestamp] = await hub.challengePeriodOf(operation)
 
       const expectedCurrentChallengePeriodDuration =
         BASE_CHALLENGE_PERIOD_DURATION +
@@ -477,8 +473,8 @@ describe('StateManager', () => {
         K_CHALLENGE_PERIOD
       expect(expectedCurrentChallengePeriodDuration).to.be.eq(endTimestamp.sub(startTimestamp))
 
-      await stateManager.connect(guardian).protocolGuardianCancelOperation(operation, '0x')
-      await stateManager.connect(sentinel).protocolGovernanceCancelOperation(operation, [0])
+      await hub.connect(guardian).protocolGuardianCancelOperation(operation, '0x')
+      await hub.connect(sentinel).protocolGovernanceCancelOperation(operation, [0])
     }
   })
 
@@ -491,7 +487,7 @@ describe('StateManager', () => {
       numberOfOperations++
     ) {
       const operation = await generateOperation()
-      await stateManager
+      await hub
         .connect(relayer)
         .protocolQueueOperation(operation, { value: LOCKED_AMOUNT_CHALLENGE_PERIOD })
       operations.push(operation)
@@ -503,7 +499,7 @@ describe('StateManager', () => {
       index++, numberOfOperations--
     ) {
       const operation = operations[index]
-      const [startTimestamp, endTimestamp] = await stateManager.challengePeriodOf(operation)
+      const [startTimestamp, endTimestamp] = await hub.challengePeriodOf(operation)
 
       const expectedCurrentChallengePeriodDuration =
         BASE_CHALLENGE_PERIOD_DURATION +
@@ -515,7 +511,7 @@ describe('StateManager', () => {
         await time.increaseTo(endTimestamp)
       }
 
-      await stateManager.connect(relayer).protocolExecuteOperation(operation)
+      await hub.connect(relayer).protocolExecuteOperation(operation)
     }
   })
 })

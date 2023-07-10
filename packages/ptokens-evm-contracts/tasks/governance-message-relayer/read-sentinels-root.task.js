@@ -1,5 +1,5 @@
 task('governance-message-relayer:read-sentinels-root', 'Read the sentinels root values')
-  .addPositionalParam('stateManager')
+  .addPositionalParam('hub')
   .addPositionalParam('epoch')
   .setAction(async _args => {
     await main(_args)
@@ -14,7 +14,7 @@ task('governance-message-relayer:read-sentinels-root', 'Read the sentinels root 
 
 /* eslint-disable no-console */
 const main = async _args => {
-  const StateManager = await ethers.getContractFactory('StateManager')
-  const stateManager = await StateManager.attach(_args.stateManager)
-  console.log(await stateManager.getSentinelsRootForEpoch(_args.stateManager))
+  const PNetworkHub = await ethers.getContractFactory('PNetworkHub')
+  const hub = await PNetworkHub.attach(_args.hub)
+  console.log(await hub.getSentinelsRootForEpoch(_args.hub))
 }

@@ -5,8 +5,8 @@ const {
 } = require('ptokens-request-processor/lib/evm/evm-abi-manager')
 const { TASK_PARAM_GASPRICE, TASK_PARAM_GASLIMIT } = require('../constants')
 
-const TASK_NAME = 'statemanager:queue'
-const TASK_DESC = 'Perform a queue operation on the deployed StateManager contract'
+const TASK_NAME = 'pnetworkhub:queue'
+const TASK_DESC = 'Perform a queue operation on the deployed PNetworkHub contract'
 const TASK_PARAM_JSON = 'json'
 const TASK_PARAM_JSON_DESC = 'Stringified JSON of the event report stored in mongo by a listener.'
 
@@ -44,10 +44,10 @@ const TASK_PARAM_JSON_DESC = 'Stringified JSON of the event report stored in mon
 const protocolExecuteOperation = async (taskArgs, hre) => {
   const stateManagerAddress = await getStateManagerAddress(hre)
 
-  console.info(`StateManager contract detected @ ${stateManagerAddress}`)
-  const StateManagerContract = await hre.ethers.getContractFactory('StateManager')
-  const stateManager = await StateManagerContract.attach(stateManagerAddress)
-  const lockedAmountChallengePeriod = await stateManager.lockedAmountChallengePeriod()
+  console.info(`PNetworkHub contract detected @ ${stateManagerAddress}`)
+  const StateManagerContract = await hre.ethers.getContractFactory('PNetworkHub')
+  const hub = await StateManagerContract.attach(stateManagerAddress)
+  const lockedAmountChallengePeriod = await hub.lockedAmountChallengePeriod()
   console.info('Calling protocolQueueOperation w/', lockedAmountChallengePeriod)
 
   const json = JSON.parse(taskArgs[TASK_PARAM_JSON])
@@ -59,7 +59,7 @@ const protocolExecuteOperation = async (taskArgs, hre) => {
     gasPrice: taskArgs[TASK_PARAM_GASPRICE],
   })
   console.log(args)
-  const tx = await stateManager.protocolQueueOperation(...args)
+  const tx = await hub.protocolQueueOperation(...args)
   const receipt = await tx.wait(1)
 
   console.info(`Tx mined @ ${receipt.transactionHash}`)

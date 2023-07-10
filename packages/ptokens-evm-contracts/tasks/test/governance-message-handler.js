@@ -1,4 +1,4 @@
-task('deploy-test-governance-message-handler', 'Test the governance messages on the StateManager')
+task('deploy-test-governance-message-handler', 'Test the governance messages on the PNetworkHub')
   .addPositionalParam('baseChallengePeriodDuration')
   .addPositionalParam('epochsManager')
   .addPositionalParam('telepathyRouter')
@@ -20,8 +20,8 @@ task('deploy-test-governance-message-handler', 'Test the governance messages on 
 
 /* eslint-disable no-console */
 const main = async _args => {
-  const StateManager = await ethers.getContractFactory('StateManager')
-  const stateManager = await StateManager.deploy(
+  const PNetworkHub = await ethers.getContractFactory('PNetworkHub')
+  const hub = await PNetworkHub.deploy(
     '0x0000000000000000000000000000000000000000',
     _args.baseChallengePeriodDuration,
     _args.epochsManager,
@@ -33,7 +33,7 @@ const main = async _args => {
     _args.maxOperationsInQueue
   )
   console.log({
-    stateManager: stateManager.address,
+    hub: hub.address,
   })
 }
 

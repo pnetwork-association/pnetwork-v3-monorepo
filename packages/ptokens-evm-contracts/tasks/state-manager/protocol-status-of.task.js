@@ -3,7 +3,7 @@ const { getStateManagerAddress } = require('../lib/configuration-manager')
 const {
   getUserOperationAbiArgsFromReport,
 } = require('ptokens-request-processor/lib/evm/evm-abi-manager')
-const TASK_NAME = 'statemanager:status'
+const TASK_NAME = 'pnetworkhub:status'
 const TASK_DESC = 'Check the status of a given operation'
 const TASK_PARAM_JSON = 'json'
 const TASK_PARAM_JSON_DESC = 'Stringified JSON of the event report stored in mongo by a listener.'
@@ -11,14 +11,14 @@ const TASK_PARAM_JSON_DESC = 'Stringified JSON of the event report stored in mon
 const protocolStatusOfTask = async (taskArgs, hre) => {
   const stateManagerAddress = await getStateManagerAddress(hre)
 
-  console.info(`StateManager contract detected @ ${stateManagerAddress}`)
-  const StateManagerContract = await hre.ethers.getContractFactory('StateManager')
-  const stateManager = await StateManagerContract.attach(stateManagerAddress)
+  console.info(`PNetworkHub contract detected @ ${stateManagerAddress}`)
+  const StateManagerContract = await hre.ethers.getContractFactory('PNetworkHub')
+  const hub = await StateManagerContract.attach(stateManagerAddress)
   console.info('Calling operationStatusOf...')
 
   const json = JSON.parse(taskArgs[TASK_PARAM_JSON])
   const args = await getUserOperationAbiArgsFromReport(json)
-  const result = await stateManager.operationStatusOf(...args)
+  const result = await hub.operationStatusOf(...args)
 
   console.info(result)
 }
