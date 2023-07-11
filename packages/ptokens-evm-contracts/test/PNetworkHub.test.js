@@ -336,7 +336,7 @@ describe('PNetworkHub', () => {
     )
   })
 
-  it('should be able to execute an operation on the interim chain', async () => {
+  it('should be able to execute an operation on the interim chain and subtracting a fee from the operation.assetAmount', async () => {
     await pFactory.setHub(hubInterim.address)
     const operation = await generateOperation(undefined, hubInterim)
     const relayerbalancePre = await ethers.provider.getBalance(relayer.address)
@@ -348,9 +348,37 @@ describe('PNetworkHub', () => {
 
     await time.increase(await hubInterim.getCurrentChallengePeriodDuration())
 
+    const fee = operation.getFee()
+    const pTokenAddress = await pFactory.getPTokenAddress(
+      operation.underlyingAssetName,
+      operation.underlyingAssetSymbol,
+      operation.underlyingAssetDecimals,
+      operation.underlyingAssetTokenAddress,
+      operation.underlyingAssetNetworkId
+    )
+
     tx = hubInterim.connect(relayer).protocolExecuteOperation(operation)
-    await expect(tx).to.emit(hubInterim, 'UserOperation').and.to.emit(pTokenInterim, 'Transfer')
-    // TODO: .withArgs(ZERO_ADDRESS, dao.address, amountWithoutFee)
+    await expect(tx)
+      .to.emit(hubInterim, 'UserOperation')
+      .withArgs(
+        28884170,
+        operation.destinationAccount,
+        operation.forwardDestinationNetworkId,
+        operation.underlyingAssetName,
+        operation.underlyingAssetSymbol,
+        operation.underlyingAssetDecimals,
+        operation.underlyingAssetTokenAddress,
+        operation.underlyingAssetNetworkId,
+        pTokenAddress,
+        operation.assetAmount.sub(fee),
+        ZERO_ADDRESS,
+        '0',
+        '0x00000000',
+        operation.userData,
+        operation.optionsMask
+      )
+      .and.to.emit(pTokenInterim, 'Transfer')
+      .withArgs(ZERO_ADDRESS, hubInterim.address, fee)
     const receipt2 = await (await tx).wait(1)
 
     const relayerbalancePost = await ethers.provider.getBalance(relayer.address)

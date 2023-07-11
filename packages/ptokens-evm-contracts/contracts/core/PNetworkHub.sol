@@ -535,10 +535,11 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
     function _takeProtocolFee(Operation calldata operation, address pTokenAddress) internal returns (uint256) {
         // NOTE: operation.assetAmount > 0 && operation.userData.length > 0 should never happens
         if (operation.assetAmount > 0) {
-            uint256 fee = 1; // TODO: subtract fee
+            uint256 feeBps = 20; // 0.2%
+            uint256 fee = (operation.assetAmount * feeBps) / Constants.FEE_BASIS_POINTS_DIVISOR;
             IPToken(pTokenAddress).protocolMint(address(this), fee);
             // TODO: send it to the DAO
-            return operation.assetAmount - 1;
+            return operation.assetAmount - fee;
         }
 
         if (operation.userData.length > 0 && operation.protocolFeeAssetAmount > 0) {

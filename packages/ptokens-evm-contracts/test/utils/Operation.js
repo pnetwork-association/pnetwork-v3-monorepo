@@ -63,4 +63,8 @@ module.exports = class Operation {
   get() {
     return this.serialize()
   }
+
+  getFee() {
+    return this.assetAmount.mul(20).div(10000)
+  }
 }
