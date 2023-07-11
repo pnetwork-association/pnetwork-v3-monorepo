@@ -5,9 +5,14 @@ import {RLPReader} from "solidity-rlp/contracts/RLPReader.sol";
 import {IGovernanceMessageVerifier} from "../interfaces/IGovernanceMessageVerifier.sol";
 import {IRootChain} from "../interfaces/external/IRootChain.sol";
 import {ITelepathyRouter} from "../interfaces/external/ITelepathyRouter.sol";
-import {Errors} from "../libraries/Errors.sol";
 import {Merkle} from "../libraries/Merkle.sol";
 import {MerklePatriciaProof} from "../libraries/MerklePatriciaProof.sol";
+
+error InvalidGovernanceStateReader(address expectedGovernanceStateReader, address governanceStateReader);
+error InvalidTopic(bytes32 expectedTopic, bytes32 topic);
+error InvalidReceiptsRootMerkleProof();
+error InvalidRootHashMerkleProof();
+error InvalidHeaderBlock();
 
 contract GovernanceMessageVerifier is IGovernanceMessageVerifier, Ownable {
     address public constant TELEPATHY_ROUTER = 0x41EA857C32c8Cb42EEFa00AF67862eCFf4eB795a;
@@ -39,13 +44,13 @@ contract GovernanceMessageVerifier is IGovernanceMessageVerifier, Ownable {
         // NOTE: only events emitted from the GovernanceStateReader will be propagated
         address proofGovernanceStateReader = RLPReader.toAddress(log[0]);
         if (governanceStateReader != proofGovernanceStateReader) {
-            revert Errors.InvalidGovernanceStateReader(governanceStateReader, proofGovernanceStateReader);
+            revert InvalidGovernanceStateReader(governanceStateReader, proofGovernanceStateReader);
         }
 
         RLPReader.RLPItem[] memory topics = RLPReader.toList(log[1]);
         bytes32 proofTopic = bytes32(RLPReader.toBytes(topics[0]));
         if (EVENT_SIGNATURE_TOPIC != proofTopic) {
-            revert Errors.InvalidTopic(EVENT_SIGNATURE_TOPIC, proofTopic);
+            revert InvalidTopic(EVENT_SIGNATURE_TOPIC, proofTopic);
         }
 
         if (
@@ -56,7 +61,7 @@ contract GovernanceMessageVerifier is IGovernanceMessageVerifier, Ownable {
                 proof.receiptsRoot
             )
         ) {
-            revert Errors.InvalidReceiptsRootMerkleProof();
+            revert InvalidReceiptsRootMerkleProof();
         }
 
         bytes32 blockHash = keccak256(
@@ -65,11 +70,11 @@ contract GovernanceMessageVerifier is IGovernanceMessageVerifier, Ownable {
 
         (bytes32 rootHash, , , , ) = IRootChain(ROOT_CHAIN_ADDRESS).headerBlocks(proof.headerBlock);
         if (rootHash == bytes32(0)) {
-            revert Errors.InvalidHeaderBlock();
+            revert InvalidHeaderBlock();
         }
 
         if (!Merkle.checkMembership(blockHash, proof.rootHashProofIndex, rootHash, proof.rootHashProof)) {
-            revert Errors.InvalidRootHashMerkleProof();
+            revert InvalidRootHashMerkleProof();
         }
 
         bytes memory data = RLPReader.toBytes(log[2]);

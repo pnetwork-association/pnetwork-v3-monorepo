@@ -10,7 +10,6 @@ import {IPToken} from "../interfaces/IPToken.sol";
 import {IPFactory} from "../interfaces/IPFactory.sol";
 import {IPNetworkHub} from "../interfaces/IPNetworkHub.sol";
 import {IPReceiver} from "../interfaces/IPReceiver.sol";
-import {Constants} from "../libraries/Constants.sol";
 import {Utils} from "../libraries/Utils.sol";
 import {Network} from "../libraries/Network.sol";
 
@@ -42,6 +41,9 @@ error QueueFull();
 error InvalidProtocolFee(IPNetworkHub.Operation operation);
 
 contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard {
+    bytes32 public constant GOVERNANCE_MESSAGE_SENTINELS = keccak256("GOVERNANCE_MESSAGE_SENTINELS");
+    uint256 public constant FEE_BASIS_POINTS_DIVISOR = 10000;
+
     mapping(bytes32 => Action) private _operationsRelayerQueueAction;
     mapping(bytes32 => Action) private _operationsGovernanceCancelAction;
     mapping(bytes32 => Action) private _operationsGuardianCancelAction;
@@ -447,13 +449,13 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
         bytes memory decodedMessage = abi.decode(message, (bytes));
         (bytes32 messageType, bytes memory data) = abi.decode(decodedMessage, (bytes32, bytes));
 
-        if (messageType == Constants.GOVERNANCE_MESSAGE_SENTINELS) {
+        if (messageType == GOVERNANCE_MESSAGE_SENTINELS) {
             (uint16 epoch, bytes32 sentinelRoot) = abi.decode(data, (uint16, bytes32));
             _epochsSentinelsRoot[epoch] = bytes32(sentinelRoot);
             return;
         }
 
-        // if (messageType == Constants.GOVERNANCE_MESSAGE_GUARDIANS) {
+        // if (messageType == GOVERNANCE_MESSAGE_GUARDIANS) {
         //     guardiansRoot = bytes32(data);
         //     return;
         // }
@@ -535,14 +537,14 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
     function _takeProtocolFee(Operation calldata operation, address pTokenAddress) internal returns (uint256) {
         if (operation.assetAmount > 0) {
             uint256 feeBps = 20; // 0.2%
-            uint256 fee = (operation.assetAmount * feeBps) / Constants.FEE_BASIS_POINTS_DIVISOR;
+            uint256 fee = (operation.assetAmount * feeBps) / FEE_BASIS_POINTS_DIVISOR;
             IPToken(pTokenAddress).protocolMint(address(this), fee);
             // TODO: send it to the DAO
             return operation.assetAmount - fee;
         }
-        
-        // TODO: We need to determine how to process the fee when operation.userData.length is greater than zero 
-        //and operation.assetAmount is also greater than zero. By current design, userData is paid in USDC, 
+
+        // TODO: We need to determine how to process the fee when operation.userData.length is greater than zero
+        //and operation.assetAmount is also greater than zero. By current design, userData is paid in USDC,
         // but what happens if a user wraps Ethereum, for example, and wants to couple it with a non-null
         //userData during the wrap operation? We must decide which token should be used for the userData fee payment.
         if (operation.userData.length > 0 && operation.protocolFeeAssetAmount > 0) {

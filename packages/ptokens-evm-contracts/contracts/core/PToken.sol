@@ -9,7 +9,13 @@ import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol
 import {IPToken} from "../interfaces/IPToken.sol";
 import {Utils} from "../libraries/Utils.sol";
 import {Network} from "../libraries/Network.sol";
-import {Errors} from "../libraries/Errors.sol";
+
+error InvalidUnderlyingAssetName(string underlyingAssetName, string expectedUnderlyingAssetName);
+error InvalidUnderlyingAssetSymbol(string underlyingAssetSymbol, string expectedUnderlyingAssetSymbol);
+error InvalidUnderlyingAssetDecimals(uint256 underlyingAssetDecimals, uint256 expectedUnderlyingAssetDecimals);
+error InvalidAssetParameters(uint256 assetAmount, address assetTokenAddress);
+error SenderIsNotHub();
+error InvalidNetwork(bytes4 networkId);
 
 contract PToken is IPToken, ERC20 {
     using SafeERC20 for IERC20Metadata;
@@ -21,7 +27,7 @@ contract PToken is IPToken, ERC20 {
 
     modifier onlyHub() {
         if (_msgSender() != hub) {
-            revert Errors.SenderIsNotHub();
+            revert SenderIsNotHub();
         }
         _;
     }
@@ -40,7 +46,7 @@ contract PToken is IPToken, ERC20 {
                 keccak256(abi.encodePacked(underlyingAssetName)) !=
                 keccak256(abi.encodePacked(expectedUnderlyingAssetName))
             ) {
-                revert Errors.InvalidUnderlyingAssetName(underlyingAssetName, expectedUnderlyingAssetName);
+                revert InvalidUnderlyingAssetName(underlyingAssetName, expectedUnderlyingAssetName);
             }
 
             string memory expectedUnderlyingAssetSymbol = IERC20Metadata(underlyingAssetTokenAddress_).symbol();
@@ -48,12 +54,12 @@ contract PToken is IPToken, ERC20 {
                 keccak256(abi.encodePacked(underlyingAssetSymbol)) !=
                 keccak256(abi.encodePacked(expectedUnderlyingAssetSymbol))
             ) {
-                revert Errors.InvalidUnderlyingAssetSymbol(underlyingAssetName, expectedUnderlyingAssetName);
+                revert InvalidUnderlyingAssetSymbol(underlyingAssetName, expectedUnderlyingAssetName);
             }
 
             uint256 expectedUnderliyngAssetDecimals = IERC20Metadata(underlyingAssetTokenAddress_).decimals();
             if (underlyingAssetDecimals != expectedUnderliyngAssetDecimals || expectedUnderliyngAssetDecimals > 18) {
-                revert Errors.InvalidUnderlyingAssetDecimals(underlyingAssetDecimals, expectedUnderliyngAssetDecimals);
+                revert InvalidUnderlyingAssetDecimals(underlyingAssetDecimals, expectedUnderliyngAssetDecimals);
             }
         }
 
@@ -102,7 +108,7 @@ contract PToken is IPToken, ERC20 {
     }
 
     function _burnAndReleaseCollateral(address account, uint256 amount) internal {
-        if (!Network.isCurrentNetwork(underlyingAssetNetworkId)) revert Errors.InvalidNetwork(underlyingAssetNetworkId);
+        if (!Network.isCurrentNetwork(underlyingAssetNetworkId)) revert InvalidNetwork(underlyingAssetNetworkId);
         _burn(account, amount);
         IERC20Metadata(underlyingAssetTokenAddress).safeTransfer(
             account,
@@ -111,7 +117,7 @@ contract PToken is IPToken, ERC20 {
     }
 
     function _takeCollateral(address account, uint256 amount) internal {
-        if (!Network.isCurrentNetwork(underlyingAssetNetworkId)) revert Errors.InvalidNetwork(underlyingAssetNetworkId);
+        if (!Network.isCurrentNetwork(underlyingAssetNetworkId)) revert InvalidNetwork(underlyingAssetNetworkId);
         IERC20Metadata(underlyingAssetTokenAddress).safeTransferFrom(account, address(this), amount);
     }
 

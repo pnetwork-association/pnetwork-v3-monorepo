@@ -5,14 +5,17 @@ import {IGovernanceStateReader} from "../interfaces/IGovernanceStateReader.sol";
 import {IRegistrationManager} from "@pnetwork/dao-v2-contracts/contracts/interfaces/IRegistrationManager.sol";
 import {ILendingManager} from "@pnetwork/dao-v2-contracts/contracts/interfaces/ILendingManager.sol";
 import {IEpochsManager} from "@pnetwork/dao-v2-contracts/contracts/interfaces/IEpochsManager.sol";
-import {Errors} from "../libraries/Errors.sol";
 import {MerkleTree} from "../libraries/MerkleTree.sol";
-import {Constants} from "../libraries/Constants.sol";
+
+error InvalidAmount(uint256 amount, uint256 expectedAmount);
+error InvalidGovernanceMessageVerifier(address governanceMessagerVerifier, address expectedGovernanceMessageVerifier);
+error InvalidSentinelRegistration(bytes1 kind);
 
 contract GovernanceStateReader is IGovernanceStateReader {
     address public constant LENDING_MANAGER = 0xa65e64ae3A3Ae4A7Ea11D7C2596De779C34dD6af;
     address public constant REGISTRATION_MANAGER = 0xCcdbBC9Dea73673dF74E1EE4D5faC8c6Ce1930ef;
     address public constant EPOCHS_MANAGER = 0xbA1067FB99Ad837F0e2895B57D1635Bdbefa789E;
+    bytes32 public constant GOVERNANCE_MESSAGE_SENTINELS = keccak256("GOVERNANCE_MESSAGE_SENTINELS");
 
     /// @inheritdoc IGovernanceStateReader
     function propagateGuardians(address[] calldata guardians) external {
@@ -36,7 +39,7 @@ contract GovernanceStateReader is IGovernanceStateReader {
         //     data[i] = abi.encodePacked(guardians[i]);
         // }
         // emit GovernanceMessage(
-        //     abi.encode(Constants.GOVERNANCE_MESSAGE_GUARDIAN, MerkleTree.getRoot(data))
+        //     abi.encode(GOVERNANCE_MESSAGE_GUARDIAN, MerkleTree.getRoot(data))
         // );
     }
 
@@ -64,7 +67,7 @@ contract GovernanceStateReader is IGovernanceStateReader {
             } else if (registrationKind == 0x02) {
                 cumulativeAmount += 200000; // NOTE: we use the truncated amount
             } else {
-                revert Errors.InvalidSentinelRegistration(registrationKind);
+                revert InvalidSentinelRegistration(registrationKind);
             }
 
             unchecked {
@@ -73,7 +76,7 @@ contract GovernanceStateReader is IGovernanceStateReader {
         }
 
         if (totalAmount != cumulativeAmount) {
-            revert Errors.InvalidAmount(totalAmount, cumulativeAmount);
+            revert InvalidAmount(totalAmount, cumulativeAmount);
         }
 
         bytes[] memory data = new bytes[](sentinels.length);
@@ -82,7 +85,7 @@ contract GovernanceStateReader is IGovernanceStateReader {
         }
 
         emit GovernanceMessage(
-            abi.encode(Constants.GOVERNANCE_MESSAGE_SENTINELS, abi.encode(currentEpoch, MerkleTree.getRoot(data)))
+            abi.encode(GOVERNANCE_MESSAGE_SENTINELS, abi.encode(currentEpoch, MerkleTree.getRoot(data)))
         );
     }
 }

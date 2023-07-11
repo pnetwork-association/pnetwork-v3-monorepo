@@ -3,9 +3,10 @@ pragma solidity ^0.8.17;
 
 import {IGovernanceStateReader} from "../interfaces/IGovernanceStateReader.sol";
 import {MerkleTree} from "../libraries/MerkleTree.sol";
-import {Constants} from "../libraries/Constants.sol";
 
 contract MockGovernanceStateReader is IGovernanceStateReader {
+    bytes32 public constant GOVERNANCE_MESSAGE_SENTINELS = keccak256("GOVERNANCE_MESSAGE_SENTINELS");
+
     function propagateSentinels(address[] calldata sentinels) external {
         address[] memory sentinels = new address[](15);
         sentinels[0] = 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266;
@@ -30,9 +31,7 @@ contract MockGovernanceStateReader is IGovernanceStateReader {
             data[i] = abi.encodePacked(sentinels[i]);
         }
 
-        bytes memory message = bytes(
-            abi.encode(Constants.GOVERNANCE_MESSAGE_SENTINELS, abi.encode(1, MerkleTree.getRoot(data)))
-        );
+        bytes memory message = bytes(abi.encode(GOVERNANCE_MESSAGE_SENTINELS, abi.encode(1, MerkleTree.getRoot(data))));
         emit GovernanceMessage(message);
     }
 
