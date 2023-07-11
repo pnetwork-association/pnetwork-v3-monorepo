@@ -533,7 +533,6 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
     }
 
     function _takeProtocolFee(Operation calldata operation, address pTokenAddress) internal returns (uint256) {
-        // NOTE: operation.assetAmount > 0 && operation.userData.length > 0 should never happens
         if (operation.assetAmount > 0) {
             uint256 feeBps = 20; // 0.2%
             uint256 fee = (operation.assetAmount * feeBps) / Constants.FEE_BASIS_POINTS_DIVISOR;
@@ -541,7 +540,11 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
             // TODO: send it to the DAO
             return operation.assetAmount - fee;
         }
-
+        
+        // TASK: We need to determine how to process the fee when operation.userData.length is greater than zero 
+        //and operation.assetAmount is also greater than zero. By current design, userData is paid in USDC, 
+        // but what happens if a user wraps Ethereum, for example, and wants to couple it with a non-null
+        //userData during the wrap operation? We must decide which token should be used for the userData fee payment.
         if (operation.userData.length > 0 && operation.protocolFeeAssetAmount > 0) {
             // Take fee using pTokenAddress and operation.protocolFeeAssetAmount
             IPToken(pTokenAddress).protocolMint(address(this), operation.protocolFeeAssetAmount);

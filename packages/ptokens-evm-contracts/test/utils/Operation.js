@@ -64,7 +64,11 @@ module.exports = class Operation {
     return this.serialize()
   }
 
-  getFee() {
+  getProtocolFee() {
     return this.assetAmount.mul(20).div(10000)
+  }
+
+  get assetAmountWithoutProtocolFee() {
+    return this.assetAmount.sub(this.getProtocolFee())
   }
 }

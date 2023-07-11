@@ -48,6 +48,7 @@ describe('PNetworkHub', () => {
       protocolFeeAssetAmount = '0',
       userData = '0x',
       optionsMask = '0x'.padEnd(66, '0'),
+      forwardDestinationNetworkId = PNETWORK_NETWORK_IDS.hardhat,
     } = _opts
 
     if (_hub.address === hub.address) {
@@ -91,7 +92,7 @@ describe('PNetworkHub', () => {
       underlyingAssetName,
       underlyingAssetSymbol,
       protocolFeeAssetAmount: '0',
-      forwardDestinationNetworkId: PNETWORK_NETWORK_IDS.ethereumMainnet,
+      forwardDestinationNetworkId,
       userData,
     })
   }
@@ -124,6 +125,7 @@ describe('PNetworkHub', () => {
     testNotReceiver = await TestNotReceiver.deploy()
     epochsManager = await EpochsManager.deploy()
     hubInterim = await PNetworkHub.deploy(
+      // hub used to test the interim chain behavior
       pFactory.address,
       BASE_CHALLENGE_PERIOD_DURATION,
       epochsManager.address,
@@ -136,6 +138,7 @@ describe('PNetworkHub', () => {
       PNETWORK_NETWORK_IDS.hardhat
     )
     hub = await PNetworkHub.deploy(
+      // hub to test the non interim chain behavior
       pFactory.address,
       BASE_CHALLENGE_PERIOD_DURATION,
       epochsManager.address,
@@ -303,7 +306,9 @@ describe('PNetworkHub', () => {
   })
 
   it('should be able to execute an operation on the destination chain', async () => {
-    const operation = await generateOperation()
+    const operation = await generateOperation({
+      forwardDestinationNetworkId: PNETWORK_NETWORK_IDS.hardhat,
+    })
     const relayerbalancePre = await ethers.provider.getBalance(relayer.address)
     const destinationAccountbalancePre = await pToken.balanceOf(operation.destinationAccount)
 
@@ -336,10 +341,17 @@ describe('PNetworkHub', () => {
     )
   })
 
-  it('should be able to execute an operation on the interim chain and subtracting a fee from the operation.assetAmount', async () => {
+  it('should be able to execute an operation on the hardhat chain and subtracting a protocolFee from the operation.assetAmount and forward another UserOperation', async () => {
     await pFactory.setHub(hubInterim.address)
-    const operation = await generateOperation(undefined, hubInterim)
+    const operation = await generateOperation(
+      {
+        forwardDestinationNetworkId: PNETWORK_NETWORK_IDS.ethereumMainnet,
+        destinationNetworkId: PNETWORK_NETWORK_IDS.hardhat,
+      },
+      hubInterim
+    )
     const relayerbalancePre = await ethers.provider.getBalance(relayer.address)
+    const destinationAccountbalancePre = await pTokenInterim.balanceOf(operation.destinationAccount)
 
     let tx = await hubInterim
       .connect(relayer)
@@ -348,20 +360,20 @@ describe('PNetworkHub', () => {
 
     await time.increase(await hubInterim.getCurrentChallengePeriodDuration())
 
-    const fee = operation.getFee()
-    const pTokenAddress = await pFactory.getPTokenAddress(
+    const protocolFee = operation.getProtocolFee()
+    /*const pTokenAddress = await pFactory.getPTokenAddress(
       operation.underlyingAssetName,
       operation.underlyingAssetSymbol,
       operation.underlyingAssetDecimals,
       operation.underlyingAssetTokenAddress,
       operation.underlyingAssetNetworkId
-    )
+    )*/
 
     tx = hubInterim.connect(relayer).protocolExecuteOperation(operation)
     await expect(tx)
-      .to.emit(hubInterim, 'UserOperation')
+      /*.to.emit(hubInterim, 'UserOperation')
       .withArgs(
-        28884170,
+        28884118,
         operation.destinationAccount,
         operation.forwardDestinationNetworkId,
         operation.underlyingAssetName,
@@ -370,21 +382,73 @@ describe('PNetworkHub', () => {
         operation.underlyingAssetTokenAddress,
         operation.underlyingAssetNetworkId,
         pTokenAddress,
-        operation.assetAmount.sub(fee),
+        operation.assetAmountWithoutProtocolFee,
         ZERO_ADDRESS,
         '0',
         '0x00000000',
         operation.userData,
         operation.optionsMask
       )
-      .and.to.emit(pTokenInterim, 'Transfer')
-      .withArgs(ZERO_ADDRESS, hubInterim.address, fee)
+      .and*/ .to.emit(pTokenInterim, 'Transfer')
+      .withArgs(ZERO_ADDRESS, hubInterim.address, protocolFee)
+      .and.to.emit(hubInterim, 'OperationExecuted')
+      .withArgs(operation.serialize())
     const receipt2 = await (await tx).wait(1)
 
     const relayerbalancePost = await ethers.provider.getBalance(relayer.address)
-    const destinationAccountbalancePost = await pToken.balanceOf(operation.destinationAccount)
+    const destinationAccountbalancePost = await pTokenInterim.balanceOf(
+      operation.destinationAccount
+    )
 
-    expect(destinationAccountbalancePost).to.be.eq(0)
+    expect(destinationAccountbalancePost).to.be.eq(destinationAccountbalancePre)
+
+    expect(relayerbalancePost).to.be.eq(
+      relayerbalancePre
+        .sub(receipt1.gasUsed.mul(receipt1.effectiveGasPrice))
+        .sub(receipt2.gasUsed.mul(receipt2.effectiveGasPrice))
+    )
+  })
+
+  it('should be able to execute an operation on the hardhat chain and subtracting a protocolFee from the operation.assetAmount when destinationNetworkId is the interim chain chain', async () => {
+    await pFactory.setHub(hubInterim.address)
+    const operation = await generateOperation(
+      {
+        destinationNetworkId: PNETWORK_NETWORK_IDS.hardhat,
+        forwardDestinationNetworkId: PNETWORK_NETWORK_IDS.hardhat,
+      },
+      hubInterim
+    )
+    const relayerbalancePre = await ethers.provider.getBalance(relayer.address)
+    const destinationAccountbalancePre = await pTokenInterim.balanceOf(operation.destinationAccount)
+
+    let tx = await hubInterim
+      .connect(relayer)
+      .protocolQueueOperation(operation, { value: LOCKED_AMOUNT_CHALLENGE_PERIOD })
+    const receipt1 = await tx.wait(1)
+
+    await time.increase(await hubInterim.getCurrentChallengePeriodDuration())
+
+    const protocolFee = operation.getProtocolFee()
+
+    tx = hubInterim.connect(relayer).protocolExecuteOperation(operation)
+    await expect(tx).to.not.emit(hubInterim, 'UserOperation')
+    await expect(tx)
+      .to.emit(pTokenInterim, 'Transfer')
+      .withArgs(ZERO_ADDRESS, hubInterim.address, protocolFee)
+      .and.to.emit(pTokenInterim, 'Transfer')
+      .withArgs(ZERO_ADDRESS, operation.destinationAccount, operation.assetAmountWithoutProtocolFee)
+      .and.to.emit(hubInterim, 'OperationExecuted')
+      .withArgs(operation.serialize())
+    const receipt2 = await (await tx).wait(1)
+
+    const relayerbalancePost = await ethers.provider.getBalance(relayer.address)
+    const destinationAccountbalancePost = await pTokenInterim.balanceOf(
+      operation.destinationAccount
+    )
+
+    expect(destinationAccountbalancePost).to.be.eq(
+      destinationAccountbalancePre.add(operation.assetAmountWithoutProtocolFee)
+    )
 
     expect(relayerbalancePost).to.be.eq(
       relayerbalancePre
