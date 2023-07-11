@@ -6,7 +6,7 @@
  *
  * @dev Library for verifing merkle patricia proofs.
  */
-pragma solidity ^0.8.17;
+pragma solidity ^0.8.19;
 
 import {RLPReader} from "solidity-rlp/contracts/RLPReader.sol";
 

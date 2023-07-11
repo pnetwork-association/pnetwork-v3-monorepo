@@ -18,7 +18,7 @@
     "contracts:prepende-license": "npx hardhat prepend-spdx-license",
     "test": "npx hardhat test --bail"
   },
-  "author": "pNetwork",
+  "author": "pNetwork Association",
   "dependencies": {
     "@ethereumjs/rlp": "^4.0.1",
     "@ethereumjs/trie": "^5.0.5",
@@ -33,7 +33,7 @@
     "@openzeppelin/contracts-upgradeable": "4.9.2",
     "@openzeppelin/hardhat-upgrades": "1.22.1",
     "@openzeppelin/upgrades-core": "^1.24.1",
-    "@pnetwork/dao-v2-contracts": "https://github.com/pnetwork-association/dao-v2-contracts.git",
+    "@pnetwork-association/dao-v2-contracts": "https://github.com/pnetwork-association/dao-v2-contracts.git",
     "async-retry": "^1.3.3",
     "chai": "^4.3.0",
     "csv-reader": "^1.0.11",

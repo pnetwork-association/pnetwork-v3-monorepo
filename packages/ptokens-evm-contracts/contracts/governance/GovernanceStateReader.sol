@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.17;
+pragma solidity ^0.8.19;
 
 import {IGovernanceStateReader} from "../interfaces/IGovernanceStateReader.sol";
-import {IRegistrationManager} from "@pnetwork/dao-v2-contracts/contracts/interfaces/IRegistrationManager.sol";
-import {ILendingManager} from "@pnetwork/dao-v2-contracts/contracts/interfaces/ILendingManager.sol";
-import {IEpochsManager} from "@pnetwork/dao-v2-contracts/contracts/interfaces/IEpochsManager.sol";
+import {IRegistrationManager} from "@pnetwork-association/dao-v2-contracts/contracts/interfaces/IRegistrationManager.sol";
+import {ILendingManager} from "@pnetwork-association/dao-v2-contracts/contracts/interfaces/ILendingManager.sol";
+import {IEpochsManager} from "@pnetwork-association/dao-v2-contracts/contracts/interfaces/IEpochsManager.sol";
 import {MerkleTree} from "../libraries/MerkleTree.sol";
 
 error InvalidAmount(uint256 amount, uint256 expectedAmount);

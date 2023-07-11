@@ -23,7 +23,7 @@ const maybeGetAccounts = _envVar => (process.env[_envVar] ? [process.env[_envVar
  */
 module.exports = {
   solidity: {
-    version: '0.8.17',
+    version: '0.8.19',
     settings: {
       viaIR: true,
       optimizer: {

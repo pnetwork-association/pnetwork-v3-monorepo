@@ -1,7 +1,7 @@
 // taken from here: https://github.com/allemanfredi/solidity-merkle-tree/blob/main/contracts/MerkleTree.sol
 import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
 
-pragma solidity ^0.8.17;
+pragma solidity ^0.8.19;
 
 library MerkleTree {
     function getRoot(bytes[] memory data) internal pure returns (bytes32) {
