@@ -615,7 +615,6 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
             // Take fee using pTokenAddress and operation.protocolFeeAssetAmount
             IPToken(pTokenAddress).protocolMint(address(this), operation.protocolFeeAssetAmount);
             // TODO: send it to the DAO
-            // NOTE: this
             return operation.assetAmount > 0 ? operation.assetAmount - operation.protocolFeeAssetAmount : 0;
         }
 
