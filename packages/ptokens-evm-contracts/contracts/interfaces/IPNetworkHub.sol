@@ -32,6 +32,8 @@ interface IPNetworkHub is IGovernanceMessageHandler {
         uint256 underlyingAssetDecimals;
         uint256 assetAmount;
         uint256 protocolFeeAssetAmount;
+        uint256 networkFeeAssetAmount;
+        uint256 forwardNetworkFeeAssetAmount;
         address underlyingAssetTokenAddress;
         bytes4 originNetworkId;
         bytes4 destinationNetworkId;
@@ -105,6 +107,8 @@ interface IPNetworkHub is IGovernanceMessageHandler {
      * @param assetAmount The asset mount
      * @param protocolFeeAssetTokenAddress the protocol fee asset token address
      * @param protocolFeeAssetAmount the protocol fee asset amount
+     * @param networkFeeAssetAmount the network fee asset amount
+     * @param forwardNetworkFeeAssetAmount the forward network fee asset amount
      * @param forwardDestinationNetworkId the protocol fee network id
      * @param userData The user data
      * @param optionsMask The options
@@ -122,6 +126,8 @@ interface IPNetworkHub is IGovernanceMessageHandler {
         uint256 assetAmount,
         address protocolFeeAssetTokenAddress,
         uint256 protocolFeeAssetAmount,
+        uint256 networkFeeAssetAmount,
+        uint256 forwardNetworkFeeAssetAmount,
         bytes4 forwardDestinationNetworkId,
         bytes userData,
         bytes32 optionsMask
@@ -221,6 +227,8 @@ interface IPNetworkHub is IGovernanceMessageHandler {
      * @param assetAmount
      * @param protocolFeeAssetTokenAddress
      * @param protocolFeeAssetAmount
+     * @param networkFeeAssetAmount
+     * @param forwardNetworkFeeAssetAmount
      * @param userData
      * @param optionsMask
      */
@@ -236,6 +244,8 @@ interface IPNetworkHub is IGovernanceMessageHandler {
         uint256 assetAmount,
         address protocolFeeAssetTokenAddress,
         uint256 protocolFeeAssetAmount,
+        uint256 networkFeeAssetAmount,
+        uint256 forwardNetworkFeeAssetAmount,
         bytes calldata userData,
         bytes32 optionsMask
     ) external;

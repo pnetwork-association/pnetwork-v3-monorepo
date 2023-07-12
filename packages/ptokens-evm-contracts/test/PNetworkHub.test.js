@@ -24,6 +24,7 @@ let token,
   guardian,
   sentinel,
   relayer,
+  relayer2,
   testReceiver,
   testNotReceiver,
   user1,
@@ -46,9 +47,11 @@ describe('PNetworkHub', () => {
       assetAmount = ethers.utils.parseEther('1000'),
       protocolFeeAssetTokenAddress = ZERO_ADDRESS,
       protocolFeeAssetAmount = '0',
+      networkFeeAssetAmount = '0',
       userData = '0x',
       optionsMask = '0x'.padEnd(66, '0'),
       forwardDestinationNetworkId = PNETWORK_NETWORK_IDS.hardhat,
+      forwardNetworkFeeAssetAmount = '0',
     } = _opts
 
     if (_hub.address === hub.address) {
@@ -69,6 +72,8 @@ describe('PNetworkHub', () => {
       assetAmount,
       protocolFeeAssetTokenAddress,
       protocolFeeAssetAmount,
+      networkFeeAssetAmount,
+      forwardNetworkFeeAssetAmount,
       userData,
       optionsMask
     )
@@ -78,21 +83,23 @@ describe('PNetworkHub', () => {
     const { blockHash, transactionHash } = await (await transaction).wait()
 
     return new Operation({
-      originBlockHash: blockHash,
-      originTransactionHash: transactionHash,
-      optionsMask,
-      nonce,
-      underlyingAssetDecimals,
       assetAmount,
-      underlyingAssetTokenAddress: token.address,
-      originNetworkId: PNETWORK_NETWORK_IDS.hardhat,
-      destinationNetworkId,
-      underlyingAssetNetworkId,
       destinationAccount,
-      underlyingAssetName,
-      underlyingAssetSymbol,
-      protocolFeeAssetAmount: '0',
+      destinationNetworkId,
       forwardDestinationNetworkId,
+      forwardNetworkFeeAssetAmount,
+      networkFeeAssetAmount,
+      nonce,
+      optionsMask,
+      originBlockHash: blockHash,
+      originNetworkId: PNETWORK_NETWORK_IDS.hardhat,
+      originTransactionHash: transactionHash,
+      protocolFeeAssetAmount: '0',
+      underlyingAssetDecimals,
+      underlyingAssetName,
+      underlyingAssetNetworkId,
+      underlyingAssetSymbol,
+      underlyingAssetTokenAddress: token.address,
       userData,
     })
   }
@@ -114,10 +121,11 @@ describe('PNetworkHub', () => {
     const signers = await ethers.getSigners()
     owner = signers[0]
     relayer = signers[1]
-    user1 = signers[2]
-    guardian = signers[3]
-    sentinel = signers[4]
-    fakeGovernanceMessageVerifier = signers[5]
+    relayer2 = signers[2]
+    user1 = signers[3]
+    guardian = signers[4]
+    sentinel = signers[5]
+    fakeGovernanceMessageVerifier = signers[6]
 
     // H A R D H A T
     testReceiver = await TestReceiver.deploy()
@@ -218,16 +226,16 @@ describe('PNetworkHub', () => {
   it('should be able to queue an operation', async () => {
     const operation = await generateOperation()
 
-    const relayerbalancePre = await ethers.provider.getBalance(relayer.address)
+    const relayerEthBalancePre = await ethers.provider.getBalance(relayer.address)
     const tx = hub
       .connect(relayer)
       .protocolQueueOperation(operation, { value: LOCKED_AMOUNT_CHALLENGE_PERIOD })
     await expect(tx).to.emit(hub, 'OperationQueued').withArgs(operation.serialize())
 
     const receipt = await (await tx).wait(1)
-    const relayerbalancePost = await ethers.provider.getBalance(relayer.address)
-    expect(relayerbalancePost).to.be.eq(
-      relayerbalancePre
+    const relayerEthBalancePost = await ethers.provider.getBalance(relayer.address)
+    expect(relayerEthBalancePost).to.be.eq(
+      relayerEthBalancePre
         .sub(LOCKED_AMOUNT_CHALLENGE_PERIOD)
         .sub(receipt.gasUsed.mul(receipt.effectiveGasPrice))
     )
@@ -305,11 +313,11 @@ describe('PNetworkHub', () => {
     ).to.be.revertedWithCustomError(hub, 'ChallengePeriodNotTerminated')
   })
 
-  it('should be able to execute an operation on the destination chain', async () => {
+  it('should be able to execute an operation on the destination chain when network fee is 0', async () => {
     const operation = await generateOperation({
       forwardDestinationNetworkId: PNETWORK_NETWORK_IDS.hardhat,
     })
-    const relayerbalancePre = await ethers.provider.getBalance(relayer.address)
+    const relayerEthBalancePre = await ethers.provider.getBalance(relayer.address)
     const destinationAccountbalancePre = await pToken.balanceOf(operation.destinationAccount)
 
     let tx = await hub
@@ -327,21 +335,21 @@ describe('PNetworkHub', () => {
       .withArgs(ZERO_ADDRESS, operation.destinationAccount, operation.assetAmount)
     const receipt2 = await (await tx).wait(1)
 
-    const relayerbalancePost = await ethers.provider.getBalance(relayer.address)
+    const relayerEthBalancePost = await ethers.provider.getBalance(relayer.address)
     const destinationAccountbalancePost = await pToken.balanceOf(operation.destinationAccount)
 
     expect(destinationAccountbalancePost).to.be.eq(
       destinationAccountbalancePre.add(operation.assetAmount)
     )
 
-    expect(relayerbalancePost).to.be.eq(
-      relayerbalancePre
+    expect(relayerEthBalancePost).to.be.eq(
+      relayerEthBalancePre
         .sub(receipt1.gasUsed.mul(receipt1.effectiveGasPrice))
         .sub(receipt2.gasUsed.mul(receipt2.effectiveGasPrice))
     )
   })
 
-  it('should be able to execute an operation on the hardhat chain and subtracting a protocolFee from the operation.assetAmount and forward another UserOperation', async () => {
+  it('should be able to execute an operation on the interim chain and subtracting a protocolFee from the operation.assetAmount and forward another UserOperation. Network fee is 0', async () => {
     await pFactory.setHub(hubInterim.address)
     const operation = await generateOperation(
       {
@@ -350,7 +358,7 @@ describe('PNetworkHub', () => {
       },
       hubInterim
     )
-    const relayerbalancePre = await ethers.provider.getBalance(relayer.address)
+    const relayerEthBalancePre = await ethers.provider.getBalance(relayer.address)
     const destinationAccountbalancePre = await pTokenInterim.balanceOf(operation.destinationAccount)
 
     let tx = await hubInterim
@@ -361,19 +369,19 @@ describe('PNetworkHub', () => {
     await time.increase(await hubInterim.getCurrentChallengePeriodDuration())
 
     const protocolFee = operation.getProtocolFee()
-    /*const pTokenAddress = await pFactory.getPTokenAddress(
+    const pTokenAddress = await pFactory.getPTokenAddress(
       operation.underlyingAssetName,
       operation.underlyingAssetSymbol,
       operation.underlyingAssetDecimals,
       operation.underlyingAssetTokenAddress,
       operation.underlyingAssetNetworkId
-    )*/
+    )
 
     tx = hubInterim.connect(relayer).protocolExecuteOperation(operation)
     await expect(tx)
-      /*.to.emit(hubInterim, 'UserOperation')
+      .to.emit(hubInterim, 'UserOperation')
       .withArgs(
-        28884118,
+        28883516,
         operation.destinationAccount,
         operation.forwardDestinationNetworkId,
         operation.underlyingAssetName,
@@ -385,31 +393,33 @@ describe('PNetworkHub', () => {
         operation.assetAmountWithoutProtocolFee,
         ZERO_ADDRESS,
         '0',
+        '0',
+        '0',
         '0x00000000',
         operation.userData,
         operation.optionsMask
       )
-      .and*/ .to.emit(pTokenInterim, 'Transfer')
+      .and.to.emit(pTokenInterim, 'Transfer')
       .withArgs(ZERO_ADDRESS, hubInterim.address, protocolFee)
       .and.to.emit(hubInterim, 'OperationExecuted')
       .withArgs(operation.serialize())
     const receipt2 = await (await tx).wait(1)
 
-    const relayerbalancePost = await ethers.provider.getBalance(relayer.address)
+    const relayerEthBalancePost = await ethers.provider.getBalance(relayer.address)
     const destinationAccountbalancePost = await pTokenInterim.balanceOf(
       operation.destinationAccount
     )
 
     expect(destinationAccountbalancePost).to.be.eq(destinationAccountbalancePre)
 
-    expect(relayerbalancePost).to.be.eq(
-      relayerbalancePre
+    expect(relayerEthBalancePost).to.be.eq(
+      relayerEthBalancePre
         .sub(receipt1.gasUsed.mul(receipt1.effectiveGasPrice))
         .sub(receipt2.gasUsed.mul(receipt2.effectiveGasPrice))
     )
   })
 
-  it('should be able to execute an operation on the hardhat chain and subtracting a protocolFee from the operation.assetAmount when destinationNetworkId is the interim chain chain', async () => {
+  it('should be able to execute an operation on the interim chain and subtracting a protocolFee from the operation.assetAmount when destinationNetworkId is the interim chain', async () => {
     await pFactory.setHub(hubInterim.address)
     const operation = await generateOperation(
       {
@@ -418,7 +428,7 @@ describe('PNetworkHub', () => {
       },
       hubInterim
     )
-    const relayerbalancePre = await ethers.provider.getBalance(relayer.address)
+    const relayerEthBalancePre = await ethers.provider.getBalance(relayer.address)
     const destinationAccountbalancePre = await pTokenInterim.balanceOf(operation.destinationAccount)
 
     let tx = await hubInterim
@@ -441,7 +451,7 @@ describe('PNetworkHub', () => {
       .withArgs(operation.serialize())
     const receipt2 = await (await tx).wait(1)
 
-    const relayerbalancePost = await ethers.provider.getBalance(relayer.address)
+    const relayerEthBalancePost = await ethers.provider.getBalance(relayer.address)
     const destinationAccountbalancePost = await pTokenInterim.balanceOf(
       operation.destinationAccount
     )
@@ -450,8 +460,8 @@ describe('PNetworkHub', () => {
       destinationAccountbalancePre.add(operation.assetAmountWithoutProtocolFee)
     )
 
-    expect(relayerbalancePost).to.be.eq(
-      relayerbalancePre
+    expect(relayerEthBalancePost).to.be.eq(
+      relayerEthBalancePre
         .sub(receipt1.gasUsed.mul(receipt1.effectiveGasPrice))
         .sub(receipt2.gasUsed.mul(receipt2.effectiveGasPrice))
     )
@@ -695,6 +705,8 @@ describe('PNetworkHub', () => {
       assetAmount,
       protocolFeeAssetTokenAddress: ZERO_ADDRESS,
       protocolFeeAssetAmount: '0',
+      networkFeeAssetAmount: '0',
+      forwardNetworkFeeAssetAmount: '0',
       userData: '0x',
       optionsMask: '0x'.padEnd(66, '0'),
     }
@@ -717,6 +729,8 @@ describe('PNetworkHub', () => {
       assetAmount,
       protocolFeeAssetTokenAddress: ZERO_ADDRESS,
       protocolFeeAssetAmount: assetAmount,
+      networkFeeAssetAmount: '0',
+      forwardNetworkFeeAssetAmount: '0',
       userData: '0x',
       optionsMask: '0x'.padEnd(66, '0'),
     }
@@ -753,6 +767,8 @@ describe('PNetworkHub', () => {
       assetAmount: '0',
       protocolFeeAssetTokenAddress: token.address,
       protocolFeeAssetAmount,
+      networkFeeAssetAmount: '0',
+      forwardNetworkFeeAssetAmount: '0',
       userData: '0x00',
       optionsMask: '0x'.padEnd(66, '0'),
     }
@@ -775,6 +791,8 @@ describe('PNetworkHub', () => {
       assetAmount: '1',
       protocolFeeAssetTokenAddress: token.address,
       protocolFeeAssetAmount,
+      networkFeeAssetAmount: '0',
+      forwardNetworkFeeAssetAmount: '0',
       userData: '0x00',
       optionsMask: '0x'.padEnd(66, '0'),
     }
@@ -795,6 +813,286 @@ describe('PNetworkHub', () => {
     await expect(hub.userSend(...Object.values(data))).to.be.revertedWithCustomError(
       hub,
       'InvalidAssetParameters'
+    )
+  })
+
+  it('should be able to execute an operation on the destination chain (!= interim) when network fee is greather than 0. Queue and execute are sent by the same relayer', async () => {
+    const networkFeeAssetAmount = ethers.utils.parseEther('1')
+
+    const operation = await generateOperation({ networkFeeAssetAmount })
+    const relayerEthBalancePre = await ethers.provider.getBalance(relayer.address)
+    const relayerBalancePre = await pToken.balanceOf(relayer.address)
+    const destinationAccountbalancePre = await pToken.balanceOf(operation.destinationAccount)
+
+    let tx = await hub
+      .connect(relayer)
+      .protocolQueueOperation(operation, { value: LOCKED_AMOUNT_CHALLENGE_PERIOD })
+    const receipt1 = await tx.wait(1)
+
+    await time.increase(await hub.getCurrentChallengePeriodDuration())
+
+    tx = hub.connect(relayer).protocolExecuteOperation(operation)
+    await expect(tx)
+      .to.emit(hub, 'OperationExecuted')
+      .withArgs(operation.serialize())
+      .and.to.emit(pToken, 'Transfer')
+      .withArgs(ZERO_ADDRESS, operation.destinationAccount, operation.assetAmountWithoutNetworkFee)
+      .and.to.emit(pToken, 'Transfer')
+      .withArgs(ZERO_ADDRESS, relayer.address, operation.networkFeeAssetAmount)
+    const receipt2 = await (await tx).wait(1)
+
+    const relayerEthBalancePost = await ethers.provider.getBalance(relayer.address)
+    const relayerBalancePost = await pToken.balanceOf(relayer.address)
+    const destinationAccountbalancePost = await pToken.balanceOf(operation.destinationAccount)
+
+    expect(destinationAccountbalancePost).to.be.eq(
+      destinationAccountbalancePre.add(operation.assetAmountWithoutNetworkFee)
+    )
+    expect(relayerBalancePost).to.be.eq(relayerBalancePre.add(operation.networkFeeAssetAmount))
+    expect(relayerEthBalancePost).to.be.eq(
+      relayerEthBalancePre
+        .sub(receipt1.gasUsed.mul(receipt1.effectiveGasPrice))
+        .sub(receipt2.gasUsed.mul(receipt2.effectiveGasPrice))
+    )
+  })
+
+  it('should be able to execute an operation on the destination chain (== interim) when network fee is greather than 0. Queue and execute are sent by the same relayer', async () => {
+    await pFactory.setHub(hubInterim.address)
+
+    const operation = await generateOperation(
+      {
+        forwardDestinationNetworkId: '0x00000000',
+        destinationNetworkId: PNETWORK_NETWORK_IDS.hardhat,
+        networkFeeAssetAmount: ethers.utils.parseEther('1'),
+        forwardNetworkFeeAssetAmount: '0',
+      },
+      hubInterim
+    )
+    const relayerEthBalancePre = await ethers.provider.getBalance(relayer.address)
+    const relayerBalancePre = await pTokenInterim.balanceOf(relayer.address)
+    const destinationAccountbalancePre = await pTokenInterim.balanceOf(operation.destinationAccount)
+
+    let tx = await hubInterim
+      .connect(relayer)
+      .protocolQueueOperation(operation, { value: LOCKED_AMOUNT_CHALLENGE_PERIOD })
+    const receipt1 = await tx.wait(1)
+
+    await time.increase(await hubInterim.getCurrentChallengePeriodDuration())
+
+    tx = hubInterim.connect(relayer).protocolExecuteOperation(operation)
+    await expect(tx)
+      .to.emit(hubInterim, 'OperationExecuted')
+      .withArgs(operation.serialize())
+      .and.to.emit(pTokenInterim, 'Transfer')
+      .withArgs(
+        ZERO_ADDRESS,
+        operation.destinationAccount,
+        operation.assetAmountWithoutProtocolFeeAndNetworkFee
+      )
+      .and.to.emit(pTokenInterim, 'Transfer')
+      .withArgs(ZERO_ADDRESS, relayer.address, operation.networkFeeAssetAmount)
+    const receipt2 = await (await tx).wait(1)
+
+    const relayerEthBalancePost = await ethers.provider.getBalance(relayer.address)
+    const relayerBalancePost = await pTokenInterim.balanceOf(relayer.address)
+    const destinationAccountbalancePost = await pTokenInterim.balanceOf(
+      operation.destinationAccount
+    )
+
+    expect(destinationAccountbalancePost).to.be.eq(
+      destinationAccountbalancePre.add(operation.assetAmountWithoutProtocolFeeAndNetworkFee)
+    )
+    expect(relayerBalancePost).to.be.eq(relayerBalancePre.add(operation.networkFeeAssetAmount))
+    expect(relayerEthBalancePost).to.be.eq(
+      relayerEthBalancePre
+        .sub(receipt1.gasUsed.mul(receipt1.effectiveGasPrice))
+        .sub(receipt2.gasUsed.mul(receipt2.effectiveGasPrice))
+    )
+  })
+
+  it('should be able to execute an operation on the destination chain (== interim) when network fee is greather than 0. Queue and execute are sent by different relayers', async () => {
+    await pFactory.setHub(hubInterim.address)
+
+    const operation = await generateOperation(
+      {
+        forwardDestinationNetworkId: '0x00000000',
+        destinationNetworkId: PNETWORK_NETWORK_IDS.hardhat,
+        networkFeeAssetAmount: ethers.utils.parseEther('1'),
+        forwardNetworkFeeAssetAmount: '0',
+      },
+      hubInterim
+    )
+    const relayerEthBalancePre = await ethers.provider.getBalance(relayer.address)
+    const relayerBalancePre = await pTokenInterim.balanceOf(relayer.address)
+    const relayer2BalancePre = await pTokenInterim.balanceOf(relayer2.address)
+    const destinationAccountbalancePre = await pTokenInterim.balanceOf(operation.destinationAccount)
+
+    const tx = await hubInterim
+      .connect(relayer)
+      .protocolQueueOperation(operation, { value: LOCKED_AMOUNT_CHALLENGE_PERIOD })
+    const receipt1 = await tx.wait(1)
+
+    await time.increase(await hubInterim.getCurrentChallengePeriodDuration())
+
+    await expect(hubInterim.connect(relayer2).protocolExecuteOperation(operation))
+      .to.emit(hubInterim, 'OperationExecuted')
+      .withArgs(operation.serialize())
+      .and.to.emit(pTokenInterim, 'Transfer')
+      .withArgs(
+        ZERO_ADDRESS,
+        operation.destinationAccount,
+        operation.assetAmountWithoutProtocolFeeAndNetworkFee
+      )
+      .and.to.emit(pTokenInterim, 'Transfer')
+      .withArgs(ZERO_ADDRESS, relayer.address, operation.queueRelayerNetworkFeeAssetAmount)
+      .and.to.emit(pTokenInterim, 'Transfer')
+      .withArgs(ZERO_ADDRESS, relayer2.address, operation.executeRelayerNetworkFeeAssetAmount)
+      .and.to.not.emit(hub, 'UserOperation')
+
+    const relayerEthBalancePost = await ethers.provider.getBalance(relayer.address)
+    const relayerBalancePost = await pTokenInterim.balanceOf(relayer.address)
+    const relayer2BalancePost = await pTokenInterim.balanceOf(relayer2.address)
+    const destinationAccountbalancePost = await pTokenInterim.balanceOf(
+      operation.destinationAccount
+    )
+
+    expect(destinationAccountbalancePost).to.be.eq(
+      destinationAccountbalancePre.add(operation.assetAmountWithoutProtocolFeeAndNetworkFee)
+    )
+    expect(relayerBalancePost).to.be.eq(
+      relayerBalancePre.add(operation.queueRelayerNetworkFeeAssetAmount)
+    )
+    expect(relayer2BalancePost).to.be.eq(
+      relayer2BalancePre.add(operation.executeRelayerNetworkFeeAssetAmount)
+    )
+    expect(relayerEthBalancePost).to.be.eq(
+      relayerEthBalancePre.sub(receipt1.gasUsed.mul(receipt1.effectiveGasPrice))
+    )
+  })
+
+  it('should be able to execute an operation on the destination chain (!= interim) when network fee is greather than 0. Queue and execute are sent by different relayers', async () => {
+    const networkFeeAssetAmount = ethers.utils.parseEther('1')
+
+    const operation = await generateOperation({ networkFeeAssetAmount })
+    const relayerEthBalancePre = await ethers.provider.getBalance(relayer.address)
+    const relayerBalancePre = await pToken.balanceOf(relayer.address)
+    const relayer2BalancePre = await pToken.balanceOf(relayer2.address)
+    const destinationAccountbalancePre = await pToken.balanceOf(operation.destinationAccount)
+
+    const tx = await hub
+      .connect(relayer)
+      .protocolQueueOperation(operation, { value: LOCKED_AMOUNT_CHALLENGE_PERIOD })
+    const receipt1 = await tx.wait(1)
+
+    await time.increase(await hub.getCurrentChallengePeriodDuration())
+
+    await expect(hub.connect(relayer2).protocolExecuteOperation(operation))
+      .to.emit(hub, 'OperationExecuted')
+      .withArgs(operation.serialize())
+      .and.to.emit(pToken, 'Transfer')
+      .withArgs(ZERO_ADDRESS, operation.destinationAccount, operation.assetAmountWithoutNetworkFee)
+      .and.to.emit(pToken, 'Transfer')
+      .withArgs(ZERO_ADDRESS, relayer.address, operation.queueRelayerNetworkFeeAssetAmount)
+      .and.to.emit(pToken, 'Transfer')
+      .withArgs(ZERO_ADDRESS, relayer2.address, operation.executeRelayerNetworkFeeAssetAmount)
+      .and.to.not.emit(hub, 'UserOperation')
+
+    const relayerEthBalancePost = await ethers.provider.getBalance(relayer.address)
+    const relayerBalancePost = await pToken.balanceOf(relayer.address)
+    const relayer2BalancePost = await pToken.balanceOf(relayer2.address)
+    const destinationAccountbalancePost = await pToken.balanceOf(operation.destinationAccount)
+
+    expect(destinationAccountbalancePost).to.be.eq(
+      destinationAccountbalancePre.add(operation.assetAmountWithoutNetworkFee)
+    )
+    expect(relayerBalancePost).to.be.eq(
+      relayerBalancePre.add(operation.queueRelayerNetworkFeeAssetAmount)
+    )
+    expect(relayer2BalancePost).to.be.eq(
+      relayer2BalancePre.add(operation.executeRelayerNetworkFeeAssetAmount)
+    )
+    expect(relayerEthBalancePost).to.be.eq(
+      relayerEthBalancePre.sub(receipt1.gasUsed.mul(receipt1.effectiveGasPrice))
+    )
+  })
+
+  it('should be able to execute an operation on the interim chain, subtracting the protocol fee and the network fee (sending it to the same relayer) and forward another UserOperation', async () => {
+    await pFactory.setHub(hubInterim.address)
+
+    const networkFeeAssetAmount = ethers.utils.parseEther('1')
+    const forwardNetworkFeeAssetAmount = ethers.utils.parseEther('2')
+    const operation = await generateOperation(
+      {
+        forwardDestinationNetworkId: PNETWORK_NETWORK_IDS.ethereumMainnet,
+        destinationNetworkId: PNETWORK_NETWORK_IDS.hardhat,
+        networkFeeAssetAmount,
+        forwardNetworkFeeAssetAmount,
+      },
+      hubInterim
+    )
+    const relayerEthBalancePre = await ethers.provider.getBalance(relayer.address)
+    const relayerBalancePre = await pTokenInterim.balanceOf(relayer.address)
+    const destinationAccountbalancePre = await pTokenInterim.balanceOf(operation.destinationAccount)
+
+    let tx = await hubInterim
+      .connect(relayer)
+      .protocolQueueOperation(operation, { value: LOCKED_AMOUNT_CHALLENGE_PERIOD })
+    const receipt1 = await tx.wait(1)
+
+    await time.increase(await hubInterim.getCurrentChallengePeriodDuration())
+
+    const protocolFee = operation.getProtocolFee()
+    const pTokenAddress = await pFactory.getPTokenAddress(
+      operation.underlyingAssetName,
+      operation.underlyingAssetSymbol,
+      operation.underlyingAssetDecimals,
+      operation.underlyingAssetTokenAddress,
+      operation.underlyingAssetNetworkId
+    )
+
+    tx = hubInterim.connect(relayer).protocolExecuteOperation(operation)
+
+    await expect(tx)
+      .to.emit(hubInterim, 'UserOperation')
+      .withArgs(
+        28858568,
+        operation.destinationAccount,
+        operation.forwardDestinationNetworkId,
+        operation.underlyingAssetName,
+        operation.underlyingAssetSymbol,
+        operation.underlyingAssetDecimals,
+        operation.underlyingAssetTokenAddress,
+        operation.underlyingAssetNetworkId,
+        pTokenAddress,
+        operation.assetAmountWithoutProtocolFeeAndNetworkFee,
+        ZERO_ADDRESS,
+        '0',
+        forwardNetworkFeeAssetAmount,
+        '0',
+        '0x00000000',
+        operation.userData,
+        operation.optionsMask
+      )
+      .and.to.emit(pTokenInterim, 'Transfer')
+      .withArgs(ZERO_ADDRESS, hubInterim.address, protocolFee)
+      .and.to.emit(pTokenInterim, 'Transfer')
+      .withArgs(ZERO_ADDRESS, relayer.address, operation.networkFeeAssetAmount)
+      .and.to.emit(hubInterim, 'OperationExecuted')
+      .withArgs(operation.serialize())
+    const receipt2 = await (await tx).wait(1)
+
+    const relayerEthBalancePost = await ethers.provider.getBalance(relayer.address)
+    const relayerBalancePost = await pTokenInterim.balanceOf(relayer.address)
+    const destinationAccountbalancePost = await pTokenInterim.balanceOf(
+      operation.destinationAccount
+    )
+
+    expect(destinationAccountbalancePost).to.be.eq(destinationAccountbalancePre)
+    expect(relayerBalancePost).to.be.eq(relayerBalancePre.add(operation.networkFeeAssetAmount))
+    expect(relayerEthBalancePost).to.be.eq(
+      relayerEthBalancePre
+        .sub(receipt1.gasUsed.mul(receipt1.effectiveGasPrice))
+        .sub(receipt2.gasUsed.mul(receipt2.effectiveGasPrice))
     )
   })
 })

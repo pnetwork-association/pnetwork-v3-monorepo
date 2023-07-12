@@ -10,11 +10,13 @@ module.exports = class Operation {
       underlyingAssetDecimals = 0,
       assetAmount = '0',
       protocolFeeAssetAmount = '0',
+      networkFeeAssetAmount = '0',
       underlyingAssetTokenAddress = '0x'.padEnd(42, '0'),
       originNetworkId = PNETWORK_NETWORK_IDS.hardhat,
       destinationNetworkId = PNETWORK_NETWORK_IDS.hardhat,
       underlyingAssetNetworkId = PNETWORK_NETWORK_IDS.hardhat,
       forwardDestinationNetworkId = PNETWORK_NETWORK_IDS.ethereumMainnet,
+      forwardNetworkFeeAssetAmount = '0',
       destinationAccount = '0x'.padEnd(42, '0'),
       underlyingAssetName = 'NAME',
       underlyingAssetSymbol = 'SYMBOL',
@@ -37,6 +39,8 @@ module.exports = class Operation {
     this.userData = userData
     this.protocolFeeAssetAmount = protocolFeeAssetAmount
     this.forwardDestinationNetworkId = forwardDestinationNetworkId
+    this.networkFeeAssetAmount = networkFeeAssetAmount
+    this.forwardNetworkFeeAssetAmount = forwardNetworkFeeAssetAmount
   }
 
   serialize() {
@@ -48,6 +52,8 @@ module.exports = class Operation {
       this.underlyingAssetDecimals,
       this.assetAmount,
       this.protocolFeeAssetAmount,
+      this.networkFeeAssetAmount,
+      this.forwardNetworkFeeAssetAmount,
       this.underlyingAssetTokenAddress,
       this.originNetworkId,
       this.destinationNetworkId,
@@ -70,5 +76,21 @@ module.exports = class Operation {
 
   get assetAmountWithoutProtocolFee() {
     return this.assetAmount.sub(this.getProtocolFee())
+  }
+
+  get assetAmountWithoutProtocolFeeAndNetworkFee() {
+    return this.assetAmount.sub(this.getProtocolFee()).sub(this.networkFeeAssetAmount)
+  }
+
+  get assetAmountWithoutNetworkFee() {
+    return this.assetAmount.sub(this.networkFeeAssetAmount)
+  }
+
+  get queueRelayerNetworkFeeAssetAmount() {
+    return this.networkFeeAssetAmount.mul(3700).div(10000)
+  }
+
+  get executeRelayerNetworkFeeAssetAmount() {
+    return this.networkFeeAssetAmount.mul(6300).div(10000)
   }
 }

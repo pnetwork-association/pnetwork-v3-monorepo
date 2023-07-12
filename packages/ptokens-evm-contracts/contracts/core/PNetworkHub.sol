@@ -39,6 +39,7 @@ error InvalidLockedAmountChallengePeriod(
 error CallFailed();
 error QueueFull();
 error InvalidProtocolFee(IPNetworkHub.Operation operation);
+error InvalidNetworkFeeAssetAmount();
 
 contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard {
     bytes32 public constant GOVERNANCE_MESSAGE_SENTINELS = keccak256("GOVERNANCE_MESSAGE_SENTINELS");
@@ -173,6 +174,8 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
                     operation.underlyingAssetNetworkId,
                     operation.assetAmount,
                     operation.protocolFeeAssetAmount,
+                    operation.networkFeeAssetAmount,
+                    operation.forwardNetworkFeeAssetAmount,
                     operation.userData,
                     operation.optionsMask
                 )
@@ -245,7 +248,17 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
             // NOTE: if we are on interim chain but the effective destination chain (forwardDestinationNetworkId) is another one
             // we have to emit an user Operation without protocol fee and with effectiveOperationAssetAmount and forwardDestinationNetworkId as
             // destinationNetworkId in order to proxy the Operation on the destination chain.
-            if (interimChainNetworkId != operation.forwardDestinationNetworkId) {
+            if (
+                interimChainNetworkId != operation.forwardDestinationNetworkId &&
+                operation.forwardDestinationNetworkId != bytes4(0)
+            ) {
+                effectiveOperationAssetAmount = _takeNetworkFee(
+                    effectiveOperationAssetAmount,
+                    operation.networkFeeAssetAmount,
+                    operationId,
+                    pTokenAddress
+                );
+
                 _releaseOperationLockedAmountChallengePeriod(operationId);
                 emit UserOperation(
                     gasleft(),
@@ -260,6 +273,8 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
                     effectiveOperationAssetAmount,
                     address(0),
                     0,
+                    operation.forwardNetworkFeeAssetAmount,
+                    0,
                     bytes4(0),
                     operation.userData,
                     operation.optionsMask
@@ -269,6 +284,13 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
                 return;
             }
         }
+
+        effectiveOperationAssetAmount = _takeNetworkFee(
+            effectiveOperationAssetAmount,
+            operation.networkFeeAssetAmount,
+            operationId,
+            pTokenAddress
+        );
 
         // NOTE: Execute the operation on the target blockchain. If destinationNetworkId is equivalent to
         // interimChainNetworkId, then the effectiveOperationAssetAmount would be the result of operation.assetAmount minus
@@ -341,6 +363,8 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
         uint256 assetAmount,
         address protocolFeeAssetTokenAddress,
         uint256 protocolFeeAssetAmount,
+        uint256 networkFeeAssetAmount,
+        uint256 forwardNetworkFeeAssetAmount,
         bytes calldata userData,
         bytes32 optionsMask
     ) external {
@@ -351,6 +375,10 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
             (assetAmount == 0 && assetTokenAddress != address(0))
         ) {
             revert InvalidAssetParameters(assetAmount, assetTokenAddress);
+        }
+
+        if (networkFeeAssetAmount > assetAmount) {
+            revert InvalidNetworkFeeAssetAmount();
         }
 
         address pTokenAddress = IPFactory(factory).getPTokenAddress(
@@ -366,6 +394,10 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
 
         bool isCurrentNetwork = Network.isCurrentNetwork(destinationNetworkId);
 
+        // TODO: A user might bypass paying the protocol fee when sending userData, particularly
+        // if they dispatch userData with an assetAmount greater than zero. However, if the countervalue of
+        // the assetAmount is less than the protocol fee, it implies the user has paid less than the
+        // required protocol fee to transmit userData. How can we fix this problem?
         if (assetAmount > 0) {
             if (protocolFeeAssetAmount > 0 || protocolFeeAssetTokenAddress != address(0)) {
                 revert InvalidProtocolFeeAssetParameters(protocolFeeAssetAmount, protocolFeeAssetTokenAddress);
@@ -414,6 +446,12 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
             Network.isCurrentNetwork(underlyingAssetNetworkId)
                 ? Utils.normalizeAmount(protocolFeeAssetAmount, underlyingAssetDecimals, true)
                 : protocolFeeAssetAmount,
+            Network.isCurrentNetwork(underlyingAssetNetworkId)
+                ? Utils.normalizeAmount(networkFeeAssetAmount, underlyingAssetDecimals, true)
+                : networkFeeAssetAmount,
+            Network.isCurrentNetwork(underlyingAssetNetworkId)
+                ? Utils.normalizeAmount(forwardNetworkFeeAssetAmount, underlyingAssetDecimals, true)
+                : forwardNetworkFeeAssetAmount,
             destinationNetworkId,
             userData,
             optionsMask
@@ -534,24 +572,51 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
         }
     }
 
+    function _takeNetworkFee(
+        uint256 operationAmount,
+        uint256 operationNetworkFeeAssetAmount,
+        bytes32 operationId,
+        address pTokenAddress
+    ) internal returns (uint256) {
+        if (operationNetworkFeeAssetAmount == 0) return operationAmount;
+
+        Action storage queuedAction = _operationsRelayerQueueAction[operationId];
+
+        address queuedActionActor = queuedAction.actor;
+        address executedActionActor = _msgSender();
+        if (queuedActionActor == executedActionActor) {
+            IPToken(pTokenAddress).protocolMint(queuedActionActor, operationNetworkFeeAssetAmount);
+            return operationAmount - operationNetworkFeeAssetAmount;
+        }
+
+        // NOTE: protocolQueueOperation consumes in avg 117988. protocolExecuteOperation consumes in avg 198928.
+        // which results in 37% to networkFeeQueueActor and 63% to networkFeeExecuteActor
+        uint256 networkFeeQueueActor = (operationNetworkFeeAssetAmount * 3700) / FEE_BASIS_POINTS_DIVISOR; // 37%
+        uint256 networkFeeExecuteActor = (operationNetworkFeeAssetAmount * 6300) / FEE_BASIS_POINTS_DIVISOR; // 63%
+        IPToken(pTokenAddress).protocolMint(queuedActionActor, networkFeeQueueActor);
+        IPToken(pTokenAddress).protocolMint(executedActionActor, networkFeeExecuteActor);
+
+        return operationAmount - operationNetworkFeeAssetAmount;
+    }
+
     function _takeProtocolFee(Operation calldata operation, address pTokenAddress) internal returns (uint256) {
-        if (operation.assetAmount > 0) {
+        if (operation.assetAmount > 0 && operation.userData.length == 0) {
             uint256 feeBps = 20; // 0.2%
             uint256 fee = (operation.assetAmount * feeBps) / FEE_BASIS_POINTS_DIVISOR;
             IPToken(pTokenAddress).protocolMint(address(this), fee);
             // TODO: send it to the DAO
             return operation.assetAmount - fee;
         }
-
         // TODO: We need to determine how to process the fee when operation.userData.length is greater than zero
         //and operation.assetAmount is also greater than zero. By current design, userData is paid in USDC,
         // but what happens if a user wraps Ethereum, for example, and wants to couple it with a non-null
         //userData during the wrap operation? We must decide which token should be used for the userData fee payment.
-        if (operation.userData.length > 0 && operation.protocolFeeAssetAmount > 0) {
+        else if (operation.userData.length > 0 && operation.protocolFeeAssetAmount > 0) {
             // Take fee using pTokenAddress and operation.protocolFeeAssetAmount
             IPToken(pTokenAddress).protocolMint(address(this), operation.protocolFeeAssetAmount);
             // TODO: send it to the DAO
-            return 0;
+            // NOTE: this
+            return operation.assetAmount > 0 ? operation.assetAmount - operation.protocolFeeAssetAmount : 0;
         }
 
         revert InvalidProtocolFee(operation);
