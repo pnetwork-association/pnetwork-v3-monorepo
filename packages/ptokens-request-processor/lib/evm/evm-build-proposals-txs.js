@@ -41,7 +41,7 @@ const queueOperationErrorHandler = R.curry((resolve, reject, _eventReport, _err)
 )
 
 const makeProposalContractCall = R.curry(
-  (_wallet, _managerAddress, _txTimeout, _amountToLock, _eventReport) =>
+  (_wallet, _hubAddress, _txTimeout, _amountToLock, _eventReport) =>
     new Promise((resolve, reject) => {
       const id = _eventReport[constants.db.KEY_ID]
       const eventName = _eventReport[constants.db.KEY_EVENT_NAME]
@@ -55,7 +55,7 @@ const makeProposalContractCall = R.curry(
 
       args.push({ value: _amountToLock })
       const functionName = 'protocolQueueOperation'
-      const contract = new ethers.Contract(_managerAddress, abi, _wallet)
+      const contract = new ethers.Contract(_hubAddress, abi, _wallet)
 
       logger.info(`Queueing _id: ${id} w/ locked amount ${_amountToLock}`)
       logUserOperationFromAbiArgs(functionName, args)
@@ -69,13 +69,13 @@ const makeProposalContractCall = R.curry(
 )
 
 const sendProposalTransactions = R.curry(
-  async (_eventReports, _stateManager, _timeOut, _wallet, _amountToLock) => {
+  async (_eventReports, _hubAddress, _timeOut, _wallet, _amountToLock) => {
     logger.info(`Sending proposals w/ address ${_wallet.address}`)
     const newReports = []
     for (const report of _eventReports) {
       const newReport = await makeProposalContractCall(
         _wallet,
-        _stateManager,
+        _hubAddress,
         _timeOut,
         _amountToLock,
         report
@@ -88,12 +88,12 @@ const sendProposalTransactions = R.curry(
   }
 )
 
-const getLockedAmountChallengePeriod = (_stateManagerAddress, _provider) =>
+const getLockedAmountChallengePeriod = (_hubAddress, _provider) =>
   new Promise(resolve => {
     const abi = getLockedAmountChallengePeriodAbi()
-    const stateManagerContract = new ethers.Contract(_stateManagerAddress, abi, _provider)
+    const hubContract = new ethers.Contract(_hubAddress, abi, _provider)
 
-    return resolve(stateManagerContract.lockedAmountChallengePeriod())
+    return resolve(hubContract.lockedAmountChallengePeriod())
   })
 
 const buildProposalsTxsAndPutInState = _state =>
@@ -107,7 +107,7 @@ const buildProposalsTxsAndPutInState = _state =>
     const destinationNetworkId = _state[constants.state.KEY_NETWORK_ID]
     const providerUrl = _state[constants.state.KEY_PROVIDER_URL]
     const identityGpgFile = _state[constants.state.KEY_IDENTITY_FILE]
-    const managerAddress = _state[constants.state.KEY_STATE_MANAGER_ADDRESS]
+    const hubAddress = _state[constants.state.KEY_HUB_ADDRESS]
     const txTimeout = _state[constants.state.KEY_TX_TIMEOUT]
     const provider = new ethers.JsonRpcProvider(providerUrl)
 
@@ -118,17 +118,11 @@ const buildProposalsTxsAndPutInState = _state =>
         .then(_privateKey =>
           Promise.all([
             new ethers.Wallet(_privateKey, provider),
-            getLockedAmountChallengePeriod(managerAddress, provider),
+            getLockedAmountChallengePeriod(hubAddress, provider),
           ])
         )
         .then(([_wallet, _amountToLock]) =>
-          sendProposalTransactions(
-            detectedEvents,
-            managerAddress,
-            txTimeout,
-            _wallet,
-            _amountToLock
-          )
+          sendProposalTransactions(detectedEvents, hubAddress, txTimeout, _wallet, _amountToLock)
         )
         .then(addProposalsReportsToState(_state))
         .then(resolve)

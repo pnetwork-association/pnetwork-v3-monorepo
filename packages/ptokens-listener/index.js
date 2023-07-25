@@ -153,9 +153,9 @@ const addGetOperationsCommand = _program =>
     .option('--fromBlock <block>', 'fromBlock', parseInt)
     .addHelpText('after', GET_OPERATIONS_HELP_MESSAGE)
     .action(
-      (_operationId, _stateManagerAddress, _options) =>
+      (_operationId, _hubAddress, _options) =>
         disableLoggingForCLICommand() ||
-        getOperationsByIdCommand(config, _operationId, _stateManagerAddress, _options.fromBlock)
+        getOperationsByIdCommand(config, _operationId, _hubAddress, _options.fromBlock)
     ) && _program
 
 const main = () =>

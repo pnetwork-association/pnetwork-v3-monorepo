@@ -1,5 +1,5 @@
 const { types } = require('hardhat/config')
-const { getStateManagerAddress } = require('../lib/configuration-manager')
+const { getHubAddress } = require('../lib/configuration-manager')
 const {
   getUserOperationAbiArgsFromReport,
 } = require('ptokens-request-processor/lib/evm/evm-abi-manager')
@@ -42,11 +42,11 @@ const TASK_PARAM_JSON_DESC = 'Stringified JSON of the event report stored in mon
 }
 */
 const protocolExecuteOperation = async (taskArgs, hre) => {
-  const stateManagerAddress = await getStateManagerAddress(hre)
+  const hubAddress = await getHubAddress(hre)
 
-  console.info(`PNetworkHub contract detected @ ${stateManagerAddress}`)
-  const StateManagerContract = await hre.ethers.getContractFactory('PNetworkHub')
-  const hub = await StateManagerContract.attach(stateManagerAddress)
+  console.info(`PNetworkHub contract detected @ ${hubAddress}`)
+  const hubContract = await hre.ethers.getContractFactory('PNetworkHub')
+  const hub = await hubContract.attach(hubAddress)
   const lockedAmountChallengePeriod = await hub.lockedAmountChallengePeriod()
   console.info('Calling protocolQueueOperation w/', lockedAmountChallengePeriod)
 

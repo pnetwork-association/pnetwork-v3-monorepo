@@ -15,7 +15,7 @@ const {
   getConfiguration,
   updateConfiguration,
   checkPRouterIsDeployed,
-  checkStateManagerIsDeployed,
+  checkHubIsDeployed,
 } = require('../lib/configuration-manager')
 
 const TASK_PARAM_GAS = 'gas'
@@ -166,7 +166,7 @@ const deployPToken = async (
 
 const deployPTokenTask = (taskArgs, hre) =>
   checkPRouterIsDeployed(hre)
-    .then(_ => checkStateManagerIsDeployed(hre))
+    .then(_ => checkHubIsDeployed(hre))
     .then(_ => maybeOverwriteParamsWithDefaultValues(taskArgs, hre))
     .then(_taskArgs => getPTokenDeployArgs(_taskArgs, hre))
     .then(_args => deployPToken(..._args))

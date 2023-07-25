@@ -51,14 +51,14 @@ describe('Build dismissal test for EVM', () => {
       const txTimeout = 1000
       const destinationNetworkId = '0xe15503e4'
       const providerUrl = 'http://localhost:8545'
-      const stateManagerAddress = '0xC8E4270a6EF24B67eD38046318Fc8FC2d312f73C'
+      const hubAddress = '0xC8E4270a6EF24B67eD38046318Fc8FC2d312f73C'
 
       const state = {
         [constants.state.KEY_TX_TIMEOUT]: txTimeout,
         [constants.state.KEY_PROVIDER_URL]: providerUrl,
         [constants.state.KEY_NETWORK_ID]: destinationNetworkId,
         [constants.state.KEY_IDENTITY_FILE]: gpgEncryptedFile,
-        [constants.state.KEY_STATE_MANAGER_ADDRESS]: stateManagerAddress,
+        [constants.state.KEY_HUB_ADDRESS]: hubAddress,
         [STATE_TO_BE_DISMISSED_REQUESTS]: [queuedReports[0], queuedReports[1]],
       }
 
@@ -124,7 +124,7 @@ describe('Build dismissal test for EVM', () => {
       expect(result).toHaveProperty(constants.state.KEY_NETWORK_ID)
       expect(result).toHaveProperty(constants.state.KEY_PROVIDER_URL)
       expect(result).toHaveProperty(constants.state.KEY_IDENTITY_FILE)
-      expect(result).toHaveProperty(constants.state.KEY_STATE_MANAGER_ADDRESS)
+      expect(result).toHaveProperty(constants.state.KEY_HUB_ADDRESS)
       expect(result).toHaveProperty(constants.state.KEY_TX_TIMEOUT)
       expect(result[STATE_DISMISSED_DB_REPORTS]).toHaveLength(2)
 
@@ -168,14 +168,14 @@ describe('Build dismissal test for EVM', () => {
       const txTimeout = 1000
       const destinationNetworkId = '0xe15503e4'
       const providerUrl = 'http://localhost:8545'
-      const stateManagerAddress = '0xC8E4270a6EF24B67eD38046318Fc8FC2d312f73C'
+      const hubAddress = '0xC8E4270a6EF24B67eD38046318Fc8FC2d312f73C'
 
       const state = {
         [constants.state.KEY_TX_TIMEOUT]: txTimeout,
         [constants.state.KEY_PROVIDER_URL]: providerUrl,
         [constants.state.KEY_NETWORK_ID]: destinationNetworkId,
         [constants.state.KEY_IDENTITY_FILE]: gpgEncryptedFile,
-        [constants.state.KEY_STATE_MANAGER_ADDRESS]: stateManagerAddress,
+        [constants.state.KEY_HUB_ADDRESS]: hubAddress,
         [STATE_TO_BE_DISMISSED_REQUESTS]: [
           queuedReports[0],
           queuedReports[1],
@@ -296,7 +296,7 @@ describe('Build dismissal test for EVM', () => {
       expect(result).toHaveProperty(constants.state.KEY_NETWORK_ID)
       expect(result).toHaveProperty(constants.state.KEY_PROVIDER_URL)
       expect(result).toHaveProperty(constants.state.KEY_IDENTITY_FILE)
-      expect(result).toHaveProperty(constants.state.KEY_STATE_MANAGER_ADDRESS)
+      expect(result).toHaveProperty(constants.state.KEY_HUB_ADDRESS)
       expect(result).toHaveProperty(constants.state.KEY_TX_TIMEOUT)
       expect(result[STATE_TO_BE_DISMISSED_REQUESTS]).toHaveLength(4)
       expect(result[STATE_DISMISSED_DB_REPORTS]).toHaveLength(4)

@@ -1,7 +1,7 @@
 const ethers = require('ethers')
 const constants = require('ptokens-constants')
 const { logger } = require('../get-logger')
-const { StateManagerError } = require('./evm-state-manager-error')
+const { HubError } = require('./evm-hub-error')
 
 const callContractFunction = (_contract, _fxnName, _fxnArgs) => {
   switch (_fxnName) {
@@ -30,7 +30,7 @@ const callContractFunctionAndAwait = (_fxnName, _fxnArgs, _contract, _txTimeout 
       if (_err.message.includes(constants.evm.ethers.ERROR_ESTIMATE_GAS)) {
         const decodedError = _contract.interface.parseError(_err.data)
         if (decodedError instanceof ethers.ErrorDescription) {
-          return Promise.reject(new StateManagerError(decodedError))
+          return Promise.reject(new HubError(decodedError))
         }
       } else {
         return Promise.reject(_err)

@@ -36,7 +36,7 @@ const cancelOperationErrorHandler = R.curry((resolve, reject, _eventReport, _err
 )
 
 const makeDismissalContractCall = R.curry(
-  (_wallet, _stateManager, _txTimeout, _eventReport) =>
+  (_wallet, _hubAddress, _txTimeout, _eventReport) =>
     new Promise((resolve, reject) => {
       const id = _eventReport[constants.db.KEY_ID]
       const eventName = _eventReport[constants.db.KEY_EVENT_NAME]
@@ -47,7 +47,7 @@ const makeDismissalContractCall = R.curry(
 
       const emptyProof = '0x'
       const abi = getProtocolGuardianCancelOperationAbi()
-      const contractAddress = _stateManager
+      const contractAddress = _hubAddress
       const functionName = 'protocolGuardianCancelOperation'
       const args = getUserOperationAbiArgsFromReport(_eventReport)
       args.push(emptyProof)
@@ -64,19 +64,17 @@ const makeDismissalContractCall = R.curry(
     })
 )
 
-const sendDismissalTransactions = R.curry(
-  async (_eventReports, _stateManager, _timeOut, _wallet) => {
-    logger.info(`Sending final txs w/ address ${_wallet.address}`)
-    const newReports = []
-    for (const report of _eventReports) {
-      const newReport = await makeDismissalContractCall(_wallet, _stateManager, _timeOut, report)
-      newReports.push(newReport)
-      await logic.sleepForXMilliseconds(1000) // TODO: make configurable
-    }
-
-    return newReports
+const sendDismissalTransactions = R.curry(async (_eventReports, _hubAddress, _timeOut, _wallet) => {
+  logger.info(`Sending final txs w/ address ${_wallet.address}`)
+  const newReports = []
+  for (const report of _eventReports) {
+    const newReport = await makeDismissalContractCall(_wallet, _hubAddress, _timeOut, report)
+    newReports.push(newReport)
+    await logic.sleepForXMilliseconds(1000) // TODO: make configurable
   }
-)
+
+  return newReports
+})
 
 // TODO: function very similar to the one for building proposals...factor out?
 const buildDismissalTxsAndPutInState = _state =>
@@ -87,11 +85,11 @@ const buildDismissalTxsAndPutInState = _state =>
     const identityGpgFile = _state[constants.state.KEY_IDENTITY_FILE]
     const provider = new ethers.JsonRpcProvider(providerUrl)
     const txTimeout = _state[constants.state.KEY_TX_TIMEOUT]
-    const stateManager = _state[constants.state.KEY_STATE_MANAGER_ADDRESS]
+    const hub = _state[constants.state.KEY_HUB_ADDRESS]
 
     return readIdentityFile(identityGpgFile)
       .then(_privateKey => new ethers.Wallet(_privateKey, provider))
-      .then(sendDismissalTransactions(invalidRequests, stateManager, txTimeout))
+      .then(sendDismissalTransactions(invalidRequests, hub, txTimeout))
       .then(addDismissedReportsToState(_state))
       .then(resolve)
   })

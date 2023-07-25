@@ -1,5 +1,5 @@
 const { types } = require('hardhat/config')
-const { getStateManagerAddress } = require('../lib/configuration-manager')
+const { getHubAddress } = require('../lib/configuration-manager')
 const { TASK_PARAM_GASPRICE, TASK_PARAM_GASLIMIT } = require('../constants')
 const {
   getUserOperationAbiArgsFromReport,
@@ -11,11 +11,11 @@ const TASK_PARAM_JSON = 'json'
 const TASK_PARAM_JSON_DESC = 'Stringified JSON of the event report stored in mongo by a listener.'
 
 const protocolExecuteOperation = async (taskArgs, hre) => {
-  const stateManagerAddress = await getStateManagerAddress(hre)
+  const hubAddress = await getHubAddress(hre)
 
-  console.info(`PNetworkHub contract detected @ ${stateManagerAddress}`)
-  const StateManagerContract = await hre.ethers.getContractFactory('PNetworkHub')
-  const PNetworkHub = await StateManagerContract.attach(stateManagerAddress)
+  console.info(`PNetworkHub contract detected @ ${hubAddress}`)
+  const hubContract = await hre.ethers.getContractFactory('PNetworkHub')
+  const PNetworkHub = await hubContract.attach(hubAddress)
 
   console.info('Calling protocolGuardianCancelOperation...')
 

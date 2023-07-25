@@ -20,7 +20,7 @@ describe('State utilities tests', () => {
           [constants.config.KEY_TABLE_EVENTS]: 'a-collection-name',
         },
         [constants.config.KEY_PROVIDER_URL]: 'a-provider-url',
-        [constants.config.KEY_STATE_MANAGER]: '0x1',
+        [constants.config.KEY_HUB_ADDRESS]: '0x1',
         [constants.config.KEY_IDENTITY_GPG]: '/usr/src/app/private-key',
         [constants.config.KEY_CHALLENGE_PERIOD]: 10,
       }
@@ -38,7 +38,7 @@ describe('State utilities tests', () => {
         [constants.state.KEY_DB]: 'a-url/a-database-name/a-collection-name',
         [constants.state.KEY_NETWORK_ID]: '0x005fe7f9',
         [constants.state.KEY_PROVIDER_URL]: 'a-provider-url',
-        [constants.state.KEY_STATE_MANAGER_ADDRESS]: '0x1',
+        [constants.state.KEY_HUB_ADDRESS]: '0x1',
         [constants.state.KEY_IDENTITY_FILE]: '/usr/src/app/private-key',
         [constants.state.KEY_CHALLENGE_PERIOD]: 10,
         [constants.state.KEY_LOOP_SLEEP_TIME]: DEFAULT_LOOP_SLEEP_TIME,

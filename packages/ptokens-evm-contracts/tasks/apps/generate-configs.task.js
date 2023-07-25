@@ -2,11 +2,7 @@ const R = require('ramda')
 const path = require('path')
 const fs = require('node:fs/promises')
 const constants = require('ptokens-constants')
-const {
-  getNetworkId,
-  getPRouterAddress,
-  getStateManagerAddress,
-} = require('../lib/configuration-manager')
+const { getNetworkId, getHubAddress } = require('../lib/configuration-manager')
 
 const TASK_FLAG_SHOW = 'show'
 const TASK_FLAG_SHOW_DESC = 'Show result instead of saving it to a file'
@@ -65,22 +61,20 @@ const generateListenerConfiguration = (
   })
 
 const generateRequestProcessorConfiguration = (taskArgs, hre, _networkId, _contractAddress) =>
-  Promise.all([getStateManagerAddress(hre), getNetworkId(hre)]).then(
-    ([_stateManagerAddress, _networkId]) => ({
-      [constants.config.KEY_CHAIN_TYPE]: 'EVM',
-      [constants.config.KEY_CHALLENGE_PERIOD]: 1, // FIXME
-      [constants.config.KEY_NETWORK_ID]: _networkId,
-      [constants.config.KEY_CHAIN_NAME]: hre.network.name,
-      [constants.config.KEY_STATE_MANAGER]: _contractAddress,
-      [constants.config.KEY_IDENTITY_GPG]: '/usr/src/app/private-key',
-      [constants.config.KEY_PROVIDER_URL]: hre.network.config.url,
-      [constants.config.KEY_DB]: {
-        [constants.config.KEY_NAME]: 'pnetwork',
-        [constants.config.KEY_TABLE_EVENTS]: 'events',
-        [constants.config.KEY_URL]: getMongoUrlFromTaskArgs(taskArgs),
-      },
-    })
-  )
+  Promise.all([getHubAddress(hre), getNetworkId(hre)]).then(([_hubAddress, _networkId]) => ({
+    [constants.config.KEY_CHAIN_TYPE]: 'EVM',
+    [constants.config.KEY_CHALLENGE_PERIOD]: 1, // FIXME
+    [constants.config.KEY_NETWORK_ID]: _networkId,
+    [constants.config.KEY_CHAIN_NAME]: hre.network.name,
+    [constants.config.KEY_HUB_ADDRESS]: _contractAddress,
+    [constants.config.KEY_IDENTITY_GPG]: '/usr/src/app/private-key',
+    [constants.config.KEY_PROVIDER_URL]: hre.network.config.url,
+    [constants.config.KEY_DB]: {
+      [constants.config.KEY_NAME]: 'pnetwork',
+      [constants.config.KEY_TABLE_EVENTS]: 'events',
+      [constants.config.KEY_URL]: getMongoUrlFromTaskArgs(taskArgs),
+    },
+  }))
 
 const saveRelayerListenerConfiguration = (taskArgs, hre, _networkId, _pRouterAddress) =>
   generateListenerConfiguration(
@@ -97,8 +91,8 @@ const saveRelayerListenerConfiguration = (taskArgs, hre, _networkId, _pRouterAdd
     )
   )
 
-const saveRelayerProcessorConfiguration = (taskArgs, hre, _networkId, _stateManagerAddress) =>
-  generateRequestProcessorConfiguration(taskArgs, hre, _networkId, _stateManagerAddress).then(
+const saveRelayerProcessorConfiguration = (taskArgs, hre, _networkId, _hubAddress) =>
+  generateRequestProcessorConfiguration(taskArgs, hre, _networkId, _hubAddress).then(
     maybeSaveConfiguration(
       taskArgs,
       'Relayer processor',
@@ -121,12 +115,12 @@ const saveGuardianRequestListenerConfiguration = (taskArgs, hre, _networkId, _pR
     )
   )
 
-const saveGuardianQueueListenerConfiguration = (taskArgs, hre, _networkId, _stateManagerAddress) =>
+const saveGuardianQueueListenerConfiguration = (taskArgs, hre, _networkId, _hubAddress) =>
   generateListenerConfiguration(
     taskArgs,
     hre,
     _networkId,
-    _stateManagerAddress,
+    _hubAddress,
     constants.evm.events.OPERATION_QUEUED_SIGNATURE
   ).then(
     maybeSaveConfiguration(
@@ -136,8 +130,8 @@ const saveGuardianQueueListenerConfiguration = (taskArgs, hre, _networkId, _stat
     )
   )
 
-const saveGuardianProcessorConfiguration = (taskArgs, hre, _networkId, _stateManagerAddress) =>
-  generateRequestProcessorConfiguration(taskArgs, hre, _networkId, _stateManagerAddress).then(
+const saveGuardianProcessorConfiguration = (taskArgs, hre, _networkId, _hubAddress) =>
+  generateRequestProcessorConfiguration(taskArgs, hre, _networkId, _hubAddress).then(
     maybeSaveConfiguration(
       taskArgs,
       'Guardian processor',
@@ -146,15 +140,14 @@ const saveGuardianProcessorConfiguration = (taskArgs, hre, _networkId, _stateMan
   )
 
 const generateRelayerConfigurationTask = (taskArgs, hre) =>
-  Promise.all([getNetworkId(hre), getPRouterAddress(hre), getStateManagerAddress(hre)]).then(
-    ([_networkId, _pRouterAddress, _stateManagerAddress]) =>
-      Promise.all([
-        saveRelayerListenerConfiguration(taskArgs, hre, _networkId, _pRouterAddress),
-        saveRelayerProcessorConfiguration(taskArgs, hre, _networkId, _stateManagerAddress),
-        saveGuardianRequestListenerConfiguration(taskArgs, hre, _networkId, _pRouterAddress),
-        saveGuardianQueueListenerConfiguration(taskArgs, hre, _networkId, _stateManagerAddress),
-        saveGuardianProcessorConfiguration(taskArgs, hre, _networkId, _stateManagerAddress),
-      ])
+  Promise.all([getNetworkId(hre), getHubAddress(hre)]).then(([_networkId, _hubAddress]) =>
+    Promise.all([
+      saveRelayerListenerConfiguration(taskArgs, hre, _networkId),
+      saveRelayerProcessorConfiguration(taskArgs, hre, _networkId, _hubAddress),
+      saveGuardianRequestListenerConfiguration(taskArgs, hre, _networkId),
+      saveGuardianQueueListenerConfiguration(taskArgs, hre, _networkId, _hubAddress),
+      saveGuardianProcessorConfiguration(taskArgs, hre, _networkId, _hubAddress),
+    ])
   )
 
 task(
