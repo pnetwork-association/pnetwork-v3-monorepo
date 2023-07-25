@@ -44,7 +44,7 @@ const executeOperationErrorHandler = R.curry((resolve, reject, _eventReport, _er
 })
 
 const makeFinalContractCall = R.curry(
-  (_wallet, _stateManager, _txTimeout, _eventReport) =>
+  (_wallet, _hubAddress, _txTimeout, _eventReport) =>
     new Promise((resolve, reject) => {
       const id = _eventReport[constants.db.KEY_ID]
       const eventName = _eventReport[constants.db.KEY_EVENT_NAME]
@@ -54,15 +54,15 @@ const makeFinalContractCall = R.curry(
       }
 
       const abi = getProtocolExecuteOperationAbi()
-      const contractAddress = _stateManager
+      const contractAddress = _hubAddress
       const functionName = 'protocolExecuteOperation'
       const args = getUserOperationAbiArgsFromReport(_eventReport)
-      const stateManager = new ethers.Contract(contractAddress, abi, _wallet)
+      const hub = new ethers.Contract(contractAddress, abi, _wallet)
 
       logger.info(`Executing _id: ${id}`)
       logUserOperationFromAbiArgs(functionName, args)
 
-      return callContractFunctionAndAwait(functionName, args, stateManager, _txTimeout)
+      return callContractFunctionAndAwait(functionName, args, hub, _txTimeout)
         .then(R.prop(constants.evm.ethers.KEY_TX_HASH))
         .then(addFinalizedTxHashToEvent(_eventReport))
         .then(resolve)
@@ -70,11 +70,11 @@ const makeFinalContractCall = R.curry(
     })
 )
 
-const sendFinalTransactions = R.curry(async (_eventReports, _stateManager, _timeOut, _wallet) => {
+const sendFinalTransactions = R.curry(async (_eventReports, _hubAddress, _timeOut, _wallet) => {
   logger.info(`Sending final txs w/ address ${_wallet.address}`)
   const newReports = []
   for (const report of _eventReports) {
-    const newReport = await makeFinalContractCall(_wallet, _stateManager, _timeOut, report)
+    const newReport = await makeFinalContractCall(_wallet, _hubAddress, _timeOut, report)
     // If null, means there was an handled error which we need to retry later
     if (newReport !== null) newReports.push(newReport)
     await logic.sleepForXMilliseconds(1000) // TODO: make configurable
@@ -93,12 +93,12 @@ const buildFinalTxsAndPutInState = _state =>
     const identityGpgFile = _state[constants.state.KEY_IDENTITY_FILE]
     const provider = new ethers.JsonRpcProvider(providerUrl)
     const txTimeout = _state[constants.state.KEY_TX_TIMEOUT]
-    const stateManager = _state[constants.state.KEY_STATE_MANAGER_ADDRESS]
+    const hub = _state[constants.state.KEY_HUB_ADDRESS]
 
     return checkEventsHaveExpectedDestinationChainId(destinationNetworkId, proposedEvents)
       .then(_ => readIdentityFile(identityGpgFile))
       .then(_privateKey => new ethers.Wallet(_privateKey, provider))
-      .then(sendFinalTransactions(proposedEvents, stateManager, txTimeout))
+      .then(sendFinalTransactions(proposedEvents, hub, txTimeout))
       .then(addFinalizedEventsToState(_state))
       .then(resolve)
   })

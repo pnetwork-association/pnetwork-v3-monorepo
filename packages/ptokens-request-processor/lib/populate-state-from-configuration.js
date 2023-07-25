@@ -40,8 +40,8 @@ const getInitialStateFromConfiguration = _config =>
     .then(
       getConfigPropertyAndPutInState(
         _config,
-        constants.config.KEY_STATE_MANAGER,
-        constants.state.KEY_STATE_MANAGER_ADDRESS,
+        constants.config.KEY_HUB_ADDRESS,
+        constants.state.KEY_HUB_ADDRESS,
         null
       )
     )

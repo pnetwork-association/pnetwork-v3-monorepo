@@ -65,15 +65,15 @@ const setRequestsStatusAccordinglyIntoDb = R.curry(
 )
 
 const getOperationStatus = R.curry(
-  (_provider, _managerAddress, _report) =>
+  (_provider, _hubAddress, _report) =>
     new Promise(resolve => {
       const abi = getOperationStatusOfAbi()
       const args = getUserOperationAbiArgsFromReport(_report)
-      const stateManager = new ethers.Contract(_managerAddress, abi, _provider)
+      const hub = new ethers.Contract(_hubAddress, abi, _provider)
 
       logger.info(`Getting operation status of ${_report[constants.db.KEY_ID]}...`)
 
-      return stateManager
+      return hub
         .operationStatusOf(...args)
         .then(parseInt)
         .then(resolve)
@@ -84,12 +84,12 @@ const filterOutDetectedEventsWithWrongStatusAndPutInState = _state =>
   new Promise(resolve => {
     const pendingRequests = _state[STATE_DETECTED_DB_REPORTS]
     const providerUrl = _state[constants.state.KEY_PROVIDER_URL]
-    const managerAddress = _state[constants.state.KEY_STATE_MANAGER_ADDRESS]
+    const hubAddress = _state[constants.state.KEY_HUB_ADDRESS]
     const provider = new ethers.JsonRpcProvider(providerUrl)
     const db = _state[constants.state.KEY_DB]
 
     logger.info('Checking EVM requests on chain status...')
-    return Promise.all(pendingRequests.map(getOperationStatus(provider, managerAddress)))
+    return Promise.all(pendingRequests.map(getOperationStatus(provider, hubAddress)))
       .then(setRequestsStatusAccordinglyIntoDb(db, pendingRequests))
       .then(_ => getDetectedEventsFromDbAndPutInState(_state))
       .then(resolve)
@@ -99,12 +99,12 @@ const filterOutQueuedOperationsWithWrongStatusAndPutInState = _state =>
   new Promise(resolve => {
     const pendingRequests = _state[STATE_QUEUED_DB_REPORTS]
     const providerUrl = _state[constants.state.KEY_PROVIDER_URL]
-    const managerAddress = _state[constants.state.KEY_STATE_MANAGER_ADDRESS]
+    const hubAddress = _state[constants.state.KEY_HUB_ADDRESS]
     const provider = new ethers.JsonRpcProvider(providerUrl)
     const db = _state[constants.state.KEY_DB]
 
     logger.info('Checking EVM requests on chain status...')
-    return Promise.all(pendingRequests.map(getOperationStatus(provider, managerAddress)))
+    return Promise.all(pendingRequests.map(getOperationStatus(provider, hubAddress)))
       .then(setRequestsStatusAccordinglyIntoDb(db, pendingRequests))
       .then(_ => getQueuedEventsFromDbAndPutInState(_state))
       .then(resolve)

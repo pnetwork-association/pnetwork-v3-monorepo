@@ -11,7 +11,7 @@ module.exports = {
   KEY_IDENTITY_GPG: 'identity',
   KEY_TABLE_EVENTS: 'table-events',
   KEY_PROVIDER_URL: 'provider-url',
-  KEY_STATE_MANAGER: 'state-manager-address',
+  KEY_HUB_ADDRESS: 'hub-address',
   KEY_CHALLENGE_PERIOD: 'challenge-period',
   KEY_LOOP_SLEEP_TIME: 'loop-sleep-time',
 }

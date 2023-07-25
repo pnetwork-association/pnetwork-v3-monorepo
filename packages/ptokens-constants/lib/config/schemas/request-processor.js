@@ -6,7 +6,7 @@ const {
   KEY_TX_TIMEOUT,
   KEY_PROVIDER_URL,
   KEY_IDENTITY_GPG,
-  KEY_STATE_MANAGER,
+  KEY_HUB_ADDRESS,
   KEY_CHALLENGE_PERIOD,
 } = require('../constants')
 const dbSchema = require('./db')
@@ -21,7 +21,7 @@ module.exports = {
     KEY_CHAIN_TYPE,
     KEY_CHALLENGE_PERIOD,
     KEY_PROVIDER_URL,
-    KEY_STATE_MANAGER,
+    KEY_HUB_ADDRESS,
     KEY_IDENTITY_GPG,
   ],
   properties: {
@@ -41,7 +41,7 @@ module.exports = {
     [KEY_PROVIDER_URL]: {
       type: 'string',
     },
-    [KEY_STATE_MANAGER]: {
+    [KEY_HUB_ADDRESS]: {
       type: 'string',
     },
     [KEY_IDENTITY_GPG]: {

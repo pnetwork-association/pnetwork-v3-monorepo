@@ -14,7 +14,7 @@ const main = async (
     rootChainAddress,
     governanceMessageEmitterAddress,
     governanceMessageVerifierAddress,
-    stateManagerAddress,
+    hubAddress,
     destinationChainId,
   },
   _hre
@@ -154,7 +154,7 @@ const main = async (
     const tx = await governanceMessageVerifier.verifyAndPropagateMessage(
       proof,
       [destinationChainId],
-      [stateManagerAddress]
+      [hubAddress]
     )
     console.log('Transaction hash', tx.hash)
   } catch (_err) {
@@ -170,6 +170,6 @@ task(
   .addPositionalParam('rootChainAddress')
   .addPositionalParam('governanceMessageEmitterAddress')
   .addPositionalParam('governanceMessageVerifierAddress')
-  .addPositionalParam('stateManagerAddress')
+  .addPositionalParam('hubAddress')
   .addPositionalParam('destinationChainId')
   .setAction(main)

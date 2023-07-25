@@ -19,8 +19,8 @@ const buildOperationObjectFromReport = _r => ({
 const getContractEventsTopics = _contract =>
   Promise.all(_contract.interface.fragments.filter(isEventFragment).map(getTopicFromEventFragment))
 
-const getEvmOperationsById = (_providerUrl, _networkId, _id, _stateManagerAddress, _fromBlock) =>
-  createContract(_stateManagerAddress, [
+const getEvmOperationsById = (_providerUrl, _networkId, _id, _hubAddress, _fromBlock) =>
+  createContract(_hubAddress, [
     `event ${constants.evm.events.OPERATION_CANCELLED_SIGNATURE}`,
     `event ${constants.evm.events.OPERATION_EXECUTED_SIGNATURE}`,
     `event ${constants.evm.events.OPERATION_QUEUED_SIGNATURE}`,
@@ -31,7 +31,7 @@ const getEvmOperationsById = (_providerUrl, _networkId, _id, _stateManagerAddres
         getContractEventsTopics(_contract).then(_topics =>
           getEventFilter({
             topics: _topics,
-            contractAddress: _stateManagerAddress,
+            contractAddress: _hubAddress,
             fromBlock: _fromBlock,
           })
         ),

@@ -93,6 +93,14 @@ const addInfoFromParsedLog = (_parsedLog, _obj) =>
     .then(
       maybeAddFieldFromEventArgs(
         _parsedLog.args,
+        ['forwardDestinationNetworkId'],
+        constants.db.KEY_FORWARD_DESTINATION_NETWORK_ID,
+        R.identity
+      )
+    )
+    .then(
+      maybeAddFieldFromEventArgs(
+        _parsedLog.args,
         ['underlyingAssetName'],
         constants.db.KEY_UNDERLYING_ASSET_NAME,
         R.identity
@@ -143,6 +151,30 @@ const addInfoFromParsedLog = (_parsedLog, _obj) =>
         _parsedLog.args,
         ['assetAmount', 'amount', '_tokenAmount', 'value'],
         constants.db.KEY_ASSET_AMOUNT,
+        bitIntToString
+      )
+    )
+    .then(
+      maybeAddFieldFromEventArgs(
+        _parsedLog.args,
+        ['protocolFeeAssetAmount'],
+        constants.db.KEY_PROTOCOL_FEE_ASSET_AMOUNT,
+        bitIntToString
+      )
+    )
+    .then(
+      maybeAddFieldFromEventArgs(
+        _parsedLog.args,
+        ['networkFeeAssetAmount'],
+        constants.db.KEY_NETWORK_FEE_ASSET_AMOUNT,
+        bitIntToString
+      )
+    )
+    .then(
+      maybeAddFieldFromEventArgs(
+        _parsedLog.args,
+        ['forwardNetworkFeeAssetAmount'],
+        constants.db.KEY_FORWARD_NETWORK_FEE_ASSET_AMOUNT,
         bitIntToString
       )
     )
