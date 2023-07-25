@@ -52,18 +52,16 @@ task('pnetwork-deploy-v3-contracts', 'Deploy v3 contracts providing an underlyin
 /* eslint-disable no-console */
 const main = async _args => {
   const PNetworkHub = await ethers.getContractFactory('PNetworkHub')
-  const PRouter = await ethers.getContractFactory('PRouter')
   const PFactory = await ethers.getContractFactory('PFactory')
   const EpochsManager = await ethers.getContractFactory('EpochsManager')
 
   console.log('Deploying EpochsManager ...')
   const epochsManager = await EpochsManager.deploy()
+
   console.log('Deploying PFactory ...')
   const pFactory = await PFactory.deploy()
-  console.log('Deploying PRouter ...')
-  const pRouter = await PRouter.deploy(pFactory.address)
-  console.log('Deploying PNetworkHub ...')
 
+  console.log('Deploying PNetworkHub ...')
   const hub = await PNetworkHub.deploy(
     pFactory.address,
     _args.baseChallengePeriodDuration,
@@ -81,10 +79,9 @@ const main = async _args => {
     _args.maxChallengeDuration
   )
 
-  console.log('Setting pRouter ...')
-  await pFactory.setRouter(pRouter.address)
   console.log('Setting hub ...')
   await pFactory.setHub(hub.address)
+
   console.log('Renouncing ownership ...')
   await pFactory.renounceOwnership()
 
@@ -103,7 +100,6 @@ const main = async _args => {
   console.log(
     JSON.stringify({
       pFactory: pFactory.address,
-      pRouter: pRouter.address,
       hub: hub.address,
       pToken: pToken.address,
       epochsManager: epochsManager.address,
