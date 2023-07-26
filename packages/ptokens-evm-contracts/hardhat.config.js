@@ -103,6 +103,7 @@ module.exports = {
       polygon: getEnvironmentVariable('POLYGONSCAN_API_KEY'),
       mumbai: getEnvironmentVariable('POLYGONSCAN_API_KEY'),
       arbitrum: getEnvironmentVariable('ARBISCAN_API_KEY'),
+      gnosis: getEnvironmentVariable('GNOSISSCAN_API_KEY'),
     },
     customChains: [
       {
