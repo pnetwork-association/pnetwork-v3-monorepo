@@ -49,50 +49,50 @@ const getEventIdEvm = ({
     }
     function operationIdOf(Operation calldata operation) public pure returns (bytes32) {
     return
-        sha256(
-            abi.encode(
-                operation.originBlockHash,
-                operation.originTransactionHash,
-                operation.originNetworkId,
-                operation.nonce,
-                operation.destinationAccount,
-                operation.destinationNetworkId,
-                operation.forwardDestinationNetworkId,
-                operation.underlyingAssetName,
-                operation.underlyingAssetSymbol,
-                operation.underlyingAssetDecimals,
-                operation.underlyingAssetTokenAddress,
-                operation.underlyingAssetNetworkId,
-                operation.assetAmount,
-                operation.protocolFeeAssetAmount,
-                operation.networkFeeAssetAmount,
-                operation.forwardNetworkFeeAssetAmount,
-                operation.userData,
-                operation.optionsMask
-            )
-        );
+      sha256(
+        abi.encode(
+            operation.originBlockHash,
+            operation.originTransactionHash,
+            operation.originNetworkId,
+            operation.nonce,
+            operation.destinationAccount,
+            operation.destinationNetworkId,
+            operation.forwardDestinationNetworkId,
+            operation.underlyingAssetName,
+            operation.underlyingAssetSymbol,
+            operation.underlyingAssetDecimals,
+            operation.underlyingAssetTokenAddress,
+            operation.underlyingAssetNetworkId,
+            operation.assetAmount,
+            operation.protocolFeeAssetAmount,
+            operation.networkFeeAssetAmount,
+            operation.forwardNetworkFeeAssetAmount,
+            operation.userData,
+            operation.optionsMask
+        )
+      );
     }
   */
 
   const types = [
-    'bytes32',
-    'bytes32',
-    'bytes32',
-    'uint256',
-    'uint256',
-    'uint256',
-    'uint256',
-    'uint256',
-    'uint256',
-    'address',
-    'bytes4',
-    'bytes4',
-    'bytes4',
-    'bytes4',
-    'string',
-    'string',
-    'string',
-    'bytes',
+    'bytes32', // operation.originBlockHash,
+    'bytes32', // operation.originTransactionHash,
+    'bytes4', // operation.originNetworkId,
+    'uint256', // operation.nonce,
+    'string', // operation.destinationAccount,
+    'bytes4', // operation.destinationNetworkId,
+    'bytes4', // operation.forwardDestinationNetworkId,
+    'string', // operation.underlyingAssetName,
+    'string', // operation.underlyingAssetSymbol,
+    'uint256', // operation.underlyingAssetDecimals,
+    'address', // operation.underlyingAssetTokenAddress,
+    'bytes4', // operation.underlyingAssetNetworkId,
+    'uint256', // operation.assetAmount,
+    'uint256', // operation.protocolFeeAssetAmount,
+    'uint256', // operation.networkFeeAssetAmount,
+    'uint256', // operation.forwardNetworkFeeAssetAmount,
+    'bytes', // operation.userData,
+    'bytes32', // operation.optionsMask
   ]
   const coder = new ethers.AbiCoder()
   return ethers.sha256(
