@@ -2,6 +2,7 @@ const ethers = require('ethers')
 const constants = require('ptokens-constants')
 const { logger } = require('../get-logger')
 const { HubError } = require('./evm-hub-error')
+const { ERROR_INSUFFICIENT_FUNDS } = require('../errors')
 
 const callContractFunction = (_contract, _fxnName, _fxnArgs) => {
   switch (_fxnName) {
@@ -27,7 +28,9 @@ const callContractFunctionAndAwait = (_fxnName, _fxnArgs, _contract, _txTimeout 
         ) || _tx
     )
     .catch(_err => {
-      if (_err.message.includes(constants.evm.ethers.ERROR_ESTIMATE_GAS)) {
+      if (_err.code === constants.evm.ethers.ERROR_CODE_INSUFFICIENT_FUNDS) {
+        return Promise.reject(new Error(ERROR_INSUFFICIENT_FUNDS))
+      } else if (_err.message.includes(constants.evm.ethers.ERROR_ESTIMATE_GAS)) {
         const decodedError = _contract.interface.parseError(_err.data)
         if (decodedError instanceof ethers.ErrorDescription) {
           return Promise.reject(new HubError(decodedError))
