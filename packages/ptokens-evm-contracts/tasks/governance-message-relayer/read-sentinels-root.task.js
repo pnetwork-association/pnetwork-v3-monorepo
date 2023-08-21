@@ -16,5 +16,5 @@ task('governance-message-relayer:read-sentinels-root', 'Read the sentinels root 
 const main = async _args => {
   const PNetworkHub = await ethers.getContractFactory('PNetworkHub')
   const hub = await PNetworkHub.attach(_args.hub)
-  console.log(await hub.getSentinelsRootForEpoch(_args.hub))
+  console.log(await hub.getSentinelsMerkleRootForEpoch(_args.hub))
 }

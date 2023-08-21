@@ -5,6 +5,7 @@ pragma solidity ^0.8.19;
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {ReentrancyGuard} from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import {IEpochsManager} from "@pnetwork-association/dao-v2-contracts/contracts/interfaces/IEpochsManager.sol";
+import {MerkleProof} from "@openzeppelin/contracts/utils/cryptography/MerkleProof.sol";
 import {GovernanceMessageHandler} from "../governance/GovernanceMessageHandler.sol";
 import {IPToken} from "../interfaces/IPToken.sol";
 import {IPFactory} from "../interfaces/IPFactory.sol";
@@ -40,9 +41,19 @@ error CallFailed();
 error QueueFull();
 error InvalidProtocolFee(IPNetworkHub.Operation operation);
 error InvalidNetworkFeeAssetAmount();
+error InvalidSentinel(address sentinel);
+error InvalidGuardian(address guardian);
+error InvalidLockedAmountStartChallenge(uint256 lockedAmountStartChallenge, uint256 expectedLockedAmountStartChallenge);
+error AlreadyChallenged();
+error ChallengeNotExistent();
+error ChallengeUnsolvable();
+error InvalidChallengeStatus(IPNetworkHub.ChallengeStatus status);
+error NearToEpochClosing();
+error MaxChallengeDurationPassed();
+error MaxChallengeDurationNotPassed();
 
 contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard {
-    bytes32 public constant GOVERNANCE_MESSAGE_SENTINELS = keccak256("GOVERNANCE_MESSAGE_SENTINELS");
+    bytes32 public constant GOVERNANCE_MESSAGE_STATE_ACTORS = keccak256("GOVERNANCE_MESSAGE_STATE_ACTORS");
     uint256 public constant FEE_BASIS_POINTS_DIVISOR = 10000;
 
     mapping(bytes32 => Action) private _operationsRelayerQueueAction;
@@ -52,7 +63,14 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
     mapping(bytes32 => Action) private _operationsExecuteAction;
     mapping(bytes32 => uint8) private _operationsTotalCancelActions;
     mapping(bytes32 => OperationStatus) private _operationsStatus;
-    mapping(uint16 => bytes32) private _epochsSentinelsRoot;
+    mapping(uint16 => bytes32) private _epochsSentinelsMerkleRoot;
+    mapping(uint16 => bytes32) private _epochsGuardiansMerkleRoot;
+    mapping(uint16 => uint16) private _epochsTotalNumberOfSentinels;
+    mapping(uint16 => uint16) private _epochsTotalNumberOfGuardians;
+    mapping(bytes32 => Challenge) private _challenges;
+    mapping(bytes32 => ChallengeStatus) private _challengesStatus;
+    mapping(uint16 => mapping(address => ActorStatus)) private _epochsActorsStatus;
+    mapping(uint16 => uint16) private _epochsTotalNumberOfInactiveActors;
 
     address public immutable factory;
     address public immutable epochsManager;
@@ -60,28 +78,48 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
     uint16 public immutable kChallengePeriod;
     uint16 public immutable maxOperationsInQueue;
     bytes4 public immutable interimChainNetworkId;
+    uint256 public immutable lockedAmountChallengePeriod;
+    uint256 public immutable lockedAmountStartChallenge;
+    uint64 public immutable maxChallengeDuration;
 
-    // bytes32 public guardiansRoot;
-    uint256 public lockedAmountChallengePeriod;
+    uint256 public challengesNonce;
     uint16 public numberOfOperationsInQueue;
 
-    modifier onlySentinel(bytes calldata proof, string memory action) {
+    modifier onlySentinel(bytes32[] calldata proof) {
         _;
     }
 
-    modifier onlyGuardian(bytes calldata proof, string memory action) {
+    modifier onlyGuardian(bytes32[] calldata proof) {
         // TODO: check if msg.sender is a guardian
         _;
     }
 
-    modifier onlyGovernance(bytes calldata proof, string memory action) {
+    modifier onlyGovernance(string memory action) {
         // TODO: check if msg.sender is a governance
+        _;
+    }
+
+    modifier onlyFarFromEpochClosingStartChallenge() {
+        uint256 epochDuration = IEpochsManager(epochsManager).epochDuration();
+        uint16 currentEpoch = IEpochsManager(epochsManager).currentEpoch();
+        uint256 startFirstEpochTimestamp = IEpochsManager(epochsManager).startFirstEpochTimestamp();
+        uint256 currentEpochEndTimestamp = startFirstEpochTimestamp + ((currentEpoch + 1) * epochDuration);
+
+        if (block.timestamp > currentEpochEndTimestamp - maxChallengeDuration) {
+            revert NearToEpochClosing();
+        }
+
         _;
     }
 
     modifier onlyWhenIsNotInLockDown(bool addMaxChallengePeriodDuration) {
         uint16 currentEpoch = IEpochsManager(epochsManager).currentEpoch();
-        if (_epochsSentinelsRoot[currentEpoch] == bytes32(0)) {
+        if (
+            _epochsSentinelsMerkleRoot[currentEpoch] == bytes32(0) ||
+            _epochsGuardiansMerkleRoot[currentEpoch] == bytes32(0) ||
+            _epochsTotalNumberOfInactiveActors[currentEpoch] ==
+            _epochsTotalNumberOfSentinels[currentEpoch] + _epochsTotalNumberOfGuardians[currentEpoch]
+        ) {
             revert LockDown();
         }
 
@@ -122,7 +160,9 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
         uint256 lockedAmountChallengePeriod_,
         uint16 kChallengePeriod_,
         uint16 maxOperationsInQueue_,
-        bytes4 interimChainNetworkId_
+        bytes4 interimChainNetworkId_,
+        uint256 lockedAmountOpenChallenge_,
+        uint64 maxChallengeDuration_
     ) GovernanceMessageHandler(telepathyRouter, governanceMessageVerifier, allowedSourceChainId) {
         factory = factory_;
         epochsManager = epochsManager_;
@@ -131,6 +171,16 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
         kChallengePeriod = kChallengePeriod_;
         maxOperationsInQueue = maxOperationsInQueue_;
         interimChainNetworkId = interimChainNetworkId_;
+        lockedAmountStartChallenge = lockedAmountOpenChallenge_;
+        maxChallengeDuration = maxChallengeDuration_;
+    }
+
+    /// @inheritdoc IPNetworkHub
+    function challengeIdOf(Challenge memory challenge) public view returns (bytes32) {
+        return
+            sha256(
+                abi.encode(challenge.nonce, challenge.actor, challenge.challenger, challenge.timestamp, block.chainid)
+            );
     }
 
     /// @inheritdoc IPNetworkHub
@@ -140,6 +190,12 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
         return _challengePeriodOf(operationId, operationStatus);
     }
 
+    /// @inheritdoc IPNetworkHub
+    function getChallengeStatus(Challenge calldata challenge) external view returns (ChallengeStatus) {
+        return _challengesStatus[challengeIdOf(challenge)];
+    }
+
+    /// @inheritdoc IPNetworkHub
     function getCurrentChallengePeriodDuration() public view returns (uint64) {
         uint32 localNumberOfOperationsInQueue = numberOfOperationsInQueue;
         if (localNumberOfOperationsInQueue == 0) return baseChallengePeriodDuration;
@@ -151,8 +207,18 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
     }
 
     /// @inheritdoc IPNetworkHub
-    function getSentinelsRootForEpoch(uint16 epoch) external view returns (bytes32) {
-        return _epochsSentinelsRoot[epoch];
+    function getGuardiansMerkleRootForEpoch(uint16 epoch) external view returns (bytes32) {
+        return _epochsGuardiansMerkleRoot[epoch];
+    }
+
+    /// @inheritdoc IPNetworkHub
+    function getSentinelsMerkleRootForEpoch(uint16 epoch) external view returns (bytes32) {
+        return _epochsSentinelsMerkleRoot[epoch];
+    }
+
+    /// @inheritdoc IPNetworkHub
+    function getTotalNumberOfInactiveActorsForCurrentEpoch() external view returns (uint16) {
+        return _epochsTotalNumberOfInactiveActors[IEpochsManager(epochsManager).currentEpoch()];
     }
 
     /// @inheritdoc IPNetworkHub
@@ -190,24 +256,21 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
     /// @inheritdoc IPNetworkHub
     function protocolGuardianCancelOperation(
         Operation calldata operation,
-        bytes calldata proof
-    ) external onlyWhenIsNotInLockDown(false) onlyGuardian(proof, "cancel") {
+        bytes32[] calldata proof
+    ) external onlyWhenIsNotInLockDown(false) onlyGuardian(proof) {
         _protocolCancelOperation(operation, Actor.Guardian);
     }
 
     /// @inheritdoc IPNetworkHub
-    function protocolGovernanceCancelOperation(
-        Operation calldata operation,
-        bytes calldata proof
-    ) external onlyGovernance(proof, "cancel") {
+    function protocolGovernanceCancelOperation(Operation calldata operation) external onlyGovernance("cancel") {
         _protocolCancelOperation(operation, Actor.Governance);
     }
 
     /// @inheritdoc IPNetworkHub
     function protocolSentinelCancelOperation(
         Operation calldata operation,
-        bytes calldata proof
-    ) external onlyWhenIsNotInLockDown(false) onlySentinel(proof, "cancel") {
+        bytes32[] calldata proof
+    ) external onlyWhenIsNotInLockDown(false) onlySentinel(proof) {
         _protocolCancelOperation(operation, Actor.Sentinel);
     }
 
@@ -321,9 +384,8 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
 
     /// @inheritdoc IPNetworkHub
     function protocolQueueOperation(Operation calldata operation) external payable onlyWhenIsNotInLockDown(true) {
-        uint256 expectedLockedAmountChallengePeriod = lockedAmountChallengePeriod;
-        if (msg.value != expectedLockedAmountChallengePeriod) {
-            revert InvalidLockedAmountChallengePeriod(msg.value, expectedLockedAmountChallengePeriod);
+        if (msg.value != lockedAmountChallengePeriod) {
+            revert InvalidLockedAmountChallengePeriod(msg.value, lockedAmountChallengePeriod);
         }
 
         if (numberOfOperationsInQueue >= maxOperationsInQueue) {
@@ -341,13 +403,105 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
             revert OperationAlreadyQueued(operation);
         }
 
-        _operationsRelayerQueueAction[operationId] = Action(_msgSender(), uint64(block.timestamp));
+        _operationsRelayerQueueAction[operationId] = Action({actor: _msgSender(), timestamp: uint64(block.timestamp)});
         _operationsStatus[operationId] = OperationStatus.Queued;
         unchecked {
             ++numberOfOperationsInQueue;
         }
 
         emit OperationQueued(operation);
+    }
+
+    function slashByChallenge(Challenge calldata challenge) external {
+        bytes32 challengeId = challengeIdOf(challenge);
+        uint16 currentEpoch = IEpochsManager(epochsManager).currentEpoch();
+
+        ChallengeStatus challengeStatus = _challengesStatus[challengeId];
+        if (challengeStatus == ChallengeStatus.Pending) {
+            if (block.timestamp <= challenge.timestamp + maxChallengeDuration) {
+                revert MaxChallengeDurationNotPassed();
+            }
+
+            _challengesStatus[challengeId] = ChallengeStatus.Unsolved;
+            _epochsActorsStatus[currentEpoch][challenge.actor] = ActorStatus.Inactive;
+            unchecked {
+                ++_epochsTotalNumberOfInactiveActors[currentEpoch];
+            }
+
+            (bool sent, ) = challenge.challenger.call{value: lockedAmountStartChallenge}("");
+            if (!sent) {
+                revert CallFailed();
+            }
+
+            // TODO: slash actor
+            return;
+        }
+
+        revert InvalidChallengeStatus(challengeStatus);
+    }
+
+    function solveChallengeGuardian(
+        Challenge calldata challenge,
+        bytes32[] calldata proof
+    ) external onlyGuardian(proof) {
+        address guardian = _msgSender();
+        if (guardian != challenge.actor) {
+            revert InvalidGuardian(guardian);
+        }
+
+        if (_solveChallenge(challenge)) {
+            emit GuardianResumed(guardian);
+        }
+    }
+
+    function solveChallengeSentinel(
+        Challenge calldata challenge,
+        bytes32[] calldata proof
+    ) external onlySentinel(proof) {
+        address sentinel = _msgSender();
+        if (sentinel != challenge.actor) {
+            revert InvalidSentinel(sentinel);
+        }
+
+        if (_solveChallenge(challenge)) {
+            emit SentinelResumed(sentinel);
+        }
+    }
+
+    /// @inheritdoc IPNetworkHub
+    function startChallengeGuardian(
+        address guardian,
+        bytes32[] memory proof
+    ) external payable onlyFarFromEpochClosingStartChallenge {
+        if (
+            !MerkleProof.verify(
+                proof,
+                _epochsGuardiansMerkleRoot[IEpochsManager(epochsManager).currentEpoch()],
+                keccak256(abi.encodePacked(guardian))
+            )
+        ) {
+            revert InvalidGuardian(guardian);
+        }
+
+        _startChallenge(guardian);
+    }
+
+    /// @inheritdoc IPNetworkHub
+    function startChallengeSentinel(
+        address sentinel,
+        bytes32[] calldata proof
+    ) external payable onlyFarFromEpochClosingStartChallenge {
+        if (
+            !MerkleProof.verify(
+                proof,
+                _epochsSentinelsMerkleRoot[IEpochsManager(epochsManager).currentEpoch()],
+                keccak256(abi.encodePacked(sentinel))
+            )
+        ) {
+            revert InvalidSentinel(sentinel);
+        }
+
+        _startChallenge(sentinel);
     }
 
     /// @inheritdoc IPNetworkHub
@@ -485,18 +639,24 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
 
     function _onGovernanceMessage(bytes memory message) internal override {
         bytes memory decodedMessage = abi.decode(message, (bytes));
-        (bytes32 messageType, bytes memory data) = abi.decode(decodedMessage, (bytes32, bytes));
+        (bytes32 messageType, bytes memory messageData) = abi.decode(decodedMessage, (bytes32, bytes));
 
-        if (messageType == GOVERNANCE_MESSAGE_SENTINELS) {
-            (uint16 epoch, bytes32 sentinelRoot) = abi.decode(data, (uint16, bytes32));
-            _epochsSentinelsRoot[epoch] = bytes32(sentinelRoot);
+        if (messageType == GOVERNANCE_MESSAGE_STATE_ACTORS) {
+            (
+                uint16 epoch,
+                uint16 totalNumberOfSentinels,
+                bytes32 sentinelsMerkleRoot,
+                uint16 totalNumberOfGuardians,
+                bytes32 guardiansMerkleRoot
+            ) = abi.decode(messageData, (uint16, uint16, bytes32, uint16, bytes32));
+
+            _epochsSentinelsMerkleRoot[epoch] = sentinelsMerkleRoot;
+            _epochsGuardiansMerkleRoot[epoch] = guardiansMerkleRoot;
+            _epochsTotalNumberOfSentinels[epoch] = totalNumberOfSentinels;
+            _epochsTotalNumberOfGuardians[epoch] = totalNumberOfGuardians;
+
             return;
         }
-
-        // if (messageType == GOVERNANCE_MESSAGE_GUARDIANS) {
-        //     guardiansRoot = bytes32(data);
-        //     return;
-        // }
 
         revert InvalidGovernanceMessage(message);
     }
@@ -518,7 +678,7 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
             revert ChallengePeriodTerminated(startTimestamp, endTimestamp);
         }
 
-        Action memory action = Action(_msgSender(), uint64(block.timestamp));
+        Action memory action = Action({actor: _msgSender(), timestamp: uint64(block.timestamp)});
         if (actor == Actor.Governance) {
             if (_operationsGovernanceCancelAction[operationId].actor != address(0)) {
                 revert GovernanceOperationAlreadyCancelled(operation);
@@ -559,7 +719,7 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
 
     function _releaseOperationLockedAmountChallengePeriod(bytes32 operationId) internal {
         _operationsStatus[operationId] = OperationStatus.Executed;
-        _operationsExecuteAction[operationId] = Action(_msgSender(), uint64(block.timestamp));
+        _operationsExecuteAction[operationId] = Action({actor: _msgSender(), timestamp: uint64(block.timestamp)});
 
         Action storage queuedAction = _operationsRelayerQueueAction[operationId];
         (bool sent, ) = queuedAction.actor.call{value: lockedAmountChallengePeriod}("");
@@ -570,6 +730,66 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
         unchecked {
             --numberOfOperationsInQueue;
         }
+    }
+
+    function _solveChallenge(Challenge calldata challenge) internal returns (bool) {
+        bytes32 challengeId = challengeIdOf(challenge);
+        uint16 currentEpoch = IEpochsManager(epochsManager).currentEpoch();
+
+        ChallengeStatus challengeStatus = _challengesStatus[challengeId];
+        if (challengeStatus == ChallengeStatus.Pending) {
+            if (block.timestamp > challenge.timestamp + maxChallengeDuration) {
+                revert MaxChallengeDurationPassed();
+            }
+
+            // TODO: send the lockedAmountStartChallenge to the DAO
+            _challengesStatus[challengeId] = ChallengeStatus.Solved;
+            _epochsActorsStatus[currentEpoch][challenge.actor] = ActorStatus.Active;
+            emit ChallengeSolved(challenge);
+            return false;
+        }
+
+        // NOTE: an actor can be resumed only after that the challenger slashed it
+        if (challengeStatus == ChallengeStatus.Unsolved) {
+            unchecked {
+                --_epochsTotalNumberOfInactiveActors[currentEpoch];
+            }
+
+            _epochsActorsStatus[currentEpoch][challenge.actor] = ActorStatus.Active;
+            return true;
+        }
+
+        revert InvalidChallengeStatus(challengeStatus);
+    }
+
+    function _startChallenge(address actor) internal {
+        address challenger = _msgSender();
+        uint16 currentEpoch = IEpochsManager(epochsManager).currentEpoch();
+
+        if (msg.value != lockedAmountStartChallenge) {
+            revert InvalidLockedAmountStartChallenge(msg.value, lockedAmountStartChallenge);
+        }
+
+        if (_epochsActorsStatus[currentEpoch][actor] != ActorStatus.Active) {
+            revert AlreadyChallenged();
+        }
+
+        Challenge memory challenge = Challenge({
+            nonce: challengesNonce,
+            actor: actor,
+            challenger: challenger,
+            timestamp: uint64(block.timestamp)
+        });
+        bytes32 challengeId = challengeIdOf(challenge);
+        _challenges[challengeId] = challenge;
+        _challengesStatus[challengeId] = ChallengeStatus.Pending;
+        _epochsActorsStatus[currentEpoch][actor] = ActorStatus.Challenged;
+
+        unchecked {
+            ++challengesNonce;
+        }
+
+        emit ChallengeStarted(challenge);
     }
 
     function _takeNetworkFee(

@@ -15,10 +15,23 @@ contract GovernanceStateReader is IGovernanceStateReader {
     address public constant LENDING_MANAGER = 0xa65e64ae3A3Ae4A7Ea11D7C2596De779C34dD6af;
     address public constant REGISTRATION_MANAGER = 0xCcdbBC9Dea73673dF74E1EE4D5faC8c6Ce1930ef;
     address public constant EPOCHS_MANAGER = 0xbA1067FB99Ad837F0e2895B57D1635Bdbefa789E;
-    bytes32 public constant GOVERNANCE_MESSAGE_SENTINELS = keccak256("GOVERNANCE_MESSAGE_SENTINELS");
+    bytes32 public constant GOVERNANCE_MESSAGE_STATE_ACTORS = keccak256("GOVERNANCE_MESSAGE_STATE_ACTORS");
 
     /// @inheritdoc IGovernanceStateReader
-    function propagateGuardians(address[] calldata guardians) external {
+    function propagateActors(address[] calldata sentinels, address[] calldata guardians) external {
+        uint16 currentEpoch = IEpochsManager(EPOCHS_MANAGER).currentEpoch();
+        bytes32 sentinelsMerkleRoot = _getSentinelsMerkleRoot(sentinels);
+        bytes32 guardiansMerkleRoot = _getGuardiansMerkleRoot(guardians);
+
+        emit GovernanceMessage(
+            abi.encode(
+                GOVERNANCE_MESSAGE_STATE_ACTORS,
+                abi.encode(currentEpoch, sentinels.length, sentinelsMerkleRoot, guardians.length, guardiansMerkleRoot)
+            )
+        );
+    }
+
+    function _getGuardiansMerkleRoot(address[] calldata guardians) internal returns (bytes32) {
         // uint16 totalNumberOfGuardians = IRegistrationManager(REGISTRATION_MANAGER).totalNumberOfGuardians();
         // uint16 numberOfValidGuardians;
         // for (uint16 index = 0; i < guardians; ) {
@@ -38,13 +51,10 @@ contract GovernanceStateReader is IGovernanceStateReader {
         // for (uint256 i = 0; i < guardians.length; i++) {
         //     data[i] = abi.encodePacked(guardians[i]);
         // }
-        // emit GovernanceMessage(
-        //     abi.encode(GOVERNANCE_MESSAGE_GUARDIAN, MerkleTree.getRoot(data))
-        // );
+        return bytes32(0);
     }
 
-    /// @inheritdoc IGovernanceStateReader
-    function propagateSentinels(address[] calldata sentinels) external {
+    function _getSentinelsMerkleRoot(address[] calldata sentinels) internal returns (bytes32) {
         // TODO: what does it happen in case of slashing?
         uint16 currentEpoch = IEpochsManager(EPOCHS_MANAGER).currentEpoch();
         uint32 totalBorrowedAmount = ILendingManager(LENDING_MANAGER).totalBorrowedAmountByEpoch(currentEpoch);
@@ -84,8 +94,6 @@ contract GovernanceStateReader is IGovernanceStateReader {
             data[i] = abi.encodePacked(sentinels[i]);
         }
 
-        emit GovernanceMessage(
-            abi.encode(GOVERNANCE_MESSAGE_SENTINELS, abi.encode(currentEpoch, MerkleTree.getRoot(data)))
-        );
+        return MerkleTree.getRoot(data);
     }
 }

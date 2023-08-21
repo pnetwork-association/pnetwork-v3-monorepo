@@ -1,7 +1,6 @@
-// taken from here: https://github.com/allemanfredi/solidity-merkle-tree/blob/main/contracts/MerkleTree.sol
-import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
-
 pragma solidity ^0.8.19;
+
+import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
 
 library MerkleTree {
     function getRoot(bytes[] memory data) internal pure returns (bytes32) {
@@ -47,7 +46,10 @@ library MerkleTree {
                     }
                 }
 
-                nodes[layer + 1][k] = keccak256(abi.encodePacked(nodes[layer][i], nodes[layer][i + 1]));
+                bytes32 a = nodes[layer][i];
+                bytes32 b = nodes[layer][i + 1];
+                nodes[layer + 1][k] = keccak256(a > b ? abi.encodePacked(b, a) : abi.encodePacked(a, b));
+
                 unchecked {
                     ++k;
                     layerNodes += 2;

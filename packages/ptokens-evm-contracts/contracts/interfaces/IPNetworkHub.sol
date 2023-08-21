@@ -17,11 +17,36 @@ interface IPNetworkHub is IGovernanceMessageHandler {
         Sentinel
     }
 
+    enum ActorStatus {
+        Active,
+        Challenged,
+        Inactive
+    }
+
+    enum ChallengeStatus {
+        Null,
+        Pending,
+        Solved,
+        Unsolved
+    }
+
     enum OperationStatus {
         Null,
         Queued,
         Executed,
         Cancelled
+    }
+
+    struct Action {
+        address actor;
+        uint64 timestamp;
+    }
+
+    struct Challenge {
+        uint256 nonce;
+        address actor;
+        address challenger;
+        uint64 timestamp;
     }
 
     struct Operation {
@@ -45,10 +70,19 @@ interface IPNetworkHub is IGovernanceMessageHandler {
         bytes userData;
     }
 
-    struct Action {
-        address actor;
-        uint64 timestamp;
-    }
+    /**
+     * @dev Emitted when a challenge is opened.
+     *
+     * @param challenge The challenge
+     */
+    event ChallengeStarted(Challenge challenge);
+
+    /**
+     * @dev Emitted when a challenge is solved.
+     *
+     * @param challenge The challenge
+     */
+    event ChallengeSolved(Challenge challenge);
 
     /**
      * @dev Emitted when an operation is queued.
@@ -93,6 +127,20 @@ interface IPNetworkHub is IGovernanceMessageHandler {
     event SentinelOperationCancelled(Operation operation);
 
     /**
+     * @dev Emitted when a sentinel resumes after having being slashed
+     *
+     * @param sentinel The resumed sentinel
+     */
+    event SentinelResumed(address indexed sentinel);
+
+    /**
+     * @dev Emitted when a guardian resumes after having being slashed
+     *
+     * @param guardian The resumed sentinel
+     */
+    event GuardianResumed(address indexed guardian);
+
+    /**
      * @dev Emitted when an user operation is generated.
      *
      * @param nonce The nonce
@@ -134,6 +182,15 @@ interface IPNetworkHub is IGovernanceMessageHandler {
     );
 
     /*
+     * @notice Calculates the challenge id.
+     *
+     * @param challenge
+     *
+     * @return bytes32 representing the challenge id.
+     */
+    function challengeIdOf(Challenge memory challenge) external view returns (bytes32);
+
+    /*
      * @notice Calculates the operation challenge period.
      *
      * @param operation
@@ -143,13 +200,46 @@ interface IPNetworkHub is IGovernanceMessageHandler {
     function challengePeriodOf(Operation calldata operation) external view returns (uint64, uint64);
 
     /*
+     * @notice Return the status of a challenge.
+     *
+     * @param challenge
+     *
+     * @return (ChallengeStatus) representing the challenge status
+     */
+    function getChallengeStatus(Challenge calldata challenge) external view returns (ChallengeStatus);
+
+    /*
+     * @notice Calculates the current challenge period duration considering the number of operations in queue.
+     *     *
+     * @return uint64 representing the current challenge period duration.
+     */
+    function getCurrentChallengePeriodDuration() external view returns (uint64);
+
+    /*
+     * @notice Returns the guardians merkle root for a given epoch.
+     *
+     * @param epoch
+     *
+     * @return bytes32 representing the guardians merkle root for a given epoch.
+     */
+    function getGuardiansMerkleRootForEpoch(uint16 epoch) external view returns (bytes32);
+
+    /*
      * @notice Returns the sentinels merkle root for a given epoch.
      *
      * @param epoch
      *
      * @return bytes32 representing the sentinels merkle root for a given epoch.
      */
-    function getSentinelsRootForEpoch(uint16 epoch) external view returns (bytes32);
+    function getSentinelsMerkleRootForEpoch(uint16 epoch) external view returns (bytes32);
+
+    /*
+     * @notice Returns the number of inactive actors for the current epoch.
+     *
+     *
+     * @return bytes32 representing the number of inactive actors for the current epoch.
+     */
+    function getTotalNumberOfInactiveActorsForCurrentEpoch() external view returns (uint16);
 
     /*
      * @notice Return the status of an operation.
@@ -176,16 +266,15 @@ interface IPNetworkHub is IGovernanceMessageHandler {
      * @param proof
      *
      */
-    function protocolGuardianCancelOperation(Operation calldata operation, bytes calldata proof) external;
+    function protocolGuardianCancelOperation(Operation calldata operation, bytes32[] calldata proof) external;
 
     /*
      * @notice The Governance instruct a cancel action. If 2 actors agree on it the operation is cancelled.
      *
      * @param operation
-     * @param proof
      *
      */
-    function protocolGovernanceCancelOperation(Operation calldata operation, bytes calldata proof) external;
+    function protocolGovernanceCancelOperation(Operation calldata operation) external;
 
     /*
      * @notice A Sentinel instruct a cancel action. If 2 actors agree on it the operation is cancelled.
@@ -194,7 +283,7 @@ interface IPNetworkHub is IGovernanceMessageHandler {
      * @param proof
      *
      */
-    function protocolSentinelCancelOperation(Operation calldata operation, bytes calldata proof) external;
+    function protocolSentinelCancelOperation(Operation calldata operation, bytes32[] calldata proof) external;
 
     /*
      * @notice Execute an operation that has been queued.
@@ -211,6 +300,48 @@ interface IPNetworkHub is IGovernanceMessageHandler {
      *
      */
     function protocolQueueOperation(Operation calldata operation) external payable;
+
+    /*
+     * @notice Slash a sentinel of a guardians previously challenges if it was not able to solve the challenge in time.
+     *
+     * @param challenge
+     *
+     */
+    function slashByChallenge(Challenge calldata challenge) external;
+
+    /*
+     * @notice Solve a challenge of a guardian and sends the bond (lockedAmountStartChallenge) to the DAO.
+     *
+     * @param challenge
+     *
+     */
+    function solveChallengeGuardian(Challenge calldata challenge, bytes32[] calldata proof) external;
+
+    /*
+     * @notice Solve a challenge of a sentinel and sends the bond (lockedAmountStartChallenge) to the DAO.
+     *
+     * @param challenge
+     *
+     */
+    function solveChallengeSentinel(Challenge calldata challenge, bytes32[] calldata proof) external;
+
+    /*
+     * @notice Start a challenge for a guardian.
+     *
+     * @param guardian
+     * @param proof
+     *
+     */
+    function startChallengeGuardian(address guardian, bytes32[] memory proof) external payable;
+
+    /*
+     * @notice Start a challenge for a sentinel.
+     *
+     * @param sentinel
+     * @param proof
+     *
+     */
+    function startChallengeSentinel(address sentinel, bytes32[] memory proof) external payable;
 
     /*
      * @notice Generate an user operation which will be used by the relayers to be able
