@@ -53,6 +53,7 @@ error MaxChallengeDurationPassed();
 error MaxChallengeDurationNotPassed();
 error ChallengeNotFound(IPNetworkHub.Challenge challenge);
 error MaxChallengeDurationMustBeLessOrEqualThanMaxChallengePeriodDuration();
+error InvalidEpoch(uint16 epoch);
 
 contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard {
     bytes32 public constant GOVERNANCE_MESSAGE_STATE_ACTORS = keccak256("GOVERNANCE_MESSAGE_STATE_ACTORS");
@@ -211,11 +212,44 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
     }
 
     /// @inheritdoc IPNetworkHub
-    function getChallengeStatus(Challenge calldata challenge) external view returns (ChallengeStatus) {
+    function claimLockedAmountStartChallenge(Challenge calldata challenge) external {
+        bytes32 challengeId = challengeIdOf(challenge);
+        uint16 currentEpoch = IEpochsManager(epochsManager).currentEpoch();
+        uint16 challengeEpoch = getChallengeEpoch(challenge);
+
+        if (challengeEpoch >= currentEpoch) {
+            revert InvalidEpoch(challengeEpoch);
+        }
+
+        ChallengeStatus challengeStatus = _epochsChallengeStatus[challengeEpoch][challengeId];
+        if (challengeStatus == ChallengeStatus.Null) {
+            revert ChallengeNotFound(challenge);
+        }
+
+        if (challengeStatus != ChallengeStatus.Pending) {
+            revert InvalidChallengeStatus(challengeStatus);
+        }
+
+        _epochsChallengeStatus[challengeEpoch][challengeId] = ChallengeStatus.PartiallyUnsolved;
+
+        (bool sent, ) = challenge.challenger.call{value: lockedAmountStartChallenge}("");
+        if (!sent) {
+            revert CallFailed();
+        }
+
+        emit LockedAmountStartChallengeClaimed(challenge);
+    }
+
+    /// @inheritdoc IPNetworkHub
+    function getChallengeEpoch(Challenge calldata challenge) public view returns (uint16) {
         uint256 epochDuration = IEpochsManager(epochsManager).epochDuration();
         uint256 startFirstEpochTimestamp = IEpochsManager(epochsManager).startFirstEpochTimestamp();
-        uint16 epoch = uint16((challenge.timestamp - startFirstEpochTimestamp) / epochDuration);
-        return _epochsChallengeStatus[epoch][challengeIdOf(challenge)];
+        return uint16((challenge.timestamp - startFirstEpochTimestamp) / epochDuration);
+    }
+
+    /// @inheritdoc IPNetworkHub
+    function getChallengeStatus(Challenge calldata challenge) public view returns (ChallengeStatus) {
+        return _epochsChallengeStatus[getChallengeEpoch(challenge)][challengeIdOf(challenge)];
     }
 
     /// @inheritdoc IPNetworkHub

@@ -387,36 +387,36 @@ describe('PNetworkHub', () => {
     await time.increase(await hubInterim.getCurrentChallengePeriodDuration())
 
     const protocolFee = operation.getProtocolFee()
-    /*const pTokenAddress = await pFactory.getPTokenAddress(
-      operation.underlyingAssetName,
-      operation.underlyingAssetSymbol,
-      operation.underlyingAssetDecimals,
-      operation.underlyingAssetTokenAddress,
-      operation.underlyingAssetNetworkId
-    )*/
+    // const pTokenAddress = await pFactory.getPTokenAddress(
+    //   operation.underlyingAssetName,
+    //   operation.underlyingAssetSymbol,
+    //   operation.underlyingAssetDecimals,
+    //   operation.underlyingAssetTokenAddress,
+    //   operation.underlyingAssetNetworkId
+    // )
 
     tx = hubInterim.connect(relayer).protocolExecuteOperation(operation)
     await expect(tx)
       .to.emit(hubInterim, 'UserOperation')
-      /*.withArgs(
-        28876268,
-        operation.destinationAccount,
-        operation.forwardDestinationNetworkId,
-        operation.underlyingAssetName,
-        operation.underlyingAssetSymbol,
-        operation.underlyingAssetDecimals,
-        operation.underlyingAssetTokenAddress,
-        operation.underlyingAssetNetworkId,
-        pTokenAddress,
-        operation.assetAmountWithoutProtocolFee,
-        ZERO_ADDRESS,
-        '0',
-        '0',
-        '0',
-        '0x00000000',
-        operation.userData,
-        operation.optionsMask
-      )*/
+      // .withArgs(
+      //   28876268,
+      //   operation.destinationAccount,
+      //   operation.forwardDestinationNetworkId,
+      //   operation.underlyingAssetName,
+      //   operation.underlyingAssetSymbol,
+      //   operation.underlyingAssetDecimals,
+      //   operation.underlyingAssetTokenAddress,
+      //   operation.underlyingAssetNetworkId,
+      //   pTokenAddress,
+      //   operation.assetAmountWithoutProtocolFee,
+      //   ZERO_ADDRESS,
+      //   '0',
+      //   '0',
+      //   '0',
+      //   '0x00000000',
+      //   operation.userData,
+      //   operation.optionsMask
+      // )
       .and.to.emit(pTokenInterim, 'Transfer')
       .withArgs(ZERO_ADDRESS, hubInterim.address, protocolFee)
       .and.to.emit(hubInterim, 'OperationExecuted')
@@ -1058,37 +1058,37 @@ describe('PNetworkHub', () => {
     await time.increase(await hubInterim.getCurrentChallengePeriodDuration())
 
     const protocolFee = operation.getProtocolFee()
-    /*const pTokenAddress = await pFactory.getPTokenAddress(
-      operation.underlyingAssetName,
-      operation.underlyingAssetSymbol,
-      operation.underlyingAssetDecimals,
-      operation.underlyingAssetTokenAddress,
-      operation.underlyingAssetNetworkId
-    )*/
+    // const pTokenAddress = await pFactory.getPTokenAddress(
+    //   operation.underlyingAssetName,
+    //   operation.underlyingAssetSymbol,
+    //   operation.underlyingAssetDecimals,
+    //   operation.underlyingAssetTokenAddress,
+    //   operation.underlyingAssetNetworkId
+    // )
 
     tx = hubInterim.connect(relayer).protocolExecuteOperation(operation)
 
     await expect(tx)
       .to.emit(hubInterim, 'UserOperation')
-      /*.withArgs(
-        28851320,
-        operation.destinationAccount,
-        operation.forwardDestinationNetworkId,
-        operation.underlyingAssetName,
-        operation.underlyingAssetSymbol,
-        operation.underlyingAssetDecimals,
-        operation.underlyingAssetTokenAddress,
-        operation.underlyingAssetNetworkId,
-        pTokenAddress,
-        operation.assetAmountWithoutProtocolFeeAndNetworkFee,
-        ZERO_ADDRESS,
-        '0',
-        forwardNetworkFeeAssetAmount,
-        '0',
-        '0x00000000',
-        operation.userData,
-        operation.optionsMask
-      )*/
+      // .withArgs(
+      //   28851320,
+      //   operation.destinationAccount,
+      //   operation.forwardDestinationNetworkId,
+      //   operation.underlyingAssetName,
+      //   operation.underlyingAssetSymbol,
+      //   operation.underlyingAssetDecimals,
+      //   operation.underlyingAssetTokenAddress,
+      //   operation.underlyingAssetNetworkId,
+      //   pTokenAddress,
+      //   operation.assetAmountWithoutProtocolFeeAndNetworkFee,
+      //   ZERO_ADDRESS,
+      //   '0',
+      //   forwardNetworkFeeAssetAmount,
+      //   '0',
+      //   '0x00000000',
+      //   operation.userData,
+      //   operation.optionsMask
+      // )
       .and.to.emit(pTokenInterim, 'Transfer')
       .withArgs(ZERO_ADDRESS, hubInterim.address, protocolFee)
       .and.to.emit(pTokenInterim, 'Transfer')
@@ -1713,5 +1713,100 @@ describe('PNetworkHub', () => {
         value: LOCKED_AMOUNT_START_CHALLENGE,
       })
     ).to.be.revertedWithCustomError(hub, 'InvalidSentinel')
+  })
+
+  it('should be able to claim lockedAmountStartChallenge in the next epoch', async () => {
+    const challengedGuardian = guardians[2]
+    const proof = getActorsMerkleProof(guardians, challengedGuardian)
+
+    let tx = await hub
+      .connect(challenger)
+      .startChallengeGuardian(challengedGuardian.address, proof, {
+        value: LOCKED_AMOUNT_START_CHALLENGE,
+      })
+    const challenge = Challenge.fromReceipt(await tx.wait(1))
+
+    const startFirstEpochTimestamp = (await epochsManager.startFirstEpochTimestamp()).toNumber()
+    const currentEpochEndTimestamp = startFirstEpochTimestamp + (currentEpoch + 1) * epochDuration
+    await time.increaseTo(currentEpochEndTimestamp + 1)
+
+    const challengerPreBalance = await ethers.provider.getBalance(challenger.address)
+    tx = hub.connect(challenger).claimLockedAmountStartChallenge(challenge)
+    await expect(tx)
+      .to.be.emit(hub, 'LockedAmountStartChallengeClaimed')
+      .withArgs(challenge.serialize())
+    const receipt = await (await tx).wait(1)
+
+    const challengerPostBalance = await ethers.provider.getBalance(challenger.address)
+
+    expect(challengerPostBalance).to.be.eq(
+      challengerPreBalance
+        .add(LOCKED_AMOUNT_START_CHALLENGE)
+        .sub(receipt.gasUsed.mul(receipt.effectiveGasPrice))
+    )
+  })
+
+  it('should not be able to claim lockedAmountStartChallenge in the next epoch twice', async () => {
+    const challengedGuardian = guardians[2]
+    const proof = getActorsMerkleProof(guardians, challengedGuardian)
+
+    const tx = await hub
+      .connect(challenger)
+      .startChallengeGuardian(challengedGuardian.address, proof, {
+        value: LOCKED_AMOUNT_START_CHALLENGE,
+      })
+    const challenge = Challenge.fromReceipt(await tx.wait(1))
+    const startFirstEpochTimestamp = (await epochsManager.startFirstEpochTimestamp()).toNumber()
+    const currentEpochEndTimestamp = startFirstEpochTimestamp + (currentEpoch + 1) * epochDuration
+    await time.increaseTo(currentEpochEndTimestamp + 1)
+    await expect(hub.connect(challenger).claimLockedAmountStartChallenge(challenge))
+      .to.be.emit(hub, 'LockedAmountStartChallengeClaimed')
+      .withArgs(challenge.serialize())
+    await expect(
+      hub.connect(challenger).claimLockedAmountStartChallenge(challenge)
+    ).to.be.revertedWithCustomError(hub, 'InvalidChallengeStatus')
+  })
+
+  it('should not be able to claim lockedAmountStartChallenge in the epoch in which the challenge was opened', async () => {
+    const challengedGuardian = guardians[2]
+    const proof = getActorsMerkleProof(guardians, challengedGuardian)
+
+    const tx = await hub
+      .connect(challenger)
+      .startChallengeGuardian(challengedGuardian.address, proof, {
+        value: LOCKED_AMOUNT_START_CHALLENGE,
+      })
+    const challenge = Challenge.fromReceipt(await tx.wait(1))
+    await expect(
+      hub.connect(challenger).claimLockedAmountStartChallenge(challenge)
+    ).to.be.revertedWithCustomError(hub, 'InvalidEpoch')
+  })
+
+  it('should not be able to claim lockedAmountStartChallenge for a challenge that does not exist', async () => {
+    const challengedGuardian = guardians[2]
+    const proof = getActorsMerkleProof(guardians, challengedGuardian)
+
+    const startFirstEpochTimestamp = (await epochsManager.startFirstEpochTimestamp()).toNumber()
+    const currentEpochEndTimestamp = startFirstEpochTimestamp + (currentEpoch + 1) * epochDuration
+
+    const tx = await hub
+      .connect(challenger)
+      .startChallengeGuardian(challengedGuardian.address, proof, {
+        value: LOCKED_AMOUNT_START_CHALLENGE,
+      })
+    const challenge = Challenge.fromReceipt(await tx.wait(1))
+
+    await time.increaseTo(currentEpochEndTimestamp + 1)
+
+    const fakeChallenge = new Challenge({
+      nonce: challenge.nonce + 1,
+      challenger: challenge.challenger,
+      actor: challenge.actor,
+      timestamp: challenge.timestamp,
+    })
+
+    await expect(
+      hub.connect(challenger).claimLockedAmountStartChallenge(fakeChallenge)
+    ).to.be.revertedWithCustomError(hub, 'ChallengeNotFound')
   })
 })

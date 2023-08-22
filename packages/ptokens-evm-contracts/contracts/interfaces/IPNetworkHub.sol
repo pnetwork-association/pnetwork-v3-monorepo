@@ -27,7 +27,8 @@ interface IPNetworkHub is IGovernanceMessageHandler {
         Null,
         Pending,
         Solved,
-        Unsolved
+        Unsolved,
+        PartiallyUnsolved
     }
 
     enum OperationStatus {
@@ -83,6 +84,13 @@ interface IPNetworkHub is IGovernanceMessageHandler {
      * @param challenge The challenge
      */
     event ChallengeSolved(Challenge challenge);
+
+    /**
+     * @dev Emitted when a challenger claims the lockedAmountStartChallenge by providing a challenge.
+     *
+     * @param challenge The challenge
+     */
+    event LockedAmountStartChallengeClaimed(Challenge challenge);
 
     /**
      * @dev Emitted when an operation is queued.
@@ -200,6 +208,28 @@ interface IPNetworkHub is IGovernanceMessageHandler {
     function challengePeriodOf(Operation calldata operation) external view returns (uint64, uint64);
 
     /*
+     * @notice Offer the possibilty to claim the lockedAmountStartChallenge for a given challenge in a previous epoch in case it happens the following scenario:
+     *          - A challenger initiates a challenge against a guardian/sentinel close to an epoch's end (within permissible limits).
+     *          - The maxChallengeDuration elapses, disabling the sentinel from resolving the challenge within the currentEpoch.
+     *          - The challenger fails to invoke slashByChallenge before the epoch terminates.
+     *          - A new epoch initiates.
+     *          - Result: lockedAmountStartChallenge STUCK.
+     *
+     * @param challenge
+     *
+     */
+    function claimLockedAmountStartChallenge(Challenge calldata challenge) external;
+
+    /*
+     * @notice Return the epoch in which a challenge was started.
+     *
+     * @param challenge
+     *
+     * @return uint16 representing the epoch in which a challenge was started.
+     */
+    function getChallengeEpoch(Challenge calldata challenge) external view returns (uint16);
+
+    /*
      * @notice Return the status of a challenge.
      *
      * @param challenge
@@ -210,7 +240,7 @@ interface IPNetworkHub is IGovernanceMessageHandler {
 
     /*
      * @notice Calculates the current challenge period duration considering the number of operations in queue.
-     *     *
+     *
      * @return uint64 representing the current challenge period duration.
      */
     function getCurrentChallengePeriodDuration() external view returns (uint64);
