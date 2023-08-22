@@ -200,16 +200,6 @@ interface IPNetworkHub is IGovernanceMessageHandler {
     function challengePeriodOf(Operation calldata operation) external view returns (uint64, uint64);
 
     /*
-     * @notice Return the challenge by an epoch and the id.
-     *
-     * @param epoch
-     * @param id
-     *
-     * @return Challenge representing the start challenge.
-     */
-    function getChallengeByEpochAndId(uint16 epoch, bytes32 id) external view returns (Challenge memory);
-
-    /*
      * @notice Return the status of a challenge.
      *
      * @param challenge

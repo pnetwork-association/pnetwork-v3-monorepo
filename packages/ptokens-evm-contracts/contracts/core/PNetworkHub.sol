@@ -70,7 +70,7 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
     mapping(uint16 => uint16) private _epochsTotalNumberOfSentinels;
     mapping(uint16 => uint16) private _epochsTotalNumberOfGuardians;
     mapping(uint16 => mapping(bytes32 => Challenge)) private _epochsChallenges;
-    mapping(bytes32 => ChallengeStatus) private _challengesStatus;
+    mapping(uint16 => mapping(bytes32 => ChallengeStatus)) private _epochsChallengeStatus;
     mapping(uint16 => mapping(address => ActorStatus)) private _epochsActorsStatus;
     mapping(uint16 => uint16) private _epochsTotalNumberOfInactiveActors;
 
@@ -211,13 +211,11 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
     }
 
     /// @inheritdoc IPNetworkHub
-    function getChallengeByEpochAndId(uint16 epoch, bytes32 id) external view returns (Challenge memory) {
-        return _epochsChallenges[epoch][id];
-    }
-
-    /// @inheritdoc IPNetworkHub
     function getChallengeStatus(Challenge calldata challenge) external view returns (ChallengeStatus) {
-        return _challengesStatus[challengeIdOf(challenge)];
+        uint256 epochDuration = IEpochsManager(epochsManager).epochDuration();
+        uint256 startFirstEpochTimestamp = IEpochsManager(epochsManager).startFirstEpochTimestamp();
+        uint16 epoch = uint16((challenge.timestamp - startFirstEpochTimestamp) / epochDuration);
+        return _epochsChallengeStatus[epoch][challengeIdOf(challenge)];
     }
 
     /// @inheritdoc IPNetworkHub
@@ -440,19 +438,19 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
     function slashByChallenge(Challenge calldata challenge) external {
         bytes32 challengeId = challengeIdOf(challenge);
         uint16 currentEpoch = IEpochsManager(epochsManager).currentEpoch();
+        ChallengeStatus challengeStatus = _epochsChallengeStatus[currentEpoch][challengeId];
 
         // NOTE: avoid to slash by challenges opened in previous epochs
-        if (_epochsChallenges[currentEpoch][challengeId].timestamp == 0) {
+        if (challengeStatus == ChallengeStatus.Null) {
             revert ChallengeNotFound(challenge);
         }
 
-        ChallengeStatus challengeStatus = _challengesStatus[challengeId];
         if (challengeStatus == ChallengeStatus.Pending) {
             if (block.timestamp <= challenge.timestamp + maxChallengeDuration) {
                 revert MaxChallengeDurationNotPassed();
             }
 
-            _challengesStatus[challengeId] = ChallengeStatus.Unsolved;
+            _epochsChallengeStatus[currentEpoch][challengeId] = ChallengeStatus.Unsolved;
             _epochsActorsStatus[currentEpoch][challenge.actor] = ActorStatus.Inactive;
 
             (bool sent, ) = challenge.challenger.call{value: lockedAmountStartChallenge}("");
@@ -769,20 +767,20 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
     function _solveChallenge(Challenge calldata challenge) internal returns (bool) {
         bytes32 challengeId = challengeIdOf(challenge);
         uint16 currentEpoch = IEpochsManager(epochsManager).currentEpoch();
+        ChallengeStatus challengeStatus = _epochsChallengeStatus[currentEpoch][challengeId];
 
         // NOTE: avoid to solve challenges opened in previous epochs
-        if (_epochsChallenges[currentEpoch][challengeId].timestamp == 0) {
+        if (challengeStatus == ChallengeStatus.Null) {
             revert ChallengeNotFound(challenge);
         }
 
-        ChallengeStatus challengeStatus = _challengesStatus[challengeId];
         if (challengeStatus == ChallengeStatus.Pending) {
             if (block.timestamp > challenge.timestamp + maxChallengeDuration) {
                 revert MaxChallengeDurationPassed();
             }
 
             // TODO: send the lockedAmountStartChallenge to the DAO
-            _challengesStatus[challengeId] = ChallengeStatus.Solved;
+            _epochsChallengeStatus[currentEpoch][challengeId] = ChallengeStatus.Solved;
             _epochsActorsStatus[currentEpoch][challenge.actor] = ActorStatus.Active;
             emit ChallengeSolved(challenge);
             return false;
@@ -822,7 +820,7 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
         });
         bytes32 challengeId = challengeIdOf(challenge);
         _epochsChallenges[currentEpoch][challengeId] = challenge;
-        _challengesStatus[challengeId] = ChallengeStatus.Pending;
+        _epochsChallengeStatus[currentEpoch][challengeId] = ChallengeStatus.Pending;
         _epochsActorsStatus[currentEpoch][actor] = ActorStatus.Challenged;
 
         unchecked {
