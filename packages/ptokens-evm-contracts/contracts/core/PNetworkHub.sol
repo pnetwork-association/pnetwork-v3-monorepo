@@ -107,7 +107,7 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
         uint256 startFirstEpochTimestamp = IEpochsManager(epochsManager).startFirstEpochTimestamp();
         uint256 currentEpochEndTimestamp = startFirstEpochTimestamp + ((currentEpoch + 1) * epochDuration);
 
-        // NOTE: 60 minutes = threshold that a guardian/sentinel or challenger has time to resolve the challenge
+        // NOTE: 1 hours = threshold that a guardian/sentinel or challenger has time to resolve the challenge
         // before the epoch ends. Not setting this threshold would mean that it is possible
         // to open a challenge that can be solved an instant before the epoch change causing problems.
         // It is important that the system enters in lockdown mode before stopping to start challenges.
