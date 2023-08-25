@@ -6,7 +6,6 @@ import {IRegistrationManager} from "@pnetwork-association/dao-v2-contracts/contr
 import {ILendingManager} from "@pnetwork-association/dao-v2-contracts/contracts/interfaces/ILendingManager.sol";
 import {IEpochsManager} from "@pnetwork-association/dao-v2-contracts/contracts/interfaces/IEpochsManager.sol";
 import {MerkleTree} from "../libraries/MerkleTree.sol";
-import "hardhat/console.sol";
 
 error InvalidAmount(uint256 amount, uint256 expectedAmount);
 error InvalidGovernanceMessageVerifier(address governanceMessagerVerifier, address expectedGovernanceMessageVerifier);
@@ -129,7 +128,6 @@ contract GovernanceStateReader is IGovernanceStateReader {
 
         bytes[] memory data = new bytes[](effectiveSentinels.length);
         for (uint256 i = 0; i < effectiveSentinels.length; i++) {
-            console.log(effectiveSentinels[i]);
             data[i] = abi.encodePacked(effectiveSentinels[i]);
         }
 
