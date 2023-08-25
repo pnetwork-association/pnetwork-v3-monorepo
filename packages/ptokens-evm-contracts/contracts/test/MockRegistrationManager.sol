@@ -2,6 +2,8 @@
 
 pragma solidity ^0.8.19;
 
+import {IGovernanceStateReader} from "../interfaces/IGovernanceStateReader.sol";
+
 interface IMockLendingManager {
     function increaseTotalBorrowedAmountByEpoch(uint24 amount, uint16 epoch) external;
 }
@@ -15,6 +17,8 @@ contract MockRegistrationManager {
     }
 
     address public immutable lendingManager;
+
+    address public governanceStateReader;
 
     constructor(address lendingManager_) {
         lendingManager = lendingManager_;
@@ -66,5 +70,13 @@ contract MockRegistrationManager {
         for (uint16 epoch = startEpoch; epoch <= endEpoch; epoch++) {
             IMockLendingManager(lendingManager).increaseTotalBorrowedAmountByEpoch(200000, epoch);
         }
+    }
+
+    function setGovernanceStateReader(address governanceStateReader_) external {
+        governanceStateReader = governanceStateReader_;
+    }
+
+    function slash(bytes32[] calldata proof) external {
+        IGovernanceStateReader(governanceStateReader).propagateSentinelsByRemovingTheLeafByProof(proof);
     }
 }

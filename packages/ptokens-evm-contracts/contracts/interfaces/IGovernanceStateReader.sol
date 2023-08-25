@@ -41,4 +41,16 @@ interface IGovernanceStateReader {
      * @param guardians
      */
     function propagateSentinels(address[] calldata sentinels) external;
+
+    /*
+     * @notice Emit a GovernanceMessage event containing ONLY the sentinels merkle root
+     *         with a leaf that should be proved by the proof set to 0.
+     *         This function is meant to be called by the RegistrationManager which,
+     *         should make inactive a sentinel after having slashed a it and its amount at stake
+     *         has become < 200k PNT
+     *
+     * @param sentinels
+     * @param guardians
+     */
+    function propagateSentinelsByRemovingTheLeafByProof(bytes32[] calldata proof) external;
 }

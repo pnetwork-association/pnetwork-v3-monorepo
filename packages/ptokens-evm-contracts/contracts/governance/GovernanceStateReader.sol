@@ -10,14 +10,25 @@ import {MerkleTree} from "../libraries/MerkleTree.sol";
 error InvalidAmount(uint256 amount, uint256 expectedAmount);
 error InvalidGovernanceMessageVerifier(address governanceMessagerVerifier, address expectedGovernanceMessageVerifier);
 error InvalidSentinelRegistration(bytes1 kind);
+error NotRegistrationManager();
 
 contract GovernanceStateReader is IGovernanceStateReader {
     bytes32 public constant GOVERNANCE_MESSAGE_STATE_SENTINELS = keccak256("GOVERNANCE_MESSAGE_STATE_SENTINELS");
+    bytes32 public constant GOVERNANCE_MESSAGE_STATE_SENTINELS_MERKLE_ROOT =
+        keccak256("GOVERNANCE_MESSAGE_STATE_SENTINELS_MERKLE_ROOT");
     bytes32 public constant GOVERNANCE_MESSAGE_STATE_GUARDIANS = keccak256("GOVERNANCE_MESSAGE_STATE_GUARDIANS");
 
     address public immutable epochsManager;
     address public immutable lendingManager;
     address public immutable registrationManager;
+
+    modifier onlyRegistrationManager() {
+        if (msg.sender != registrationManager) {
+            revert NotRegistrationManager();
+        }
+
+        _;
+    }
 
     constructor(address epochsManager_, address lendingManager_, address registrationManager_) {
         epochsManager = epochsManager_;
@@ -54,9 +65,9 @@ contract GovernanceStateReader is IGovernanceStateReader {
         //     data[i] = abi.encodePacked(guardians[i]);
         // }
 
-        bytes[] memory data = new bytes[](guardians.length);
+        bytes32[] memory data = new bytes32[](guardians.length);
         for (uint256 i = 0; i < guardians.length; i++) {
-            data[i] = abi.encodePacked(guardians[i]);
+            data[i] = keccak256(abi.encodePacked(guardians[i]));
         }
 
         emit GovernanceMessage(
@@ -128,15 +139,37 @@ contract GovernanceStateReader is IGovernanceStateReader {
             j++;
         }
 
-        bytes[] memory data = new bytes[](effectiveSentinels.length);
+        bytes32[] memory data = new bytes32[](effectiveSentinels.length);
         for (uint256 i = 0; i < effectiveSentinels.length; i++) {
-            data[i] = abi.encodePacked(effectiveSentinels[i]);
+            data[i] = keccak256(abi.encodePacked(effectiveSentinels[i]));
         }
 
         emit GovernanceMessage(
             abi.encode(
                 GOVERNANCE_MESSAGE_STATE_SENTINELS,
                 abi.encode(currentEpoch, effectiveSentinels.length, MerkleTree.getRoot(data))
+            )
+        );
+    }
+
+    /// @inheritdoc IGovernanceStateReader
+    function propagateSentinelsByRemovingTheLeafByProof(bytes32[] calldata proof) external onlyRegistrationManager {
+        uint16 currentEpoch = IEpochsManager(epochsManager).currentEpoch();
+
+        // TODO: If a sentinel is able to call PNetworkHub.slashByChallenge just to re-enable the sentinel
+        // before that the new merkle root is propagated on all chains we could
+        // have (on the PNetworkHub) the _epochsTotalNumberOfInactiveActors[epoch] = effectiveNumberOfActiveSentinels + 1
+        // and because of this, lockdown mode will be never triggered.
+        // we could force to decrement _epochsTotalNumberOfInactiveActors[epoch] when a new GOVERNANCE_MESSAGE_STATE_SENTINELS_MERKLE_ROOT message
+        // is received but if a sentinel does not call slashByChallenge we could enter in lock down mode even if there is an active sentinel/guardian
+
+        emit GovernanceMessage(
+            abi.encode(
+                GOVERNANCE_MESSAGE_STATE_SENTINELS_MERKLE_ROOT,
+                abi.encode(
+                    currentEpoch,
+                    MerkleTree.getRootByProofAndLeaf(keccak256(abi.encodePacked(address(0))), proof)
+                )
             )
         );
     }

@@ -10,14 +10,14 @@ contract MockGovernanceStateReader {
     event GovernanceMessage(bytes data);
 
     function propagateActors(uint16 epoch, address[] calldata sentinels, address[] calldata guardians) external {
-        bytes[] memory sentinelsData = new bytes[](sentinels.length);
+        bytes32[] memory sentinelsData = new bytes32[](sentinels.length);
         for (uint256 i = 0; i < sentinels.length; i++) {
-            sentinelsData[i] = abi.encodePacked(sentinels[i]);
+            sentinelsData[i] = keccak256(abi.encodePacked(sentinels[i]));
         }
 
-        bytes[] memory guardiansData = new bytes[](guardians.length);
+        bytes32[] memory guardiansData = new bytes32[](guardians.length);
         for (uint256 i = 0; i < guardians.length; i++) {
-            guardiansData[i] = abi.encodePacked(guardians[i]);
+            guardiansData[i] = keccak256(abi.encodePacked(guardians[i]));
         }
 
         emit GovernanceMessage(

@@ -58,6 +58,7 @@ error InvalidEpoch(uint16 epoch);
 contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard {
     bytes32 public constant GOVERNANCE_MESSAGE_STATE_GUARDIANS = keccak256("GOVERNANCE_MESSAGE_STATE_GUARDIANS");
     bytes32 public constant GOVERNANCE_MESSAGE_STATE_SENTINELS = keccak256("GOVERNANCE_MESSAGE_STATE_SENTINELS");
+    bytes32 public constant GOVERNANCE_MESSAGE_STATE_SENTINELS_MERKLE_ROOT = keccak256("GOVERNANCE_MESSAGE_STATE_SENTINELS_MERKLE_ROOT");
     uint256 public constant FEE_BASIS_POINTS_DIVISOR = 10000;
 
     mapping(bytes32 => Action) private _operationsRelayerQueueAction;
@@ -728,6 +729,19 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
 
             _epochsSentinelsMerkleRoot[epoch] = sentinelsMerkleRoot;
             _epochsTotalNumberOfSentinels[epoch] = totalNumberOfSentinels;
+
+            return;
+        }
+
+        // NOTE: used when a sentinel is slashed ad its amount at stake goes below 200k PNT.
+        // The new merkle root will not contain the address of the slashed sentinel
+        if (messageType == GOVERNANCE_MESSAGE_STATE_SENTINELS_MERKLE_ROOT) {
+            (uint16 epoch, bytes32 sentinelsMerkleRoot) = abi.decode(
+                messageData,
+                (uint16, bytes32)
+            );
+
+            _epochsSentinelsMerkleRoot[epoch] = sentinelsMerkleRoot;
 
             return;
         }
