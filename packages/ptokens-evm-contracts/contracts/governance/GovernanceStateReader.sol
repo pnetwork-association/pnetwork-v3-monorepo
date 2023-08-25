@@ -6,36 +6,38 @@ import {IRegistrationManager} from "@pnetwork-association/dao-v2-contracts/contr
 import {ILendingManager} from "@pnetwork-association/dao-v2-contracts/contracts/interfaces/ILendingManager.sol";
 import {IEpochsManager} from "@pnetwork-association/dao-v2-contracts/contracts/interfaces/IEpochsManager.sol";
 import {MerkleTree} from "../libraries/MerkleTree.sol";
+import "hardhat/console.sol";
 
 error InvalidAmount(uint256 amount, uint256 expectedAmount);
 error InvalidGovernanceMessageVerifier(address governanceMessagerVerifier, address expectedGovernanceMessageVerifier);
 error InvalidSentinelRegistration(bytes1 kind);
 
 contract GovernanceStateReader is IGovernanceStateReader {
-    address public constant LENDING_MANAGER = 0xa65e64ae3A3Ae4A7Ea11D7C2596De779C34dD6af;
-    address public constant REGISTRATION_MANAGER = 0xCcdbBC9Dea73673dF74E1EE4D5faC8c6Ce1930ef;
-    address public constant EPOCHS_MANAGER = 0xbA1067FB99Ad837F0e2895B57D1635Bdbefa789E;
-    bytes32 public constant GOVERNANCE_MESSAGE_STATE_ACTORS = keccak256("GOVERNANCE_MESSAGE_STATE_ACTORS");
+    bytes32 public constant GOVERNANCE_MESSAGE_STATE_SENTINELS = keccak256("GOVERNANCE_MESSAGE_STATE_SENTINELS");
+    bytes32 public constant GOVERNANCE_MESSAGE_STATE_GUARDIANS = keccak256("GOVERNANCE_MESSAGE_STATE_GUARDIANS");
+
+    address public immutable epochsManager;
+    address public immutable lendingManager;
+    address public immutable registrationManager;
+
+    constructor(address epochsManager_, address lendingManager_, address registrationManager_) {
+        epochsManager = epochsManager_;
+        lendingManager = lendingManager_;
+        registrationManager = registrationManager_;
+    }
 
     /// @inheritdoc IGovernanceStateReader
     function propagateActors(address[] calldata sentinels, address[] calldata guardians) external {
-        uint16 currentEpoch = IEpochsManager(EPOCHS_MANAGER).currentEpoch();
-        bytes32 sentinelsMerkleRoot = _getSentinelsMerkleRoot(sentinels);
-        bytes32 guardiansMerkleRoot = _getGuardiansMerkleRoot(guardians);
-
-        emit GovernanceMessage(
-            abi.encode(
-                GOVERNANCE_MESSAGE_STATE_ACTORS,
-                abi.encode(currentEpoch, sentinels.length, sentinelsMerkleRoot, guardians.length, guardiansMerkleRoot)
-            )
-        );
+        propagateSentinels(sentinels);
+        propagateGuardians(guardians);
     }
 
-    function _getGuardiansMerkleRoot(address[] calldata guardians) internal returns (bytes32) {
-        // uint16 totalNumberOfGuardians = IRegistrationManager(REGISTRATION_MANAGER).totalNumberOfGuardians();
+    function propagateGuardians(address[] calldata guardians) public {
+        uint16 currentEpoch = IEpochsManager(epochsManager).currentEpoch();
+        // uint16 totalNumberOfGuardians = IRegistrationManager(registrationManager).totalNumberOfGuardians();
         // uint16 numberOfValidGuardians;
         // for (uint16 index = 0; i < guardians; ) {
-        //     if (IRegistrationManager(REGISTRATION_MANAGER).isGuardian()) {
+        //     if (IRegistrationManager(registrationManager).isGuardian()) {
         //         unchecked {
         //             ++numberOfValidGuardians;
         //         }
@@ -51,31 +53,58 @@ contract GovernanceStateReader is IGovernanceStateReader {
         // for (uint256 i = 0; i < guardians.length; i++) {
         //     data[i] = abi.encodePacked(guardians[i]);
         // }
-        return bytes32(0);
+
+        bytes[] memory data = new bytes[](guardians.length);
+        for (uint256 i = 0; i < guardians.length; i++) {
+            data[i] = abi.encodePacked(guardians[i]);
+        }
+
+        emit GovernanceMessage(
+            abi.encode(
+                GOVERNANCE_MESSAGE_STATE_GUARDIANS,
+                abi.encode(currentEpoch, guardians.length, MerkleTree.getRoot(data))
+            )
+        );
     }
 
-    function _getSentinelsMerkleRoot(address[] calldata sentinels) internal returns (bytes32) {
-        // TODO: what does it happen in case of slashing?
-        uint16 currentEpoch = IEpochsManager(EPOCHS_MANAGER).currentEpoch();
-        uint32 totalBorrowedAmount = ILendingManager(LENDING_MANAGER).totalBorrowedAmountByEpoch(currentEpoch);
-        uint256 totalSentinelStakedAmount = IRegistrationManager(REGISTRATION_MANAGER).totalSentinelStakedAmountByEpoch(
+    function propagateSentinels(address[] calldata sentinels) public {
+        uint16 currentEpoch = IEpochsManager(epochsManager).currentEpoch();
+        uint32 totalBorrowedAmount = ILendingManager(lendingManager).totalBorrowedAmountByEpoch(currentEpoch);
+        uint256 totalSentinelStakedAmount = IRegistrationManager(registrationManager).totalSentinelStakedAmountByEpoch(
             currentEpoch
         );
         uint256 totalAmount = totalBorrowedAmount + totalSentinelStakedAmount;
 
         uint256 cumulativeAmount = 0;
+        uint256 invalidIndex = sentinels.length + 1;
+        uint256[] memory indexes = new uint256[](sentinels.length);
+        uint256 validSentinels;
+
+        // NOTE: be sure that totalSentinelStakedAmount + totalBorrowedAmount = cumulativeAmount.
+        // There could be also sentinels that has less than 200k PNT because of slashing.
+        // These sentinels will be filtered in the next step
         for (uint256 index; index < sentinels.length; ) {
-            IRegistrationManager.Registration memory registration = IRegistrationManager(REGISTRATION_MANAGER)
+            IRegistrationManager.Registration memory registration = IRegistrationManager(registrationManager)
                 .sentinelRegistration(sentinels[index]);
 
             bytes1 registrationKind = registration.kind;
             if (registrationKind == 0x01) {
-                cumulativeAmount += IRegistrationManager(REGISTRATION_MANAGER).sentinelStakedAmountByEpochOf(
+                uint256 amount = IRegistrationManager(registrationManager).sentinelStakedAmountByEpochOf(
                     sentinels[index],
                     currentEpoch
                 );
+                cumulativeAmount += amount;
+
+                if (amount >= 200000) {
+                    indexes[index] = index;
+                    validSentinels++;
+                } else {
+                    indexes[index] = invalidIndex;
+                }
             } else if (registrationKind == 0x02) {
-                cumulativeAmount += 200000; // NOTE: we use the truncated amount
+                cumulativeAmount += 200000;
+                indexes[index] = index;
+                validSentinels++;
             } else {
                 revert InvalidSentinelRegistration(registrationKind);
             }
@@ -89,11 +118,26 @@ contract GovernanceStateReader is IGovernanceStateReader {
             revert InvalidAmount(totalAmount, cumulativeAmount);
         }
 
-        bytes[] memory data = new bytes[](sentinels.length);
-        for (uint256 i = 0; i < sentinels.length; i++) {
-            data[i] = abi.encodePacked(sentinels[i]);
+        // NOTE: filter sentinels that have been slashed and has less than 200k PNT at stake
+        address[] memory effectiveSentinels = new address[](validSentinels);
+        uint256 j = 0;
+        for (uint256 i = 0; i < indexes.length; i++) {
+            if (indexes[i] == invalidIndex) continue;
+            effectiveSentinels[j] = sentinels[indexes[i]];
+            j++;
         }
 
-        return MerkleTree.getRoot(data);
+        bytes[] memory data = new bytes[](effectiveSentinels.length);
+        for (uint256 i = 0; i < effectiveSentinels.length; i++) {
+            console.log(effectiveSentinels[i]);
+            data[i] = abi.encodePacked(effectiveSentinels[i]);
+        }
+
+        emit GovernanceMessage(
+            abi.encode(
+                GOVERNANCE_MESSAGE_STATE_SENTINELS,
+                abi.encode(currentEpoch, effectiveSentinels.length, MerkleTree.getRoot(data))
+            )
+        );
     }
 }

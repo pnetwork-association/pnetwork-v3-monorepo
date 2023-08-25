@@ -56,7 +56,8 @@ error MaxChallengeDurationMustBeLessOrEqualThanMaxChallengePeriodDuration();
 error InvalidEpoch(uint16 epoch);
 
 contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard {
-    bytes32 public constant GOVERNANCE_MESSAGE_STATE_ACTORS = keccak256("GOVERNANCE_MESSAGE_STATE_ACTORS");
+    bytes32 public constant GOVERNANCE_MESSAGE_STATE_GUARDIANS = keccak256("GOVERNANCE_MESSAGE_STATE_GUARDIANS");
+    bytes32 public constant GOVERNANCE_MESSAGE_STATE_SENTINELS = keccak256("GOVERNANCE_MESSAGE_STATE_SENTINELS");
     uint256 public constant FEE_BASIS_POINTS_DIVISOR = 10000;
 
     mapping(bytes32 => Action) private _operationsRelayerQueueAction;
@@ -707,19 +708,26 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
         bytes memory decodedMessage = abi.decode(message, (bytes));
         (bytes32 messageType, bytes memory messageData) = abi.decode(decodedMessage, (bytes32, bytes));
 
-        if (messageType == GOVERNANCE_MESSAGE_STATE_ACTORS) {
-            (
-                uint16 epoch,
-                uint16 totalNumberOfSentinels,
-                bytes32 sentinelsMerkleRoot,
-                uint16 totalNumberOfGuardians,
-                bytes32 guardiansMerkleRoot
-            ) = abi.decode(messageData, (uint16, uint16, bytes32, uint16, bytes32));
+        if (messageType == GOVERNANCE_MESSAGE_STATE_GUARDIANS) {
+            (uint16 epoch, uint16 totalNumberOfGuardians, bytes32 guardiansMerkleRoot) = abi.decode(
+                messageData,
+                (uint16, uint16, bytes32)
+            );
+
+            _epochsGuardiansMerkleRoot[epoch] = guardiansMerkleRoot;
+            _epochsTotalNumberOfGuardians[epoch] = totalNumberOfGuardians;
+
+            return;
+        }
+
+        if (messageType == GOVERNANCE_MESSAGE_STATE_SENTINELS) {
+            (uint16 epoch, uint16 totalNumberOfSentinels, bytes32 sentinelsMerkleRoot) = abi.decode(
+                messageData,
+                (uint16, uint16, bytes32)
+            );
 
             _epochsSentinelsMerkleRoot[epoch] = sentinelsMerkleRoot;
-            _epochsGuardiansMerkleRoot[epoch] = guardiansMerkleRoot;
             _epochsTotalNumberOfSentinels[epoch] = totalNumberOfSentinels;
-            _epochsTotalNumberOfGuardians[epoch] = totalNumberOfGuardians;
 
             return;
         }

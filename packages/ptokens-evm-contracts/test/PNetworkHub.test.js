@@ -231,16 +231,27 @@ describe('PNetworkHub', () => {
       sentinels.map(({ address }) => address),
       guardians.map(({ address }) => address)
     )
+
     const receipt = await tx.wait(1)
-    const { data: message } = receipt.events.find(({ event }) => event === 'GovernanceMessage')
+    const messages = receipt.events
+      .filter(({ event }) => event === 'GovernanceMessage')
+      .map(({ data }) => data)
 
-    await hub
-      .connect(telepathyRouter)
-      .handleTelepathy(chainId, fakeGovernanceMessageVerifier.address, message)
+    await Promise.all(
+      messages.map(_message =>
+        hub
+          .connect(telepathyRouter)
+          .handleTelepathy(chainId, fakeGovernanceMessageVerifier.address, _message)
+      )
+    )
 
-    await hubInterim
-      .connect(telepathyRouter)
-      .handleTelepathy(chainId, fakeGovernanceMessageVerifier.address, message)
+    await Promise.all(
+      messages.map(_message =>
+        hubInterim
+          .connect(telepathyRouter)
+          .handleTelepathy(chainId, fakeGovernanceMessageVerifier.address, _message)
+      )
+    )
   })
 
   it('should be able to queue an operation', async () => {
@@ -1669,10 +1680,16 @@ describe('PNetworkHub', () => {
       guardians.map(({ address }) => address)
     )
     const receipt = await tx.wait(1)
-    const { data: message } = receipt.events.find(({ event }) => event === 'GovernanceMessage')
-    await hub
-      .connect(telepathyRouter)
-      .handleTelepathy(chainId, fakeGovernanceMessageVerifier.address, message)
+    const messages = receipt.events
+      .filter(({ event }) => event === 'GovernanceMessage')
+      .map(({ data }) => data)
+    await Promise.all(
+      messages.map(_message =>
+        hub
+          .connect(telepathyRouter)
+          .handleTelepathy(chainId, fakeGovernanceMessageVerifier.address, _message)
+      )
+    )
 
     const operation = await generateOperation()
     tx = hub
@@ -1695,10 +1712,16 @@ describe('PNetworkHub', () => {
       guardians.slice(1).map(({ address }) => address)
     )
     const receipt = await tx.wait(1)
-    const { data: message } = receipt.events.find(({ event }) => event === 'GovernanceMessage')
-    await hub
-      .connect(telepathyRouter)
-      .handleTelepathy(chainId, fakeGovernanceMessageVerifier.address, message)
+    const messages = receipt.events
+      .filter(({ event }) => event === 'GovernanceMessage')
+      .map(({ data }) => data)
+    await Promise.all(
+      messages.map(_message =>
+        hub
+          .connect(telepathyRouter)
+          .handleTelepathy(chainId, fakeGovernanceMessageVerifier.address, _message)
+      )
+    )
 
     let proof = getActorsMerkleProof(guardians, guardianNotRegistered)
     await expect(

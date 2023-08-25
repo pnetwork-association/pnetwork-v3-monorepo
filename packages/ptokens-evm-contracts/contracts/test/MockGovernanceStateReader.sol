@@ -4,7 +4,8 @@ pragma solidity ^0.8.19;
 import {MerkleTree} from "../libraries/MerkleTree.sol";
 
 contract MockGovernanceStateReader {
-    bytes32 public constant GOVERNANCE_MESSAGE_STATE_ACTORS = keccak256("GOVERNANCE_MESSAGE_STATE_ACTORS");
+    bytes32 public constant GOVERNANCE_MESSAGE_STATE_GUARDIANS = keccak256("GOVERNANCE_MESSAGE_STATE_GUARDIANS");
+    bytes32 public constant GOVERNANCE_MESSAGE_STATE_SENTINELS = keccak256("GOVERNANCE_MESSAGE_STATE_SENTINELS");
 
     event GovernanceMessage(bytes data);
 
@@ -21,14 +22,15 @@ contract MockGovernanceStateReader {
 
         emit GovernanceMessage(
             abi.encode(
-                GOVERNANCE_MESSAGE_STATE_ACTORS,
-                abi.encode(
-                    epoch,
-                    sentinels.length,
-                    MerkleTree.getRoot(sentinelsData),
-                    guardians.length,
-                    MerkleTree.getRoot(guardiansData)
-                )
+                GOVERNANCE_MESSAGE_STATE_SENTINELS,
+                abi.encode(epoch, sentinels.length, MerkleTree.getRoot(sentinelsData))
+            )
+        );
+
+        emit GovernanceMessage(
+            abi.encode(
+                GOVERNANCE_MESSAGE_STATE_GUARDIANS,
+                abi.encode(epoch, guardians.length, MerkleTree.getRoot(guardiansData))
             )
         );
     }
