@@ -31,6 +31,7 @@ contract GovernanceStateReader is IGovernanceStateReader {
         propagateGuardians(guardians);
     }
 
+    /// @inheritdoc IGovernanceStateReader
     function propagateGuardians(address[] calldata guardians) public {
         uint16 currentEpoch = IEpochsManager(epochsManager).currentEpoch();
         // uint16 totalNumberOfGuardians = IRegistrationManager(registrationManager).totalNumberOfGuardians();
@@ -66,6 +67,7 @@ contract GovernanceStateReader is IGovernanceStateReader {
         );
     }
 
+    /// @inheritdoc IGovernanceStateReader
     function propagateSentinels(address[] calldata sentinels) public {
         uint16 currentEpoch = IEpochsManager(epochsManager).currentEpoch();
         uint32 totalBorrowedAmount = ILendingManager(lendingManager).totalBorrowedAmountByEpoch(currentEpoch);
