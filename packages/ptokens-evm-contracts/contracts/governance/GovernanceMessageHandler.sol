@@ -25,7 +25,7 @@ abstract contract GovernanceMessageHandler is IGovernanceMessageHandler, Context
         if (msgSender != telepathyRouter) revert NotRouter(msgSender, telepathyRouter);
         // NOTE: we just need to check the address that called the telepathy router (GovernanceMessageVerifier)
         // and not who emitted the event on Polygon since it's the GovernanceMessageVerifier that verifies that
-        // a certain event has been emitted by the GovernanceStateReader
+        // a certain event has been emitted by the GovernanceMessagePropagator
         if (sourceChainId != allowedSourceChainId) {
             revert InvalidSourceChainId(sourceChainId, allowedSourceChainId);
         }

@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.19;
 
-import {IGovernanceStateReader} from "../interfaces/IGovernanceStateReader.sol";
+import {IGovernanceMessagePropagator} from "../interfaces/IGovernanceMessagePropagator.sol";
 import {IRegistrationManager} from "@pnetwork-association/dao-v2-contracts/contracts/interfaces/IRegistrationManager.sol";
 import {ILendingManager} from "@pnetwork-association/dao-v2-contracts/contracts/interfaces/ILendingManager.sol";
 import {IEpochsManager} from "@pnetwork-association/dao-v2-contracts/contracts/interfaces/IEpochsManager.sol";
@@ -12,7 +12,7 @@ error InvalidGovernanceMessageVerifier(address governanceMessagerVerifier, addre
 error InvalidSentinelRegistration(bytes1 kind);
 error NotRegistrationManager();
 
-contract GovernanceStateReader is IGovernanceStateReader {
+contract GovernanceMessagePropagator is IGovernanceMessagePropagator {
     bytes32 public constant GOVERNANCE_MESSAGE_STATE_SENTINELS = keccak256("GOVERNANCE_MESSAGE_STATE_SENTINELS");
     bytes32 public constant GOVERNANCE_MESSAGE_STATE_SENTINELS_MERKLE_ROOT =
         keccak256("GOVERNANCE_MESSAGE_STATE_SENTINELS_MERKLE_ROOT");
@@ -36,13 +36,13 @@ contract GovernanceStateReader is IGovernanceStateReader {
         registrationManager = registrationManager_;
     }
 
-    /// @inheritdoc IGovernanceStateReader
+    /// @inheritdoc IGovernanceMessagePropagator
     function propagateActors(address[] calldata sentinels, address[] calldata guardians) external {
         propagateSentinels(sentinels);
         propagateGuardians(guardians);
     }
 
-    /// @inheritdoc IGovernanceStateReader
+    /// @inheritdoc IGovernanceMessagePropagator
     function propagateGuardians(address[] calldata guardians) public {
         uint16 currentEpoch = IEpochsManager(epochsManager).currentEpoch();
         // uint16 totalNumberOfGuardians = IRegistrationManager(registrationManager).totalNumberOfGuardians();
@@ -78,7 +78,7 @@ contract GovernanceStateReader is IGovernanceStateReader {
         );
     }
 
-    /// @inheritdoc IGovernanceStateReader
+    /// @inheritdoc IGovernanceMessagePropagator
     function propagateSentinels(address[] calldata sentinels) public {
         uint16 currentEpoch = IEpochsManager(epochsManager).currentEpoch();
         uint32 totalBorrowedAmount = ILendingManager(lendingManager).totalBorrowedAmountByEpoch(currentEpoch);
@@ -152,16 +152,16 @@ contract GovernanceStateReader is IGovernanceStateReader {
         );
     }
 
-    /// @inheritdoc IGovernanceStateReader
+    /// @inheritdoc IGovernanceMessagePropagator
     function propagateSentinelsByRemovingTheLeafByProof(bytes32[] calldata proof) external onlyRegistrationManager {
         uint16 currentEpoch = IEpochsManager(epochsManager).currentEpoch();
 
-        // TODO: If a sentinel is able to call PNetworkHub.slashByChallenge just to re-enable the sentinel
+        // TODO: If a sentinel is able to call PNetworkHub.solveChallenge just to re-enable the sentinel
         // before that the new merkle root is propagated on all chains we could
         // have (on the PNetworkHub) the _epochsTotalNumberOfInactiveActors[epoch] = effectiveNumberOfActiveSentinels + 1
         // and because of this, lockdown mode will be never triggered.
         // we could force to decrement _epochsTotalNumberOfInactiveActors[epoch] when a new GOVERNANCE_MESSAGE_STATE_SENTINELS_MERKLE_ROOT message
-        // is received but if a sentinel does not call slashByChallenge we could enter in lock down mode even if there is an active sentinel/guardian
+        // is received but if a sentinel does not call solveChallenge we could enter in lock down mode even if there is an active sentinel/guardian
 
         emit GovernanceMessage(
             abi.encode(

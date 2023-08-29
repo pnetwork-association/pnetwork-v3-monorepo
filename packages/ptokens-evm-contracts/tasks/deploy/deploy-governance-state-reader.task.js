@@ -1,4 +1,4 @@
-task('deploy-governance-state-reader', 'Deploy a GovernanceStateReader contract').setAction(
+task('deploy-governance-state-reader', 'Deploy a GovernanceMessagePropagator contract').setAction(
   async _args => {
     await main(_args)
       // eslint-disable-next-line no-process-exit
@@ -13,12 +13,12 @@ task('deploy-governance-state-reader', 'Deploy a GovernanceStateReader contract'
 
 /* eslint-disable no-console */
 const main = async () => {
-  const GovernanceStateReader = await ethers.getContractFactory('GovernanceStateReader')
+  const GovernanceMessagePropagator = await ethers.getContractFactory('GovernanceMessagePropagator')
 
-  console.log('Deploying GovernanceStateReader ...')
-  const governanceStateReader = await GovernanceStateReader.deploy()
+  console.log('Deploying GovernanceMessagePropagator ...')
+  const governanceMessagePropagator = await GovernanceMessagePropagator.deploy()
 
   console.log({
-    governanceStateReader: governanceStateReader.address,
+    governanceMessagePropagator: governanceMessagePropagator.address,
   })
 }

@@ -43,7 +43,7 @@ const stateManagerErrors = [
   'error InvalidNetwork(bytes4 networkId)',
   'error NotContract(address addr)',
   'error LockDown()',
-  'error InvalidGovernanceStateReader(address expectedGovernanceStateReader, address governanceStateReader)',
+  'error InvalidGovernanceStateReader(address expectedGovernanceMessagePropagator, address governanceMessagePropagator)',
   'error InvalidTopic(bytes32 expectedTopic, bytes32 topic)',
   'error InvalidReceiptsRootMerkleProof()',
   'error InvalidRootHashMerkleProof()',

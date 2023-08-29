@@ -3,13 +3,13 @@
 pragma solidity ^0.8.19;
 
 /**
- * @title IGovernanceStateReader
+ * @title IGovernanceMessagePropagator
  * @author pNetwork
  *
  * @notice
  */
 
-interface IGovernanceStateReader {
+interface IGovernanceMessagePropagator {
     /**
      * @dev Emitted when a governance message must be propagated on the other chains
      *
