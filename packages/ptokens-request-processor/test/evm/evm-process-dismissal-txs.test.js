@@ -84,7 +84,7 @@ describe('Tests for queued requests detection and dismissal', () => {
       } = require('../../lib/evm/evm-process-dismissal-txs')
       const state = {
         [constants.state.KEY_LOOP_SLEEP_TIME]: 1,
-        [constants.state.KEY_NETWORK_ID]: '0xe15503e4',
+        [constants.state.KEY_NETWORK_ID]: '0xf9b459a1',
         [constants.state.KEY_DB]: collection,
         [constants.state.KEY_IDENTITY_FILE]: 'identity-file',
       }
@@ -101,12 +101,10 @@ describe('Tests for queued requests detection and dismissal', () => {
         [constants.db.KEY_STATUS]: constants.db.txStatus.CANCELLED,
       })
 
-      expect(mockOperationStatusOf).toHaveBeenCalledTimes(4)
-      expect(mockCancelOperation).toHaveBeenCalledTimes(3)
+      expect(mockOperationStatusOf).toHaveBeenCalledTimes(2)
+      expect(mockCancelOperation).toHaveBeenCalledTimes(1)
       expect(cancelledReports.map(R.prop(constants.db.KEY_ID))).toStrictEqual([
-        queuedReports[0][constants.db.KEY_ID],
         queuedReports[1][constants.db.KEY_ID],
-        queuedReports[2][constants.db.KEY_ID],
       ])
       expect(result).toHaveProperty(constants.state.KEY_DB)
       expect(result).not.toHaveProperty(STATE_ONCHAIN_REQUESTS)
@@ -121,7 +119,7 @@ describe('Tests for queued requests detection and dismissal', () => {
         [constants.db.KEY_STATUS]: constants.db.txStatus.CANCELLED,
       })
 
-      expect(cancelledEvents).toHaveLength(3)
+      expect(cancelledEvents).toHaveLength(1)
     })
   })
 })

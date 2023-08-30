@@ -26,7 +26,11 @@
     "proposedTransactionTimestamp": "2023-04-04T14:00:27.118Z",
     "assetTokenAddress": "0x49a5D1CF92772328Ad70f51894FD632a14dF12C9",
     "userData": "0x",
-    "witnessedTimestamp": "2023-03-14T16:00:00.000Z"
+    "witnessedTimestamp": "2023-03-14T16:00:00.000Z",
+    "forwardDestinationNetworkId": "0xfc8ebb2b",
+    "protocolFeeAssetAmount": "0",
+    "networkFeeAssetAmount": "0",
+    "forwardNetworkFeeAssetAmount": "0"
   },
   {
     "_id": "useroperation_0x62be3b1256761376f7ad4bbedd59b853a734e01b77520e6bc7d27efc10758864",
@@ -55,7 +59,11 @@
     "proposedTransactionTimestamp": "2023-04-04T13:15:27.333Z",
     "assetTokenAddress": "0x49a5D1CF92772328Ad70f51894FD632a14dF12C9",
     "userData": "0x",
-    "witnessedTimestamp": "2023-03-14T16:00:00.000Z"
+    "witnessedTimestamp": "2023-03-14T16:00:00.000Z",
+    "forwardDestinationNetworkId": "0xfc8ebb2b",
+    "protocolFeeAssetAmount": "0",
+    "networkFeeAssetAmount": "0",
+    "forwardNetworkFeeAssetAmount": "0"
   },
   {
     "_id": "useroperation_0xb3b4f34d53bcc3cb942d2582b740189e4027dbb7bd5c92757f8452f448c2bbb9",
@@ -84,7 +92,11 @@
     "proposedTransactionTimestamp": "2023-04-04T13:16:37.894Z",
     "assetTokenAddress": "0x49a5D1CF92772328Ad70f51894FD632a14dF12C9",
     "userData": "0x",
-    "witnessedTimestamp": "2023-03-14T16:00:00.000Z"
+    "witnessedTimestamp": "2023-03-14T16:00:00.000Z",
+    "forwardDestinationNetworkId": "0xfc8ebb2b",
+    "protocolFeeAssetAmount": "0",
+    "networkFeeAssetAmount": "0",
+    "forwardNetworkFeeAssetAmount": "0"
   },
   {
     "_id": "useroperation_0x7794b69ee042872159e5c4810addb698e4032ed6f4a3e1bdb94e38021d2f5146",
@@ -113,7 +125,11 @@
     "proposedTransactionTimestamp": "2023-04-04T13:17:28.038Z",
     "assetTokenAddress": "0x49a5D1CF92772328Ad70f51894FD632a14dF12C9",
     "userData": "0x",
-    "witnessedTimestamp": "2023-03-14T16:00:00.000Z"
+    "witnessedTimestamp": "2023-03-14T16:00:00.000Z",
+    "forwardDestinationNetworkId": "0xfc8ebb2b",
+    "protocolFeeAssetAmount": "0",
+    "networkFeeAssetAmount": "0",
+    "forwardNetworkFeeAssetAmount": "0"
   },
   {
     "_id": "useroperation_0xcf021d05f8a70b96146067ba8f21cf26d00ad28fd7dc72fda247b4b87144459a",
@@ -142,6 +158,10 @@
     "proposedTransactionTimestamp": "2023-04-04T13:18:04.630Z",
     "assetTokenAddress": "0x49a5D1CF92772328Ad70f51894FD632a14dF12C9",
     "userData": "0x",
-    "witnessedTimestamp": "2023-03-14T16:00:00.000Z"
+    "witnessedTimestamp": "2023-03-14T16:00:00.000Z",
+    "forwardDestinationNetworkId": "0xfc8ebb2b",
+    "protocolFeeAssetAmount": "0",
+    "networkFeeAssetAmount": "0",
+    "forwardNetworkFeeAssetAmount": "0"
   }
 ]

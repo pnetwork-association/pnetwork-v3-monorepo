@@ -27,29 +27,17 @@ describe('Build dismissal test for EVM', () => {
       jest.spyOn(ethers, 'Wallet').mockImplementation(_ => jest.fn())
       jest.spyOn(ethers, 'Contract').mockImplementation(_ => jest.fn())
 
-      const cancelTxHashes = [
-        '0xd656ffac17b71e2ea2e24f72cd4c15c909a0ebe1696f8ead388eb268268f1cbf',
-        '0x2c7e8870be7643d97699bbcf3396dfb13217ee54a6784abfcacdb1e077fe201f',
-      ]
-
-      const expectedCallResult = [
-        {
-          [constants.evm.ethers.KEY_TX_HASH]: cancelTxHashes[0],
-        },
-        {
-          [constants.evm.ethers.KEY_TX_HASH]: cancelTxHashes[1],
-        },
-      ]
-
       const callContractFunctionModule = require('../../lib/evm/evm-call-contract-function')
 
       const callContractFunctionAndAwaitSpy = jest
         .spyOn(callContractFunctionModule, 'callContractFunctionAndAwait')
-        .mockResolvedValueOnce(expectedCallResult[0])
-        .mockResolvedValueOnce(expectedCallResult[1])
+        .mockResolvedValueOnce({
+          [constants.evm.ethers.KEY_TX_HASH]:
+            '0xd656ffac17b71e2ea2e24f72cd4c15c909a0ebe1696f8ead388eb268268f1cbf',
+        })
 
       const txTimeout = 1000
-      const destinationNetworkId = '0xe15503e4'
+      const destinationNetworkId = '0xf9b459a1'
       const providerUrl = 'http://localhost:8545'
       const hubAddress = '0xC8E4270a6EF24B67eD38046318Fc8FC2d312f73C'
 
@@ -59,7 +47,7 @@ describe('Build dismissal test for EVM', () => {
         [constants.state.KEY_NETWORK_ID]: destinationNetworkId,
         [constants.state.KEY_IDENTITY_FILE]: gpgEncryptedFile,
         [constants.state.KEY_HUB_ADDRESS]: hubAddress,
-        [STATE_TO_BE_DISMISSED_REQUESTS]: [queuedReports[0], queuedReports[1]],
+        [STATE_TO_BE_DISMISSED_REQUESTS]: [queuedReports[1]],
       }
 
       const {
@@ -68,25 +56,29 @@ describe('Build dismissal test for EVM', () => {
 
       const result = await maybeBuildDismissalTxsAndPutInState(state)
 
-      expect(callContractFunctionAndAwaitSpy).toHaveBeenCalledTimes(2)
+      expect(callContractFunctionAndAwaitSpy).toHaveBeenCalledTimes(1)
       expect(callContractFunctionAndAwaitSpy).toHaveBeenNthCalledWith(
         1,
         'protocolGuardianCancelOperation',
         [
           [
-            '0xbaa9e89896c03366c3578a4568a6defd4b127e4b09bb06b67a12cb1a4c332376',
-            '0x0907eefad58dfcb2cbfad66d29accd4d6ddc345851ec1d180b23122084fa2839',
+            '0x2c3f80c427a454df34e9f7b4684cd0767ebe7672db167151369af3f49b9326c4',
+            '0x2d300f8aeed6cee69f50dde84d0a6e991d0836b2a1a3b3a6737b3ae3493f710f',
             '0x0000000000000000000000000000000000000000000000000000000000000000',
-            '6648',
-            18,
-            '1000000000000000000',
-            '0x49a5D1CF92772328Ad70f51894FD632a14dF12C9',
-            '0xe15503e4',
-            '0xe15503e4',
-            '0xe15503e4',
-            '0xdDb5f4535123DAa5aE343c24006F4075aBAF5F7B',
-            'Token',
-            'TKN',
+            '85671',
+            6,
+            '1455000000000000',
+            '0',
+            '0',
+            '0',
+            '0xDDAfbb505ad214D7b80b1f830fcCc89B60fb7A83',
+            '0xd41b1c5b',
+            '0xf9b459a1',
+            '0xfc8ebb2b',
+            '0xd41b1c5b',
+            '0xdDb5f4535123DAa5aE343c24006F4075aBAF5F7A',
+            'USD//C on xDai',
+            'USDC',
             '0x',
           ],
           emptyProof,
@@ -94,31 +86,7 @@ describe('Build dismissal test for EVM', () => {
         expect.anything(),
         1000
       )
-      expect(callContractFunctionAndAwaitSpy).toHaveBeenNthCalledWith(
-        2,
-        'protocolGuardianCancelOperation',
-        [
-          [
-            '0xbaa9e89896c03366c3578a4568a6defd4b127e4b09bb06b67a12cb1a4c332376',
-            '0x0907eefad58dfcb2cbfad66d29accd4d6ddc345851ec1d180b23122084fa2840',
-            '0x0000000000000000000000000000000000000000000000000000000000000000',
-            '6648',
-            18,
-            '1000000000000000000',
-            '0x49a5D1CF92772328Ad70f51894FD632a14dF12C9',
-            '0xe15503e4',
-            '0xe15503e4',
-            '0xe15503e4',
-            '0xdDb5f4535123DAa5aE343c24006F4075aBAF5F7B',
-            'Token',
-            'TKN',
-            '0x',
-          ],
-          emptyProof,
-        ],
-        expect.anything(),
-        1000
-      )
+
       expect(result).toHaveProperty(STATE_TO_BE_DISMISSED_REQUESTS)
       expect(result).toHaveProperty(STATE_DISMISSED_DB_REPORTS)
       expect(result).toHaveProperty(constants.state.KEY_NETWORK_ID)
@@ -126,22 +94,13 @@ describe('Build dismissal test for EVM', () => {
       expect(result).toHaveProperty(constants.state.KEY_IDENTITY_FILE)
       expect(result).toHaveProperty(constants.state.KEY_HUB_ADDRESS)
       expect(result).toHaveProperty(constants.state.KEY_TX_TIMEOUT)
-      expect(result[STATE_DISMISSED_DB_REPORTS]).toHaveLength(2)
-
+      expect(result[STATE_DISMISSED_DB_REPORTS]).toHaveLength(1)
       expect(result[STATE_DISMISSED_DB_REPORTS][0]).toEqual(
-        expect.objectContaining({
-          [constants.db.KEY_ID]: queuedReports[0][constants.db.KEY_ID],
-          [constants.db.KEY_STATUS]: constants.db.txStatus.CANCELLED,
-          [constants.db.KEY_FINAL_TX_HASH]: cancelTxHashes[0],
-          [constants.db.KEY_FINAL_TX_TS]: expect.any(String),
-        })
-      )
-
-      expect(result[STATE_DISMISSED_DB_REPORTS][1]).toEqual(
         expect.objectContaining({
           [constants.db.KEY_ID]: queuedReports[1][constants.db.KEY_ID],
           [constants.db.KEY_STATUS]: constants.db.txStatus.CANCELLED,
-          [constants.db.KEY_FINAL_TX_HASH]: cancelTxHashes[1],
+          [constants.db.KEY_FINAL_TX_HASH]:
+            '0xd656ffac17b71e2ea2e24f72cd4c15c909a0ebe1696f8ead388eb268268f1cbf',
           [constants.db.KEY_FINAL_TX_TS]: expect.any(String),
         })
       )
@@ -161,7 +120,174 @@ describe('Build dismissal test for EVM', () => {
       const callContractFunctionAndAwaitSpy = jest
         .spyOn(callContractFunctionModule, 'callContractFunctionAndAwait')
         .mockRejectedValueOnce(new Error(pTokensUtils.errors.ERROR_TIMEOUT))
+
+      const txTimeout = 1000
+      const destinationNetworkId = '0xe15503e4'
+      const providerUrl = 'http://localhost:8545'
+      const hubAddress = '0xC8E4270a6EF24B67eD38046318Fc8FC2d312f73C'
+
+      const state = {
+        [constants.state.KEY_TX_TIMEOUT]: txTimeout,
+        [constants.state.KEY_PROVIDER_URL]: providerUrl,
+        [constants.state.KEY_NETWORK_ID]: destinationNetworkId,
+        [constants.state.KEY_IDENTITY_FILE]: gpgEncryptedFile,
+        [constants.state.KEY_HUB_ADDRESS]: hubAddress,
+        [STATE_TO_BE_DISMISSED_REQUESTS]: [queuedReports[0]],
+      }
+
+      const {
+        maybeBuildDismissalTxsAndPutInState,
+      } = require('../../lib/evm/evm-build-dismissal-txs')
+
+      const result = await maybeBuildDismissalTxsAndPutInState(state)
+
+      expect(callContractFunctionAndAwaitSpy).toHaveBeenCalledTimes(1)
+      expect(callContractFunctionAndAwaitSpy).toHaveBeenNthCalledWith(
+        1,
+        'protocolGuardianCancelOperation',
+        [
+          [
+            '0x2c3f80c427a454df34e9f7b4684cd0767ebe7672db167151369af3f49b9326c4',
+            '0x2d300f8aeed6cee69f50dde84d0a6e991d0836b2a1a3b3a6737b3ae3493f710f',
+            '0x0000000000000000000000000000000000000000000000000000000000000000',
+            '85671',
+            6,
+            '1455000000000000',
+            '0',
+            '0',
+            '0',
+            '0xDDAfbb505ad214D7b80b1f830fcCc89B60fb7A83',
+            '0xd41b1c5b',
+            '0xf9b459a1',
+            '0xfc8ebb2b',
+            '0xd41b1c5b',
+            '0xdDb5f4535123DAa5aE343c24006F4075aBAF5F7B',
+            'USD//C on xDai',
+            'USDC',
+            '0x',
+          ],
+          emptyProof,
+        ],
+        expect.anything(),
+        1000
+      )
+      expect(result).toHaveProperty(STATE_TO_BE_DISMISSED_REQUESTS)
+      expect(result).toHaveProperty(STATE_DISMISSED_DB_REPORTS)
+      expect(result).toHaveProperty(constants.state.KEY_NETWORK_ID)
+      expect(result).toHaveProperty(constants.state.KEY_PROVIDER_URL)
+      expect(result).toHaveProperty(constants.state.KEY_IDENTITY_FILE)
+      expect(result).toHaveProperty(constants.state.KEY_HUB_ADDRESS)
+      expect(result).toHaveProperty(constants.state.KEY_TX_TIMEOUT)
+      expect(result[STATE_TO_BE_DISMISSED_REQUESTS]).toHaveLength(1)
+      expect(result[STATE_DISMISSED_DB_REPORTS]).toHaveLength(1)
+      expect(result[STATE_DISMISSED_DB_REPORTS][0]).toEqual(
+        expect.objectContaining({
+          [constants.db.KEY_ID]: queuedReports[0][constants.db.KEY_ID],
+          [constants.db.KEY_STATUS]: constants.db.txStatus.FAILED,
+          [constants.db.KEY_FINAL_TX_HASH]: null,
+          [constants.db.KEY_FINAL_TX_TS]: expect.any(String),
+          [constants.db.KEY_ERROR]: 'Error: Timeout',
+        })
+      )
+    })
+
+    it('Should build the dismissal and handle not-queued error', async () => {
+      const ethers = require('ethers')
+      const fs = require('fs/promises')
+
+      jest.spyOn(fs, 'readFile').mockResolvedValue(privKey)
+      jest.spyOn(ethers, 'JsonRpcProvider').mockResolvedValue({})
+      jest.spyOn(ethers, 'Wallet').mockImplementation(_ => jest.fn())
+      jest.spyOn(ethers, 'Contract').mockImplementation(_ => jest.fn())
+
+      const callContractFunctionModule = require('../../lib/evm/evm-call-contract-function')
+
+      const callContractFunctionAndAwaitSpy = jest
+        .spyOn(callContractFunctionModule, 'callContractFunctionAndAwait')
         .mockRejectedValueOnce(new Error(errors.ERROR_OPERATION_NOT_QUEUED)) // this report will go through
+
+      const txTimeout = 1000
+      const destinationNetworkId = '0xe15503e4'
+      const providerUrl = 'http://localhost:8545'
+      const hubAddress = '0xC8E4270a6EF24B67eD38046318Fc8FC2d312f73C'
+
+      const state = {
+        [constants.state.KEY_TX_TIMEOUT]: txTimeout,
+        [constants.state.KEY_PROVIDER_URL]: providerUrl,
+        [constants.state.KEY_NETWORK_ID]: destinationNetworkId,
+        [constants.state.KEY_IDENTITY_FILE]: gpgEncryptedFile,
+        [constants.state.KEY_HUB_ADDRESS]: hubAddress,
+        [STATE_TO_BE_DISMISSED_REQUESTS]: [queuedReports[0]],
+      }
+
+      const {
+        maybeBuildDismissalTxsAndPutInState,
+      } = require('../../lib/evm/evm-build-dismissal-txs')
+
+      const result = await maybeBuildDismissalTxsAndPutInState(state)
+
+      expect(callContractFunctionAndAwaitSpy).toHaveBeenCalledTimes(1)
+      expect(callContractFunctionAndAwaitSpy).toHaveBeenNthCalledWith(
+        1,
+        'protocolGuardianCancelOperation',
+        [
+          [
+            '0x2c3f80c427a454df34e9f7b4684cd0767ebe7672db167151369af3f49b9326c4',
+            '0x2d300f8aeed6cee69f50dde84d0a6e991d0836b2a1a3b3a6737b3ae3493f710f',
+            '0x0000000000000000000000000000000000000000000000000000000000000000',
+            '85671',
+            6,
+            '1455000000000000',
+            '0',
+            '0',
+            '0',
+            '0xDDAfbb505ad214D7b80b1f830fcCc89B60fb7A83',
+            '0xd41b1c5b',
+            '0xf9b459a1',
+            '0xfc8ebb2b',
+            '0xd41b1c5b',
+            '0xdDb5f4535123DAa5aE343c24006F4075aBAF5F7B',
+            'USD//C on xDai',
+            'USDC',
+            '0x',
+          ],
+          emptyProof,
+        ],
+        expect.anything(),
+        1000
+      )
+      expect(result).toHaveProperty(STATE_TO_BE_DISMISSED_REQUESTS)
+      expect(result).toHaveProperty(STATE_DISMISSED_DB_REPORTS)
+      expect(result).toHaveProperty(constants.state.KEY_NETWORK_ID)
+      expect(result).toHaveProperty(constants.state.KEY_PROVIDER_URL)
+      expect(result).toHaveProperty(constants.state.KEY_IDENTITY_FILE)
+      expect(result).toHaveProperty(constants.state.KEY_HUB_ADDRESS)
+      expect(result).toHaveProperty(constants.state.KEY_TX_TIMEOUT)
+      expect(result[STATE_TO_BE_DISMISSED_REQUESTS]).toHaveLength(1)
+      expect(result[STATE_DISMISSED_DB_REPORTS]).toHaveLength(1)
+      expect(result[STATE_DISMISSED_DB_REPORTS][0]).toEqual(
+        expect.objectContaining({
+          [constants.db.KEY_ID]: queuedReports[0][constants.db.KEY_ID],
+          [constants.db.KEY_STATUS]: constants.db.txStatus.CANCELLED,
+          [constants.db.KEY_FINAL_TX_HASH]: '0x',
+          [constants.db.KEY_FINAL_TX_TS]: expect.any(String),
+        })
+      )
+    })
+
+    it('Should build the dismissal and handle underpriced replacement error', async () => {
+      const ethers = require('ethers')
+      const fs = require('fs/promises')
+
+      jest.spyOn(fs, 'readFile').mockResolvedValue(privKey)
+      jest.spyOn(ethers, 'JsonRpcProvider').mockResolvedValue({})
+      jest.spyOn(ethers, 'Wallet').mockImplementation(_ => jest.fn())
+      jest.spyOn(ethers, 'Contract').mockImplementation(_ => jest.fn())
+
+      const callContractFunctionModule = require('../../lib/evm/evm-call-contract-function')
+
+      const callContractFunctionAndAwaitSpy = jest
+        .spyOn(callContractFunctionModule, 'callContractFunctionAndAwait')
         .mockRejectedValueOnce(new Error(errors.ERROR_REPLACEMENT_UNDERPRICED))
         .mockRejectedValueOnce(new Error('Generic Error'))
 
@@ -176,12 +302,7 @@ describe('Build dismissal test for EVM', () => {
         [constants.state.KEY_NETWORK_ID]: destinationNetworkId,
         [constants.state.KEY_IDENTITY_FILE]: gpgEncryptedFile,
         [constants.state.KEY_HUB_ADDRESS]: hubAddress,
-        [STATE_TO_BE_DISMISSED_REQUESTS]: [
-          queuedReports[0],
-          queuedReports[1],
-          queuedReports[2],
-          queuedReports[3],
-        ],
+        [STATE_TO_BE_DISMISSED_REQUESTS]: [queuedReports[0]],
       }
 
       const {
@@ -190,101 +311,30 @@ describe('Build dismissal test for EVM', () => {
 
       const result = await maybeBuildDismissalTxsAndPutInState(state)
 
-      expect(callContractFunctionAndAwaitSpy).toHaveBeenCalledTimes(4)
+      expect(callContractFunctionAndAwaitSpy).toHaveBeenCalledTimes(1)
       expect(callContractFunctionAndAwaitSpy).toHaveBeenNthCalledWith(
         1,
         'protocolGuardianCancelOperation',
         [
           [
-            '0xbaa9e89896c03366c3578a4568a6defd4b127e4b09bb06b67a12cb1a4c332376',
-            '0x0907eefad58dfcb2cbfad66d29accd4d6ddc345851ec1d180b23122084fa2839',
+            '0x2c3f80c427a454df34e9f7b4684cd0767ebe7672db167151369af3f49b9326c4',
+            '0x2d300f8aeed6cee69f50dde84d0a6e991d0836b2a1a3b3a6737b3ae3493f710f',
             '0x0000000000000000000000000000000000000000000000000000000000000000',
-            '6648',
-            18,
-            '1000000000000000000',
-            '0x49a5D1CF92772328Ad70f51894FD632a14dF12C9',
-            '0xe15503e4',
-            '0xe15503e4',
-            '0xe15503e4',
+            '85671',
+            6,
+            '1455000000000000',
+            '0',
+            '0',
+            '0',
+            '0xDDAfbb505ad214D7b80b1f830fcCc89B60fb7A83',
+            '0xd41b1c5b',
+            '0xf9b459a1',
+            '0xfc8ebb2b',
+            '0xd41b1c5b',
             '0xdDb5f4535123DAa5aE343c24006F4075aBAF5F7B',
-            'Token',
-            'TKN',
+            'USD//C on xDai',
+            'USDC',
             '0x',
-          ],
-          emptyProof,
-        ],
-        expect.anything(),
-        1000
-      )
-      expect(callContractFunctionAndAwaitSpy).toHaveBeenNthCalledWith(
-        2,
-        'protocolGuardianCancelOperation',
-        [
-          [
-            '0xbaa9e89896c03366c3578a4568a6defd4b127e4b09bb06b67a12cb1a4c332376',
-            '0x0907eefad58dfcb2cbfad66d29accd4d6ddc345851ec1d180b23122084fa2840',
-            '0x0000000000000000000000000000000000000000000000000000000000000000',
-            '6648',
-            18,
-            '1000000000000000000',
-            '0x49a5D1CF92772328Ad70f51894FD632a14dF12C9',
-            '0xe15503e4',
-            '0xe15503e4',
-            '0xe15503e4',
-            '0xdDb5f4535123DAa5aE343c24006F4075aBAF5F7B',
-            'Token',
-            'TKN',
-            '0x',
-          ],
-          emptyProof,
-        ],
-        expect.anything(),
-        1000
-      )
-      expect(callContractFunctionAndAwaitSpy).toHaveBeenNthCalledWith(
-        3,
-        'protocolGuardianCancelOperation',
-        [
-          [
-            '0xbaa9e89896c03366c3578a4568a6defd4b127e4b09bb06b67a12cb1a4c332376',
-            '0x0907eefad58dfcb2cbfad66d29accd4d6ddc345851ec1d180b23122084fa2820',
-            '0x0000000000000000000000000000000000000000000000000000000000000000',
-            '6648',
-            18,
-            '1000000000000000000',
-            '0x49a5D1CF92772328Ad70f51894FD632a14dF12C9',
-            '0xe15503e4',
-            '0xe15503e4',
-            '0xe15503e4',
-            '0xdDb5f4535123DAa5aE343c24006F4075aBAF5F7B',
-            'Token',
-            'TKN',
-            '0x',
-          ],
-          emptyProof,
-        ],
-        expect.anything(),
-        1000
-      )
-      expect(callContractFunctionAndAwaitSpy).toHaveBeenNthCalledWith(
-        4,
-        'protocolGuardianCancelOperation',
-        [
-          [
-            '0xf085786d855e220305a67f95653bd9345956b211095b7403e54da1b40699cb86',
-            '0x8ac05c2472b3a507f042557ee2c137d112a26d188fb267566b53c28975322452',
-            '0x0000000000000000000000000000000000000000000000000000000000000000',
-            '6911',
-            18,
-            '7000000000000000000',
-            '0x49a5D1CF92772328Ad70f51894FD632a14dF12C9',
-            '0xe15503e4',
-            '0xe15503e4',
-            '0xe15503e4',
-            '0xdDb5f4535123DAa5aE343c24006F4075aBAF5F7B',
-            'Token',
-            'TKN',
-            '0xc0ffee',
           ],
           emptyProof,
         ],
@@ -298,14 +348,15 @@ describe('Build dismissal test for EVM', () => {
       expect(result).toHaveProperty(constants.state.KEY_IDENTITY_FILE)
       expect(result).toHaveProperty(constants.state.KEY_HUB_ADDRESS)
       expect(result).toHaveProperty(constants.state.KEY_TX_TIMEOUT)
-      expect(result[STATE_TO_BE_DISMISSED_REQUESTS]).toHaveLength(4)
-      expect(result[STATE_DISMISSED_DB_REPORTS]).toHaveLength(4)
-      expect(result[STATE_DISMISSED_DB_REPORTS][1]).toEqual(
+      expect(result[STATE_TO_BE_DISMISSED_REQUESTS]).toHaveLength(1)
+      expect(result[STATE_DISMISSED_DB_REPORTS]).toHaveLength(1)
+      expect(result[STATE_DISMISSED_DB_REPORTS][0]).toEqual(
         expect.objectContaining({
-          [constants.db.KEY_ID]: queuedReports[1][constants.db.KEY_ID],
-          [constants.db.KEY_STATUS]: constants.db.txStatus.CANCELLED,
-          [constants.db.KEY_FINAL_TX_HASH]: '0x',
+          [constants.db.KEY_ID]: queuedReports[0][constants.db.KEY_ID],
+          [constants.db.KEY_STATUS]: constants.db.txStatus.FAILED,
+          [constants.db.KEY_FINAL_TX_HASH]: null,
           [constants.db.KEY_FINAL_TX_TS]: expect.any(String),
+          [constants.db.KEY_ERROR]: 'Error: replacement transaction underpriced',
         })
       )
     })

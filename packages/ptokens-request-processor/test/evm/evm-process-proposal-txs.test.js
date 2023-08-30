@@ -23,13 +23,8 @@ describe('Main EVM flow for transaction proposal tests', () => {
     })
 
     beforeEach(async () => {
+      await collection.deleteMany({})
       await collection.insertMany(detectedEvents)
-    })
-
-    afterEach(async () => {
-      await Promise.all(detectedEvents.map(R.prop('_id'))).then(_ids =>
-        Promise.all(_ids.map(db.deleteReport(collection)))
-      )
     })
 
     afterAll(async () => {
@@ -80,7 +75,7 @@ describe('Main EVM flow for transaction proposal tests', () => {
         [constants.state.KEY_DB]: collection,
         [constants.state.KEY_LOOP_SLEEP_TIME]: 1,
         [constants.state.KEY_IDENTITY_FILE]: gpgEncryptedFile,
-        [constants.state.KEY_NETWORK_ID]: '0xe15503e4',
+        [constants.state.KEY_NETWORK_ID]: '0xf9b459a1',
       }
       const {
         maybeProcessNewRequestsAndPropose,
@@ -98,7 +93,7 @@ describe('Main EVM flow for transaction proposal tests', () => {
         [constants.db.KEY_STATUS]: constants.db.txStatus.PROPOSED,
       })
 
-      expect(proposedEvents).toHaveLength(2)
+      expect(proposedEvents).toHaveLength(1)
     })
   })
 })

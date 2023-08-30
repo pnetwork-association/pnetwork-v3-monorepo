@@ -1,4 +1,3 @@
-const R = require('ramda')
 const { db } = require('ptokens-utils')
 const constants = require('ptokens-constants')
 
@@ -17,13 +16,8 @@ describe('General events report update tests', () => {
   })
 
   beforeEach(async () => {
+    await collection.deleteMany({})
     await collection.insertMany(detectedEvents)
-  })
-
-  afterEach(async () => {
-    await Promise.all(detectedEvents.map(R.prop('_id'))).then(_ids =>
-      Promise.all(_ids.map(db.deleteReport(collection)))
-    )
   })
 
   afterAll(async () => {

@@ -45,9 +45,13 @@ describe('General final txs testing', () => {
         '6648',
         18,
         '1000000000000000000',
+        '0',
+        '0',
+        '0',
         '0x49a5D1CF92772328Ad70f51894FD632a14dF12C9',
         '0xe15503e4',
         '0xe15503e4',
+        '0xfc8ebb2b',
         '0xe15503e4',
         '0xdDb5f4535123DAa5aE343c24006F4075aBAF5F7B',
         'Token',
@@ -72,9 +76,11 @@ describe('General final txs testing', () => {
     })
 
     it('Should build the finalize transactions and add them to the state', async () => {
+      const { logic } = require('ptokens-utils')
       const ethers = require('ethers')
       const fs = require('fs/promises')
 
+      jest.spyOn(logic, 'sleepForXMilliseconds').mockImplementation(_ => Promise.resolve())
       jest.spyOn(fs, 'readFile').mockResolvedValue(privKey)
       jest.spyOn(ethers, 'JsonRpcProvider').mockResolvedValue({})
       jest.spyOn(ethers, 'Wallet').mockImplementation(_ => jest.fn())
@@ -131,9 +137,13 @@ describe('General final txs testing', () => {
             '6648',
             18,
             '1000000000000000000',
+            '0',
+            '0',
+            '0',
             '0x49a5D1CF92772328Ad70f51894FD632a14dF12C9',
             '0xe15503e4',
             '0xe15503e4',
+            '0xfc8ebb2b',
             '0xe15503e4',
             '0xdDb5f4535123DAa5aE343c24006F4075aBAF5F7B',
             'Token',
@@ -155,9 +165,13 @@ describe('General final txs testing', () => {
             '6648',
             18,
             '2000000000000000000',
+            '0',
+            '0',
+            '0',
             '0x49a5D1CF92772328Ad70f51894FD632a14dF12C9',
             '0xe15503e4',
             '0xe15503e4',
+            '0xfc8ebb2b',
             '0xe15503e4',
             '0xdDb5f4535123DAa5aE343c24006F4075aBAF5F7B',
             'Token',
@@ -197,9 +211,11 @@ describe('General final txs testing', () => {
     })
 
     it('Should build the finalize transactions and handle errors', async () => {
+      const { logic } = require('ptokens-utils')
       const ethers = require('ethers')
       const fs = require('fs/promises')
 
+      jest.spyOn(logic, 'sleepForXMilliseconds').mockImplementation(_ => Promise.resolve())
       jest.spyOn(fs, 'readFile').mockResolvedValue(privKey)
       jest.spyOn(ethers, 'JsonRpcProvider').mockResolvedValue({})
       jest.spyOn(ethers, 'Wallet').mockImplementation(_ => jest.fn())
@@ -256,9 +272,13 @@ describe('General final txs testing', () => {
             '6648',
             18,
             '1000000000000000000',
+            '0',
+            '0',
+            '0',
             '0x49a5D1CF92772328Ad70f51894FD632a14dF12C9',
             '0xe15503e4',
             '0xe15503e4',
+            '0xfc8ebb2b',
             '0xe15503e4',
             '0xdDb5f4535123DAa5aE343c24006F4075aBAF5F7B',
             'Token',
@@ -280,9 +300,13 @@ describe('General final txs testing', () => {
             '6648',
             18,
             '2000000000000000000',
+            '0',
+            '0',
+            '0',
             '0x49a5D1CF92772328Ad70f51894FD632a14dF12C9',
             '0xe15503e4',
             '0xe15503e4',
+            '0xfc8ebb2b',
             '0xe15503e4',
             '0xdDb5f4535123DAa5aE343c24006F4075aBAF5F7B',
             'Token',
@@ -304,9 +328,13 @@ describe('General final txs testing', () => {
             '6648',
             18,
             '3000000000000000000',
+            '0',
+            '0',
+            '0',
             '0x49a5D1CF92772328Ad70f51894FD632a14dF12C9',
             '0xe15503e4',
             '0xe15503e4',
+            '0xfc8ebb2b',
             '0xe15503e4',
             '0xdDb5f4535123DAa5aE343c24006F4075aBAF5F7B',
             'Token',
@@ -328,9 +356,13 @@ describe('General final txs testing', () => {
             '6648',
             18,
             '4000000000000000000',
+            '0',
+            '0',
+            '0',
             '0x49a5D1CF92772328Ad70f51894FD632a14dF12C9',
             '0xe15503e4',
             '0xe15503e4',
+            '0xfc8ebb2b',
             '0xe15503e4',
             '0xdDb5f4535123DAa5aE343c24006F4075aBAF5F7B',
             'Token',
