@@ -26,11 +26,13 @@ const addProposedTxHashToEvent = R.curry(
       // TODO: replace _id field
       logger.debug(`Adding ${_proposedTxHash} to ${_event._id.slice(0, 20)}...`)
       const proposedTimestamp = new Date().toISOString()
-      _event[constants.db.KEY_PROPOSAL_TS] = proposedTimestamp
-      _event[constants.db.KEY_PROPOSAL_TX_HASH] = _proposedTxHash
-      _event[constants.db.KEY_STATUS] = constants.db.txStatus.PROPOSED
-
-      return resolve(_event)
+      const updatedEvent = {
+        ..._event,
+        [constants.db.KEY_PROPOSAL_TS]: proposedTimestamp,
+        [constants.db.KEY_PROPOSAL_TX_HASH]: _proposedTxHash,
+        [constants.db.KEY_STATUS]: constants.db.txStatus.PROPOSED,
+      }
+      return resolve(updatedEvent)
     })
 )
 
