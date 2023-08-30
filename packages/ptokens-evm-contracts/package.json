@@ -55,7 +55,7 @@
     "ramda": "^0.29.0",
     "safe-buffer": "^5.2.1",
     "solhint": "^3.3.6",
-    "solidity-coverage": "^0.8.2",
+    "solidity-coverage": "^0.8.4",
     "solidity-rlp": "^2.0.8"
   }
 }
