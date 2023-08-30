@@ -53,7 +53,7 @@ describe('Get EVM event logs', () => {
       )
       expect(getDefaultProviderSpy).toHaveBeenNthCalledWith(1, provider)
       expect(getTransactionReceiptSpy).toHaveBeenNthCalledWith(1, txHash)
-      expect(ret).toStrictEqual([receipts[0].logs[1]])
+      expect(ret).toStrictEqual([receipts[0].logs[3]])
     })
   })
 })

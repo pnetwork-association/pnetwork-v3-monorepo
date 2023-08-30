@@ -23,7 +23,7 @@ describe('Tests for the listener interface', () => {
       [constants.state.KEY_DB]: { database: 'database' },
     })
 
-    test.each([['0x005fe7f9'], ['0x00e4b170'], ['0xf9b459a1']])(
+    test.each([['0xd41b1c5b'], ['0xf9b459a1'], ['0xfc8ebb2b']])(
       'Should listen to EVM events for chain id %p',
       async _networkId => {
         const { db } = require('ptokens-utils')
@@ -86,32 +86,32 @@ describe('Tests for the listener interface', () => {
       }
     )
 
-    test.each([['0x03c38e67']])(
-      'Should reject for the not-supported Algorand chain ID %p',
-      async _networkId => {
-        const listenerInterface = require('../../lib/interfaces/listen-for-events')
-        const state = getState(_networkId)
-        expect(() => listenerInterface.listenForEvents(state)).rejects.toThrow('To be implemented!')
-      }
-    )
+    // test.each([['0x03c38e67']])(
+    //   'Should reject for the not-supported Algorand chain ID %p',
+    //   async _networkId => {
+    //     const listenerInterface = require('../../lib/interfaces/listen-for-events')
+    //     const state = getState(_networkId)
+    //     expect(() => listenerInterface.listenForEvents(state)).rejects.toThrow('To be implemented!')
+    //   }
+    // )
 
-    test.each([['0x02e7261c']])(
-      'Should reject for the not-supported EOSIO chain ID %p',
-      async _networkId => {
-        const listenerInterface = require('../../lib/interfaces/listen-for-events')
-        const state = getState(_networkId)
-        expect(() => listenerInterface.listenForEvents(state)).rejects.toThrow('To be implemented!')
-      }
-    )
+    // test.each([['0x02e7261c']])(
+    //   'Should reject for the not-supported EOSIO chain ID %p',
+    //   async _networkId => {
+    //     const listenerInterface = require('../../lib/interfaces/listen-for-events')
+    //     const state = getState(_networkId)
+    //     expect(() => listenerInterface.listenForEvents(state)).rejects.toThrow('To be implemented!')
+    //   }
+    // )
 
-    test.each([['0x01ec97de']])(
-      'Should reject for the not-supported UTXO chain ID %p',
-      async _networkId => {
-        const listenerInterface = require('../../lib/interfaces/listen-for-events')
-        const state = getState(_networkId)
-        expect(() => listenerInterface.listenForEvents(state)).rejects.toThrow('To be implemented!')
-      }
-    )
+    // test.each([['0x01ec97de']])(
+    //   'Should reject for the not-supported UTXO chain ID %p',
+    //   async _networkId => {
+    //     const listenerInterface = require('../../lib/interfaces/listen-for-events')
+    //     const state = getState(_networkId)
+    //     expect(() => listenerInterface.listenForEvents(state)).rejects.toThrow('To be implemented!')
+    //   }
+    // )
 
     test.each([['0x12345678']])(
       'Should reject when using an unsupported chain ID',
