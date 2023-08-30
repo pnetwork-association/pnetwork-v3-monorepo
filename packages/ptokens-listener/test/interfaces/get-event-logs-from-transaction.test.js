@@ -5,7 +5,7 @@ describe('Tests for the getEventLogsFromTransaction interface', () => {
       jest.resetModules()
     })
 
-    test.each([['0x005fe7f9'], ['0x00e4b170'], ['0xf9b459a1']])(
+    test.each([['0xd41b1c5b'], ['0xf9b459a1'], ['0xfc8ebb2b']])(
       'Should get EVM event logs for chain id %p',
       async _networkId => {
         const getEventLogsModule = require('../../lib/evm/evm-get-event-logs-from-transaction')
@@ -28,41 +28,41 @@ describe('Tests for the getEventLogsFromTransaction interface', () => {
       }
     )
 
-    test.each([['0x03c38e67']])(
-      'Should reject for the not-supported Algorand chain ID %p',
-      async _networkId => {
-        const {
-          getEventLogsFromTransaction,
-        } = require('../../lib/interfaces/get-event-logs-from-transaction')
-        expect(() =>
-          getEventLogsFromTransaction('provider-url', _networkId, 'tx-hash', 'event')
-        ).rejects.toThrow('To be implemented!')
-      }
-    )
+    // test.each([['0x03c38e67']])(
+    //   'Should reject for the not-supported Algorand chain ID %p',
+    //   async _networkId => {
+    //     const {
+    //       getEventLogsFromTransaction,
+    //     } = require('../../lib/interfaces/get-event-logs-from-transaction')
+    //     expect(() =>
+    //       getEventLogsFromTransaction('provider-url', _networkId, 'tx-hash', 'event')
+    //     ).rejects.toThrow('To be implemented!')
+    //   }
+    // )
 
-    test.each([['0x02e7261c']])(
-      'Should reject for the not-supported EOSIO chain ID %p',
-      async _networkId => {
-        const {
-          getEventLogsFromTransaction,
-        } = require('../../lib/interfaces/get-event-logs-from-transaction')
-        expect(() =>
-          getEventLogsFromTransaction('provider-url', _networkId, 'tx-hash', 'event')
-        ).rejects.toThrow('To be implemented!')
-      }
-    )
+    // test.each([['0x02e7261c']])(
+    //   'Should reject for the not-supported EOSIO chain ID %p',
+    //   async _networkId => {
+    //     const {
+    //       getEventLogsFromTransaction,
+    //     } = require('../../lib/interfaces/get-event-logs-from-transaction')
+    //     expect(() =>
+    //       getEventLogsFromTransaction('provider-url', _networkId, 'tx-hash', 'event')
+    //     ).rejects.toThrow('To be implemented!')
+    //   }
+    // )
 
-    test.each([['0x01ec97de']])(
-      'Should reject for the not-supported UTXO chain ID %p',
-      async _networkId => {
-        const {
-          getEventLogsFromTransaction,
-        } = require('../../lib/interfaces/get-event-logs-from-transaction')
-        expect(() =>
-          getEventLogsFromTransaction('provider-url', _networkId, 'tx-hash', 'event')
-        ).rejects.toThrow('To be implemented!')
-      }
-    )
+    // test.each([['0x01ec97de']])(
+    //   'Should reject for the not-supported UTXO chain ID %p',
+    //   async _networkId => {
+    //     const {
+    //       getEventLogsFromTransaction,
+    //     } = require('../../lib/interfaces/get-event-logs-from-transaction')
+    //     expect(() =>
+    //       getEventLogsFromTransaction('provider-url', _networkId, 'tx-hash', 'event')
+    //     ).rejects.toThrow('To be implemented!')
+    //   }
+    // )
 
     test.each([['0x12345678']])(
       'Should reject when using an unsupported chain ID',

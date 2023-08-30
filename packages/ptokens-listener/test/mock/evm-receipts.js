@@ -1,5 +1,6 @@
 const receipts = [
   {
+    // polygon
     _type: 'TransactionReceipt',
     blockHash: '0xf402531eeaafe0e208e76b14dc0f6dc0f8bb6db78da57e523e4caac768c8cbe9',
     blockNumber: 45583499,

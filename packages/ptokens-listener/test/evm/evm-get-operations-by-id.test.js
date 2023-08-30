@@ -81,9 +81,9 @@ describe('Get EVM operations by Operation ID', () => {
         fromBlock: 34923840,
         topics: [
           [
-            '0xec5d8f38737ebccaa579d2caeaed8fbc5f2c7c598fee1eb335429c8c48ec2598',
-            '0xfb83c807750a326c5845536dc89b4d2da9f1f5e0df344e9f69f27c84f4d7d726',
-            '0xd1a85d51ecfea5edd75f97fcf615b22c6f56eaf8f0487db9fadfbe661689b9af',
+            '0x029f1f67ab657b4c5a9616439b2bf263a1f4858077c10dd4e9bc4fea817fca37',
+            '0x3be31efdb29ca9b3c04d3eb94096006add1f157e835694c28ca864eb6dce3504',
+            '0xcdfe48ba923cd8bcac4fe88fe6c0b5a8e443f4b91e0751bc2b2b8917c03ae066',
           ],
         ],
       })
