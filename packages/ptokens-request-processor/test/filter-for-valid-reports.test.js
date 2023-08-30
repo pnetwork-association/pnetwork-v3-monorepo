@@ -18,18 +18,14 @@ describe('Reports filtering tests', () => {
 
   describe('filterForValidReports', () => {
     beforeAll(async () => {
-      await db.insertReports(collection, reportsSet)
-    })
-
-    afterAll(async () => {
       await collection.deleteMany({})
+      await db.insertReports(collection, reportsSet)
     })
 
     it('Should get an array with only valid reports', async () => {
       const result = await filterForValidReports(reportsSet)
 
-      const expected = [...reportsSet.slice(0, 6), reportsSet[7]]
-      expect(result).toHaveLength(7)
+      const expected = [reportsSet[0], reportsSet[1]]
       expect(result).toStrictEqual(expected)
     })
   })
