@@ -30,6 +30,11 @@ const {
   KEY_WITNESSED_TS,
   KEY_FINAL_TX_HASH,
   KEY_FINAL_TX_TS,
+
+  KEY_FORWARD_DESTINATION_NETWORK_ID,
+  KEY_FORWARD_NETWORK_FEE_ASSET_AMOUNT,
+  KEY_NETWORK_FEE_ASSET_AMOUNT,
+  KEY_PROTOCOL_FEE_ASSET_AMOUNT,
 } = require('../constants')
 const enumTxStatus = require('../tx-status')
 
@@ -67,6 +72,11 @@ module.exports = {
     KEY_WITNESSED_TS,
     KEY_FINAL_TX_HASH,
     KEY_FINAL_TX_TS,
+
+    KEY_FORWARD_DESTINATION_NETWORK_ID,
+    KEY_FORWARD_NETWORK_FEE_ASSET_AMOUNT,
+    KEY_NETWORK_FEE_ASSET_AMOUNT,
+    KEY_PROTOCOL_FEE_ASSET_AMOUNT,
   ],
 
   properties: {
@@ -155,6 +165,18 @@ module.exports = {
       format: 'date-time',
     },
     [KEY_ERROR]: {
+      type: ['string', 'null'],
+    },
+    [KEY_FORWARD_DESTINATION_NETWORK_ID]: {
+      type: ['string', 'null'],
+    },
+    [KEY_FORWARD_NETWORK_FEE_ASSET_AMOUNT]: {
+      type: ['string', 'null'],
+    },
+    [KEY_NETWORK_FEE_ASSET_AMOUNT]: {
+      type: ['string', 'null'],
+    },
+    [KEY_PROTOCOL_FEE_ASSET_AMOUNT]: {
       type: ['string', 'null'],
     },
   },
