@@ -21,11 +21,13 @@ const addCancelledTxHashToEvent = R.curry((_event, _finalizedTxHash) => {
   const id = _event[constants.db.KEY_ID]
   logger.debug(`Adding ${_finalizedTxHash} to ${id.slice(0, 20)}...`)
   const cancelledTimestamp = new Date().toISOString()
-  _event[constants.db.KEY_FINAL_TX_TS] = cancelledTimestamp
-  _event[constants.db.KEY_FINAL_TX_HASH] = _finalizedTxHash
-  _event[constants.db.KEY_STATUS] = constants.db.txStatus.CANCELLED
-
-  return Promise.resolve(_event)
+  const updatedEvent = {
+    ..._event,
+    [constants.db.KEY_FINAL_TX_TS]: cancelledTimestamp,
+    [constants.db.KEY_FINAL_TX_HASH]: _finalizedTxHash,
+    [constants.db.KEY_STATUS]: constants.db.txStatus.CANCELLED,
+  }
+  return Promise.resolve(updatedEvent)
 })
 
 const cancelOperationErrorHandler = R.curry((resolve, reject, _eventReport, _err) =>
