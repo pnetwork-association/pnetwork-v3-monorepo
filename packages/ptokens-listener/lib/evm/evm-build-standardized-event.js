@@ -30,6 +30,10 @@ const getEventWithAllRequiredSetToNull = _ => ({
   [constants.db.KEY_WITNESSED_TS]: null,
   [constants.db.KEY_FINAL_TX_HASH]: null,
   [constants.db.KEY_FINAL_TX_TS]: null,
+  [constants.db.KEY_FORWARD_DESTINATION_NETWORK_ID]: null,
+  [constants.db.KEY_FORWARD_NETWORK_FEE_ASSET_AMOUNT]: null,
+  [constants.db.KEY_NETWORK_FEE_ASSET_AMOUNT]: null,
+  [constants.db.KEY_PROTOCOL_FEE_ASSET_AMOUNT]: null,
 })
 
 const bigIntToNumber = R.tryCatch(_n => Number(_n) || null, R.always(null))
