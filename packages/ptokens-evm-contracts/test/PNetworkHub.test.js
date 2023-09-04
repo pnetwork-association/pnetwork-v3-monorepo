@@ -37,7 +37,7 @@ let token,
   fakeGovernanceMessageVerifier,
   epochDuration,
   currentEpoch,
-  governanceMessagePropagator,
+  governanceMessageEmitter,
   sentinels,
   guardians,
   challenger,
@@ -135,7 +135,7 @@ describe('PNetworkHub', () => {
     const TestReceiver = await ethers.getContractFactory('TestReceiver')
     const TestNotReceiver = await ethers.getContractFactory('TestNotReceiver')
     const EpochsManager = await ethers.getContractFactory('EpochsManager')
-    const GovernanceMessagePropagator = await ethers.getContractFactory('MockGovernanceStateReader')
+    const GovernanceMessageEmitter = await ethers.getContractFactory('MockGovernanceStateReader')
 
     const signers = await ethers.getSigners()
     owner = signers[0]
@@ -187,7 +187,7 @@ describe('PNetworkHub', () => {
 
     token = await StandardToken.deploy('Token', 'TKN', 18, ethers.utils.parseEther('100000000'))
     telepathyRouter = await ethers.getImpersonatedSigner(TELEPATHY_ROUTER_ADDRESS)
-    governanceMessagePropagator = await GovernanceMessagePropagator.deploy()
+    governanceMessageEmitter = await GovernanceMessageEmitter.deploy()
 
     epochDuration = (await epochsManager.epochDuration()).toNumber()
     currentEpoch = await epochsManager.currentEpoch()
@@ -226,7 +226,7 @@ describe('PNetworkHub', () => {
     await pFactory.setHub(hub.address)
 
     // NOTE: propagate actors for epoch 1
-    const tx = await governanceMessagePropagator.propagateActors(
+    const tx = await governanceMessageEmitter.propagateActors(
       currentEpoch,
       sentinels.map(({ address }) => address),
       guardians.map(({ address }) => address)
@@ -1674,7 +1674,7 @@ describe('PNetworkHub', () => {
       })
     ).to.be.revertedWithCustomError(hub, 'LockDown')
 
-    let tx = await governanceMessagePropagator.propagateActors(
+    let tx = await governanceMessageEmitter.propagateActors(
       await epochsManager.currentEpoch(),
       sentinels.map(({ address }) => address),
       guardians.map(({ address }) => address)
@@ -1706,7 +1706,7 @@ describe('PNetworkHub', () => {
     const guardianNotRegistered = guardians[0]
     const sentinelNotRegistered = sentinels[0]
 
-    const tx = await governanceMessagePropagator.propagateActors(
+    const tx = await governanceMessageEmitter.propagateActors(
       await epochsManager.currentEpoch(),
       sentinels.slice(1).map(({ address }) => address),
       guardians.slice(1).map(({ address }) => address)

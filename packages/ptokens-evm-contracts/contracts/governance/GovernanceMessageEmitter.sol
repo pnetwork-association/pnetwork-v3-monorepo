@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.19;
 
-import {IGovernanceMessagePropagator} from "../interfaces/IGovernanceMessagePropagator.sol";
+import {IGovernanceMessageEmitter} from "../interfaces/IGovernanceMessageEmitter.sol";
 import {IRegistrationManager} from "@pnetwork-association/dao-v2-contracts/contracts/interfaces/IRegistrationManager.sol";
 import {ILendingManager} from "@pnetwork-association/dao-v2-contracts/contracts/interfaces/ILendingManager.sol";
 import {IEpochsManager} from "@pnetwork-association/dao-v2-contracts/contracts/interfaces/IEpochsManager.sol";
@@ -12,11 +12,12 @@ error InvalidGovernanceMessageVerifier(address governanceMessagerVerifier, addre
 error InvalidSentinelRegistration(bytes1 kind);
 error NotRegistrationManager();
 
-contract GovernanceMessagePropagator is IGovernanceMessagePropagator {
-    bytes32 public constant GOVERNANCE_MESSAGE_STATE_SENTINELS = keccak256("GOVERNANCE_MESSAGE_STATE_SENTINELS");
-    bytes32 public constant GOVERNANCE_MESSAGE_STATE_SENTINELS_MERKLE_ROOT =
-        keccak256("GOVERNANCE_MESSAGE_STATE_SENTINELS_MERKLE_ROOT");
-    bytes32 public constant GOVERNANCE_MESSAGE_STATE_GUARDIANS = keccak256("GOVERNANCE_MESSAGE_STATE_GUARDIANS");
+contract GovernanceMessageEmitter is IGovernanceMessageEmitter {
+    bytes32 public constant GOVERNANCE_MESSAGE_SENTINELS = keccak256("GOVERNANCE_MESSAGE_SENTINELS");
+    bytes32 public constant GOVERNANCE_MESSAGE_SENTINELS_MERKLE_ROOT =
+        keccak256("GOVERNANCE_MESSAGE_SENTINELS_MERKLE_ROOT");
+    bytes32 public constant GOVERNANCE_MESSAGE_GUARDIANS = keccak256("GOVERNANCE_MESSAGE_GUARDIANS");
+    bytes32 public constant GOVERNANCE_MESSAGE_RESUME_ACTOR = keccak256("GOVERNANCE_MESSAGE_RESUME_ACTOR");
 
     address public immutable epochsManager;
     address public immutable lendingManager;
@@ -36,13 +37,13 @@ contract GovernanceMessagePropagator is IGovernanceMessagePropagator {
         registrationManager = registrationManager_;
     }
 
-    /// @inheritdoc IGovernanceMessagePropagator
+    /// @inheritdoc IGovernanceMessageEmitter
     function propagateActors(address[] calldata sentinels, address[] calldata guardians) external {
         propagateSentinels(sentinels);
         propagateGuardians(guardians);
     }
 
-    /// @inheritdoc IGovernanceMessagePropagator
+    /// @inheritdoc IGovernanceMessageEmitter
     function propagateGuardians(address[] calldata guardians) public {
         uint16 currentEpoch = IEpochsManager(epochsManager).currentEpoch();
         // uint16 totalNumberOfGuardians = IRegistrationManager(registrationManager).totalNumberOfGuardians();
@@ -72,13 +73,13 @@ contract GovernanceMessagePropagator is IGovernanceMessagePropagator {
 
         emit GovernanceMessage(
             abi.encode(
-                GOVERNANCE_MESSAGE_STATE_GUARDIANS,
+                GOVERNANCE_MESSAGE_GUARDIANS,
                 abi.encode(currentEpoch, guardians.length, MerkleTree.getRoot(data))
             )
         );
     }
 
-    /// @inheritdoc IGovernanceMessagePropagator
+    /// @inheritdoc IGovernanceMessageEmitter
     function propagateSentinels(address[] calldata sentinels) public {
         uint16 currentEpoch = IEpochsManager(epochsManager).currentEpoch();
         uint32 totalBorrowedAmount = ILendingManager(lendingManager).totalBorrowedAmountByEpoch(currentEpoch);
@@ -146,13 +147,13 @@ contract GovernanceMessagePropagator is IGovernanceMessagePropagator {
 
         emit GovernanceMessage(
             abi.encode(
-                GOVERNANCE_MESSAGE_STATE_SENTINELS,
+                GOVERNANCE_MESSAGE_SENTINELS,
                 abi.encode(currentEpoch, effectiveSentinels.length, MerkleTree.getRoot(data))
             )
         );
     }
 
-    /// @inheritdoc IGovernanceMessagePropagator
+    /// @inheritdoc IGovernanceMessageEmitter
     function propagateSentinelsByRemovingTheLeafByProof(bytes32[] calldata proof) external onlyRegistrationManager {
         uint16 currentEpoch = IEpochsManager(epochsManager).currentEpoch();
 
@@ -160,16 +161,25 @@ contract GovernanceMessagePropagator is IGovernanceMessagePropagator {
         // before that the new merkle root is propagated on all chains we could
         // have (on the PNetworkHub) the _epochsTotalNumberOfInactiveActors[epoch] = effectiveNumberOfActiveSentinels + 1
         // and because of this, lockdown mode will be never triggered.
-        // we could force to decrement _epochsTotalNumberOfInactiveActors[epoch] when a new GOVERNANCE_MESSAGE_STATE_SENTINELS_MERKLE_ROOT message
+        // we could force to decrement _epochsTotalNumberOfInactiveActors[epoch] when a new GOVERNANCE_MESSAGE_SENTINELS_MERKLE_ROOT message
         // is received but if a sentinel does not call solveChallenge we could enter in lock down mode even if there is an active sentinel/guardian
 
         emit GovernanceMessage(
             abi.encode(
-                GOVERNANCE_MESSAGE_STATE_SENTINELS_MERKLE_ROOT,
+                GOVERNANCE_MESSAGE_SENTINELS_MERKLE_ROOT,
                 abi.encode(
                     currentEpoch,
                     MerkleTree.getRootByProofAndLeaf(keccak256(abi.encodePacked(address(0))), proof)
                 )
+            )
+        );
+    }
+
+    function resumeActor(address actor) external onlyRegistrationManager {
+        emit GovernanceMessage(
+            abi.encode(
+                GOVERNANCE_MESSAGE_RESUME_ACTOR,
+                abi.encode(actor)
             )
         );
     }

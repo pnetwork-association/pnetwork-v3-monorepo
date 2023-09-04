@@ -1,7 +1,7 @@
 task('governance-message-relayer:propagate-sentinels', 'Start the sentinel addresses propagation')
   //.addPositionalParam('registrationManager')
   //.addPositionalParam('epochsManager')
-  .addPositionalParam('governanceMessagePropagator')
+  .addPositionalParam('governanceMessageEmitter')
   .setAction(async _args => {
     await main(_args)
       // eslint-disable-next-line no-process-exit
@@ -17,12 +17,12 @@ task('governance-message-relayer:propagate-sentinels', 'Start the sentinel addre
 const main = async _args => {
   //const RegistrationManager = await ethers.getContractFactory('RegistrationManager')
   //const EpochsManager = await ethers.getContractFactory('EpochsManager')
-  const GovernanceMessagePropagator = await ethers.getContractFactory('GovernanceMessagePropagator')
+  const GovernanceMessageEmitter = await ethers.getContractFactory('GovernanceMessageEmitter')
 
   //const registrationManager = await RegistrationManager.attach(_args.registrationManager)
   //const epochsManager = await EpochsManager.attach(_args.epochsManager)
-  const governanceMessagePropagator = await GovernanceMessagePropagator.attach(
-    _args.governanceMessagePropagator
+  const governanceMessageEmitter = await GovernanceMessageEmitter.attach(
+    _args.governanceMessageEmitter
   )
 
   try {
@@ -37,7 +37,7 @@ const main = async _args => {
     const sentinels = []
     // TODO get all sentinels registered in the nextEpoch
 
-    const trasaction = await governanceMessagePropagator.propagateSentinels(sentinels)
+    const trasaction = await governanceMessageEmitter.propagateSentinels(sentinels)
     console.log('Sentinels addresses succesfully propagated ...', trasaction.hash)
   } catch (_err) {
     console.error(_err)

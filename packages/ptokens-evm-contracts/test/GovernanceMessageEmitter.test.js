@@ -2,7 +2,7 @@ const { expect } = require('chai')
 const { ethers } = require('hardhat')
 const { MerkleTree } = require('merkletreejs')
 
-let governanceMessagePropagator,
+let governanceMessageEmitter,
   epochsManager,
   lendingManager,
   registrationManager,
@@ -10,7 +10,7 @@ let governanceMessagePropagator,
   currentEpoch,
   owner
 
-describe('GovernanceMessagePropagator', () => {
+describe('GovernanceMessageEmitter', () => {
   const getMerkleRoot = _addresses => {
     const merkleTree = new MerkleTree(_addresses, ethers.utils.keccak256, {
       sortPairs: true,
@@ -36,9 +36,7 @@ describe('GovernanceMessagePropagator', () => {
   }
 
   beforeEach(async () => {
-    const GovernanceMessagePropagator = await ethers.getContractFactory(
-      'GovernanceMessagePropagator'
-    )
+    const GovernanceMessageEmitter = await ethers.getContractFactory('GovernanceMessageEmitter')
     const RegistrationManager = await ethers.getContractFactory('MockRegistrationManager')
     const LendingManager = await ethers.getContractFactory('MockLendingManager')
     const EpochsManager = await ethers.getContractFactory('EpochsManager')
@@ -46,7 +44,7 @@ describe('GovernanceMessagePropagator', () => {
     epochsManager = await EpochsManager.deploy()
     lendingManager = await LendingManager.deploy()
     registrationManager = await RegistrationManager.deploy(lendingManager.address)
-    governanceMessagePropagator = await GovernanceMessagePropagator.deploy(
+    governanceMessageEmitter = await GovernanceMessageEmitter.deploy(
       epochsManager.address,
       lendingManager.address,
       registrationManager.address
@@ -55,7 +53,7 @@ describe('GovernanceMessagePropagator', () => {
     signers = await ethers.getSigners()
     owner = signers[0]
 
-    await registrationManager.setGovernanceStateReader(governanceMessagePropagator.address)
+    await registrationManager.setGovernanceStateReader(governanceMessageEmitter.address)
 
     currentEpoch = await epochsManager.currentEpoch()
   })
@@ -92,13 +90,13 @@ describe('GovernanceMessagePropagator', () => {
     const message = abiCoder.encode(
       ['bytes32', 'bytes'],
       [
-        ethers.utils.keccak256(ethers.utils.toUtf8Bytes('GOVERNANCE_MESSAGE_STATE_SENTINELS')),
+        ethers.utils.keccak256(ethers.utils.toUtf8Bytes('GOVERNANCE_MESSAGE_SENTINELS')),
         messageData,
       ]
     )
 
-    await expect(governanceMessagePropagator.propagateSentinels(sentinels))
-      .to.emit(governanceMessagePropagator, 'GovernanceMessage')
+    await expect(governanceMessageEmitter.propagateSentinels(sentinels))
+      .to.emit(governanceMessageEmitter, 'GovernanceMessage')
       .withArgs(message)
   })
 
@@ -154,21 +152,21 @@ describe('GovernanceMessagePropagator', () => {
     const message = abiCoder.encode(
       ['bytes32', 'bytes'],
       [
-        ethers.utils.keccak256(ethers.utils.toUtf8Bytes('GOVERNANCE_MESSAGE_STATE_SENTINELS')),
+        ethers.utils.keccak256(ethers.utils.toUtf8Bytes('GOVERNANCE_MESSAGE_SENTINELS')),
         messageData,
       ]
     )
 
     // NOTE: slashedStakingSentinel1 and slashedStakingSentinel2 are needed in order to calculate the staked amount but they will not be included within the merkle root
     await expect(
-      governanceMessagePropagator.propagateSentinels([
+      governanceMessageEmitter.propagateSentinels([
         ...stakingSentinels,
         slashedStakingSentinel1,
         slashedStakingSentinel2,
         ...borrowingSentinels,
       ])
     )
-      .to.emit(governanceMessagePropagator, 'GovernanceMessage')
+      .to.emit(governanceMessageEmitter, 'GovernanceMessage')
       .withArgs(message)
   })
 
@@ -210,7 +208,7 @@ describe('GovernanceMessagePropagator', () => {
       ['bytes32', 'bytes'],
       [
         ethers.utils.keccak256(
-          ethers.utils.toUtf8Bytes('GOVERNANCE_MESSAGE_STATE_SENTINELS_MERKLE_ROOT')
+          ethers.utils.toUtf8Bytes('GOVERNANCE_MESSAGE_SENTINELS_MERKLE_ROOT')
         ),
         messageData,
       ]
@@ -219,7 +217,7 @@ describe('GovernanceMessagePropagator', () => {
     // NOTE: The root generated starting from the proof + leaf = 0
     // must be equal to the root generated using address 0 in the same position where the slashed sentinel was."
     await expect(registrationManager.slash(getMerkleProof(sentinels, slashedSentinel)))
-      .to.emit(governanceMessagePropagator, 'GovernanceMessage')
+      .to.emit(governanceMessageEmitter, 'GovernanceMessage')
       .withArgs(message)
 
     // NOTE: At this point active sentinels should still be able to operate except the slashed one

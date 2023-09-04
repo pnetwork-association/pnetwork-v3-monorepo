@@ -2,7 +2,7 @@
 
 pragma solidity ^0.8.19;
 
-import {IGovernanceMessagePropagator} from "../interfaces/IGovernanceMessagePropagator.sol";
+import {IGovernanceMessageEmitter} from "../interfaces/IGovernanceMessageEmitter.sol";
 
 interface IMockLendingManager {
     function increaseTotalBorrowedAmountByEpoch(uint24 amount, uint16 epoch) external;
@@ -18,7 +18,7 @@ contract MockRegistrationManager {
 
     address public immutable lendingManager;
 
-    address public governanceMessagePropagator;
+    address public governanceMessageEmitter;
 
     constructor(address lendingManager_) {
         lendingManager = lendingManager_;
@@ -73,10 +73,10 @@ contract MockRegistrationManager {
     }
 
     function setGovernanceStateReader(address governanceStateReader_) external {
-        governanceMessagePropagator = governanceStateReader_;
+        governanceMessageEmitter = governanceStateReader_;
     }
 
     function slash(bytes32[] calldata proof) external {
-        IGovernanceMessagePropagator(governanceMessagePropagator).propagateSentinelsByRemovingTheLeafByProof(proof);
+        IGovernanceMessageEmitter(governanceMessageEmitter).propagateSentinelsByRemovingTheLeafByProof(proof);
     }
 }
