@@ -111,6 +111,12 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
         _;
     }
 
+    modifier onlyIfNotInactive(bytes32[] calldata proof) {
+        // NOTE: avoid allowing slashed guardians/sentinels to operate without having resume itself on the RegistrationManager
+        // TODO: if _epochsActorsStatus[epoch][sentinel] == ActorsStatus.Inactive revert
+        _;
+    }
+
     modifier onlyFarFromEpochClosingStartChallenge() {
         uint256 epochDuration = IEpochsManager(epochsManager).epochDuration();
         uint16 currentEpoch = IEpochsManager(epochsManager).currentEpoch();
@@ -323,7 +329,7 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
     function protocolGuardianCancelOperation(
         Operation calldata operation,
         bytes32[] calldata proof
-    ) external onlyWhenIsNotInLockDown(false) onlyGuardian(proof) {
+    ) external onlyWhenIsNotInLockDown(false) onlyGuardian(proof) onlyIfNotInactive(proof) {
         _protocolCancelOperation(operation, Actor.Guardian);
     }
 
@@ -336,7 +342,7 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
     function protocolSentinelCancelOperation(
         Operation calldata operation,
         bytes32[] calldata proof
-    ) external onlyWhenIsNotInLockDown(false) onlySentinel(proof) {
+    ) external onlyWhenIsNotInLockDown(false) onlySentinel(proof) onlyIfNotInactive(proof) {
         _protocolCancelOperation(operation, Actor.Sentinel);
     }
 
