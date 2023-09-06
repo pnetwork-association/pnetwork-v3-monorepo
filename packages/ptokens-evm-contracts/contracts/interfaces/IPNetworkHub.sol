@@ -128,6 +128,14 @@ interface IPNetworkHub is IGovernanceMessageHandler {
     event GuardianOperationCancelled(Operation operation);
 
     /**
+     * @dev Emitted when a guardian is resumed after having being slashed
+     *
+     * @param epoch The epoch in which the guardian is has been resumed
+     * @param guardian The resumed guardian
+     */
+    event GuardianResumed(uint16 indexed epoch, address indexed guardian);
+
+    /**
      * @dev Emitted when a Sentinel instruct an cancel action on an operation.
      *
      * @param operation The cancelled operation
@@ -135,18 +143,20 @@ interface IPNetworkHub is IGovernanceMessageHandler {
     event SentinelOperationCancelled(Operation operation);
 
     /**
-     * @dev Emitted when a sentinel resumes after having being slashed
+     * @dev Emitted when a sentinel is resumed after having being slashed
      *
+     * @param epoch The epoch in which the sentinel has been resumed
      * @param sentinel The resumed sentinel
      */
-    event SentinelResumed(address indexed sentinel);
+    event SentinelResumed(uint16 indexed epoch, address indexed sentinel);
 
     /**
-     * @dev Emitted when a guardian resumes after having being slashed
+     * @dev Emitted when a sentinel is slashed after having being slashed
      *
-     * @param guardian The resumed sentinel
+     * @param epoch The epoch in which the sentinel has been slashed
+     * @param sentinel The slashed sentinel
      */
-    event GuardianResumed(address indexed guardian);
+    event SentinelSlashed(uint16 indexed epoch, address indexed sentinel);
 
     /**
      * @dev Emitted when an user operation is generated.
@@ -337,7 +347,7 @@ interface IPNetworkHub is IGovernanceMessageHandler {
      * @param challenge
      *
      */
-    function slashByChallenge(Challenge calldata challenge) external;
+    function slashByChallenge(Challenge calldata challenge, bytes32[] calldata proof) external;
 
     /*
      * @notice Solve a challenge of a guardian and sends the bond (lockedAmountStartChallenge) to the DAO.

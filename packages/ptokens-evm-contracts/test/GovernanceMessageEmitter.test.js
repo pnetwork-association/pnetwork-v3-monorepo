@@ -1,5 +1,7 @@
 const { expect } = require('chai')
 const { ethers } = require('hardhat')
+
+const { ZERO_ADDRESS } = require('./constants')
 const { MerkleTree } = require('merkletreejs')
 
 let governanceMessageEmitter,
@@ -141,7 +143,7 @@ describe('GovernanceMessageEmitter', () => {
       )
     }
 
-    const sentinels = [...stakingSentinels, ...borrowingSentinels]
+    const sentinels = [...stakingSentinels, ZERO_ADDRESS, ZERO_ADDRESS, ...borrowingSentinels] // slashedStakingSentinel1 and slashedStakingSentinel2 are replaced by address 0
     const merkleRootWithoutSlashedSentinel = getMerkleRoot(sentinels)
 
     const abiCoder = new ethers.utils.AbiCoder()
@@ -157,7 +159,7 @@ describe('GovernanceMessageEmitter', () => {
       ]
     )
 
-    // NOTE: slashedStakingSentinel1 and slashedStakingSentinel2 are needed in order to calculate the staked amount but they will not be included within the merkle root
+    // NOTE: slashedStakingSentinel1 and slashedStakingSentinel2 are needed in order to calculate the staked amount but they will be replaced by address(0) in the merkle tree
     await expect(
       governanceMessageEmitter.propagateSentinels([
         ...stakingSentinels,
@@ -201,22 +203,22 @@ describe('GovernanceMessageEmitter', () => {
 
     const abiCoder = new ethers.utils.AbiCoder()
     const messageData = abiCoder.encode(
-      ['uint16', 'bytes32'],
-      [currentEpoch, merkleRootWithoutSlashedSentinel]
+      ['uint16', 'address', 'bytes32'],
+      [currentEpoch, slashedSentinel, merkleRootWithoutSlashedSentinel]
     )
     const message = abiCoder.encode(
       ['bytes32', 'bytes'],
       [
-        ethers.utils.keccak256(
-          ethers.utils.toUtf8Bytes('GOVERNANCE_MESSAGE_SENTINELS_MERKLE_ROOT')
-        ),
+        ethers.utils.keccak256(ethers.utils.toUtf8Bytes('GOVERNANCE_MESSAGE_HARD_SLASH_SENTINEL')),
         messageData,
       ]
     )
 
     // NOTE: The root generated starting from the proof + leaf = 0
     // must be equal to the root generated using address 0 in the same position where the slashed sentinel was."
-    await expect(registrationManager.slash(getMerkleProof(sentinels, slashedSentinel)))
+    await expect(
+      registrationManager.slash(slashedSentinel, getMerkleProof(sentinels, slashedSentinel))
+    )
       .to.emit(governanceMessageEmitter, 'GovernanceMessage')
       .withArgs(message)
 

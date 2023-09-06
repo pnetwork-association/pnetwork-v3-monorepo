@@ -56,9 +56,16 @@ error MaxChallengeDurationMustBeLessOrEqualThanMaxChallengePeriodDuration();
 error InvalidEpoch(uint16 epoch);
 
 contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard {
-    bytes32 public constant GOVERNANCE_MESSAGE_STATE_GUARDIANS = keccak256("GOVERNANCE_MESSAGE_STATE_GUARDIANS");
-    bytes32 public constant GOVERNANCE_MESSAGE_STATE_SENTINELS = keccak256("GOVERNANCE_MESSAGE_STATE_SENTINELS");
-    bytes32 public constant GOVERNANCE_MESSAGE_STATE_SENTINELS_MERKLE_ROOT = keccak256("GOVERNANCE_MESSAGE_STATE_SENTINELS_MERKLE_ROOT");
+    bytes32 public constant GOVERNANCE_MESSAGE_GUARDIANS = keccak256("GOVERNANCE_MESSAGE_GUARDIANS");
+    bytes32 public constant GOVERNANCE_MESSAGE_SENTINELS = keccak256("GOVERNANCE_MESSAGE_SENTINELS");
+    bytes32 public constant GOVERNANCE_MESSAGE_HARD_SLASH_SENTINEL =
+        keccak256("GOVERNANCE_MESSAGE_HARD_SLASH_SENTINEL");
+    bytes32 public constant GOVERNANCE_MESSAGE_LIGHT_RESUME_GUARDIAN =
+        keccak256("GOVERNANCE_MESSAGE_LIGHT_RESUME_GUARDIAN");
+    bytes32 public constant GOVERNANCE_MESSAGE_LIGHT_RESUME_SENTINEL =
+        keccak256("GOVERNANCE_MESSAGE_LIGHT_RESUME_SENTINEL");
+    bytes32 public constant GOVERNANCE_MESSAGE_HARD_RESUME_SENTINEL =
+        keccak256("GOVERNANCE_MESSAGE_HARD_RESUME_SENTINEL");
     uint256 public constant FEE_BASIS_POINTS_DIVISOR = 10000;
 
     mapping(bytes32 => Action) private _operationsRelayerQueueAction;
@@ -471,7 +478,7 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
         emit OperationQueued(operation);
     }
 
-    function slashByChallenge(Challenge calldata challenge) external {
+    function slashByChallenge(Challenge calldata challenge, bytes32[] calldata proof) external {
         bytes32 challengeId = challengeIdOf(challenge);
         uint16 currentEpoch = IEpochsManager(epochsManager).currentEpoch();
         ChallengeStatus challengeStatus = _epochsChallengeStatus[currentEpoch][challengeId];
@@ -498,6 +505,20 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
                 ++_epochsTotalNumberOfInactiveActors[currentEpoch];
             }
 
+            // NOTE: proof is needed in order prove that the challenged actor is effectively within the
+            // merkle root of the current epoch. Moreover we should propagate the proof to the interim chain (to call RegistrationManager.slash)
+            // in order to remove the challenged actor from the merkle tree (setting 0 instead of challenge.actor and calculating
+            // again the merkle root) and propaganting the updated merkle root to all chains
+            /*if (
+            !MerkleProof.verify(
+                proof,
+                _epochsGuardiansMerkleRoot[currentEpoch],
+                keccak256(abi.encodePacked(challenge.actor))
+            )
+            ) {
+                revert InvalidActor(challenge.actor);
+            }*/
+
             // TODO: slash actor
 
             return;
@@ -516,9 +537,7 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
             revert InvalidGuardian(guardian);
         }
 
-        if (_solveChallenge(challenge)) {
-            emit GuardianResumed(guardian);
-        }
+        _solveChallenge(challenge);
     }
 
     /// @inheritdoc IPNetworkHub
@@ -531,9 +550,7 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
             revert InvalidSentinel(sentinel);
         }
 
-        if (_solveChallenge(challenge)) {
-            emit SentinelResumed(sentinel);
-        }
+        _solveChallenge(challenge);
     }
 
     /// @inheritdoc IPNetworkHub
@@ -709,7 +726,7 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
         bytes memory decodedMessage = abi.decode(message, (bytes));
         (bytes32 messageType, bytes memory messageData) = abi.decode(decodedMessage, (bytes32, bytes));
 
-        if (messageType == GOVERNANCE_MESSAGE_STATE_GUARDIANS) {
+        if (messageType == GOVERNANCE_MESSAGE_GUARDIANS) {
             (uint16 epoch, uint16 totalNumberOfGuardians, bytes32 guardiansMerkleRoot) = abi.decode(
                 messageData,
                 (uint16, uint16, bytes32)
@@ -721,7 +738,7 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
             return;
         }
 
-        if (messageType == GOVERNANCE_MESSAGE_STATE_SENTINELS) {
+        if (messageType == GOVERNANCE_MESSAGE_SENTINELS) {
             (uint16 epoch, uint16 totalNumberOfSentinels, bytes32 sentinelsMerkleRoot) = abi.decode(
                 messageData,
                 (uint16, uint16, bytes32)
@@ -735,14 +752,73 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
 
         // NOTE: used when a sentinel is slashed ad its amount at stake goes below 200k PNT.
         // The new merkle root will not contain the address of the slashed sentinel
-        if (messageType == GOVERNANCE_MESSAGE_STATE_SENTINELS_MERKLE_ROOT) {
-            (uint16 epoch, bytes32 sentinelsMerkleRoot) = abi.decode(
+        if (messageType == GOVERNANCE_MESSAGE_HARD_SLASH_SENTINEL) {
+            (uint16 epoch, address sentinel, bytes32 sentinelsMerkleRoot) = abi.decode(
                 messageData,
-                (uint16, bytes32)
+                (uint16, address, bytes32)
             );
 
-            _epochsSentinelsMerkleRoot[epoch] = sentinelsMerkleRoot;
+            if (_epochsActorsStatus[epoch][sentinel] == ActorStatus.Active) {
+                unchecked {
+                    ++_epochsTotalNumberOfInactiveActors[epoch];
+                }
+                _epochsActorsStatus[epoch][sentinel] = ActorStatus.Inactive;
+                emit SentinelSlashed(epoch, sentinel);
+            }
 
+            _epochsSentinelsMerkleRoot[epoch] = sentinelsMerkleRoot;
+            return;
+        }
+
+        if (messageType == GOVERNANCE_MESSAGE_LIGHT_RESUME_SENTINEL) {
+            (uint16 epoch, address sentinel) = abi.decode(messageData, (uint16, address));
+
+            // NOTE: since GOVERNANCE_MESSAGE_LIGHT_RESUME_SENTINEL can be propagated
+            // also on chains where the challenge was not started, we have to make sure that
+            // the variables are updated only if the sentinels is challenged
+            if (_epochsActorsStatus[epoch][sentinel] == ActorStatus.Inactive) {
+                unchecked {
+                    --_epochsTotalNumberOfInactiveActors[epoch];
+                }
+
+                _epochsActorsStatus[epoch][sentinel] = ActorStatus.Active;
+                emit SentinelResumed(epoch, sentinel);
+            }
+
+            return;
+        }
+
+        if (messageType == GOVERNANCE_MESSAGE_LIGHT_RESUME_GUARDIAN) {
+            (uint16 epoch, address guardian) = abi.decode(messageData, (uint16, address));
+
+            if (_epochsActorsStatus[epoch][guardian] == ActorStatus.Inactive) {
+                unchecked {
+                    --_epochsTotalNumberOfInactiveActors[epoch];
+                }
+
+                _epochsActorsStatus[epoch][guardian] = ActorStatus.Active;
+                emit GuardianResumed(epoch, guardian);
+            }
+
+            return;
+        }
+
+        // NOTE: When a sentinel is hard-resumed, its address is put back within the merkle tree
+        if (messageType == GOVERNANCE_MESSAGE_HARD_RESUME_SENTINEL) {
+            (uint16 epoch, address sentinel, bytes32 sentinelsMerkleRoot) = abi.decode(
+                messageData,
+                (uint16, address, bytes32)
+            );
+
+            if (_epochsActorsStatus[epoch][sentinel] == ActorStatus.Inactive) {
+                unchecked {
+                    --_epochsTotalNumberOfInactiveActors[epoch];
+                }
+                _epochsActorsStatus[epoch][sentinel] = ActorStatus.Active;
+                emit SentinelResumed(epoch, sentinel);
+            }
+
+            _epochsSentinelsMerkleRoot[epoch] = sentinelsMerkleRoot;
             return;
         }
 
@@ -820,40 +896,27 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
         }
     }
 
-    function _solveChallenge(Challenge calldata challenge) internal returns (bool) {
+    function _solveChallenge(Challenge calldata challenge) internal {
         bytes32 challengeId = challengeIdOf(challenge);
         uint16 currentEpoch = IEpochsManager(epochsManager).currentEpoch();
         ChallengeStatus challengeStatus = _epochsChallengeStatus[currentEpoch][challengeId];
 
-        // NOTE: avoid to solve challenges opened in previous epochs
         if (challengeStatus == ChallengeStatus.Null) {
             revert ChallengeNotFound(challenge);
         }
 
-        if (challengeStatus == ChallengeStatus.Pending) {
-            if (block.timestamp > challenge.timestamp + maxChallengeDuration) {
-                revert MaxChallengeDurationPassed();
-            }
-
-            // TODO: send the lockedAmountStartChallenge to the DAO
-            _epochsChallengeStatus[currentEpoch][challengeId] = ChallengeStatus.Solved;
-            _epochsActorsStatus[currentEpoch][challenge.actor] = ActorStatus.Active;
-            emit ChallengeSolved(challenge);
-            return false;
+        if (challengeStatus != ChallengeStatus.Pending) {
+            revert InvalidChallengeStatus(challengeStatus);
         }
 
-        // NOTE: an actor can be resumed only after that the challenger slashed it
-        if (challengeStatus == ChallengeStatus.Unsolved) {
-            unchecked {
-                --_epochsTotalNumberOfInactiveActors[currentEpoch];
-            }
-
-            _epochsActorsStatus[currentEpoch][challenge.actor] = ActorStatus.Active;
-
-            return true;
+        if (block.timestamp > challenge.timestamp + maxChallengeDuration) {
+            revert MaxChallengeDurationPassed();
         }
 
-        revert InvalidChallengeStatus(challengeStatus);
+        // TODO: send the lockedAmountStartChallenge to the DAO
+        _epochsChallengeStatus[currentEpoch][challengeId] = ChallengeStatus.Solved;
+        _epochsActorsStatus[currentEpoch][challenge.actor] = ActorStatus.Active;
+        emit ChallengeSolved(challenge);
     }
 
     function _startChallenge(address actor) internal {

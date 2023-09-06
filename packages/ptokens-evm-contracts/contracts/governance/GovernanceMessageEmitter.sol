@@ -5,6 +5,7 @@ import {IGovernanceMessageEmitter} from "../interfaces/IGovernanceMessageEmitter
 import {IRegistrationManager} from "@pnetwork-association/dao-v2-contracts/contracts/interfaces/IRegistrationManager.sol";
 import {ILendingManager} from "@pnetwork-association/dao-v2-contracts/contracts/interfaces/ILendingManager.sol";
 import {IEpochsManager} from "@pnetwork-association/dao-v2-contracts/contracts/interfaces/IEpochsManager.sol";
+import {MerkleProof} from "@openzeppelin/contracts/utils/cryptography/MerkleProof.sol";
 import {MerkleTree} from "../libraries/MerkleTree.sol";
 
 error InvalidAmount(uint256 amount, uint256 expectedAmount);
@@ -14,10 +15,15 @@ error NotRegistrationManager();
 
 contract GovernanceMessageEmitter is IGovernanceMessageEmitter {
     bytes32 public constant GOVERNANCE_MESSAGE_SENTINELS = keccak256("GOVERNANCE_MESSAGE_SENTINELS");
-    bytes32 public constant GOVERNANCE_MESSAGE_SENTINELS_MERKLE_ROOT =
-        keccak256("GOVERNANCE_MESSAGE_SENTINELS_MERKLE_ROOT");
+    bytes32 public constant GOVERNANCE_MESSAGE_HARD_SLASH_SENTINEL =
+        keccak256("GOVERNANCE_MESSAGE_HARD_SLASH_SENTINEL");
     bytes32 public constant GOVERNANCE_MESSAGE_GUARDIANS = keccak256("GOVERNANCE_MESSAGE_GUARDIANS");
-    bytes32 public constant GOVERNANCE_MESSAGE_RESUME_ACTOR = keccak256("GOVERNANCE_MESSAGE_RESUME_ACTOR");
+    bytes32 public constant GOVERNANCE_MESSAGE_LIGHT_RESUME_SENTINEL =
+        keccak256("GOVERNANCE_MESSAGE_LIGHT_RESUME_SENTINEL");
+    bytes32 public constant GOVERNANCE_MESSAGE_LIGHT_RESUME_GUARDIAN =
+        keccak256("GOVERNANCE_MESSAGE_LIGHT_RESUME_GUARDIAN");
+    bytes32 public constant GOVERNANCE_MESSAGE_HARD_RESUME_SENTINEL =
+        keccak256("GOVERNANCE_MESSAGE_HARD_RESUME_SENTINEL");
 
     address public immutable epochsManager;
     address public immutable lendingManager;
@@ -35,6 +41,58 @@ contract GovernanceMessageEmitter is IGovernanceMessageEmitter {
         epochsManager = epochsManager_;
         lendingManager = lendingManager_;
         registrationManager = registrationManager_;
+    }
+
+    /// @inheritdoc IGovernanceMessageEmitter
+    function hardResumeSentinel(address sentinel, address[] calldata sentinels) external onlyRegistrationManager {
+        uint16 currentEpoch = IEpochsManager(epochsManager).currentEpoch();
+        address[] memory effectiveSentinels = _filterSentinels(sentinels, currentEpoch);
+
+        // TODO: What does it happen if effectiveSentinels.length === 1?
+        emit GovernanceMessage(
+            abi.encode(
+                GOVERNANCE_MESSAGE_HARD_RESUME_SENTINEL,
+                abi.encode(currentEpoch, sentinel, MerkleTree.getRoot(_hashAddresses(effectiveSentinels)))
+            )
+        );
+    }
+
+    /// @inheritdoc IGovernanceMessageEmitter
+    function hardSlashSentinel(address sentinel, bytes32[] calldata proof) external onlyRegistrationManager {
+        // NOTE: Should we prove that sentinel belongs to the proof? nope because this function can be called
+        // only be the RegistrationManager.slash which can be called only by the PNetworkHub when executeOperation.
+        // Moreover the operation that triggered the slashing contains the verification of the fact that the sentinel and
+        // the proof belongs to the correct merkle root.
+        emit GovernanceMessage(
+            abi.encode(
+                GOVERNANCE_MESSAGE_HARD_SLASH_SENTINEL,
+                abi.encode(
+                    IEpochsManager(epochsManager).currentEpoch(),
+                    sentinel,
+                    MerkleTree.getRootByProofAndLeaf(keccak256(abi.encodePacked(address(0))), proof)
+                )
+            )
+        );
+    }
+
+    /// @inheritdoc IGovernanceMessageEmitter
+    function lightResumeGuardian(address guardian) external onlyRegistrationManager {
+        emit GovernanceMessage(
+            abi.encode(
+                GOVERNANCE_MESSAGE_LIGHT_RESUME_GUARDIAN,
+                abi.encode(IEpochsManager(epochsManager).currentEpoch(), guardian)
+            )
+        );
+    }
+
+    /// @inheritdoc IGovernanceMessageEmitter
+    function lightResumeSentinel(address sentinel) external onlyRegistrationManager {
+        emit GovernanceMessage(
+            abi.encode(
+                GOVERNANCE_MESSAGE_LIGHT_RESUME_SENTINEL,
+                abi.encode(IEpochsManager(epochsManager).currentEpoch(), sentinel)
+            )
+        );
     }
 
     /// @inheritdoc IGovernanceMessageEmitter
@@ -66,15 +124,11 @@ contract GovernanceMessageEmitter is IGovernanceMessageEmitter {
         //     data[i] = abi.encodePacked(guardians[i]);
         // }
 
-        bytes32[] memory data = new bytes32[](guardians.length);
-        for (uint256 i = 0; i < guardians.length; i++) {
-            data[i] = keccak256(abi.encodePacked(guardians[i]));
-        }
-
+        // TODO: What does it happen if guardians.length === 1?
         emit GovernanceMessage(
             abi.encode(
                 GOVERNANCE_MESSAGE_GUARDIANS,
-                abi.encode(currentEpoch, guardians.length, MerkleTree.getRoot(data))
+                abi.encode(currentEpoch, guardians.length, MerkleTree.getRoot(_hashAddresses(guardians)))
             )
         );
     }
@@ -82,16 +136,32 @@ contract GovernanceMessageEmitter is IGovernanceMessageEmitter {
     /// @inheritdoc IGovernanceMessageEmitter
     function propagateSentinels(address[] calldata sentinels) public {
         uint16 currentEpoch = IEpochsManager(epochsManager).currentEpoch();
+        address[] memory effectiveSentinels = _filterSentinels(sentinels, currentEpoch);
+
+        // TODO: What does it happen if effectiveSentinels.length === 1?
+        emit GovernanceMessage(
+            abi.encode(
+                GOVERNANCE_MESSAGE_SENTINELS,
+                abi.encode(
+                    currentEpoch,
+                    effectiveSentinels.length,
+                    MerkleTree.getRoot(_hashAddresses(effectiveSentinels))
+                )
+            )
+        );
+    }
+
+    function _filterSentinels(
+        address[] memory sentinels,
+        uint16 currentEpoch
+    ) internal view returns (address[] memory) {
         uint32 totalBorrowedAmount = ILendingManager(lendingManager).totalBorrowedAmountByEpoch(currentEpoch);
         uint256 totalSentinelStakedAmount = IRegistrationManager(registrationManager).totalSentinelStakedAmountByEpoch(
             currentEpoch
         );
         uint256 totalAmount = totalBorrowedAmount + totalSentinelStakedAmount;
-
+        address[] memory effectiveSentinels = new address[](sentinels.length);
         uint256 cumulativeAmount = 0;
-        uint256 invalidIndex = sentinels.length + 1;
-        uint256[] memory indexes = new uint256[](sentinels.length);
-        uint256 validSentinels;
 
         // NOTE: be sure that totalSentinelStakedAmount + totalBorrowedAmount = cumulativeAmount.
         // There could be also sentinels that has less than 200k PNT because of slashing.
@@ -108,16 +178,10 @@ contract GovernanceMessageEmitter is IGovernanceMessageEmitter {
                 );
                 cumulativeAmount += amount;
 
-                if (amount >= 200000) {
-                    indexes[index] = index;
-                    validSentinels++;
-                } else {
-                    indexes[index] = invalidIndex;
-                }
+                effectiveSentinels[index] = amount >= 200000 ? sentinels[index] : address(0);
             } else if (registrationKind == 0x02) {
                 cumulativeAmount += 200000;
-                indexes[index] = index;
-                validSentinels++;
+                effectiveSentinels[index] = sentinels[index];
             } else {
                 revert InvalidSentinelRegistration(registrationKind);
             }
@@ -131,56 +195,14 @@ contract GovernanceMessageEmitter is IGovernanceMessageEmitter {
             revert InvalidAmount(totalAmount, cumulativeAmount);
         }
 
-        // NOTE: filter sentinels that have been slashed and has less than 200k PNT at stake
-        address[] memory effectiveSentinels = new address[](validSentinels);
-        uint256 j = 0;
-        for (uint256 i = 0; i < indexes.length; i++) {
-            if (indexes[i] == invalidIndex) continue;
-            effectiveSentinels[j] = sentinels[indexes[i]];
-            j++;
-        }
-
-        bytes32[] memory data = new bytes32[](effectiveSentinels.length);
-        for (uint256 i = 0; i < effectiveSentinels.length; i++) {
-            data[i] = keccak256(abi.encodePacked(effectiveSentinels[i]));
-        }
-
-        emit GovernanceMessage(
-            abi.encode(
-                GOVERNANCE_MESSAGE_SENTINELS,
-                abi.encode(currentEpoch, effectiveSentinels.length, MerkleTree.getRoot(data))
-            )
-        );
+        return effectiveSentinels;
     }
 
-    /// @inheritdoc IGovernanceMessageEmitter
-    function propagateSentinelsByRemovingTheLeafByProof(bytes32[] calldata proof) external onlyRegistrationManager {
-        uint16 currentEpoch = IEpochsManager(epochsManager).currentEpoch();
-
-        // TODO: If a sentinel is able to call PNetworkHub.solveChallenge just to re-enable the sentinel
-        // before that the new merkle root is propagated on all chains we could
-        // have (on the PNetworkHub) the _epochsTotalNumberOfInactiveActors[epoch] = effectiveNumberOfActiveSentinels + 1
-        // and because of this, lockdown mode will be never triggered.
-        // we could force to decrement _epochsTotalNumberOfInactiveActors[epoch] when a new GOVERNANCE_MESSAGE_SENTINELS_MERKLE_ROOT message
-        // is received but if a sentinel does not call solveChallenge we could enter in lock down mode even if there is an active sentinel/guardian
-
-        emit GovernanceMessage(
-            abi.encode(
-                GOVERNANCE_MESSAGE_SENTINELS_MERKLE_ROOT,
-                abi.encode(
-                    currentEpoch,
-                    MerkleTree.getRootByProofAndLeaf(keccak256(abi.encodePacked(address(0))), proof)
-                )
-            )
-        );
-    }
-
-    function resumeActor(address actor) external onlyRegistrationManager {
-        emit GovernanceMessage(
-            abi.encode(
-                GOVERNANCE_MESSAGE_RESUME_ACTOR,
-                abi.encode(actor)
-            )
-        );
+    function _hashAddresses(address[] memory addresses) internal pure returns (bytes32[] memory) {
+        bytes32[] memory data = new bytes32[](addresses.length);
+        for (uint256 i = 0; i < addresses.length; i++) {
+            data[i] = keccak256(abi.encodePacked(addresses[i]));
+        }
+        return data;
     }
 }

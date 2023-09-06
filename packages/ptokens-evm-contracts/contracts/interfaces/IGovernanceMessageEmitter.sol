@@ -18,6 +18,36 @@ interface IGovernanceMessageEmitter {
     event GovernanceMessage(bytes data);
 
     /*
+     * @notice Emit a GovernanceMessage event containing the address of the hard-resumed sentinel.
+     *
+     * @param sentinel
+     * @param sentinels
+     */
+    function hardResumeSentinel(address sentinel, address[] calldata sentinels) external;
+
+    /*
+     * @notice Emit a GovernanceMessage event containing the sentinels merkle root (without the slashed sentinel) and the sentinel
+     *
+     * @param sentinel
+     * @param proof
+     */
+    function hardSlashSentinel(address sentinel, bytes32[] calldata proof) external;
+
+    /*
+     * @notice Emit a GovernanceMessage event containing the address of the light-resumed guardian
+     *
+     * @param guardian
+     */
+    function lightResumeGuardian(address guardian) external;
+
+    /*
+     * @notice Emit a GovernanceMessage event containing the address of the light-resumed sentinel
+     *
+     * @param guardian
+     */
+    function lightResumeSentinel(address sentinel) external;
+
+    /*
      * @notice Just call propagateGuardians and propagateSentinels
      *
      * @param sentinels
@@ -41,16 +71,4 @@ interface IGovernanceMessageEmitter {
      * @param guardians
      */
     function propagateSentinels(address[] calldata sentinels) external;
-
-    /*
-     * @notice Emit a GovernanceMessage event containing ONLY the sentinels merkle root
-     *         with a leaf that should be proved by the proof set to 0.
-     *         This function is meant to be called by the RegistrationManager which,
-     *         should make inactive a sentinel after having slashed a it and its amount at stake
-     *         has become < 200k PNT
-     *
-     * @param sentinels
-     * @param guardians
-     */
-    function propagateSentinelsByRemovingTheLeafByProof(bytes32[] calldata proof) external;
 }
