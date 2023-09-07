@@ -26,7 +26,15 @@ interface IGovernanceMessageEmitter {
     function hardResumeSentinel(address sentinel, address[] calldata sentinels) external;
 
     /*
-     * @notice Emit a GovernanceMessage event containing the sentinels merkle root (without the slashed sentinel) and the sentinel
+     * @notice Emit a GovernanceMessage event containing the guardians merkle root (without the slashed guardian) and the guardian address
+     *
+     * @param sentinel
+     * @param proof
+     */
+    function hardSlashGuardian(address guardian, bytes32[] calldata proof) external;
+
+    /*
+     * @notice Emit a GovernanceMessage event containing the sentinels merkle root (without the slashed sentinel) and the sentinel address
      *
      * @param sentinel
      * @param proof

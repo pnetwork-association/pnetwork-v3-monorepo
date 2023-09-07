@@ -17,6 +17,8 @@ contract GovernanceMessageEmitter is IGovernanceMessageEmitter {
     bytes32 public constant GOVERNANCE_MESSAGE_SENTINELS = keccak256("GOVERNANCE_MESSAGE_SENTINELS");
     bytes32 public constant GOVERNANCE_MESSAGE_HARD_SLASH_SENTINEL =
         keccak256("GOVERNANCE_MESSAGE_HARD_SLASH_SENTINEL");
+    bytes32 public constant GOVERNANCE_MESSAGE_HARD_SLASH_GUARDIAN =
+        keccak256("GOVERNANCE_MESSAGE_HARD_SLASH_GUARDIAN");
     bytes32 public constant GOVERNANCE_MESSAGE_GUARDIANS = keccak256("GOVERNANCE_MESSAGE_GUARDIANS");
     bytes32 public constant GOVERNANCE_MESSAGE_LIGHT_RESUME_SENTINEL =
         keccak256("GOVERNANCE_MESSAGE_LIGHT_RESUME_SENTINEL");
@@ -58,11 +60,29 @@ contract GovernanceMessageEmitter is IGovernanceMessageEmitter {
     }
 
     /// @inheritdoc IGovernanceMessageEmitter
+    function hardSlashGuardian(address guardian, bytes32[] calldata proof) external onlyRegistrationManager {
+        // NOTE: Verification of the guardian's ownership to the proof isn't necessary here. This function can
+        // only be invoked by RegistrationManager.slash, which in turn is exclusively called by PNetworkHub during
+        // executeOperation. Furthermore, the operation initiating the slashing ensures that both the guardian
+        // and the proof correspond to the appropriate merkle root.
+        emit GovernanceMessage(
+            abi.encode(
+                GOVERNANCE_MESSAGE_HARD_SLASH_GUARDIAN,
+                abi.encode(
+                    IEpochsManager(epochsManager).currentEpoch(),
+                    guardian,
+                    MerkleTree.getRootByProofAndLeaf(keccak256(abi.encodePacked(address(0))), proof)
+                )
+            )
+        );
+    }
+
+    /// @inheritdoc IGovernanceMessageEmitter
     function hardSlashSentinel(address sentinel, bytes32[] calldata proof) external onlyRegistrationManager {
-        // NOTE: Should we prove that sentinel belongs to the proof? nope because this function can be called
-        // only be the RegistrationManager.slash which can be called only by the PNetworkHub when executeOperation.
-        // Moreover the operation that triggered the slashing contains the verification of the fact that the sentinel and
-        // the proof belongs to the correct merkle root.
+        // NOTE: Verification of the sentinel's ownership to the proof isn't necessary here. This function can
+        // only be invoked by RegistrationManager.slash, which in turn is exclusively called by PNetworkHub during
+        // executeOperation. Furthermore, the operation initiating the slashing ensures that both the sentinel
+        // and the proof correspond to the appropriate merkle root.
         emit GovernanceMessage(
             abi.encode(
                 GOVERNANCE_MESSAGE_HARD_SLASH_SENTINEL,
