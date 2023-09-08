@@ -1,5 +1,13 @@
 const constants = {
   BASE_CHALLENGE_PERIOD_DURATION: 1200,
+  CHALLENGE_STATUS: {
+    Null: 0,
+    Pending: 1,
+    Solved: 2,
+    Unsolved: 3,
+    PartiallyUnsolved: 4,
+    Cancelled: 5,
+  },
   K_CHALLENGE_PERIOD: 34,
   LOCKED_AMOUNT_CHALLENGE_PERIOD: '200000000000000000', // 0.2 just for testing
   LOCKED_AMOUNT_START_CHALLENGE: '200000000000000000', // 0.2 just for testing

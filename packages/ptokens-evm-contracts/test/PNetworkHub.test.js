@@ -5,6 +5,7 @@ const { MerkleTree } = require('merkletreejs')
 
 const {
   BASE_CHALLENGE_PERIOD_DURATION,
+  CHALLENGE_STATUS,
   K_CHALLENGE_PERIOD,
   LOCKED_AMOUNT_CHALLENGE_PERIOD,
   LOCKED_AMOUNT_START_CHALLENGE,
@@ -1322,7 +1323,7 @@ describe('PNetworkHub', () => {
     )
   })
 
-  it('should be able to slash a sentinel twice for the same challenge', async () => {
+  it('should not be able to slash a sentinel twice for the same challenge', async () => {
     const challengedSentinel = sentinels[2]
     const proof = getActorsMerkleProof(sentinels, challengedSentinel)
     const tx = await hub
@@ -1335,7 +1336,7 @@ describe('PNetworkHub', () => {
     await hub.connect(challenger).slashByChallenge(challenge)
     await expect(hub.connect(challenger).slashByChallenge(challenge))
       .to.be.revertedWithCustomError(hub, 'InvalidChallengeStatus')
-      .withArgs(3)
+      .withArgs(CHALLENGE_STATUS.Unsolved, CHALLENGE_STATUS.Pending)
   })
 
   it('should be able to solve a challenge of a guardian', async () => {
@@ -1473,7 +1474,7 @@ describe('PNetworkHub', () => {
     await hub.connect(challenger).slashByChallenge(challenge)
     await expect(hub.connect(challenger).slashByChallenge(challenge))
       .to.be.revertedWithCustomError(hub, 'InvalidChallengeStatus')
-      .withArgs(3)
+      .withArgs(CHALLENGE_STATUS.Unsolved, CHALLENGE_STATUS.Pending)
   })
 
   it('should not be able to queue an operation if lock down mode is triggered because both sentinels and guardians are inactive', async () => {
@@ -1804,9 +1805,9 @@ describe('PNetworkHub', () => {
     await expect(hub.connect(challenger).claimLockedAmountStartChallenge(challenge))
       .to.be.emit(hub, 'LockedAmountStartChallengeClaimed')
       .withArgs(challenge.serialize())
-    await expect(
-      hub.connect(challenger).claimLockedAmountStartChallenge(challenge)
-    ).to.be.revertedWithCustomError(hub, 'InvalidChallengeStatus')
+    await expect(hub.connect(challenger).claimLockedAmountStartChallenge(challenge))
+      .to.be.revertedWithCustomError(hub, 'InvalidChallengeStatus')
+      .withArgs(CHALLENGE_STATUS.PartiallyUnsolved, CHALLENGE_STATUS.Pending)
   })
 
   it('should not be able to claim lockedAmountStartChallenge in the epoch in which the challenge was opened', async () => {
@@ -2095,13 +2096,12 @@ describe('PNetworkHub', () => {
       .connect(telepathyRouter)
       .handleTelepathy(chainId, fakeGovernanceMessageVerifier.address, message.data)
 
-    await expect(hub.connect(challenger).slashByChallenge(challenge)).to.be.revertedWithCustomError(
-      hub,
-      'InvalidChallengeStatus'
-    )
+    await expect(hub.connect(challenger).slashByChallenge(challenge))
+      .to.be.revertedWithCustomError(hub, 'InvalidChallengeStatus')
+      .withArgs(CHALLENGE_STATUS.Cancelled, CHALLENGE_STATUS.Pending)
 
-    await expect(
-      hub.connect(slashedSentinel).solveChallengeSentinel(challenge, proof)
-    ).to.be.revertedWithCustomError(hub, 'InvalidChallengeStatus')
+    await expect(hub.connect(slashedSentinel).solveChallengeSentinel(challenge, proof))
+      .to.be.revertedWithCustomError(hub, 'InvalidChallengeStatus')
+      .withArgs(CHALLENGE_STATUS.Cancelled, CHALLENGE_STATUS.Pending)
   })
 })

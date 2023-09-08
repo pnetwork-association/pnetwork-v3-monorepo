@@ -44,8 +44,8 @@ error InvalidNetworkFeeAssetAmount();
 error InvalidSentinel(address sentinel);
 error InvalidGuardian(address guardian);
 error InvalidLockedAmountStartChallenge(uint256 lockedAmountStartChallenge, uint256 expectedLockedAmountStartChallenge);
-error InvalidActorStatus(IPNetworkHub.ActorStatus actorStatus, IPNetworkHub.ActorStatus expectedActorStatus);
-error InvalidChallengeStatus(IPNetworkHub.ChallengeStatus status);
+error InvalidActorStatus(IPNetworkHub.ActorStatus status, IPNetworkHub.ActorStatus expectedStatus);
+error InvalidChallengeStatus(IPNetworkHub.ChallengeStatus status, IPNetworkHub.ChallengeStatus expectedStatus);
 error NearToEpochClosing();
 error MaxChallengeDurationPassed();
 error MaxChallengeDurationNotPassed();
@@ -237,7 +237,7 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
         }
 
         if (challengeStatus != ChallengeStatus.Pending) {
-            revert InvalidChallengeStatus(challengeStatus);
+            revert InvalidChallengeStatus(challengeStatus, ChallengeStatus.Pending);
         }
 
         _epochsChallengesStatus[challengeEpoch][challengeId] = ChallengeStatus.PartiallyUnsolved;
@@ -494,30 +494,28 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
             revert ChallengeNotFound(challenge);
         }
 
-        if (challengeStatus == ChallengeStatus.Pending) {
-            if (block.timestamp <= challenge.timestamp + maxChallengeDuration) {
-                revert MaxChallengeDurationNotPassed();
-            }
-
-            _epochsChallengesStatus[currentEpoch][challengeId] = ChallengeStatus.Unsolved;
-            _epochsActorsStatus[currentEpoch][challenge.actor] = ActorStatus.Inactive;
-            delete _epochsActorsPendingChallengeId[currentEpoch][challenge.actor];
-
-            (bool sent, ) = challenge.challenger.call{value: lockedAmountStartChallenge}("");
-            if (!sent) {
-                revert CallFailed();
-            }
-
-            unchecked {
-                ++_epochsTotalNumberOfInactiveActors[currentEpoch];
-            }
-
-            // TODO:
-
-            return;
+        if (challengeStatus != ChallengeStatus.Pending) {
+            revert InvalidChallengeStatus(challengeStatus, ChallengeStatus.Pending);
         }
 
-        revert InvalidChallengeStatus(challengeStatus);
+        if (block.timestamp <= challenge.timestamp + maxChallengeDuration) {
+            revert MaxChallengeDurationNotPassed();
+        }
+
+        _epochsChallengesStatus[currentEpoch][challengeId] = ChallengeStatus.Unsolved;
+        _epochsActorsStatus[currentEpoch][challenge.actor] = ActorStatus.Inactive;
+        delete _epochsActorsPendingChallengeId[currentEpoch][challenge.actor];
+
+        (bool sent, ) = challenge.challenger.call{value: lockedAmountStartChallenge}("");
+        if (!sent) {
+            revert CallFailed();
+        }
+
+        unchecked {
+            ++_epochsTotalNumberOfInactiveActors[currentEpoch];
+        }
+
+        // TODO: emit special UserOperation
     }
 
     /// @inheritdoc IPNetworkHub
@@ -907,7 +905,7 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
         }
 
         if (challengeStatus != ChallengeStatus.Pending) {
-            revert InvalidChallengeStatus(challengeStatus);
+            revert InvalidChallengeStatus(challengeStatus, ChallengeStatus.Pending);
         }
 
         if (block.timestamp > challenge.timestamp + maxChallengeDuration) {
