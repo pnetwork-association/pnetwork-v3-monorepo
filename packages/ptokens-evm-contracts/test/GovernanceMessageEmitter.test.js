@@ -202,23 +202,16 @@ describe('GovernanceMessageEmitter', () => {
     const merkleRootWithoutSlashedSentinel = getMerkleRoot(sentinelsWithoutSlashedOne)
 
     const abiCoder = new ethers.utils.AbiCoder()
-    const messageData = abiCoder.encode(
-      ['uint16', 'address', 'bytes32'],
-      [currentEpoch, slashedSentinel, merkleRootWithoutSlashedSentinel]
-    )
+    const messageData = abiCoder.encode(['uint16', 'address'], [currentEpoch, slashedSentinel])
     const message = abiCoder.encode(
       ['bytes32', 'bytes'],
       [
-        ethers.utils.keccak256(ethers.utils.toUtf8Bytes('GOVERNANCE_MESSAGE_HARD_SLASH_SENTINEL')),
+        ethers.utils.keccak256(ethers.utils.toUtf8Bytes('GOVERNANCE_MESSAGE_SLASH_SENTINEL')),
         messageData,
       ]
     )
 
-    // NOTE: The root generated starting from the proof + leaf = 0
-    // must be equal to the root generated using address 0 in the same position where the slashed sentinel was."
-    await expect(
-      registrationManager.slash(slashedSentinel, getMerkleProof(sentinels, slashedSentinel))
-    )
+    await expect(registrationManager.slash(slashedSentinel))
       .to.emit(governanceMessageEmitter, 'GovernanceMessage')
       .withArgs(message)
 

@@ -76,7 +76,7 @@ contract MockRegistrationManager {
         governanceMessageEmitter = governanceStateReader_;
     }
 
-    function slash(address sentinel, bytes32[] calldata proof) external {
-        IGovernanceMessageEmitter(governanceMessageEmitter).hardSlashSentinel(sentinel, proof);
+    function slash(address sentinel) external {
+        IGovernanceMessageEmitter(governanceMessageEmitter).slashSentinel(sentinel);
     }
 }

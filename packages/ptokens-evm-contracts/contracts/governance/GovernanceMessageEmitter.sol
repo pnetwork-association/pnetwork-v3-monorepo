@@ -15,17 +15,11 @@ error NotRegistrationManager();
 
 contract GovernanceMessageEmitter is IGovernanceMessageEmitter {
     bytes32 public constant GOVERNANCE_MESSAGE_SENTINELS = keccak256("GOVERNANCE_MESSAGE_SENTINELS");
-    bytes32 public constant GOVERNANCE_MESSAGE_HARD_SLASH_SENTINEL =
-        keccak256("GOVERNANCE_MESSAGE_HARD_SLASH_SENTINEL");
-    bytes32 public constant GOVERNANCE_MESSAGE_HARD_SLASH_GUARDIAN =
-        keccak256("GOVERNANCE_MESSAGE_HARD_SLASH_GUARDIAN");
     bytes32 public constant GOVERNANCE_MESSAGE_GUARDIANS = keccak256("GOVERNANCE_MESSAGE_GUARDIANS");
-    bytes32 public constant GOVERNANCE_MESSAGE_LIGHT_RESUME_SENTINEL =
-        keccak256("GOVERNANCE_MESSAGE_LIGHT_RESUME_SENTINEL");
-    bytes32 public constant GOVERNANCE_MESSAGE_LIGHT_RESUME_GUARDIAN =
-        keccak256("GOVERNANCE_MESSAGE_LIGHT_RESUME_GUARDIAN");
-    bytes32 public constant GOVERNANCE_MESSAGE_HARD_RESUME_SENTINEL =
-        keccak256("GOVERNANCE_MESSAGE_HARD_RESUME_SENTINEL");
+    bytes32 public constant GOVERNANCE_MESSAGE_SLASH_SENTINEL = keccak256("GOVERNANCE_MESSAGE_SLASH_SENTINEL");
+    bytes32 public constant GOVERNANCE_MESSAGE_SLASH_GUARDIAN = keccak256("GOVERNANCE_MESSAGE_SLASH_GUARDIAN");
+    bytes32 public constant GOVERNANCE_MESSAGE_RESUME_SENTINEL = keccak256("GOVERNANCE_MESSAGE_RESUME_SENTINEL");
+    bytes32 public constant GOVERNANCE_MESSAGE_RESUME_GUARDIAN = keccak256("GOVERNANCE_MESSAGE_RESUME_GUARDIAN");
 
     address public immutable epochsManager;
     address public immutable lendingManager;
@@ -46,70 +40,40 @@ contract GovernanceMessageEmitter is IGovernanceMessageEmitter {
     }
 
     /// @inheritdoc IGovernanceMessageEmitter
-    function hardResumeSentinel(address sentinel, address[] calldata sentinels) external onlyRegistrationManager {
-        uint16 currentEpoch = IEpochsManager(epochsManager).currentEpoch();
-        address[] memory effectiveSentinels = _filterSentinels(sentinels, currentEpoch);
-
-        // TODO: What does it happen if effectiveSentinels.length === 1?
+    function resumeGuardian(address guardian) external onlyRegistrationManager {
         emit GovernanceMessage(
             abi.encode(
-                GOVERNANCE_MESSAGE_HARD_RESUME_SENTINEL,
-                abi.encode(currentEpoch, sentinel, MerkleTree.getRoot(_hashAddresses(effectiveSentinels)))
-            )
-        );
-    }
-
-    /// @inheritdoc IGovernanceMessageEmitter
-    function hardSlashGuardian(address guardian, bytes32[] calldata proof) external onlyRegistrationManager {
-        // NOTE: Verification of the guardian's ownership to the proof isn't necessary here. This function can
-        // only be invoked by RegistrationManager.slash, which in turn is exclusively called by PNetworkHub during
-        // executeOperation. Furthermore, the operation initiating the slashing ensures that both the guardian
-        // and the proof correspond to the appropriate merkle root.
-        emit GovernanceMessage(
-            abi.encode(
-                GOVERNANCE_MESSAGE_HARD_SLASH_GUARDIAN,
-                abi.encode(
-                    IEpochsManager(epochsManager).currentEpoch(),
-                    guardian,
-                    MerkleTree.getRootByProofAndLeaf(keccak256(abi.encodePacked(address(0))), proof)
-                )
-            )
-        );
-    }
-
-    /// @inheritdoc IGovernanceMessageEmitter
-    function hardSlashSentinel(address sentinel, bytes32[] calldata proof) external onlyRegistrationManager {
-        // NOTE: Verification of the sentinel's ownership to the proof isn't necessary here. This function can
-        // only be invoked by RegistrationManager.slash, which in turn is exclusively called by PNetworkHub during
-        // executeOperation. Furthermore, the operation initiating the slashing ensures that both the sentinel
-        // and the proof correspond to the appropriate merkle root.
-        emit GovernanceMessage(
-            abi.encode(
-                GOVERNANCE_MESSAGE_HARD_SLASH_SENTINEL,
-                abi.encode(
-                    IEpochsManager(epochsManager).currentEpoch(),
-                    sentinel,
-                    MerkleTree.getRootByProofAndLeaf(keccak256(abi.encodePacked(address(0))), proof)
-                )
-            )
-        );
-    }
-
-    /// @inheritdoc IGovernanceMessageEmitter
-    function lightResumeGuardian(address guardian) external onlyRegistrationManager {
-        emit GovernanceMessage(
-            abi.encode(
-                GOVERNANCE_MESSAGE_LIGHT_RESUME_GUARDIAN,
+                GOVERNANCE_MESSAGE_RESUME_GUARDIAN,
                 abi.encode(IEpochsManager(epochsManager).currentEpoch(), guardian)
             )
         );
     }
 
     /// @inheritdoc IGovernanceMessageEmitter
-    function lightResumeSentinel(address sentinel) external onlyRegistrationManager {
+    function resumeSentinel(address sentinel) external onlyRegistrationManager {
         emit GovernanceMessage(
             abi.encode(
-                GOVERNANCE_MESSAGE_LIGHT_RESUME_SENTINEL,
+                GOVERNANCE_MESSAGE_RESUME_SENTINEL,
+                abi.encode(IEpochsManager(epochsManager).currentEpoch(), sentinel)
+            )
+        );
+    }
+
+    /// TODO
+    function slashGuardian(address guardian) external onlyRegistrationManager {
+        emit GovernanceMessage(
+            abi.encode(
+                GOVERNANCE_MESSAGE_SLASH_GUARDIAN,
+                abi.encode(IEpochsManager(epochsManager).currentEpoch(), guardian)
+            )
+        );
+    }
+
+    /// TODO
+    function slashSentinel(address sentinel) external onlyRegistrationManager {
+        emit GovernanceMessage(
+            abi.encode(
+                GOVERNANCE_MESSAGE_SLASH_SENTINEL,
                 abi.encode(IEpochsManager(epochsManager).currentEpoch(), sentinel)
             )
         );

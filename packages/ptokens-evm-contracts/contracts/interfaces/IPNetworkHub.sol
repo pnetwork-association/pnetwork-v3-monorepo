@@ -28,7 +28,8 @@ interface IPNetworkHub is IGovernanceMessageHandler {
         Pending,
         Solved,
         Unsolved,
-        PartiallyUnsolved
+        PartiallyUnsolved,
+        Cancelled
     }
 
     enum OperationStatus {
@@ -86,6 +87,13 @@ interface IPNetworkHub is IGovernanceMessageHandler {
     event ChallengeSolved(Challenge challenge);
 
     /**
+     * @dev Emitted when a challenge is cancelled.
+     *
+     * @param challenge The challenge
+     */
+    event ChallengeCancelled(Challenge challenge);
+
+    /**
      * @dev Emitted when a challenger claims the lockedAmountStartChallenge by providing a challenge.
      *
      * @param challenge The challenge
@@ -136,6 +144,14 @@ interface IPNetworkHub is IGovernanceMessageHandler {
     event GuardianResumed(uint16 indexed epoch, address indexed guardian);
 
     /**
+     * @dev Emitted when a guardian has been slashed on the interim chain.
+     *
+     * @param epoch The epoch in which the sentinel has been slashed
+     * @param guardian The slashed guardian
+     */
+    event GuardianSlashed(uint16 indexed epoch, address indexed guardian);
+
+    /**
      * @dev Emitted when a Sentinel instruct an cancel action on an operation.
      *
      * @param operation The cancelled operation
@@ -151,7 +167,7 @@ interface IPNetworkHub is IGovernanceMessageHandler {
     event SentinelResumed(uint16 indexed epoch, address indexed sentinel);
 
     /**
-     * @dev Emitted when a sentinel is slashed after having being slashed
+     * @dev Emitted when a sentinel has been slashed on the interim chain.
      *
      * @param epoch The epoch in which the sentinel has been slashed
      * @param sentinel The slashed sentinel
@@ -347,7 +363,7 @@ interface IPNetworkHub is IGovernanceMessageHandler {
      * @param challenge
      *
      */
-    function slashByChallenge(Challenge calldata challenge, bytes32[] calldata proof) external;
+    function slashByChallenge(Challenge calldata challenge) external;
 
     /*
      * @notice Solve a challenge of a guardian and sends the bond (lockedAmountStartChallenge) to the DAO.

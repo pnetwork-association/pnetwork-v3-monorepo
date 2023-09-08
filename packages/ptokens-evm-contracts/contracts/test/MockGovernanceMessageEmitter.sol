@@ -5,16 +5,12 @@ import {IEpochsManager} from "@pnetwork-association/dao-v2-contracts/contracts/i
 import {MerkleTree} from "../libraries/MerkleTree.sol";
 
 contract MockGovernanceMessageEmitter {
-    bytes32 public constant GOVERNANCE_MESSAGE_GUARDIANS = keccak256("GOVERNANCE_MESSAGE_GUARDIANS");
     bytes32 public constant GOVERNANCE_MESSAGE_SENTINELS = keccak256("GOVERNANCE_MESSAGE_SENTINELS");
-    bytes32 public constant GOVERNANCE_MESSAGE_HARD_SLASH_SENTINEL =
-        keccak256("GOVERNANCE_MESSAGE_HARD_SLASH_SENTINEL");
-    bytes32 public constant GOVERNANCE_MESSAGE_LIGHT_RESUME_GUARDIAN =
-        keccak256("GOVERNANCE_MESSAGE_LIGHT_RESUME_GUARDIAN");
-    bytes32 public constant GOVERNANCE_MESSAGE_LIGHT_RESUME_SENTINEL =
-        keccak256("GOVERNANCE_MESSAGE_LIGHT_RESUME_SENTINEL");
-    bytes32 public constant GOVERNANCE_MESSAGE_HARD_RESUME_SENTINEL =
-        keccak256("GOVERNANCE_MESSAGE_HARD_RESUME_SENTINEL");
+    bytes32 public constant GOVERNANCE_MESSAGE_GUARDIANS = keccak256("GOVERNANCE_MESSAGE_GUARDIANS");
+    bytes32 public constant GOVERNANCE_MESSAGE_SLASH_SENTINEL = keccak256("GOVERNANCE_MESSAGE_SLASH_SENTINEL");
+    bytes32 public constant GOVERNANCE_MESSAGE_SLASH_GUARDIAN = keccak256("GOVERNANCE_MESSAGE_SLASH_GUARDIAN");
+    bytes32 public constant GOVERNANCE_MESSAGE_RESUME_SENTINEL = keccak256("GOVERNANCE_MESSAGE_RESUME_SENTINEL");
+    bytes32 public constant GOVERNANCE_MESSAGE_RESUME_GUARDIAN = keccak256("GOVERNANCE_MESSAGE_RESUME_GUARDIAN");
 
     address public immutable epochsManager;
 
@@ -24,32 +20,37 @@ contract MockGovernanceMessageEmitter {
         epochsManager = epochsManager_;
     }
 
-    function hardResumeSentinel(address sentinel, address[] calldata sentinels) external {
+    function resumeGuardian(address guardian) external {
         emit GovernanceMessage(
             abi.encode(
-                GOVERNANCE_MESSAGE_HARD_RESUME_SENTINEL,
-                abi.encode(
-                    IEpochsManager(epochsManager).currentEpoch(),
-                    sentinel,
-                    MerkleTree.getRoot(_hashAddresses(sentinels))
-                )
-            )
-        );
-    }
-
-    function lightResumeGuardian(address guardian) external {
-        emit GovernanceMessage(
-            abi.encode(
-                GOVERNANCE_MESSAGE_LIGHT_RESUME_GUARDIAN,
+                GOVERNANCE_MESSAGE_RESUME_GUARDIAN,
                 abi.encode(IEpochsManager(epochsManager).currentEpoch(), guardian)
             )
         );
     }
 
-    function lightResumeSentinel(address sentinel) external {
+    function resumeSentinel(address sentinel) external {
         emit GovernanceMessage(
             abi.encode(
-                GOVERNANCE_MESSAGE_LIGHT_RESUME_SENTINEL,
+                GOVERNANCE_MESSAGE_RESUME_SENTINEL,
+                abi.encode(IEpochsManager(epochsManager).currentEpoch(), sentinel)
+            )
+        );
+    }
+
+    function slashGuardian(address guardian) external {
+        emit GovernanceMessage(
+            abi.encode(
+                GOVERNANCE_MESSAGE_SLASH_GUARDIAN,
+                abi.encode(IEpochsManager(epochsManager).currentEpoch(), guardian)
+            )
+        );
+    }
+
+    function slashSentinel(address sentinel) external {
+        emit GovernanceMessage(
+            abi.encode(
+                GOVERNANCE_MESSAGE_SLASH_SENTINEL,
                 abi.encode(IEpochsManager(epochsManager).currentEpoch(), sentinel)
             )
         );
@@ -67,19 +68,6 @@ contract MockGovernanceMessageEmitter {
             abi.encode(
                 GOVERNANCE_MESSAGE_GUARDIANS,
                 abi.encode(epoch, guardians.length, MerkleTree.getRoot(_hashAddresses(guardians)))
-            )
-        );
-    }
-
-    function hardSlashSentinel(address sentinel, bytes32[] calldata proof) external {
-        emit GovernanceMessage(
-            abi.encode(
-                GOVERNANCE_MESSAGE_HARD_SLASH_SENTINEL,
-                abi.encode(
-                    IEpochsManager(epochsManager).currentEpoch(),
-                    sentinel,
-                    MerkleTree.getRootByProofAndLeaf(keccak256(abi.encodePacked(address(0))), proof)
-                )
             )
         );
     }

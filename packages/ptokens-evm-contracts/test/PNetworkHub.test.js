@@ -1148,7 +1148,7 @@ describe('PNetworkHub', () => {
       hub.connect(challenger).startChallengeSentinel(challengedSentinel.address, proof, {
         value: LOCKED_AMOUNT_START_CHALLENGE,
       })
-    ).to.be.revertedWithCustomError(hub, 'AlreadyChallenged')
+    ).to.be.revertedWithCustomError(hub, 'InvalidActorStatus')
   })
 
   it('should not be able to open a challenge with a wrong locked amount for the same sentinel', async () => {
@@ -1186,7 +1186,7 @@ describe('PNetworkHub', () => {
       hub.connect(challenger).startChallengeGuardian(challengedGuardian.address, proof, {
         value: LOCKED_AMOUNT_START_CHALLENGE,
       })
-    ).to.be.revertedWithCustomError(hub, 'AlreadyChallenged')
+    ).to.be.revertedWithCustomError(hub, 'InvalidActorStatus')
   })
 
   it('should not be able to open a challenge with a wrong locked amount for the same guardian', async () => {
@@ -1261,7 +1261,7 @@ describe('PNetworkHub', () => {
     const balancePre = await ethers.provider.getBalance(challenger.address)
 
     // TODO: add event check when slashing will be added
-    const receipt = await (await hub.connect(challenger).slashByChallenge(challenge, proof)).wait(1)
+    const receipt = await (await hub.connect(challenger).slashByChallenge(challenge)).wait(1)
 
     const balancePost = await ethers.provider.getBalance(challenger.address)
     expect(balancePost).to.be.eq(
@@ -1281,9 +1281,10 @@ describe('PNetworkHub', () => {
         value: LOCKED_AMOUNT_START_CHALLENGE,
       })
     const challenge = Challenge.fromReceipt(await tx.wait(1))
-    await expect(
-      hub.connect(challenger).slashByChallenge(challenge, proof)
-    ).to.be.revertedWithCustomError(hub, 'MaxChallengeDurationNotPassed')
+    await expect(hub.connect(challenger).slashByChallenge(challenge)).to.be.revertedWithCustomError(
+      hub,
+      'MaxChallengeDurationNotPassed'
+    )
   })
 
   it('should be able to resume a sentinel after slashing', async () => {
@@ -1299,12 +1300,12 @@ describe('PNetworkHub', () => {
 
     const initialTotalNumberOfInactiveActors =
       await hub.getTotalNumberOfInactiveActorsForCurrentEpoch()
-    await hub.connect(challenger).slashByChallenge(challenge, proof)
+    await hub.connect(challenger).slashByChallenge(challenge)
     expect(await hub.getTotalNumberOfInactiveActorsForCurrentEpoch()).to.be.eq(
       initialTotalNumberOfInactiveActors + 1
     )
 
-    tx = await governanceMessageEmitter.lightResumeSentinel(challengedSentinel.address)
+    tx = await governanceMessageEmitter.resumeSentinel(challengedSentinel.address)
     const receipt = await tx.wait(1)
     const message = receipt.events.find(({ event }) => event === 'GovernanceMessage')
 
@@ -1331,8 +1332,8 @@ describe('PNetworkHub', () => {
       })
     const challenge = Challenge.fromReceipt(await tx.wait(1))
     await time.increase(MAX_CHALLENGE_DURATION)
-    await hub.connect(challenger).slashByChallenge(challenge, proof)
-    await expect(hub.connect(challenger).slashByChallenge(challenge, proof))
+    await hub.connect(challenger).slashByChallenge(challenge)
+    await expect(hub.connect(challenger).slashByChallenge(challenge))
       .to.be.revertedWithCustomError(hub, 'InvalidChallengeStatus')
       .withArgs(3)
   })
@@ -1399,7 +1400,7 @@ describe('PNetworkHub', () => {
     const balancePre = await ethers.provider.getBalance(challenger.address)
 
     // TODO: add event check when slashing will be added
-    const receipt = await (await hub.connect(challenger).slashByChallenge(challenge, proof)).wait(1)
+    const receipt = await (await hub.connect(challenger).slashByChallenge(challenge)).wait(1)
     const balancePost = await ethers.provider.getBalance(challenger.address)
     expect(balancePost).to.be.eq(
       balancePre
@@ -1418,9 +1419,10 @@ describe('PNetworkHub', () => {
         value: LOCKED_AMOUNT_START_CHALLENGE,
       })
     const challenge = Challenge.fromReceipt(await tx.wait(1))
-    await expect(
-      hub.connect(challenger).slashByChallenge(challenge, proof)
-    ).to.be.revertedWithCustomError(hub, 'MaxChallengeDurationNotPassed')
+    await expect(hub.connect(challenger).slashByChallenge(challenge)).to.be.revertedWithCustomError(
+      hub,
+      'MaxChallengeDurationNotPassed'
+    )
   })
 
   it('should be able to resume a sentinel after slashing', async () => {
@@ -1436,12 +1438,12 @@ describe('PNetworkHub', () => {
 
     const initialTotalNumberOfInactiveActors =
       await hub.getTotalNumberOfInactiveActorsForCurrentEpoch()
-    await hub.connect(challenger).slashByChallenge(challenge, proof)
+    await hub.connect(challenger).slashByChallenge(challenge)
     expect(await hub.getTotalNumberOfInactiveActorsForCurrentEpoch()).to.be.eq(
       initialTotalNumberOfInactiveActors + 1
     )
 
-    tx = await governanceMessageEmitter.lightResumeGuardian(challengedGuardian.address)
+    tx = await governanceMessageEmitter.resumeGuardian(challengedGuardian.address)
     const receipt = await tx.wait(1)
     const message = receipt.events.find(({ event }) => event === 'GovernanceMessage')
 
@@ -1468,15 +1470,14 @@ describe('PNetworkHub', () => {
       })
     const challenge = Challenge.fromReceipt(await tx.wait(1))
     await time.increase(MAX_CHALLENGE_DURATION)
-    await hub.connect(challenger).slashByChallenge(challenge, proof)
-    await expect(hub.connect(challenger).slashByChallenge(challenge, proof))
+    await hub.connect(challenger).slashByChallenge(challenge)
+    await expect(hub.connect(challenger).slashByChallenge(challenge))
       .to.be.revertedWithCustomError(hub, 'InvalidChallengeStatus')
       .withArgs(3)
   })
 
   it('should not be able to queue an operation if lock down mode is triggered because both sentinels and guardians are inactive', async () => {
     const challenges = []
-    const proofs = []
     for (const challengedGuardian of guardians) {
       const proof = getActorsMerkleProof(guardians, challengedGuardian)
       const tx = await hub
@@ -1485,7 +1486,6 @@ describe('PNetworkHub', () => {
           value: LOCKED_AMOUNT_START_CHALLENGE,
         })
       challenges.push(Challenge.fromReceipt(await tx.wait(1)))
-      proofs.push(proof)
     }
 
     for (const challengedSentinel of sentinels) {
@@ -1496,15 +1496,12 @@ describe('PNetworkHub', () => {
           value: LOCKED_AMOUNT_START_CHALLENGE,
         })
       challenges.push(Challenge.fromReceipt(await tx.wait(1)))
-      proofs.push(proof)
     }
 
     await time.increase(MAX_CHALLENGE_DURATION)
 
-    let i = 0
     for (const challenge of challenges) {
-      await hub.connect(challenger).slashByChallenge(challenge, proofs[i])
-      i++
+      await hub.connect(challenger).slashByChallenge(challenge)
     }
 
     await expect(
@@ -1605,8 +1602,7 @@ describe('PNetworkHub', () => {
     await time.setNextBlockTimestamp(currentEpochEndTimestamp - 1)
 
     // TODO: add event check when slashing will be added
-    await expect(hub.connect(challengedGuardian).slashByChallenge(challenge, proof)).to.not.be
-      .reverted
+    await expect(hub.connect(challengedGuardian).slashByChallenge(challenge)).to.not.be.reverted
   })
 
   it('should not be able to resolve a challenge started in the previous epoch', async () => {
@@ -1632,13 +1628,12 @@ describe('PNetworkHub', () => {
     ).to.be.revertedWithCustomError(hub, 'ChallengeNotFound')
 
     await expect(
-      hub.connect(challengedGuardian).slashByChallenge(challenge, proof)
+      hub.connect(challengedGuardian).slashByChallenge(challenge)
     ).to.be.revertedWithCustomError(hub, 'ChallengeNotFound')
   })
 
   it('should be able enter and exit from lock down mode because of actors inactivity', async () => {
     const challenges = []
-    const proofs = []
     let tx
     for (const challengedGuardian of guardians) {
       const proof = getActorsMerkleProof(guardians, challengedGuardian)
@@ -1646,7 +1641,6 @@ describe('PNetworkHub', () => {
         value: LOCKED_AMOUNT_START_CHALLENGE,
       })
       challenges.push(Challenge.fromReceipt(await tx.wait(1)))
-      proofs.push(proof)
     }
 
     for (const challengedSentinel of sentinels) {
@@ -1655,15 +1649,12 @@ describe('PNetworkHub', () => {
         value: LOCKED_AMOUNT_START_CHALLENGE,
       })
       challenges.push(Challenge.fromReceipt(await tx.wait(1)))
-      proofs.push(proof)
     }
 
     await time.increase(MAX_CHALLENGE_DURATION)
 
-    let i = 0
     for (const challenge of challenges) {
-      await hub.connect(challenger).slashByChallenge(challenge, proofs[i])
-      i++
+      await hub.connect(challenger).slashByChallenge(challenge)
     }
 
     await expect(
@@ -1672,7 +1663,7 @@ describe('PNetworkHub', () => {
       })
     ).to.be.revertedWithCustomError(hub, 'LockDown')
 
-    tx = await governanceMessageEmitter.lightResumeGuardian(guardians[0].address)
+    tx = await governanceMessageEmitter.resumeGuardian(guardians[0].address)
     const receipt = await tx.wait(1)
     const message = receipt.events.find(({ event }) => event === 'GovernanceMessage')
 
@@ -1863,7 +1854,6 @@ describe('PNetworkHub', () => {
 
   it('should be able to exit from lock down mode after an hard-resume', async () => {
     const challenges = []
-    const proofs = []
     let tx
     for (const challengedGuardian of guardians) {
       const proof = getActorsMerkleProof(guardians, challengedGuardian)
@@ -1871,7 +1861,6 @@ describe('PNetworkHub', () => {
         value: LOCKED_AMOUNT_START_CHALLENGE,
       })
       challenges.push(Challenge.fromReceipt(await tx.wait(1)))
-      proofs.push(proof)
     }
 
     for (const challengedSentinel of sentinels) {
@@ -1880,15 +1869,12 @@ describe('PNetworkHub', () => {
         value: LOCKED_AMOUNT_START_CHALLENGE,
       })
       challenges.push(Challenge.fromReceipt(await tx.wait(1)))
-      proofs.push(proof)
     }
 
     await time.increase(MAX_CHALLENGE_DURATION)
 
-    let i = 0
     for (const challenge of challenges) {
-      await hub.connect(challenger).slashByChallenge(challenge, proofs[i])
-      i++
+      await hub.connect(challenger).slashByChallenge(challenge)
     }
 
     await expect(
@@ -1897,11 +1883,9 @@ describe('PNetworkHub', () => {
       })
     ).to.be.revertedWithCustomError(hub, 'LockDown')
 
-    // sentinel1 is slashed and let's suppose that its amount at stake goes below 200k PNT
-    // for this reason a GOVERNANCE_MESSAGE_HARD_SLASH_SENTINEL message is emitted
+    // sentinel1 is slashed and a GOVERNANCE_MESSAGE_SLASH_SENTINEL message is emitted
     const slashedSentinel = sentinels[1]
-    const proof = getActorsMerkleProof(sentinels, slashedSentinel)
-    tx = await governanceMessageEmitter.hardSlashSentinel(slashedSentinel.address, proof)
+    tx = await governanceMessageEmitter.slashSentinel(slashedSentinel.address)
     let receipt = await tx.wait(1)
     let message = receipt.events.find(({ event }) => event === 'GovernanceMessage')
 
@@ -1909,11 +1893,8 @@ describe('PNetworkHub', () => {
       .connect(telepathyRouter)
       .handleTelepathy(chainId, fakeGovernanceMessageVerifier.address, message.data)
 
-    // At this point sentinel1 should hard-resume itself
-    tx = await governanceMessageEmitter.hardResumeSentinel(
-      slashedSentinel.address,
-      sentinels.map(({ address }) => address)
-    )
+    // At this point sentinel1 should resume itself
+    tx = await governanceMessageEmitter.resumeSentinel(slashedSentinel.address)
     receipt = await tx.wait(1)
     message = receipt.events.find(({ event }) => event === 'GovernanceMessage')
 
@@ -1940,9 +1921,8 @@ describe('PNetworkHub', () => {
     await expect(hub.protocolSentinelCancelOperation(operation, [])).not.to.be.reverted
   })
 
-  it('should trigger lock down mode even when hardh slashing comes from other chains', async () => {
+  it('should trigger lock down mode even when slash comes from other chains', async () => {
     const challenges = []
-    const proofs = []
     let tx
     for (const challengedGuardian of guardians) {
       const proof = getActorsMerkleProof(guardians, challengedGuardian)
@@ -1950,26 +1930,22 @@ describe('PNetworkHub', () => {
         value: LOCKED_AMOUNT_START_CHALLENGE,
       })
       challenges.push(Challenge.fromReceipt(await tx.wait(1)))
-      proofs.push(proof)
     }
 
     await time.increase(MAX_CHALLENGE_DURATION)
 
-    let i = 0
     for (const challenge of challenges) {
-      await hub.connect(challenger).slashByChallenge(challenge, proofs[i])
-      i++
+      await hub.connect(challenger).slashByChallenge(challenge)
     }
 
     const messages = []
     for (const slashedSentinel of sentinels) {
-      const proof = getActorsMerkleProof(sentinels, slashedSentinel)
-      tx = await governanceMessageEmitter.hardSlashSentinel(slashedSentinel.address, proof)
+      tx = await governanceMessageEmitter.slashSentinel(slashedSentinel.address)
       const receipt = await tx.wait(1)
       messages.push(receipt.events.find(({ event }) => event === 'GovernanceMessage'))
     }
 
-    i = 0
+    let i = 0
     for (const message of messages) {
       await expect(
         hub
@@ -1986,5 +1962,146 @@ describe('PNetworkHub', () => {
         value: LOCKED_AMOUNT_CHALLENGE_PERIOD,
       })
     ).to.be.revertedWithCustomError(hub, 'LockDown')
+  })
+
+  it('should be able to correctly handling the pending challenge for an actor', async () => {
+    const challengedGuardian = guardians[0]
+    const proof = getActorsMerkleProof(guardians, challengedGuardian)
+    let tx = await hub
+      .connect(challenger)
+      .startChallengeGuardian(challengedGuardian.address, proof, {
+        value: LOCKED_AMOUNT_START_CHALLENGE,
+      })
+    let challenge = Challenge.fromReceipt(await tx.wait(1))
+
+    let expectedChallengeId = await hub.challengeIdOf(challenge)
+    expect(
+      await hub.getPendingChallengeIdByEpochOf(currentEpoch, challengedGuardian.address)
+    ).to.be.eq(expectedChallengeId)
+
+    await time.increase(MAX_CHALLENGE_DURATION)
+    await hub.connect(challenger).slashByChallenge(challenge)
+    expect(
+      await hub.getPendingChallengeIdByEpochOf(currentEpoch, challengedGuardian.address)
+    ).to.be.eq('0x'.padEnd(66, '0'))
+
+    tx = await governanceMessageEmitter.resumeSentinel(challengedGuardian.address)
+    const receipt = await tx.wait(1)
+    const message = receipt.events.find(({ event }) => event === 'GovernanceMessage')
+    await hub
+      .connect(telepathyRouter)
+      .handleTelepathy(chainId, fakeGovernanceMessageVerifier.address, message.data)
+
+    tx = await hub.connect(challenger).startChallengeGuardian(challengedGuardian.address, proof, {
+      value: LOCKED_AMOUNT_START_CHALLENGE,
+    })
+    challenge = Challenge.fromReceipt(await tx.wait(1))
+
+    expectedChallengeId = await hub.challengeIdOf(challenge)
+    expect(
+      await hub.getPendingChallengeIdByEpochOf(currentEpoch, challengedGuardian.address)
+    ).to.be.eq(expectedChallengeId)
+
+    await hub.connect(challengedGuardian).solveChallengeSentinel(challenge, proof)
+    expect(
+      await hub.getPendingChallengeIdByEpochOf(currentEpoch, challengedGuardian.address)
+    ).to.be.eq('0x'.padEnd(66, '0'))
+  })
+
+  it('should appropriately manage an ongoing challenge when a GOVERNANCE_MESSAGE_SLASH_SENTINEL is received for the sentinel involved in that challenge in order to trigger lock down mode', async () => {
+    const challenges = []
+    let tx
+    for (const challengedGuardian of guardians) {
+      const proof = getActorsMerkleProof(guardians, challengedGuardian)
+      tx = await hub.connect(challenger).startChallengeGuardian(challengedGuardian.address, proof, {
+        value: LOCKED_AMOUNT_START_CHALLENGE,
+      })
+      challenges.push(Challenge.fromReceipt(await tx.wait(1)))
+    }
+
+    const effectiveSentinels = sentinels.slice(1)
+    for (const challengedSentinel of effectiveSentinels) {
+      const proof = getActorsMerkleProof(sentinels, challengedSentinel)
+      tx = await hub.connect(challenger).startChallengeSentinel(challengedSentinel.address, proof, {
+        value: LOCKED_AMOUNT_START_CHALLENGE,
+      })
+      challenges.push(Challenge.fromReceipt(await tx.wait(1)))
+    }
+
+    await time.increase(MAX_CHALLENGE_DURATION)
+    for (const challenge of challenges) {
+      await hub.connect(challenger).slashByChallenge(challenge)
+    }
+
+    expect(await hub.getTotalNumberOfInactiveActorsForCurrentEpoch()).to.be.eq(
+      sentinels.length + guardians.length - 1
+    )
+
+    const slashedSentinel = sentinels[0]
+    const proof = getActorsMerkleProof(sentinels, slashedSentinel)
+    tx = await hub.connect(challenger).startChallengeSentinel(slashedSentinel.address, proof, {
+      value: LOCKED_AMOUNT_START_CHALLENGE,
+    })
+
+    const challengerBalancePre = await ethers.provider.getBalance(challenger.address)
+
+    const challenge = Challenge.fromReceipt(await tx.wait(1))
+    const expectedChallengeId = await hub.challengeIdOf(challenge)
+    expect(
+      await hub.getPendingChallengeIdByEpochOf(currentEpoch, slashedSentinel.address)
+    ).to.be.eq(expectedChallengeId)
+
+    tx = await governanceMessageEmitter.slashSentinel(slashedSentinel.address)
+    const receipt = await tx.wait(1)
+    const message = receipt.events.find(({ event }) => event === 'GovernanceMessage')
+    // NOTE: At this point the sentinel should be slashed and the pending challenge should be cancelled
+    await expect(
+      hub
+        .connect(telepathyRouter)
+        .handleTelepathy(chainId, fakeGovernanceMessageVerifier.address, message.data)
+    )
+      .to.emit(hub, 'ChallengeCancelled')
+      .withArgs(challenge.serialize())
+      .and.to.emit(hub, 'SentinelSlashed')
+      .withArgs(currentEpoch, slashedSentinel.address)
+
+    const challengerBalancePost = await ethers.provider.getBalance(challenger.address)
+    expect(challengerBalancePost).to.be.eq(challengerBalancePre.add(LOCKED_AMOUNT_START_CHALLENGE))
+
+    expect(
+      await hub.getPendingChallengeIdByEpochOf(currentEpoch, slashedSentinel.address)
+    ).to.be.eq('0x'.padEnd(66, '0'))
+
+    await expect(
+      hub.connect(relayer).protocolQueueOperation(await generateOperation(), {
+        value: LOCKED_AMOUNT_CHALLENGE_PERIOD,
+      })
+    ).to.be.revertedWithCustomError(hub, 'LockDown')
+  })
+
+  it('should not be able to solve or slash a cancelled challenge', async () => {
+    const slashedSentinel = sentinels[0]
+    const proof = getActorsMerkleProof(sentinels, slashedSentinel)
+    let tx = await hub.connect(challenger).startChallengeSentinel(slashedSentinel.address, proof, {
+      value: LOCKED_AMOUNT_START_CHALLENGE,
+    })
+    const challenge = Challenge.fromReceipt(await tx.wait(1))
+
+    tx = await governanceMessageEmitter.slashSentinel(slashedSentinel.address)
+    const receipt = await tx.wait(1)
+    const message = receipt.events.find(({ event }) => event === 'GovernanceMessage')
+    // cancel challenge
+    await hub
+      .connect(telepathyRouter)
+      .handleTelepathy(chainId, fakeGovernanceMessageVerifier.address, message.data)
+
+    await expect(hub.connect(challenger).slashByChallenge(challenge)).to.be.revertedWithCustomError(
+      hub,
+      'InvalidChallengeStatus'
+    )
+
+    await expect(
+      hub.connect(slashedSentinel).solveChallengeSentinel(challenge, proof)
+    ).to.be.revertedWithCustomError(hub, 'InvalidChallengeStatus')
   })
 })

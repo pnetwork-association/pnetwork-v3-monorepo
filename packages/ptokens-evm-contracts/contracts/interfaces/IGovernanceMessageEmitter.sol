@@ -18,42 +18,32 @@ interface IGovernanceMessageEmitter {
     event GovernanceMessage(bytes data);
 
     /*
-     * @notice Emit a GovernanceMessage event containing the address of the hard-resumed sentinel.
-     *
-     * @param sentinel
-     * @param sentinels
-     */
-    function hardResumeSentinel(address sentinel, address[] calldata sentinels) external;
-
-    /*
-     * @notice Emit a GovernanceMessage event containing the guardians merkle root (without the slashed guardian) and the guardian address
-     *
-     * @param sentinel
-     * @param proof
-     */
-    function hardSlashGuardian(address guardian, bytes32[] calldata proof) external;
-
-    /*
-     * @notice Emit a GovernanceMessage event containing the sentinels merkle root (without the slashed sentinel) and the sentinel address
-     *
-     * @param sentinel
-     * @param proof
-     */
-    function hardSlashSentinel(address sentinel, bytes32[] calldata proof) external;
-
-    /*
-     * @notice Emit a GovernanceMessage event containing the address of the light-resumed guardian
+     * @notice Emit a GovernanceMessage event containing the address of the resumed guardian
      *
      * @param guardian
      */
-    function lightResumeGuardian(address guardian) external;
+    function resumeGuardian(address guardian) external;
 
     /*
-     * @notice Emit a GovernanceMessage event containing the address of the light-resumed sentinel
+     * @notice Emit a GovernanceMessage event containing the address of the resumed sentinel
      *
      * @param guardian
      */
-    function lightResumeSentinel(address sentinel) external;
+    function resumeSentinel(address sentinel) external;
+
+    /*
+     * @notice Emit a GovernanceMessage event containing the address of the slashed guardian
+     *
+     * @param guardian
+     */
+    function slashGuardian(address guardian) external;
+
+    /*
+     * @notice Emit a GovernanceMessage event containing the address of the slashed sentinel
+     *
+     * @param sentinel
+     */
+    function slashSentinel(address sentinel) external;
 
     /*
      * @notice Just call propagateGuardians and propagateSentinels
