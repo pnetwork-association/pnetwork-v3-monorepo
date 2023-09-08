@@ -1214,7 +1214,7 @@ describe('PNetworkHub', () => {
     await expect(hub.connect(challengedSentinel).solveChallengeSentinel(challenge, proof))
       .to.emit(hub, 'ChallengeSolved')
       .withArgs(challenge.serialize())
-    expect(await hub.getChallengeStatus(challenge)).to.be.eq(2) // Solved
+    expect(await hub.getChallengeStatus(challenge)).to.be.eq(CHALLENGE_STATUS.Solved)
   })
 
   it('should not be able to solve a challenge of a sentinel because max challenge duration is passed', async () => {
@@ -1270,7 +1270,7 @@ describe('PNetworkHub', () => {
         .add(LOCKED_AMOUNT_START_CHALLENGE)
         .sub(receipt.gasUsed.mul(receipt.effectiveGasPrice))
     )
-    expect(await hub.getChallengeStatus(challenge)).to.be.eq(3) // Unsolved
+    expect(await hub.getChallengeStatus(challenge)).to.be.eq(CHALLENGE_STATUS.Unsolved)
   })
 
   it('should not be able to slash a sentinel if max challenge duration is not passed', async () => {
@@ -1353,7 +1353,7 @@ describe('PNetworkHub', () => {
     await expect(hub.connect(challengedGuardian).solveChallengeGuardian(challenge, proof))
       .to.emit(hub, 'ChallengeSolved')
       .withArgs(challenge.serialize())
-    expect(await hub.getChallengeStatus(challenge)).to.be.eq(2) // Solved
+    expect(await hub.getChallengeStatus(challenge)).to.be.eq(CHALLENGE_STATUS.Solved)
   })
 
   it('should not be able to solve a challenge of a sentinel because max challenge duration is passed', async () => {
@@ -1408,7 +1408,7 @@ describe('PNetworkHub', () => {
         .add(LOCKED_AMOUNT_START_CHALLENGE)
         .sub(receipt.gasUsed.mul(receipt.effectiveGasPrice))
     )
-    expect(await hub.getChallengeStatus(challenge)).to.be.eq(3) // Unsolved
+    expect(await hub.getChallengeStatus(challenge)).to.be.eq(CHALLENGE_STATUS.Unsolved)
   })
 
   it('should not be able to slash a sentinel if max challenge duration is not passed', async () => {
@@ -2065,6 +2065,8 @@ describe('PNetworkHub', () => {
       .withArgs(challenge.serialize())
       .and.to.emit(hub, 'SentinelSlashed')
       .withArgs(currentEpoch, slashedSentinel.address)
+
+    expect(await hub.getChallengeStatus(challenge)).to.be.eq(CHALLENGE_STATUS.Cancelled)
 
     const challengerBalancePost = await ethers.provider.getBalance(challenger.address)
     expect(challengerBalancePost).to.be.eq(challengerBalancePre.add(LOCKED_AMOUNT_START_CHALLENGE))
