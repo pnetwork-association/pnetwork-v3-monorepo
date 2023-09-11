@@ -284,6 +284,16 @@ interface IPNetworkHub is IGovernanceMessageHandler {
     function getGuardiansMerkleRootForEpoch(uint16 epoch) external view returns (bytes32);
 
     /*
+     * @notice Returns the pending challenge id for an actor in a given epoch.
+     *
+     * @param epoch
+     * @param actor
+     *
+     * @return bytes32 representing the pending challenge id for an actor in a given epoch.
+     */
+    function getPendingChallengeIdByEpochOf(uint16 epoch, address actor) external view returns (bytes32);
+
+    /*
      * @notice Returns the sentinels merkle root for a given epoch.
      *
      * @param epoch

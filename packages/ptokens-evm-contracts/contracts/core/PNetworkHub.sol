@@ -278,6 +278,7 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
         return _epochsGuardiansMerkleRoot[epoch];
     }
 
+    /// @inheritdoc IPNetworkHub
     function getPendingChallengeIdByEpochOf(uint16 epoch, address actor) external view returns (bytes32) {
         return _epochsActorsPendingChallengeId[epoch][actor];
     }
