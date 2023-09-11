@@ -301,6 +301,7 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
                     operation.originTransactionHash,
                     operation.originNetworkId,
                     operation.nonce,
+                    operation.originAccount,
                     operation.destinationAccount,
                     operation.destinationNetworkId,
                     operation.forwardDestinationNetworkId,
@@ -396,6 +397,7 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
                 _releaseOperationLockedAmountChallengePeriod(operationId);
                 emit UserOperation(
                     gasleft(),
+                    operation.originAccount,
                     operation.destinationAccount,
                     operation.forwardDestinationNetworkId,
                     operation.underlyingAssetName,
@@ -432,7 +434,7 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
         // is equivalent to operation.assetAmount. In this case, as the operation originates from the interim chain, the operation.assetAmount
         // doesn't include the fee. This is because when the UserOperation event is triggered, and the interimChainNetworkId
         // does not equal operation.destinationNetworkId, the event contains the effectiveOperationAssetAmount.
-        address destinationAddress = Utils.parseAddress(operation.destinationAccount);
+        address destinationAddress = Utils.hexStringToAddress(operation.destinationAccount);
         if (effectiveOperationAssetAmount > 0) {
             IPToken(pTokenAddress).protocolMint(destinationAddress, effectiveOperationAssetAmount);
 
@@ -446,7 +448,13 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
 
         if (operation.userData.length > 0) {
             if (destinationAddress.code.length == 0) revert NotContract(destinationAddress);
-            try IPReceiver(destinationAddress).receiveUserData(operation.userData) {} catch {}
+            try
+                IPReceiver(destinationAddress).receiveUserData(
+                    operation.originNetworkId,
+                    operation.originAccount,
+                    operation.userData
+                )
+            {} catch {}
         }
 
         _releaseOperationLockedAmountChallengePeriod(operationId);
@@ -514,8 +522,6 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
         unchecked {
             ++_epochsTotalNumberOfInactiveActors[currentEpoch];
         }
-
-        // TODO: emit special UserOperation
     }
 
     /// @inheritdoc IPNetworkHub
@@ -660,6 +666,7 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
 
         emit UserOperation(
             gasleft(),
+            Utils.addressToHexString(msgSender),
             destinationAccount,
             interimChainNetworkId,
             underlyingAssetName,

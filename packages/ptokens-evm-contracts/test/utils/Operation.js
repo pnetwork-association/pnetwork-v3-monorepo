@@ -17,6 +17,7 @@ module.exports = class Operation {
       underlyingAssetNetworkId = PNETWORK_NETWORK_IDS.hardhat,
       forwardDestinationNetworkId = PNETWORK_NETWORK_IDS.ethereumMainnet,
       forwardNetworkFeeAssetAmount = '0',
+      originAccount = '0x'.padEnd(42, '0'),
       destinationAccount = '0x'.padEnd(42, '0'),
       underlyingAssetName = 'NAME',
       underlyingAssetSymbol = 'SYMBOL',
@@ -33,6 +34,7 @@ module.exports = class Operation {
     this.originNetworkId = originNetworkId
     this.destinationNetworkId = destinationNetworkId
     this.underlyingAssetNetworkId = underlyingAssetNetworkId
+    this.originAccount = originAccount
     this.destinationAccount = destinationAccount
     this.underlyingAssetName = underlyingAssetName
     this.underlyingAssetSymbol = underlyingAssetSymbol
@@ -59,6 +61,7 @@ module.exports = class Operation {
       this.destinationNetworkId,
       this.forwardDestinationNetworkId,
       this.underlyingAssetNetworkId,
+      this.originAccount,
       this.destinationAccount,
       this.underlyingAssetName,
       this.underlyingAssetSymbol,

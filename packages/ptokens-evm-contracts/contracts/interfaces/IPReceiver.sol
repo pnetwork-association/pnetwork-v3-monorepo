@@ -12,7 +12,9 @@ interface IPReceiver {
     /*
      * @notice Function called when userData.length > 0 within PNetworkHub.protocolExecuteOperation.
      *
+     * @param originNetworkId
+     * @param originAccount
      * @param userData
      */
-    function receiveUserData(bytes calldata userData) external;
+    function receiveUserData(bytes4 originNetworkId, string calldata originAccount, bytes calldata userData) external;
 }

@@ -5,9 +5,13 @@ pragma solidity ^0.8.19;
 import {PReceiver} from "../receiver/PReceiver.sol";
 
 contract TestReceiver is PReceiver {
-    event UserDataReceived(bytes userData);
+    event UserDataReceived(bytes4 originNetworkId, string originAccount, bytes userData);
 
-    function _receiveUserData(bytes memory userData) internal override {
-        emit UserDataReceived(userData);
+    function receiveUserData(
+        bytes4 originNetworkId,
+        string calldata originAccount,
+        bytes calldata userData
+    ) external override {
+        emit UserDataReceived(originNetworkId, originAccount, userData);
     }
 }

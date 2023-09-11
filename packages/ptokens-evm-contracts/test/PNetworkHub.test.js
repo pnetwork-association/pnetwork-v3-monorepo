@@ -55,6 +55,7 @@ describe('PNetworkHub', () => {
 
   const generateOperation = async (_opts = {}, _hub = hub) => {
     const {
+      originAccount = owner.address,
       destinationAccount = owner.address,
       destinationNetworkId = PNETWORK_NETWORK_IDS.hardhat,
       underlyingAssetName = await token.name(),
@@ -110,6 +111,7 @@ describe('PNetworkHub', () => {
       networkFeeAssetAmount,
       nonce,
       optionsMask,
+      originAccount,
       originBlockHash: blockHash,
       originNetworkId: PNETWORK_NETWORK_IDS.hardhat,
       originTransactionHash: transactionHash,
@@ -531,6 +533,7 @@ describe('PNetworkHub', () => {
   it('should be able to execute an operation that contains user data', async () => {
     const expectedUserData = '0x01'
     const operation = await generateOperation({
+      originAccount: relayer.address,
       userData: expectedUserData,
       destinationAccount: testReceiver.address,
     })
@@ -542,7 +545,7 @@ describe('PNetworkHub', () => {
       .to.emit(hub, 'OperationExecuted')
       .withArgs(operation.serialize())
       .and.to.emit(testReceiver, 'UserDataReceived')
-      .withArgs(expectedUserData)
+      .withArgs(PNETWORK_NETWORK_IDS.hardhat, relayer.address, expectedUserData)
   })
 
   it('should be able to execute an operation that contains user data despite the receiver is a contract that does extends from PReceiver', async () => {

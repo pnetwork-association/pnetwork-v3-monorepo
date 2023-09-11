@@ -2,6 +2,8 @@
 
 pragma solidity ^0.8.19;
 
+import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
+
 library Utils {
     function isBitSet(bytes32 data, uint position) internal pure returns (bool) {
         return (uint256(data) & (uint256(1) << position)) != 0;
@@ -12,7 +14,11 @@ library Utils {
         return use ? amount * difference : amount / difference;
     }
 
-    function parseAddress(string memory addr) internal pure returns (address) {
+    function addressToHexString(address addr) internal pure returns (string memory) {
+        return Strings.toHexString(uint256(uint160(addr)), 20);
+    }
+
+    function hexStringToAddress(string memory addr) internal pure returns (address) {
         bytes memory tmp = bytes(addr);
         uint160 iaddr = 0;
         uint160 b1;

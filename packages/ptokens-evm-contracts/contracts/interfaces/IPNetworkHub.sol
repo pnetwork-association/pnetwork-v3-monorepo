@@ -66,6 +66,7 @@ interface IPNetworkHub is IGovernanceMessageHandler {
         bytes4 destinationNetworkId;
         bytes4 forwardDestinationNetworkId;
         bytes4 underlyingAssetNetworkId;
+        string originAccount;
         string destinationAccount;
         string underlyingAssetName;
         string underlyingAssetSymbol;
@@ -178,6 +179,7 @@ interface IPNetworkHub is IGovernanceMessageHandler {
      * @dev Emitted when an user operation is generated.
      *
      * @param nonce The nonce
+     * @param originAccount The account that triggered the user operation
      * @param destinationAccount The account to which the funds will be delivered
      * @param destinationNetworkId The destination network id
      * @param underlyingAssetName The name of the underlying asset
@@ -197,6 +199,7 @@ interface IPNetworkHub is IGovernanceMessageHandler {
      */
     event UserOperation(
         uint256 nonce,
+        string originAccount,
         string destinationAccount,
         bytes4 destinationNetworkId,
         string underlyingAssetName,
