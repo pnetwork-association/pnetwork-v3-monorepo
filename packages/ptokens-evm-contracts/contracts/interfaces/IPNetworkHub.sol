@@ -74,20 +74,6 @@ interface IPNetworkHub is IGovernanceMessageHandler {
     }
 
     /**
-     * @dev Emitted when a challenge is opened.
-     *
-     * @param challenge The challenge
-     */
-    event ChallengeStarted(Challenge challenge);
-
-    /**
-     * @dev Emitted when a challenge is solved.
-     *
-     * @param challenge The challenge
-     */
-    event ChallengeSolved(Challenge challenge);
-
-    /**
      * @dev Emitted when a challenge is cancelled.
      *
      * @param challenge The challenge
@@ -99,7 +85,28 @@ interface IPNetworkHub is IGovernanceMessageHandler {
      *
      * @param challenge The challenge
      */
-    event LockedAmountStartChallengeClaimed(Challenge challenge);
+    event ChallengePartiallyUnsolved(Challenge challenge);
+
+    /**
+     * @dev Emitted when a challenge is started.
+     *
+     * @param challenge The challenge
+     */
+    event ChallengePending(Challenge challenge);
+
+    /**
+     * @dev Emitted when a challenge is solved.
+     *
+     * @param challenge The challenge
+     */
+    event ChallengeSolved(Challenge challenge);
+
+    /**
+     * @dev Emitted when a challenge is used to slash an actor.
+     *
+     * @param challenge The challenge
+     */
+    event ChallengeUnsolved(Challenge challenge);
 
     /**
      * @dev Emitted when an operation is queued.

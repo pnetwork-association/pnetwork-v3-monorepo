@@ -42,7 +42,8 @@ let token,
   sentinels,
   guardians,
   challenger,
-  chainId
+  chainId,
+  slasher
 
 describe('PNetworkHub', () => {
   const getActorsMerkleProof = (_actors, _actor) => {
@@ -151,6 +152,7 @@ describe('PNetworkHub', () => {
     sentinels = [sentinel, signers[7], signers[8], signers[9], signers[10]]
     guardians = [guardian, signers[11], signers[12]]
     challenger = signers[13]
+    slasher = signers[14]
 
     // H A R D H A T
     testReceiver = await TestReceiver.deploy()
@@ -164,6 +166,7 @@ describe('PNetworkHub', () => {
       epochsManager.address,
       TELEPATHY_ROUTER_ADDRESS,
       fakeGovernanceMessageVerifier.address,
+      slasher.address,
       chainId,
       LOCKED_AMOUNT_CHALLENGE_PERIOD,
       K_CHALLENGE_PERIOD,
@@ -179,6 +182,7 @@ describe('PNetworkHub', () => {
       epochsManager.address,
       TELEPATHY_ROUTER_ADDRESS,
       fakeGovernanceMessageVerifier.address,
+      slasher.address,
       chainId,
       LOCKED_AMOUNT_CHALLENGE_PERIOD,
       K_CHALLENGE_PERIOD,
@@ -1146,7 +1150,7 @@ describe('PNetworkHub', () => {
             value: LOCKED_AMOUNT_START_CHALLENGE,
           }
         )
-    ).to.emit(hub, 'ChallengeStarted')
+    ).to.emit(hub, 'ChallengePending')
   })
 
   it('should not be able to open a challenge for the same sentinel twice', async () => {
@@ -1184,7 +1188,7 @@ describe('PNetworkHub', () => {
             value: LOCKED_AMOUNT_START_CHALLENGE,
           }
         )
-    ).to.emit(hub, 'ChallengeStarted')
+    ).to.emit(hub, 'ChallengePending')
   })
 
   it('should not be able to open a challenge for the same guardian twice', async () => {
@@ -1261,7 +1265,7 @@ describe('PNetworkHub', () => {
   it('should be able to slash a sentinel', async () => {
     const challengedSentinel = sentinels[2]
     const proof = getActorsMerkleProof(sentinels, challengedSentinel)
-    const tx = await hub
+    let tx = await hub
       .connect(challenger)
       .startChallengeSentinel(challengedSentinel.address, proof, {
         value: LOCKED_AMOUNT_START_CHALLENGE,
@@ -1271,8 +1275,12 @@ describe('PNetworkHub', () => {
 
     const balancePre = await ethers.provider.getBalance(challenger.address)
 
-    // TODO: add event check when slashing will be added
-    const receipt = await (await hub.connect(challenger).slashByChallenge(challenge)).wait(1)
+    tx = hub.connect(challenger).slashByChallenge(challenge)
+    await expect(tx)
+      .to.emit(hub, 'UserOperation')
+      .and.to.emit(hub, 'ChallengeUnsolved')
+      .withArgs(challenge.serialize())
+    const receipt = await (await tx).wait(1)
 
     const balancePost = await ethers.provider.getBalance(challenger.address)
     expect(balancePost).to.be.eq(
@@ -1400,7 +1408,7 @@ describe('PNetworkHub', () => {
   it('should be able to slash a sentinel', async () => {
     const challengedGuardian = guardians[2]
     const proof = getActorsMerkleProof(guardians, challengedGuardian)
-    const tx = await hub
+    let tx = await hub
       .connect(challenger)
       .startChallengeGuardian(challengedGuardian.address, proof, {
         value: LOCKED_AMOUNT_START_CHALLENGE,
@@ -1410,8 +1418,12 @@ describe('PNetworkHub', () => {
 
     const balancePre = await ethers.provider.getBalance(challenger.address)
 
-    // TODO: add event check when slashing will be added
-    const receipt = await (await hub.connect(challenger).slashByChallenge(challenge)).wait(1)
+    tx = hub.connect(challenger).slashByChallenge(challenge)
+    await expect(tx)
+      .to.emit(hub, 'UserOperation')
+      .and.to.emit(hub, 'ChallengeUnsolved')
+      .withArgs(challenge.serialize())
+    const receipt = await (await tx).wait(1)
     const balancePost = await ethers.provider.getBalance(challenger.address)
     expect(balancePost).to.be.eq(
       balancePre
@@ -1612,8 +1624,10 @@ describe('PNetworkHub', () => {
 
     await time.setNextBlockTimestamp(currentEpochEndTimestamp - 1)
 
-    // TODO: add event check when slashing will be added
-    await expect(hub.connect(challengedGuardian).slashByChallenge(challenge)).to.not.be.reverted
+    await expect(hub.connect(challengedGuardian).slashByChallenge(challenge)).to.emit(
+      hub,
+      'UserOperation'
+    )
   })
 
   it('should not be able to resolve a challenge started in the previous epoch', async () => {
@@ -1785,9 +1799,7 @@ describe('PNetworkHub', () => {
 
     const challengerPreBalance = await ethers.provider.getBalance(challenger.address)
     tx = hub.connect(challenger).claimLockedAmountStartChallenge(challenge)
-    await expect(tx)
-      .to.be.emit(hub, 'LockedAmountStartChallengeClaimed')
-      .withArgs(challenge.serialize())
+    await expect(tx).to.be.emit(hub, 'ChallengePartiallyUnsolved').withArgs(challenge.serialize())
     const receipt = await (await tx).wait(1)
 
     const challengerPostBalance = await ethers.provider.getBalance(challenger.address)
@@ -1813,7 +1825,7 @@ describe('PNetworkHub', () => {
     const currentEpochEndTimestamp = startFirstEpochTimestamp + (currentEpoch + 1) * epochDuration
     await time.increaseTo(currentEpochEndTimestamp + 1)
     await expect(hub.connect(challenger).claimLockedAmountStartChallenge(challenge))
-      .to.be.emit(hub, 'LockedAmountStartChallengeClaimed')
+      .to.be.emit(hub, 'ChallengePartiallyUnsolved')
       .withArgs(challenge.serialize())
     await expect(hub.connect(challenger).claimLockedAmountStartChallenge(challenge))
       .to.be.revertedWithCustomError(hub, 'InvalidChallengeStatus')

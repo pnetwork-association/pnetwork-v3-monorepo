@@ -81,6 +81,7 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
 
     address public immutable factory;
     address public immutable epochsManager;
+    address public immutable slasher;
     uint32 public immutable baseChallengePeriodDuration;
     uint16 public immutable kChallengePeriod;
     uint16 public immutable maxOperationsInQueue;
@@ -177,6 +178,7 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
         address epochsManager_,
         address telepathyRouter,
         address governanceMessageVerifier,
+        address slasher_,
         uint32 allowedSourceChainId,
         uint256 lockedAmountChallengePeriod_,
         uint16 kChallengePeriod_,
@@ -197,6 +199,7 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
 
         factory = factory_;
         epochsManager = epochsManager_;
+        slasher = slasher_;
         baseChallengePeriodDuration = baseChallengePeriodDuration_;
         lockedAmountChallengePeriod = lockedAmountChallengePeriod_;
         kChallengePeriod = kChallengePeriod_;
@@ -247,7 +250,7 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
             revert CallFailed();
         }
 
-        emit LockedAmountStartChallengeClaimed(challenge);
+        emit ChallengePartiallyUnsolved(challenge);
     }
 
     /// @inheritdoc IPNetworkHub
@@ -534,6 +537,40 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
         unchecked {
             ++_epochsTotalNumberOfInactiveActors[currentEpoch];
         }
+
+        bytes4 currentNetworkId = Network.getCurrentNetworkId();
+        if (currentNetworkId == interimChainNetworkId) {
+            // NOTE: If a slash happens on the interim chain we can avoid to emit the UserOperation
+            //  in order to speed up the slashing process
+            IPReceiver(slasher).receiveUserData(
+                currentNetworkId,
+                Utils.addressToHexString(address(this)),
+                abi.encode(challenge.actor, challenge.challenger)
+            );
+        } else {
+            emit UserOperation(
+                gasleft(),
+                Utils.addressToHexString(address(this)),
+                Utils.addressToHexString(slasher),
+                interimChainNetworkId,
+                "",
+                "",
+                0,
+                address(0),
+                bytes4(0),
+                address(0),
+                0,
+                address(0),
+                0,
+                0,
+                0,
+                0,
+                abi.encode(challenge.actor, challenge.challenger),
+                bytes32(0)
+            );
+        }
+
+        emit ChallengeUnsolved(challenge);
     }
 
     /// @inheritdoc IPNetworkHub
@@ -967,7 +1004,7 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
             ++challengesNonce;
         }
 
-        emit ChallengeStarted(challenge);
+        emit ChallengePending(challenge);
     }
 
     function _takeNetworkFee(

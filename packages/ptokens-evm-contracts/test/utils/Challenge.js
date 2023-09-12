@@ -7,7 +7,7 @@ module.exports = class Challenge {
   }
 
   static fromReceipt(_receipt) {
-    const event = _receipt.events.find(({ event }) => event === 'ChallengeStarted')
+    const event = _receipt.events.find(({ event }) => event === 'ChallengePending')
     const { challenge } = event.decode(event.data, event.topics)
     return new Challenge({
       ...challenge,
