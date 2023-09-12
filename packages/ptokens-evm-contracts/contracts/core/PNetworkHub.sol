@@ -263,14 +263,25 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
     }
 
     /// @inheritdoc IPNetworkHub
+    function getCurrentActiveActorsAdjustmentDuration() public view returns (uint64) {
+        uint16 currentEpoch = IEpochsManager(epochsManager).currentEpoch();
+        uint16 activeActors = (_epochsTotalNumberOfSentinels[currentEpoch] +
+            _epochsTotalNumberOfGuardians[currentEpoch]) - _epochsTotalNumberOfInactiveActors[currentEpoch];
+        return 30 days / ((activeActors ** 5) + 1);
+    }
+
+    /// @inheritdoc IPNetworkHub
     function getCurrentChallengePeriodDuration() public view returns (uint64) {
+        return getCurrentActiveActorsAdjustmentDuration() + getCurrentQueuedOperationsAdjustmentDuration();
+    }
+
+    /// @inheritdoc IPNetworkHub
+    function getCurrentQueuedOperationsAdjustmentDuration() public view returns (uint64) {
         uint32 localNumberOfOperationsInQueue = numberOfOperationsInQueue;
         if (localNumberOfOperationsInQueue == 0) return baseChallengePeriodDuration;
 
         return
-            baseChallengePeriodDuration +
-            (localNumberOfOperationsInQueue * localNumberOfOperationsInQueue * kChallengePeriod) -
-            kChallengePeriod;
+            baseChallengePeriodDuration + ((localNumberOfOperationsInQueue ** 2) * kChallengePeriod) - kChallengePeriod;
     }
 
     /// @inheritdoc IPNetworkHub

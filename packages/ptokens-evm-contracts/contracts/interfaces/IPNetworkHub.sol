@@ -268,11 +268,25 @@ interface IPNetworkHub is IGovernanceMessageHandler {
     function getChallengeStatus(Challenge calldata challenge) external view returns (ChallengeStatus);
 
     /*
-     * @notice Calculates the current challenge period duration considering the number of operations in queue.
+     * @notice Calculates the current active actors duration which is use to secure the system when few there are few actor that secure the system.
+     *
+     * @return uint64 representing the current active actors duration.
+     */
+    function getCurrentActiveActorsAdjustmentDuration() external view returns (uint64);
+
+    /*
+     * @notice Calculates the current challenge period duration considering the number of operations in queue and the total number of active actors.
      *
      * @return uint64 representing the current challenge period duration.
      */
     function getCurrentChallengePeriodDuration() external view returns (uint64);
+
+    /*
+     * @notice Calculates the adjustment duration based on the total number of operations in queue.
+     *
+     * @return uint64 representing the adjustment duration based on the total number of operations in queue.
+     */
+    function getCurrentQueuedOperationsAdjustmentDuration() external view returns (uint64);
 
     /*
      * @notice Returns the guardians merkle root for a given epoch.

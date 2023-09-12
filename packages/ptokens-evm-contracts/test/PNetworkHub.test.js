@@ -292,7 +292,7 @@ describe('PNetworkHub', () => {
     await hub
       .connect(relayer)
       .protocolQueueOperation(operation, { value: LOCKED_AMOUNT_CHALLENGE_PERIOD })
-    await time.increase((await hub.getCurrentChallengePeriodDuration()) / 2)
+    await time.increase((await hub.getCurrentChallengePeriodDuration()).div(2))
     await expect(hub.connect(relayer).protocolGuardianCancelOperation(operation, []))
       .to.emit(hub, 'GuardianOperationCancelled')
       .withArgs(operation.serialize())
@@ -651,8 +651,11 @@ describe('PNetworkHub', () => {
         .protocolQueueOperation(operation, { value: LOCKED_AMOUNT_CHALLENGE_PERIOD })
 
       const [startTimestamp, endTimestamp] = await hub.challengePeriodOf(operation)
+
+      const currentActiveActorsAdjustment = await hub.getCurrentActiveActorsAdjustmentDuration()
       const expectedCurrentChallengePeriodDuration =
         BASE_CHALLENGE_PERIOD_DURATION +
+        currentActiveActorsAdjustment.toNumber() +
         numberOfOperations * numberOfOperations * K_CHALLENGE_PERIOD -
         K_CHALLENGE_PERIOD
       expect(expectedCurrentChallengePeriodDuration).to.be.eq(endTimestamp.sub(startTimestamp))
@@ -674,8 +677,10 @@ describe('PNetworkHub', () => {
       const operation = operations[index]
       const [startTimestamp, endTimestamp] = await hub.challengePeriodOf(operation)
 
+      const currentActiveActorsAdjustment = await hub.getCurrentActiveActorsAdjustmentDuration()
       const expectedCurrentChallengePeriodDuration =
         BASE_CHALLENGE_PERIOD_DURATION +
+        currentActiveActorsAdjustment.toNumber() +
         numberOfOperations * numberOfOperations * K_CHALLENGE_PERIOD -
         K_CHALLENGE_PERIOD
       expect(expectedCurrentChallengePeriodDuration).to.be.eq(endTimestamp.sub(startTimestamp))
@@ -708,8 +713,10 @@ describe('PNetworkHub', () => {
       const operation = operations[index]
       const [startTimestamp, endTimestamp] = await hub.challengePeriodOf(operation)
 
+      const currentActiveActorsAdjustment = await hub.getCurrentActiveActorsAdjustmentDuration()
       const expectedCurrentChallengePeriodDuration =
         BASE_CHALLENGE_PERIOD_DURATION +
+        currentActiveActorsAdjustment.toNumber() +
         numberOfOperations * numberOfOperations * K_CHALLENGE_PERIOD -
         K_CHALLENGE_PERIOD
       expect(expectedCurrentChallengePeriodDuration).to.be.eq(endTimestamp.sub(startTimestamp))
@@ -2108,5 +2115,75 @@ describe('PNetworkHub', () => {
     await expect(hub.connect(slashedSentinel).solveChallengeSentinel(challenge, proof))
       .to.be.revertedWithCustomError(hub, 'InvalidChallengeStatus')
       .withArgs(CHALLENGE_STATUS.Cancelled, CHALLENGE_STATUS.Pending)
+  })
+
+  it('should adjust the challenge period based on the number of current active actors', async () => {
+    const operation = await generateOperation()
+    await hub
+      .connect(relayer)
+      .protocolQueueOperation(operation, { value: LOCKED_AMOUNT_CHALLENGE_PERIOD })
+
+    const challenges = []
+    let tx
+    for (const challengedGuardian of guardians) {
+      const proof = getActorsMerkleProof(guardians, challengedGuardian)
+      tx = await hub.connect(challenger).startChallengeGuardian(challengedGuardian.address, proof, {
+        value: LOCKED_AMOUNT_START_CHALLENGE,
+      })
+      challenges.push(Challenge.fromReceipt(await tx.wait(1)))
+    }
+
+    for (const challengedSentinel of sentinels) {
+      const proof = getActorsMerkleProof(sentinels, challengedSentinel)
+      tx = await hub.connect(challenger).startChallengeSentinel(challengedSentinel.address, proof, {
+        value: LOCKED_AMOUNT_START_CHALLENGE,
+      })
+      challenges.push(Challenge.fromReceipt(await tx.wait(1)))
+    }
+
+    await time.increase(MAX_CHALLENGE_DURATION)
+    for (const challenge of challenges) {
+      await hub.connect(challenger).slashByChallenge(challenge)
+    }
+
+    let activeActors = 0
+    for (const sentinel of sentinels) {
+      const [startTimestamp, endTimestamp] = await hub.challengePeriodOf(operation)
+      const currentQueuedOperationsAdjustmentDuration =
+        await hub.getCurrentQueuedOperationsAdjustmentDuration()
+      const expectedCurrentChallengePeriodDuration =
+        Math.trunc(2.592e6 / (activeActors ** 5 + 1)) +
+        currentQueuedOperationsAdjustmentDuration.toNumber()
+      expect(expectedCurrentChallengePeriodDuration).to.be.eq(endTimestamp.sub(startTimestamp))
+
+      tx = await governanceMessageEmitter.resumeSentinel(sentinel.address)
+      const receipt = await tx.wait(1)
+      const message = receipt.events.find(({ event }) => event === 'GovernanceMessage')
+      await hub
+        .connect(telepathyRouter)
+        .handleTelepathy(chainId, fakeGovernanceMessageVerifier.address, message.data)
+
+      activeActors++
+    }
+
+    for (const guardian of guardians) {
+      const [startTimestamp, endTimestamp] = await hub.challengePeriodOf(operation)
+
+      const currentQueuedOperationsAdjustmentDuration =
+        await hub.getCurrentQueuedOperationsAdjustmentDuration()
+      const expectedCurrentChallengePeriodDuration =
+        Math.trunc(2.592e6 / (activeActors ** 5 + 1)) +
+        currentQueuedOperationsAdjustmentDuration.toNumber()
+      expect(expectedCurrentChallengePeriodDuration).to.be.eq(endTimestamp.sub(startTimestamp))
+
+      tx = await governanceMessageEmitter.resumeGuardian(guardian.address)
+      const receipt = await tx.wait(1)
+      const message = receipt.events.find(({ event }) => event === 'GovernanceMessage')
+      await hub
+        .connect(telepathyRouter)
+        .handleTelepathy(chainId, fakeGovernanceMessageVerifier.address, message.data)
+
+      activeActors++
+    }
   })
 })
