@@ -1,6 +1,8 @@
 const { expect } = require('chai')
 const { ethers } = require('hardhat')
+const { getNetworkId } = require('../tasks/get-network-id')
 const { time } = require('@nomicfoundation/hardhat-network-helpers')
+const { anyValue } = require('@nomicfoundation/hardhat-chai-matchers/withArgs')
 const { MerkleTree } = require('merkletreejs')
 
 const {
@@ -44,7 +46,11 @@ let token,
   challenger,
   chainId,
   slasher,
-  feesManager
+  feesManager,
+  dao,
+  pRegistry,
+  lendingManager,
+  mockRegistrationManager
 
 describe('PNetworkHub', () => {
   const getActorsMerkleProof = (_actors, _actor) => {
@@ -54,6 +60,11 @@ describe('PNetworkHub', () => {
     const merkleTree = new MerkleTree(leaves, ethers.utils.keccak256, { sortPairs: true })
     return merkleTree.getHexProof(ethers.utils.solidityKeccak256(['address'], [_actor.address]))
   }
+
+  const maxChallengePeriod =
+    BASE_CHALLENGE_PERIOD_DURATION +
+    MAX_OPERATIONS_IN_QUEUE * MAX_OPERATIONS_IN_QUEUE * K_CHALLENGE_PERIOD -
+    K_CHALLENGE_PERIOD
 
   const generateOperation = async (_opts = {}, _hub = hub) => {
     const {
@@ -132,9 +143,12 @@ describe('PNetworkHub', () => {
     await network.provider.request({
       method: 'hardhat_reset',
     })
+
     chainId = (await ethers.provider.getNetwork()).chainId
 
+    const Slasher = await ethers.getContractFactory('Slasher')
     const PFactory = await ethers.getContractFactory('PFactory')
+    const PRegistry = await ethers.getContractFactory('PRegistry')
     const PNetworkHub = await ethers.getContractFactory('PNetworkHub')
     const StandardToken = await ethers.getContractFactory('StandardToken')
     const TestReceiver = await ethers.getContractFactory('TestReceiver')
@@ -142,6 +156,7 @@ describe('PNetworkHub', () => {
     const EpochsManager = await ethers.getContractFactory('EpochsManager')
     const GovernanceMessageEmitter = await ethers.getContractFactory('MockGovernanceMessageEmitter')
     const FeesManager = await ethers.getContractFactory('MockFeesManager')
+    const MockRegistrationManager = await ethers.getContractFactory('MockRegistrationManager')
 
     const signers = await ethers.getSigners()
     owner = signers[0]
@@ -154,12 +169,16 @@ describe('PNetworkHub', () => {
     sentinels = [sentinel, signers[7], signers[8], signers[9], signers[10]]
     guardians = [guardian, signers[11], signers[12]]
     challenger = signers[13]
-    slasher = signers[14]
+    lendingManager = signers[14]
+    dao = signers[15]
 
     // H A R D H A T
     testReceiver = await TestReceiver.deploy()
     pFactory = await PFactory.deploy()
     testNotReceiver = await TestNotReceiver.deploy()
+    pRegistry = await PRegistry.deploy(dao.address)
+    mockRegistrationManager = await MockRegistrationManager.deploy(lendingManager.address)
+    slasher = await Slasher.deploy(pRegistry.address, mockRegistrationManager.address)
     epochsManager = await EpochsManager.deploy()
     feesManager = await FeesManager.deploy()
     hubInterim = await PNetworkHub.deploy(
@@ -195,12 +214,19 @@ describe('PNetworkHub', () => {
       MAX_CHALLENGE_DURATION
     )
 
+    await pRegistry.connect(dao).addSupportedNetworkId(PNETWORK_NETWORK_IDS.hardhat, hub.address)
+    await pRegistry
+      .connect(dao)
+      .addSupportedNetworkId(PNETWORK_NETWORK_IDS.ethereumMainnet, hubInterim.address)
+
     token = await StandardToken.deploy('Token', 'TKN', 18, ethers.utils.parseEther('100000000'))
     telepathyRouter = await ethers.getImpersonatedSigner(TELEPATHY_ROUTER_ADDRESS)
     governanceMessageEmitter = await GovernanceMessageEmitter.deploy(epochsManager.address)
 
     epochDuration = (await epochsManager.epochDuration()).toNumber()
     currentEpoch = await epochsManager.currentEpoch()
+
+    await mockRegistrationManager.setGovernanceMessageEmitter(governanceMessageEmitter.address)
 
     await owner.sendTransaction({
       to: telepathyRouter.address,
@@ -615,10 +641,6 @@ describe('PNetworkHub', () => {
     const startFirstEpochTimestamp = (await epochsManager.startFirstEpochTimestamp()).toNumber()
     const currentEpochEndTimestamp = startFirstEpochTimestamp + (currentEpoch + 1) * epochDuration
 
-    const maxChallengePeriod =
-      BASE_CHALLENGE_PERIOD_DURATION +
-      MAX_OPERATIONS_IN_QUEUE * MAX_OPERATIONS_IN_QUEUE * K_CHALLENGE_PERIOD -
-      K_CHALLENGE_PERIOD
     await time.increaseTo(currentEpochEndTimestamp - (3600 + maxChallengePeriod))
     const operation = await generateOperation()
     await expect(
@@ -2202,5 +2224,147 @@ describe('PNetworkHub', () => {
 
       activeActors++
     }
+  })
+
+  it('should get the expected network id', async () => {
+    const hre = require('hardhat')
+    const quiet = true
+    const versionByte = 0x01
+    const extraData = 0x00
+    const networkType = 0x01
+    const networkId = await hub.getNetworkId()
+    const expectedNetworkId = await getNetworkId(
+      { chainId, versionByte, extraData, networkType, quiet },
+      hre
+    )
+
+    expect(networkId).to.be.equal(expectedNetworkId)
+  })
+
+  it('should slash an actor(sentinel) successfully on the interim chain', async () => {
+    const slashedSentinel = sentinels[0]
+    const proof = getActorsMerkleProof(sentinels, slashedSentinel)
+    let tx = await hub.connect(challenger).startChallengeSentinel(slashedSentinel.address, proof, {
+      value: LOCKED_AMOUNT_START_CHALLENGE,
+    })
+
+    const challenge = Challenge.fromReceipt(await tx.wait(1))
+
+    await expect(hub.connect(challenger).slashByChallenge(challenge)).to.be.revertedWithCustomError(
+      hub,
+      'MaxChallengeDurationNotPassed'
+    )
+
+    // Increase time
+    time.increase(MAX_CHALLENGE_DURATION)
+
+    const encodedBytes = ethers.utils.defaultAbiCoder.encode(
+      ['address', 'address'],
+      [slashedSentinel.address, challenger.address]
+    )
+
+    let nonce = anyValue // gasLeft
+    const originAccount = hub.address.toLowerCase()
+    const destinationAccount = slasher.address.toLowerCase()
+    const destinationNetworkId = PNETWORK_NETWORK_IDS.ethereumMainnet // interim network id is set on Ethereum mainne
+    const underlyingAssetName = ''
+    const underlyingAssetSymbol = ''
+    const underlyingAssetDecimals = 0
+    const underlyingAssetTokenAddress = ZERO_ADDRESS
+    const underlyingAssetNetworkId = '0x00000000'
+    const assetTokenAddress = ZERO_ADDRESS
+    const assetAmount = 0
+    const protocolFeeAssetTokenAddress = ZERO_ADDRESS
+    const protocolFeeAssetAmount = 0
+    const networkFeeAssetAmount = 0
+    const forwardNetworkFeeAssetAmount = 0
+    const forwardDestinationNetworkId = '0x00000000'
+    const userData = encodedBytes
+    const optionsMask = '0x0000000000000000000000000000000000000000000000000000000000000000'
+    const expectedEvent = [
+      nonce,
+      originAccount,
+      destinationAccount,
+      destinationNetworkId,
+      underlyingAssetName,
+      underlyingAssetSymbol,
+      underlyingAssetDecimals,
+      underlyingAssetTokenAddress,
+      underlyingAssetNetworkId,
+      assetTokenAddress,
+      assetAmount,
+      protocolFeeAssetTokenAddress,
+      protocolFeeAssetAmount,
+      networkFeeAssetAmount,
+      forwardNetworkFeeAssetAmount,
+      forwardDestinationNetworkId,
+      userData,
+      optionsMask,
+    ]
+    tx = await hub.connect(challenger).slashByChallenge(challenge)
+    await expect(tx).not.to.be.reverted
+    await expect(tx)
+      .to.emit(hub, 'UserOperation')
+      .withArgs(...expectedEvent)
+
+    const receipt = await tx.wait()
+    const event = receipt.events.find(({ event }) => event === 'UserOperation')
+
+    nonce = event.args[0]
+
+    const originTxHash = tx.hash
+    const originBlockHash = tx.blockHash
+    const operation = new Operation({
+      originTxHash,
+      originBlockHash,
+      nonce,
+      originAccount,
+      destinationAccount,
+      destinationNetworkId,
+      underlyingAssetName,
+      underlyingAssetSymbol,
+      underlyingAssetDecimals,
+      underlyingAssetTokenAddress,
+      underlyingAssetNetworkId,
+      assetTokenAddress,
+      assetAmount,
+      protocolFeeAssetTokenAddress,
+      protocolFeeAssetAmount,
+      networkFeeAssetAmount,
+      forwardNetworkFeeAssetAmount,
+      forwardDestinationNetworkId,
+      userData,
+      optionsMask,
+    })
+    tx = await hubInterim
+      .connect(relayer)
+      .protocolQueueOperation(operation, { value: LOCKED_AMOUNT_CHALLENGE_PERIOD })
+
+    await expect(tx).to.emit(hubInterim, 'OperationQueued').withArgs(operation.serialize())
+
+    await expect(
+      hubInterim.connect(relayer).protocolExecuteOperation(operation)
+    ).to.be.revertedWithCustomError(hubInterim, 'ChallengePeriodNotTerminated')
+
+    time.increase(maxChallengePeriod)
+
+    tx = await hubInterim.connect(relayer).protocolExecuteOperation(operation)
+    const currentEpoch = await epochsManager.currentEpoch()
+    const tag = ethers.utils.keccak256(Buffer.from('GOVERNANCE_MESSAGE_SLASH_SENTINEL'))
+    const expectedGovernanceMessageArgs = ethers.utils.defaultAbiCoder.encode(
+      ['bytes32', 'bytes'],
+      [
+        tag,
+        ethers.utils.defaultAbiCoder.encode(
+          ['uint16', 'address'],
+          [currentEpoch, sentinel.address]
+        ),
+      ]
+    )
+    await expect(tx)
+      .to.emit(hubInterim, 'OperationExecuted')
+      .withArgs(operation.serialize())
+      .and.to.emit(governanceMessageEmitter, 'GovernanceMessage')
+      .withArgs(expectedGovernanceMessageArgs)
   })
 })
