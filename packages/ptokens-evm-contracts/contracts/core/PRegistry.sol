@@ -7,26 +7,23 @@ import {IPRegistry} from "../interfaces/IPRegistry.sol";
 contract PRegistry is IPRegistry, AccessControl {
   bytes32 public constant DAO_ROLE = keccak256("DAO");
 
-  mapping(bytes4 => address) private _networkIdToHub;
+  mapping(bytes4 => address) private networkIdToHub_;
 
   constructor(address dao) {
     _setupRole(DAO_ROLE, dao);
   }
 
-  function isNetworkIdSupported(bytes4 networkId) public view returns (bool) {
-    address hub = _networkIdToHub[networkId];
+  function isNetworkIdSupported(bytes4 networkId) external view returns (bool) {
+    address hub = networkIdToHub_[networkId];
 
-    if (hub != address(0)) {
-      return true;
-    }
-    return false;
+    return (hub != address(0));
   }
 
   function addSupportedNetworkId(bytes4 networkId, address hub) public onlyRole(DAO_ROLE) {
-    _networkIdToHub[networkId] = hub;
+    networkIdToHub_[networkId] = hub;
   }
 
   function hubByNetworkId(bytes4 sourceNetworkId) external view returns (address) {
-    return _networkIdToHub[sourceNetworkId];
+    return networkIdToHub_[sourceNetworkId];
   }
 }

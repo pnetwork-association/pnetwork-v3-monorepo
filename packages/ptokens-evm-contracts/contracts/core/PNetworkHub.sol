@@ -212,6 +212,10 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
         maxChallengeDuration = maxChallengeDuration_;
     }
 
+    function getNetworkId() public view returns (bytes4) {
+        return Network.getCurrentNetworkId();
+    }
+
     /// @inheritdoc IPNetworkHub
     function challengeIdOf(Challenge memory challenge) public view returns (bytes32) {
         return
@@ -369,7 +373,6 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
         Operation calldata operation
     ) external payable onlyWhenIsNotInLockDown(false) nonReentrant {
         bytes32 operationId = operationIdOf(operation);
-
         OperationStatus operationStatus = _operationsStatus[operationId];
         if (operationStatus == OperationStatus.Executed) {
             revert OperationAlreadyExecuted(operation);
@@ -1065,6 +1068,15 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
             IPToken(pTokenAddress).protocolMint(address(this), operation.protocolFeeAssetAmount);
             // TODO: send it to the DAO
             return operation.assetAmount > 0 ? operation.assetAmount - operation.protocolFeeAssetAmount : 0;
+        } else if (
+            operation.userData.length > 0 &&
+            operation.protocolFeeAssetAmount == 0 &&
+            Utils.hexStringToAddress(operation.destinationAccount) == address(slasher) &&
+            operation.assetAmount == 0
+        ) {
+            // TODO: recheck conditions^^
+            // Special UserOperation => slashing in progress => do not take fees
+            return 0;
         }
 
         revert InvalidProtocolFee(operation);
