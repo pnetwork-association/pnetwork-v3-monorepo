@@ -3,14 +3,14 @@
 pragma solidity ^0.8.19;
 
 import {Utils} from "../libraries/Utils.sol";
-import {PReceiver} from "../receiver/PReceiver.sol";
 import {IPRegistry} from "../interfaces/IPRegistry.sol";
+import {ISlasher} from "../interfaces/ISlasher.sol";
 import {IRegistrationManager} from "@pnetwork-association/dao-v2-contracts/contracts/interfaces/IRegistrationManager.sol";
 
 error NotHub(address hub);
 error NotSupportedNetworkId(bytes4 originNetworkId);
 
-contract Slasher is PReceiver {
+contract Slasher is ISlasher {
     address public immutable pRegistry;
     address public immutable registrationManager;
 
