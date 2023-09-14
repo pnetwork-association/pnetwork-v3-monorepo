@@ -18,5 +18,5 @@ interface IRegistrationManager {
      * @param challenger
      *
      */
-    function slash(address actor, bytes32[] calldata proof, uint256 amount, address challenger) external;
+    function slash(address owner, uint256 amount, address receiver) external;
 }

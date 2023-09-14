@@ -80,7 +80,7 @@ contract MockRegistrationManager {
         governanceMessageEmitter = governanceMessageEmitter_;
     }
 
-    function slash(address actor, bytes32[] calldata proof, uint256 amount, address challenger) external {
+    function slash(address actor, uint256 amount, address challenger) external {
         IGovernanceMessageEmitter(governanceMessageEmitter).slashSentinel(actor);
     }
 }

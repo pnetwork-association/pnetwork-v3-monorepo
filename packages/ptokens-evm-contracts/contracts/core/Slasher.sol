@@ -32,11 +32,10 @@ contract Slasher is PReceiver {
 
         if (originAccountAddress != registeredHub)
             revert NotHub(originAccountAddress);
-        // TODO: decode proof and amount from userdata
+
         uint256 amount = 1000;
-        bytes32[] memory proof;
 
         (address actor, address challenger) = abi.decode(userData, (address, address));
-        IRegistrationManager(registrationManager_).slash(actor, proof, amount, challenger);
+        IRegistrationManager(registrationManager_).slash(actor, amount, challenger);
     }
 }
