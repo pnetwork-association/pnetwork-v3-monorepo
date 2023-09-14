@@ -15,15 +15,15 @@ contract Slasher is PReceiver {
     address public immutable registrationManager;
 
     // Quantity of PNT to slash
-    uint256 public immutable slashingQuantity;
+    uint256 public immutable stakingSentinelAmountToSlash;
 
     // TODO: this could be a good metric on how
     // to change the slashing quantity value.
     // uint256 public immutable slashingFrequency
 
-    constructor(address pRegistry_, address registrationManager_, uint256 slashingQuantity_) {
+    constructor(address pRegistry_, address registrationManager_, uint256 stakingSentinelAmountToSlash_) {
         pRegistry = pRegistry_;
-        slashingQuantity = slashingQuantity_;
+        stakingSentinelAmountToSlash = stakingSentinelAmountToSlash_;
         registrationManager =  registrationManager_;
     }
 
@@ -54,7 +54,7 @@ contract Slasher is PReceiver {
         // quantity will be zero
         uint256 amountToSlash = 0;
         if (registration.kind == 0x01) {
-            amountToSlash = slashingQuantity * 10 ** 18;
+            amountToSlash = stakingSentinelAmountToSlash;
         }
 
         IRegistrationManager(registrationManager).slash(actor, amountToSlash, challenger);

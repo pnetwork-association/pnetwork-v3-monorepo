@@ -2381,7 +2381,7 @@ describe('PNetworkHub', () => {
       .to.emit(hubInterim, 'OperationExecuted')
       .withArgs(operation.serialize())
       .and.to.emit(mockRegistrationManager, 'StakingSentinelSlashed')
-      .withArgs(sentinel.address, BigInt(SLASHING_QUANTITY * 1e18))
+      .withArgs(sentinel.address, SLASHING_QUANTITY)
       .and.to.emit(governanceMessageEmitter, 'GovernanceMessage')
       .withArgs(expectedGovernanceMessageArgs)
   })
