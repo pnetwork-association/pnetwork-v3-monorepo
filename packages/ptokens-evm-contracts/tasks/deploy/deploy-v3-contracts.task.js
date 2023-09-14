@@ -27,12 +27,17 @@ task('pnetwork-deploy-v3-contracts', 'Deploy v3 contracts providing an underlyin
   .addPositionalParam('underlyingAssetAddress')
   .addPositionalParam('underlyingAssetNetworkId')
   .addPositionalParam('baseChallengePeriodDuration')
+  .addPositionalParam('feesManager')
   .addPositionalParam('telepathyRouter')
   .addPositionalParam('governanceMessageVerifier')
+  .addPositionalParam('slasher')
   .addPositionalParam('allowedSourceChainId')
   .addPositionalParam('lockedAmountChallengePeriod')
   .addPositionalParam('kChallengePeriod')
   .addPositionalParam('maxOperationsInQueue')
+  .addPositionalParam('interimChainNetworkId')
+  .addPositionalParam('lockedAmountOpenChallenge')
+  .addPositionalParam('maxChallengeDuration')
   .setAction(async _args => {
     await main(_args)
       // eslint-disable-next-line no-process-exit
@@ -63,12 +68,17 @@ const main = async _args => {
     pFactory.address,
     _args.baseChallengePeriodDuration,
     epochsManager.address,
+    _args.feesManager_,
     _args.telepathyRouter,
     _args.governanceMessageVerifier,
+    _args.slasher,
     _args.allowedSourceChainId,
     _args.lockedAmountChallengePeriod,
     _args.kChallengePeriod,
-    _args.maxOperationsInQueue
+    _args.maxOperationsInQueue,
+    _args.interimChainNetworkId,
+    _args.lockedAmountOpenChallenge,
+    _args.maxChallengeDuration
   )
 
   console.log('Setting pRouter ...')
