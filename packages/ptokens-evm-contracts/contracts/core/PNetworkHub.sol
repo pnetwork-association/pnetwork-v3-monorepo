@@ -46,7 +46,7 @@ error InvalidGuardian(address guardian);
 error InvalidLockedAmountStartChallenge(uint256 lockedAmountStartChallenge, uint256 expectedLockedAmountStartChallenge);
 error InvalidActorStatus(IPNetworkHub.ActorStatus status, IPNetworkHub.ActorStatus expectedStatus);
 error InvalidChallengeStatus(IPNetworkHub.ChallengeStatus status, IPNetworkHub.ChallengeStatus expectedStatus);
-error NearToEpochClosing();
+error NearToEpochEnd();
 error MaxChallengeDurationPassed();
 error MaxChallengeDurationNotPassed();
 error ChallengeNotFound(IPNetworkHub.Challenge challenge);
@@ -129,7 +129,7 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
         // maxChallengeDuration <=  maxChallengePeriodDuration
         // maxChallengeDuration <= baseChallengePeriodDuration + (maxOperationsInQueue * maxOperationsInQueue * kChallengePeriod) - kChallengePeriod
         if (block.timestamp + maxChallengeDuration > currentEpochEndTimestamp - 1 hours) {
-            revert NearToEpochClosing();
+            revert NearToEpochEnd();
         }
 
         _;

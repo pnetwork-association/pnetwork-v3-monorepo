@@ -1554,7 +1554,7 @@ describe('PNetworkHub', () => {
       hub.connect(challenger).startChallengeGuardian(challengedGuardian.address, proof, {
         value: LOCKED_AMOUNT_START_CHALLENGE,
       })
-    ).to.be.revertedWithCustomError(hub, 'NearToEpochClosing')
+    ).to.be.revertedWithCustomError(hub, 'NearToEpochEnd')
   })
 
   it('should be able to start a challenge when the system is in lockdown mode but the end of the epoch is not near to trigger the stopping of starting challenges', async () => {
@@ -1583,7 +1583,7 @@ describe('PNetworkHub', () => {
       hub.connect(challenger).startChallengeGuardian(challengedGuardian.address, proof, {
         value: LOCKED_AMOUNT_START_CHALLENGE,
       })
-    ).to.not.be.revertedWithCustomError(hub, 'NearToEpochClosing')
+    ).to.not.be.revertedWithCustomError(hub, 'NearToEpochEnd')
   })
 
   it('should be able to resolve a challenge near to the end of an epoch', async () => {
