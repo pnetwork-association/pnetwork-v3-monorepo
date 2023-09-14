@@ -748,7 +748,6 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
         bytes32 operationId,
         OperationStatus operationStatus
     ) internal view returns (uint64, uint64) {
-        // TODO: What is the challenge period of an already executed/cancelled operation
         if (operationStatus != OperationStatus.Queued) return (0, 0);
 
         Action storage queueAction = _operationsRelayerQueueAction[operationId];
@@ -931,7 +930,13 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
                 --numberOfOperationsInQueue;
             }
             _operationsStatus[operationId] = OperationStatus.Cancelled;
-            // TODO: Where should we send the lockedAmountChallengePeriod?
+
+            // TODO: send the lockedAmountChallengePeriod to the DAO
+            (bool sent, ) = address(0).call{value: lockedAmountChallengePeriod}("");
+            if (!sent) {
+                revert CallFailed();
+            }
+
             emit OperationCancelled(operation);
         }
     }
@@ -969,6 +974,11 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
         }
 
         // TODO: send the lockedAmountStartChallenge to the DAO
+        (bool sent, ) = address(0).call{value: lockedAmountStartChallenge}("");
+        if (!sent) {
+            revert CallFailed();
+        }
+
         _epochsChallengesStatus[currentEpoch][challengeId] = ChallengeStatus.Solved;
         _epochsActorsStatus[currentEpoch][challenge.actor] = ActorStatus.Active;
         delete _epochsActorsPendingChallengeId[currentEpoch][challenge.actor];
