@@ -6,7 +6,9 @@ library MerkleTree {
     function getRoot(bytes32[] memory data) internal pure returns (bytes32) {
         uint256 n = data.length;
 
-        require(n > 1, "Invalid length");
+        if (n == 1) {
+            return data[0];
+        }
 
         uint256 j = 0;
         uint256 layer = 0;

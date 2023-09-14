@@ -112,7 +112,6 @@ contract GovernanceMessageEmitter is IGovernanceMessageEmitter {
         //     revert InvalidNumberOfGuardians(numberOfValidGuardians, totalNumberOfGuardians);
         // }
 
-        // TODO: What does it happen if guardians.length === 1?
         emit GovernanceMessage(
             abi.encode(
                 GOVERNANCE_MESSAGE_GUARDIANS,
@@ -126,7 +125,6 @@ contract GovernanceMessageEmitter is IGovernanceMessageEmitter {
         uint16 currentEpoch = IEpochsManager(epochsManager).currentEpoch();
         address[] memory effectiveSentinels = _filterSentinels(sentinels, currentEpoch);
 
-        // TODO: What does it happen if effectiveSentinels.length === 1?
         emit GovernanceMessage(
             abi.encode(
                 GOVERNANCE_MESSAGE_SENTINELS,
