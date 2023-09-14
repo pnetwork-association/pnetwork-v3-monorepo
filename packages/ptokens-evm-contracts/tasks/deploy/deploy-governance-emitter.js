@@ -1,4 +1,4 @@
-task('deploy-governance-state-reader', 'Deploy a GovernanceMessageEmitter contract').setAction(
+task('deploy-governance-emitter', 'Deploy a GovernanceMessageEmitter contract').setAction(
   async _args => {
     await main(_args)
       // eslint-disable-next-line no-process-exit
