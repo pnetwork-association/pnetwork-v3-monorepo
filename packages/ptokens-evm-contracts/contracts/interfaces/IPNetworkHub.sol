@@ -226,6 +226,13 @@ interface IPNetworkHub is IGovernanceMessageHandler {
     );
 
     /*
+     * @notice Get the PNetwork network ID where the contract is deployed.
+     *
+     * @return bytes32 4 bytes representing the network ID
+     */
+    function getNetworkId() external view returns (bytes4);
+
+    /*
      * @notice Calculates the challenge id.
      *
      * @param challenge

@@ -211,7 +211,7 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
         maxChallengeDuration = maxChallengeDuration_;
     }
 
-    function getNetworkId() public view returns (bytes4) {
+    function getNetworkId() external view returns (bytes4) {
         return Network.getCurrentNetworkId();
     }
 
