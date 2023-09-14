@@ -14,8 +14,16 @@ contract Slasher is PReceiver {
     address public immutable pRegistry;
     address public immutable registrationManager;
 
-    constructor(address pRegistry_, address registrationManager_) {
+    // Quantity of PNT to slash
+    uint256 public immutable slashingQuantity;
+
+    // TODO: this could be a good metric on how
+    // to change the slashing quantity value.
+    // uint256 public immutable slashingFrequency
+
+    constructor(address pRegistry_, address registrationManager_, uint256 slashingQuantity_) {
         pRegistry = pRegistry_;
+        slashingQuantity = slashingQuantity_;
         registrationManager =  registrationManager_;
     }
 
@@ -34,9 +42,21 @@ contract Slasher is PReceiver {
         if (originAccountAddress != registeredHub)
             revert NotHub(originAccountAddress);
 
-        uint256 amount = 1000;
-
         (address actor, address challenger) = abi.decode(userData, (address, address));
-        IRegistrationManager(registrationManager).slash(actor, amount, challenger);
+
+        IRegistrationManager.Registration memory registration = IRegistrationManager(registrationManager).sentinelRegistration(actor);
+
+        // See file `Constants.sol` in dao-v2-contracts:
+        //
+        // bytes1 public constant REGISTRATION_SENTINEL_STAKING = 0x01;
+        //
+        // Borrowing sentinels have nothing at stake, so the slashing
+        // quantity will be zero
+        uint256 amountToSlash = 0;
+        if (registration.kind == 0x01) {
+            amountToSlash = slashingQuantity * 10 ** 18;
+        }
+
+        IRegistrationManager(registrationManager).slash(actor, amountToSlash, challenger);
     }
 }
