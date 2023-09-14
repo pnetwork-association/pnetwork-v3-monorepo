@@ -16,6 +16,8 @@ contract MockRegistrationManager {
         bytes1 kind;
     }
 
+    event StakingSentinelSlashed(address indexed sentinel, uint256 amount);
+
     address public immutable lendingManager;
 
     address public governanceMessageEmitter;
@@ -82,5 +84,6 @@ contract MockRegistrationManager {
 
     function slash(address actor, uint256 amount, address challenger) external {
         IGovernanceMessageEmitter(governanceMessageEmitter).slashSentinel(actor);
+        emit StakingSentinelSlashed(actor, amount);
     }
 }

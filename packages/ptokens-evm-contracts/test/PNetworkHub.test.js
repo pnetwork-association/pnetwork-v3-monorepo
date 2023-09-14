@@ -8,6 +8,7 @@ const { MerkleTree } = require('merkletreejs')
 const {
   BASE_CHALLENGE_PERIOD_DURATION,
   CHALLENGE_STATUS,
+  SLASHING_QUANTITY,
   K_CHALLENGE_PERIOD,
   LOCKED_AMOUNT_CHALLENGE_PERIOD,
   LOCKED_AMOUNT_START_CHALLENGE,
@@ -178,7 +179,11 @@ describe('PNetworkHub', () => {
     testNotReceiver = await TestNotReceiver.deploy()
     pRegistry = await PRegistry.deploy(dao.address)
     mockRegistrationManager = await MockRegistrationManager.deploy(lendingManager.address)
-    slasher = await Slasher.deploy(pRegistry.address, mockRegistrationManager.address)
+    slasher = await Slasher.deploy(
+      pRegistry.address,
+      mockRegistrationManager.address,
+      SLASHING_QUANTITY
+    )
     epochsManager = await EpochsManager.deploy()
     feesManager = await FeesManager.deploy()
     hubInterim = await PNetworkHub.deploy(
@@ -2243,6 +2248,14 @@ describe('PNetworkHub', () => {
 
   it('should slash an actor(sentinel) successfully on the interim chain', async () => {
     const slashedSentinel = sentinels[0]
+    await mockRegistrationManager.addStakingSentinel(
+      sentinel.address,
+      owner.address,
+      0,
+      10,
+      BigInt(200000)
+    )
+
     const proof = getActorsMerkleProof(sentinels, slashedSentinel)
     let tx = await hub.connect(challenger).startChallengeSentinel(slashedSentinel.address, proof, {
       value: LOCKED_AMOUNT_START_CHALLENGE,
@@ -2336,6 +2349,7 @@ describe('PNetworkHub', () => {
       userData,
       optionsMask,
     })
+
     tx = await hubInterim
       .connect(relayer)
       .protocolQueueOperation(operation, { value: LOCKED_AMOUNT_CHALLENGE_PERIOD })
@@ -2364,6 +2378,8 @@ describe('PNetworkHub', () => {
     await expect(tx)
       .to.emit(hubInterim, 'OperationExecuted')
       .withArgs(operation.serialize())
+      .and.to.emit(mockRegistrationManager, 'StakingSentinelSlashed')
+      .withArgs(sentinel.address, BigInt(SLASHING_QUANTITY * 1e18))
       .and.to.emit(governanceMessageEmitter, 'GovernanceMessage')
       .withArgs(expectedGovernanceMessageArgs)
   })
