@@ -25,10 +25,11 @@ contract Slasher is PReceiver {
         bytes calldata userData
     ) external override {
         address originAccountAddress = Utils.hexStringToAddress(originAccount);
-        address registeredHub = IPRegistry(pRegistry_).hubByNetworkId(originNetworkId);
 
         if (!IPRegistry(pRegistry_).isNetworkIdSupported(originNetworkId))
             revert NotSupportedNetworkId(originNetworkId);
+
+        address registeredHub = IPRegistry(pRegistry_).hubByNetworkId(originNetworkId);
 
         if (originAccountAddress != registeredHub)
             revert NotHub(originAccountAddress);
