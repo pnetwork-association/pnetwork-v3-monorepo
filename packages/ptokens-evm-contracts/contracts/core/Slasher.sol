@@ -5,7 +5,7 @@ pragma solidity ^0.8.19;
 import {Utils} from "../libraries/Utils.sol";
 import {PReceiver} from "../receiver/PReceiver.sol";
 import {IPRegistry} from "../interfaces/IPRegistry.sol";
-import {IRegistrationManager} from "../interfaces/IRegistrationManager.sol";
+import {IRegistrationManager} from "@pnetwork-association/dao-v2-contracts/contracts/interfaces/IRegistrationManager.sol";
 
 error NotHub(address hub);
 error NotSupportedNetworkId(bytes4 originNetworkId);
