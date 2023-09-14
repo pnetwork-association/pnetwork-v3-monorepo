@@ -11,8 +11,8 @@ error NotHub(address hub);
 error NotSupportedNetworkId(bytes4 originNetworkId);
 
 contract Slasher is PReceiver {
-    address pRegistry;
-    address registrationManager;
+    address public immutable pRegistry;
+    address public immutable registrationManager;
 
     constructor(address pRegistry_, address registrationManager_) {
         pRegistry = pRegistry_;
