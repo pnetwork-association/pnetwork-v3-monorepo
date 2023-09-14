@@ -2,13 +2,15 @@
 
 pragma solidity ^0.8.19;
 
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+
 /**
  * @title IPToken
  * @author pNetwork
  *
  * @notice
  */
-interface IPToken {
+interface IPToken is IERC20 {
     /*
      * @notice Burn the corresponding `amount` of pToken and release the collateral.
      *

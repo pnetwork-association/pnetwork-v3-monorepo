@@ -13,7 +13,15 @@ const {
 } = require('./constants')
 const { deployPToken } = require('./utils')
 
-let user, token, pToken, pFactory, hub, epochsManager, fakeGovernanceMessageVerifier, slasher
+let user,
+  token,
+  pToken,
+  pFactory,
+  hub,
+  epochsManager,
+  fakeGovernanceMessageVerifier,
+  slasher,
+  feesManager
 
 describe('PToken', () => {
   for (const decimals of [6, 18]) {
@@ -23,11 +31,13 @@ describe('PToken', () => {
         const StandardToken = await ethers.getContractFactory('StandardToken')
         const PFactory = await ethers.getContractFactory('PFactory')
         const EpochsManager = await ethers.getContractFactory('EpochsManager')
+        const FeesManager = await ethers.getContractFactory('MockFeesManager')
 
         const signers = await ethers.getSigners()
         user = signers[1]
         fakeGovernanceMessageVerifier = signers[2]
         slasher = signers[3]
+        feesManager = await FeesManager.deploy()
 
         // H A R D H A T
         pFactory = await PFactory.deploy()
@@ -36,6 +46,7 @@ describe('PToken', () => {
           pFactory.address,
           BASE_CHALLENGE_PERIOD_DURATION,
           epochsManager.address,
+          feesManager.address,
           TELEPATHY_ROUTER_ADDRESS,
           fakeGovernanceMessageVerifier.address,
           slasher.address,

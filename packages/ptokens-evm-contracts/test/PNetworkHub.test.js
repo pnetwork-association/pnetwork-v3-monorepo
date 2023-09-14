@@ -43,7 +43,8 @@ let token,
   guardians,
   challenger,
   chainId,
-  slasher
+  slasher,
+  feesManager
 
 describe('PNetworkHub', () => {
   const getActorsMerkleProof = (_actors, _actor) => {
@@ -140,6 +141,7 @@ describe('PNetworkHub', () => {
     const TestNotReceiver = await ethers.getContractFactory('TestNotReceiver')
     const EpochsManager = await ethers.getContractFactory('EpochsManager')
     const GovernanceMessageEmitter = await ethers.getContractFactory('MockGovernanceMessageEmitter')
+    const FeesManager = await ethers.getContractFactory('MockFeesManager')
 
     const signers = await ethers.getSigners()
     owner = signers[0]
@@ -159,11 +161,13 @@ describe('PNetworkHub', () => {
     pFactory = await PFactory.deploy()
     testNotReceiver = await TestNotReceiver.deploy()
     epochsManager = await EpochsManager.deploy()
+    feesManager = await FeesManager.deploy()
     hubInterim = await PNetworkHub.deploy(
       // hub used to test the interim chain behavior
       pFactory.address,
       BASE_CHALLENGE_PERIOD_DURATION,
       epochsManager.address,
+      feesManager.address,
       TELEPATHY_ROUTER_ADDRESS,
       fakeGovernanceMessageVerifier.address,
       slasher.address,
@@ -180,6 +184,7 @@ describe('PNetworkHub', () => {
       pFactory.address,
       BASE_CHALLENGE_PERIOD_DURATION,
       epochsManager.address,
+      feesManager.address,
       TELEPATHY_ROUTER_ADDRESS,
       fakeGovernanceMessageVerifier.address,
       slasher.address,
@@ -1121,6 +1126,8 @@ describe('PNetworkHub', () => {
       .withArgs(ZERO_ADDRESS, relayer.address, operation.networkFeeAssetAmount)
       .and.to.emit(hubInterim, 'OperationExecuted')
       .withArgs(operation.serialize())
+      .and.to.emit(feesManager, 'FeeDeposited')
+      .withArgs(pTokenInterim.address, protocolFee)
     const receipt2 = await (await tx).wait(1)
 
     const relayerEthBalancePost = await ethers.provider.getBalance(relayer.address)

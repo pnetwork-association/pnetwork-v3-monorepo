@@ -2,9 +2,9 @@
 
 pragma solidity ^0.8.19;
 
-import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {ReentrancyGuard} from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import {IEpochsManager} from "@pnetwork-association/dao-v2-contracts/contracts/interfaces/IEpochsManager.sol";
+import {IFeesManager} from "@pnetwork-association/dao-v2-contracts/contracts/interfaces/IFeesManager.sol";
 import {MerkleProof} from "@openzeppelin/contracts/utils/cryptography/MerkleProof.sol";
 import {GovernanceMessageHandler} from "../governance/GovernanceMessageHandler.sol";
 import {IPToken} from "../interfaces/IPToken.sol";
@@ -81,6 +81,7 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
 
     address public immutable factory;
     address public immutable epochsManager;
+    address public immutable feesManager;
     address public immutable slasher;
     uint32 public immutable baseChallengePeriodDuration;
     uint16 public immutable kChallengePeriod;
@@ -176,6 +177,7 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
         address factory_,
         uint32 baseChallengePeriodDuration_,
         address epochsManager_,
+        address feesManager_,
         address telepathyRouter,
         address governanceMessageVerifier,
         address slasher_,
@@ -199,6 +201,7 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
 
         factory = factory_;
         epochsManager = epochsManager_;
+        feesManager = feesManager_;
         slasher = slasher_;
         baseChallengePeriodDuration = baseChallengePeriodDuration_;
         lockedAmountChallengePeriod = lockedAmountChallengePeriod_;
@@ -1049,7 +1052,8 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
             uint256 feeBps = 20; // 0.2%
             uint256 fee = (operation.assetAmount * feeBps) / FEE_BASIS_POINTS_DIVISOR;
             IPToken(pTokenAddress).protocolMint(address(this), fee);
-            // TODO: send it to the DAO
+            IPToken(pTokenAddress).approve(feesManager, fee);
+            IFeesManager(feesManager).depositFee(pTokenAddress, fee);
             return operation.assetAmount - fee;
         }
         // TODO: We need to determine how to process the fee when operation.userData.length is greater than zero
