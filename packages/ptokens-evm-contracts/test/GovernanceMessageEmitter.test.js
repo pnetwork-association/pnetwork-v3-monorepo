@@ -1,7 +1,6 @@
 const { expect } = require('chai')
 const { ethers } = require('hardhat')
-
-const { ZERO_ADDRESS } = require('./constants')
+const { ZERO_ADDRESS, SLASHING_QUANTITY } = require('./constants')
 const { MerkleTree } = require('merkletreejs')
 
 let governanceMessageEmitter,
@@ -10,6 +9,7 @@ let governanceMessageEmitter,
   registrationManager,
   signers,
   currentEpoch,
+  challenger,
   owner
 
 describe('GovernanceMessageEmitter', () => {
@@ -54,6 +54,7 @@ describe('GovernanceMessageEmitter', () => {
 
     signers = await ethers.getSigners()
     owner = signers[0]
+    challenger = signers[1]
 
     await registrationManager.setGovernanceMessageEmitter(governanceMessageEmitter.address)
 
@@ -227,7 +228,7 @@ describe('GovernanceMessageEmitter', () => {
       ]
     )
 
-    await expect(registrationManager.slash(slashedSentinel))
+    await expect(registrationManager.slash(slashedSentinel, SLASHING_QUANTITY, challenger.address))
       .to.emit(governanceMessageEmitter, 'GovernanceMessage')
       .withArgs(message)
 
