@@ -9,8 +9,8 @@ contract PRegistry is IPRegistry, AccessControl {
 
   mapping(bytes4 => address) private _networkIdToHub;
 
-  constructor(address dao) {
-    _setupRole(ADD_SUPPORTED_NETWORK_ID_ROLE, dao);
+  constructor(address dandelionVoting) {
+    _setupRole(ADD_SUPPORTED_NETWORK_ID_ROLE, dandelionVoting);
   }
 
   function isNetworkIdSupported(bytes4 networkId) external view returns (bool) {
