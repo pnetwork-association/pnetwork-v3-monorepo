@@ -11,12 +11,12 @@ error NotHub(address hub);
 error NotSupportedNetworkId(bytes4 originNetworkId);
 
 contract Slasher is PReceiver {
-    address pRegistry_;
-    address registrationManager_;
+    address pRegistry;
+    address registrationManager;
 
-    constructor(address pRegistry, address registrationManager) {
-        pRegistry_ = pRegistry;
-        registrationManager_ =  registrationManager;
+    constructor(address pRegistry_, address registrationManager_) {
+        pRegistry = pRegistry_;
+        registrationManager =  registrationManager_;
     }
 
     function receiveUserData(
@@ -26,10 +26,10 @@ contract Slasher is PReceiver {
     ) external override {
         address originAccountAddress = Utils.hexStringToAddress(originAccount);
 
-        if (!IPRegistry(pRegistry_).isNetworkIdSupported(originNetworkId))
+        if (!IPRegistry(pRegistry).isNetworkIdSupported(originNetworkId))
             revert NotSupportedNetworkId(originNetworkId);
 
-        address registeredHub = IPRegistry(pRegistry_).hubByNetworkId(originNetworkId);
+        address registeredHub = IPRegistry(pRegistry).hubByNetworkId(originNetworkId);
 
         if (originAccountAddress != registeredHub)
             revert NotHub(originAccountAddress);
@@ -37,6 +37,6 @@ contract Slasher is PReceiver {
         uint256 amount = 1000;
 
         (address actor, address challenger) = abi.decode(userData, (address, address));
-        IRegistrationManager(registrationManager_).slash(actor, amount, challenger);
+        IRegistrationManager(registrationManager).slash(actor, amount, challenger);
     }
 }
