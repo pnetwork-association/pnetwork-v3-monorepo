@@ -12,6 +12,7 @@ error InvalidAmount(uint256 amount, uint256 expectedAmount);
 error InvalidGovernanceMessageVerifier(address governanceMessagerVerifier, address expectedGovernanceMessageVerifier);
 error InvalidSentinelRegistration(bytes1 kind);
 error NotRegistrationManager();
+error InvalidNumberOfGuardians(uint16 numberOfGuardians, uint16 expectedNumberOfGuardians);
 
 contract GovernanceMessageEmitter is IGovernanceMessageEmitter {
     bytes32 public constant GOVERNANCE_MESSAGE_SENTINELS = keccak256("GOVERNANCE_MESSAGE_SENTINELS");
@@ -88,10 +89,16 @@ contract GovernanceMessageEmitter is IGovernanceMessageEmitter {
     /// @inheritdoc IGovernanceMessageEmitter
     function propagateGuardians(address[] calldata guardians) public {
         uint16 currentEpoch = IEpochsManager(epochsManager).currentEpoch();
-        // uint16 totalNumberOfGuardians = IRegistrationManager(registrationManager).totalNumberOfGuardians();
+        // uint16 totalNumberOfGuardians = IRegistrationManager(registrationManager).totalNumberOfGuardiansByEpoch(
+        //     currentEpoch
+        // );
+
         // uint16 numberOfValidGuardians;
-        // for (uint16 index = 0; i < guardians; ) {
-        //     if (IRegistrationManager(registrationManager).isGuardian()) {
+        // for (uint16 index = 0; index < guardians; ) {
+        //     IRegistrationManager.Registration memory registration = IRegistrationManager(registrationManager)
+        //         .guardianRegistration(guardians[index]);
+
+        //     if (registration.kind == 0x03 && registration.endEpoch >= currentEpoch) {
         //         unchecked {
         //             ++numberOfValidGuardians;
         //         }
@@ -100,12 +107,9 @@ contract GovernanceMessageEmitter is IGovernanceMessageEmitter {
         //         ++index;
         //     }
         // }
+
         // if (totalNumberOfGuardians != numberOfValidGuardians) {
-        //     revert Error.InvalidNumberOfGuardians();
-        // }
-        // bytes[] memory data = new bytes[](guardians.length);
-        // for (uint256 i = 0; i < guardians.length; i++) {
-        //     data[i] = abi.encodePacked(guardians[i]);
+        //     revert InvalidNumberOfGuardians(numberOfValidGuardians, totalNumberOfGuardians);
         // }
 
         // TODO: What does it happen if guardians.length === 1?
