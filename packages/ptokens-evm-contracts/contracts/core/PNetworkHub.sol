@@ -211,7 +211,8 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
         maxChallengeDuration = maxChallengeDuration_;
     }
 
-    function getNetworkId() external view returns (bytes4) {
+    /// @inheritdoc IPNetworkHub
+    function getNetworkId() public view returns (bytes4) {
         return Network.getCurrentNetworkId();
     }
 
@@ -1067,10 +1068,11 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
             IPToken(pTokenAddress).protocolMint(address(this), operation.protocolFeeAssetAmount);
             // TODO: send it to the DAO
             return operation.assetAmount > 0 ? operation.assetAmount - operation.protocolFeeAssetAmount : 0;
-        } else if (
-            operation.userData.length > 0 &&
+        }
+
+        if (
             operation.protocolFeeAssetAmount == 0 &&
-            Utils.hexStringToAddress(operation.destinationAccount) == address(slasher) &&
+            // Utils.hexStringToAddress(operation.destinationAccount) == address(slasher) &&
             operation.assetAmount == 0
         ) {
             // TODO: recheck conditions^^
