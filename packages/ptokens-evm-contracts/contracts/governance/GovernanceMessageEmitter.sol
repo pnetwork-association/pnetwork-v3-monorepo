@@ -41,46 +41,6 @@ contract GovernanceMessageEmitter is IGovernanceMessageEmitter {
     }
 
     /// @inheritdoc IGovernanceMessageEmitter
-    function resumeGuardian(address guardian) external onlyRegistrationManager {
-        emit GovernanceMessage(
-            abi.encode(
-                GOVERNANCE_MESSAGE_RESUME_GUARDIAN,
-                abi.encode(IEpochsManager(epochsManager).currentEpoch(), guardian)
-            )
-        );
-    }
-
-    /// @inheritdoc IGovernanceMessageEmitter
-    function resumeSentinel(address sentinel) external onlyRegistrationManager {
-        emit GovernanceMessage(
-            abi.encode(
-                GOVERNANCE_MESSAGE_RESUME_SENTINEL,
-                abi.encode(IEpochsManager(epochsManager).currentEpoch(), sentinel)
-            )
-        );
-    }
-
-    /// TODO
-    function slashGuardian(address guardian) external onlyRegistrationManager {
-        emit GovernanceMessage(
-            abi.encode(
-                GOVERNANCE_MESSAGE_SLASH_GUARDIAN,
-                abi.encode(IEpochsManager(epochsManager).currentEpoch(), guardian)
-            )
-        );
-    }
-
-    /// TODO
-    function slashSentinel(address sentinel) external onlyRegistrationManager {
-        emit GovernanceMessage(
-            abi.encode(
-                GOVERNANCE_MESSAGE_SLASH_SENTINEL,
-                abi.encode(IEpochsManager(epochsManager).currentEpoch(), sentinel)
-            )
-        );
-    }
-
-    /// @inheritdoc IGovernanceMessageEmitter
     function propagateActors(address[] calldata sentinels, address[] calldata guardians) external {
         propagateSentinels(sentinels);
         propagateGuardians(guardians);
@@ -133,6 +93,46 @@ contract GovernanceMessageEmitter is IGovernanceMessageEmitter {
                     effectiveSentinels.length,
                     MerkleTree.getRoot(_hashAddresses(effectiveSentinels))
                 )
+            )
+        );
+    }
+
+    /// @inheritdoc IGovernanceMessageEmitter
+    function resumeGuardian(address guardian) external onlyRegistrationManager {
+        emit GovernanceMessage(
+            abi.encode(
+                GOVERNANCE_MESSAGE_RESUME_GUARDIAN,
+                abi.encode(IEpochsManager(epochsManager).currentEpoch(), guardian)
+            )
+        );
+    }
+
+    /// @inheritdoc IGovernanceMessageEmitter
+    function resumeSentinel(address sentinel) external onlyRegistrationManager {
+        emit GovernanceMessage(
+            abi.encode(
+                GOVERNANCE_MESSAGE_RESUME_SENTINEL,
+                abi.encode(IEpochsManager(epochsManager).currentEpoch(), sentinel)
+            )
+        );
+    }
+
+    /// @inheritdoc IGovernanceMessageEmitter
+    function slashGuardian(address guardian) external onlyRegistrationManager {
+        emit GovernanceMessage(
+            abi.encode(
+                GOVERNANCE_MESSAGE_SLASH_GUARDIAN,
+                abi.encode(IEpochsManager(epochsManager).currentEpoch(), guardian)
+            )
+        );
+    }
+
+    /// @inheritdoc IGovernanceMessageEmitter
+    function slashSentinel(address sentinel) external onlyRegistrationManager {
+        emit GovernanceMessage(
+            abi.encode(
+                GOVERNANCE_MESSAGE_SLASH_SENTINEL,
+                abi.encode(IEpochsManager(epochsManager).currentEpoch(), sentinel)
             )
         );
     }
