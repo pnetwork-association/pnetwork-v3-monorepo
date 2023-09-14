@@ -13,7 +13,7 @@ const {
 } = require('./constants')
 const { deployPToken } = require('./utils')
 
-let user, token, pToken, pFactory, hub, epochsManager, fakeGovernanceMessageVerifier
+let user, token, pToken, pFactory, hub, epochsManager, fakeGovernanceMessageVerifier, slasher
 
 describe('PToken', () => {
   for (const decimals of [6, 18]) {
@@ -27,6 +27,7 @@ describe('PToken', () => {
         const signers = await ethers.getSigners()
         user = signers[1]
         fakeGovernanceMessageVerifier = signers[2]
+        slasher = signers[3]
 
         // H A R D H A T
         pFactory = await PFactory.deploy()
@@ -37,6 +38,7 @@ describe('PToken', () => {
           epochsManager.address,
           TELEPATHY_ROUTER_ADDRESS,
           fakeGovernanceMessageVerifier.address,
+          slasher.address,
           (
             await ethers.provider.getNetwork()
           ).chainId,
