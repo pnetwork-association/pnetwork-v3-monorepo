@@ -8,7 +8,7 @@ import {ITelepathyRouter} from "../interfaces/external/ITelepathyRouter.sol";
 import {Merkle} from "../libraries/Merkle.sol";
 import {MerklePatriciaProof} from "../libraries/MerklePatriciaProof.sol";
 
-error InvalidGovernanceMessageEmitter(address governanceMessageEmitter, address expecteDgovernanceStateReader);
+error InvalidGovernanceMessageEmitter(address governanceMessageEmitter, address expecteGovernanceMessageEmitter);
 error InvalidTopic(bytes32 topic, bytes32 expectedTopic);
 error InvalidReceiptsRootMerkleProof();
 error InvalidRootHashMerkleProof();
@@ -39,9 +39,9 @@ contract GovernanceMessageVerifier is IGovernanceMessageVerifier {
         RLPReader.RLPItem[] memory log = RLPReader.toList(logs[proof.logIndex]);
 
         // NOTE: only events emitted from the GovernanceMessageEmitter will be propagated
-        address proofGovernanceStateReader = RLPReader.toAddress(log[0]);
-        if (governanceMessageEmitter != proofGovernanceStateReader) {
-            revert InvalidGovernanceMessageEmitter(proofGovernanceStateReader, governanceMessageEmitter);
+        address proofGovernanceMessageEmitter = RLPReader.toAddress(log[0]);
+        if (governanceMessageEmitter != proofGovernanceMessageEmitter) {
+            revert InvalidGovernanceMessageEmitter(proofGovernanceMessageEmitter, governanceMessageEmitter);
         }
 
         RLPReader.RLPItem[] memory topics = RLPReader.toList(log[1]);
