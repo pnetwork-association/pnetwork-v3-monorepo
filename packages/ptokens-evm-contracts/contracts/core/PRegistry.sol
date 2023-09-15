@@ -13,6 +13,7 @@ contract PRegistry is IPRegistry, AccessControl {
     _setupRole(ADD_SUPPORTED_NETWORK_ID_ROLE, dandelionVoting);
   }
 
+  // @inheritdoc IPRegistry
   function addSupportedNetworkId(bytes4 networkId, address hub) public onlyRole(ADD_SUPPORTED_NETWORK_ID_ROLE) {
     _networkIdToHub[networkId] = hub;
   }
