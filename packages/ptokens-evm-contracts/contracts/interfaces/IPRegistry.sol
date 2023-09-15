@@ -4,6 +4,14 @@ pragma solidity ^0.8.19;
 
 interface IPRegistry {
   /*
+   * @dev Add a new entry for the map network ID => hub
+   *
+   * @param networkId the network ID
+   * @param hub pNetwork hub contract address
+   */
+  function addSupportedNetworkId(bytes4 networkId, address hub) external;
+
+  /*
    * @dev Return true if the given network id has been registered on pNetwork
    *
    * @param networkId the network ID
