@@ -10,7 +10,7 @@ describe('Get EVM operations by Operation ID', () => {
     it('Should get operations linked to an Operation ID', async () => {
       const getLogsSpy = jest
         .spyOn(ethers.AbstractProvider.prototype, 'getLogs')
-        .mockResolvedValue([logs[10]])
+        .mockResolvedValue([logs[2]])
       const fakeProvider = {
         getLogs: getLogsSpy,
       }
@@ -19,34 +19,34 @@ describe('Get EVM operations by Operation ID', () => {
         .mockImplementation(_url => fakeProvider)
 
       const { getEvmOperationsById } = require('../../lib/evm/evm-get-operations-by-id')
-      const provider = 'mumbai-provider-url-1'
-      const networkId = 'network-id'
-      const operationId = '0x46840d7667c567d8ae702801c296d9cb19535d7c77f8e132c79f06c25df79600'
-      const stateManagerAddress = '0x565033350582f4Ad298fDD8d59b7c36D0cAC1712'
-      const fromBlock = 34923840
+      const provider = 'polygon-provider-url-1'
+      const networkId = 'polygon-network-id'
+      const operationId = '0x0e629afc57c3f95207c44fee302cedb89c7051b99df35847586b569073e8f425'
+      const hubAddress = '0xc2d9C83d98ba36f295Cf61B7496332075d16dc8e'
+      const fromBlock = 45583400
       const ret = await getEvmOperationsById(
         provider,
         networkId,
         operationId,
-        stateManagerAddress,
+        hubAddress,
         fromBlock
       )
       expect(getDefaultProviderSpy).toHaveBeenNthCalledWith(1, provider)
       expect(getLogsSpy).toHaveBeenNthCalledWith(1, {
-        address: stateManagerAddress,
-        fromBlock: 34923840,
+        address: hubAddress,
+        fromBlock: 45583400,
         topics: [
           [
-            '0xec5d8f38737ebccaa579d2caeaed8fbc5f2c7c598fee1eb335429c8c48ec2598',
-            '0xfb83c807750a326c5845536dc89b4d2da9f1f5e0df344e9f69f27c84f4d7d726',
-            '0xd1a85d51ecfea5edd75f97fcf615b22c6f56eaf8f0487db9fadfbe661689b9af',
+            '0x029f1f67ab657b4c5a9616439b2bf263a1f4858077c10dd4e9bc4fea817fca37',
+            '0x3be31efdb29ca9b3c04d3eb94096006add1f157e835694c28ca864eb6dce3504',
+            '0xcdfe48ba923cd8bcac4fe88fe6c0b5a8e443f4b91e0751bc2b2b8917c03ae066',
           ],
         ],
       })
       expect(ret).toStrictEqual([
         {
-          eventName: 'OperationQueued',
-          txHash: '0x2eff067a18db079a26a9f26e22c404dd6f68c5f377935db0afd913a59a1ede02',
+          eventName: 'OperationExecuted',
+          txHash: '0x260d51e9aac08601fb948b137b41a672244efbf72b8c107949937dcec8bd3175',
         },
       ])
     })
@@ -66,24 +66,24 @@ describe('Get EVM operations by Operation ID', () => {
       const provider = 'mumbai-provider-url-2'
       const networkId = 'network-id'
       const operationId = '0x2eff067a18db079a26a9f26e22c404dd6f68c5f377935db0afd913a59a1ede02'
-      const stateManagerAddress = '0x565033350582f4Ad298fDD8d59b7c36D0cAC1712'
+      const hubAddress = '0x565033350582f4Ad298fDD8d59b7c36D0cAC1712'
       const fromBlock = 34923840
       const ret = await getEvmOperationsById(
         provider,
         networkId,
         operationId,
-        stateManagerAddress,
+        hubAddress,
         fromBlock
       )
       expect(getDefaultProviderSpy).toHaveBeenNthCalledWith(1, provider)
       expect(getLogsSpy).toHaveBeenNthCalledWith(1, {
-        address: stateManagerAddress,
+        address: hubAddress,
         fromBlock: 34923840,
         topics: [
           [
-            '0xec5d8f38737ebccaa579d2caeaed8fbc5f2c7c598fee1eb335429c8c48ec2598',
-            '0xfb83c807750a326c5845536dc89b4d2da9f1f5e0df344e9f69f27c84f4d7d726',
-            '0xd1a85d51ecfea5edd75f97fcf615b22c6f56eaf8f0487db9fadfbe661689b9af',
+            '0x029f1f67ab657b4c5a9616439b2bf263a1f4858077c10dd4e9bc4fea817fca37',
+            '0x3be31efdb29ca9b3c04d3eb94096006add1f157e835694c28ca864eb6dce3504',
+            '0xcdfe48ba923cd8bcac4fe88fe6c0b5a8e443f4b91e0751bc2b2b8917c03ae066',
           ],
         ],
       })

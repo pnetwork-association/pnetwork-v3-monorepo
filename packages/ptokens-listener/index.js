@@ -27,19 +27,19 @@ Example calls:
 
 const GET_EVENT_REPORTS_FROM_TRANSACTION_HELP_MESSAGE =
   EXAMPLE_CALLS +
-  `$ node index.js getEventReportsFromTransaction 0x2b948164aad1517cdcd11e22c3f96d58b146fdee233ab74e46cb038afcc273e3 'UserOperation(uint256 nonce,string destinationAccount,bytes4 destinationNetworkId,string underlyingAssetName,string underlyingAssetSymbol,uint256 underlyingAssetDecimals,address underlyingAssetTokenAddress,bytes4 underlyingAssetNetworkId,address assetTokenAddress,uint256 assetAmount,bytes userData,bytes32 optionsMask)'
+  `$ node index.js getEventReportsFromTransaction 0x2d300f8aeed6cee69f50dde84d0a6e991d0836b2a1a3b3a6737b3ae3493f710f 'UserOperation(uint256 nonce, string destinationAccount, bytes4 destinationNetworkId, string underlyingAssetName, string underlyingAssetSymbol, uint256 underlyingAssetDecimals, address underlyingAssetTokenAddress, bytes4 underlyingAssetNetworkId, address assetTokenAddress, uint256 assetAmount, address protocolFeeAssetTokenAddress, uint256 protocolFeeAssetAmount, uint256 networkFeeAssetAmount, uint256 forwardNetworkFeeAssetAmount, bytes4 forwardDestinationNetworkId, bytes userData, bytes32 optionsMask)'
 `
 
 const GET_EVENT_LOGS_FROM_TRANSACTION_HELP_MESSAGE =
   EXAMPLE_CALLS +
-  `$ node index.js getEventLogsFromTransaction 0x2b948164aad1517cdcd11e22c3f96d58b146fdee233ab74e46cb038afcc273e3
+  `$ node index.js getEventLogsFromTransaction 0x2d300f8aeed6cee69f50dde84d0a6e991d0836b2a1a3b3a6737b3ae3493f710f
 
-$ node index.js getEventLogsFromTransaction 0x2b948164aad1517cdcd11e22c3f96d58b146fdee233ab74e46cb038afcc273e3 'UserOperation(uint256 nonce,string destinationAccount,bytes4 destinationNetworkId,string underlyingAssetName,string underlyingAssetSymbol,uint256 underlyingAssetDecimals,address underlyingAssetTokenAddress,bytes4 underlyingAssetNetworkId,address assetTokenAddress,uint256 assetAmount,bytes userData,bytes32 optionsMask)'
+$ node index.js getEventLogsFromTransaction 0x2d300f8aeed6cee69f50dde84d0a6e991d0836b2a1a3b3a6737b3ae3493f710f 'UserOperation(uint256 nonce, string destinationAccount, bytes4 destinationNetworkId, string underlyingAssetName, string underlyingAssetSymbol, uint256 underlyingAssetDecimals, address underlyingAssetTokenAddress, bytes4 underlyingAssetNetworkId, address assetTokenAddress, uint256 assetAmount, address protocolFeeAssetTokenAddress, uint256 protocolFeeAssetAmount, uint256 networkFeeAssetAmount, uint256 forwardNetworkFeeAssetAmount, bytes4 forwardDestinationNetworkId, bytes userData, bytes32 optionsMask)'
 `
 
 const GET_USER_OPERATION_HELP_MESSAGE =
   EXAMPLE_CALLS +
-  `$ node index.js getUserOperation 0x2b948164aad1517cdcd11e22c3f96d58b146fdee233ab74e46cb038afcc273e3
+  `$ node index.js getUserOperation 0x2d300f8aeed6cee69f50dde84d0a6e991d0836b2a1a3b3a6737b3ae3493f710f
 `
 
 const GET_OPERATION_QUEUED_HELP_MESSAGE =
@@ -153,9 +153,9 @@ const addGetOperationsCommand = _program =>
     .option('--fromBlock <block>', 'fromBlock', parseInt)
     .addHelpText('after', GET_OPERATIONS_HELP_MESSAGE)
     .action(
-      (_operationId, _stateManagerAddress, _options) =>
+      (_operationId, _hubAddress, _options) =>
         disableLoggingForCLICommand() ||
-        getOperationsByIdCommand(config, _operationId, _stateManagerAddress, _options.fromBlock)
+        getOperationsByIdCommand(config, _operationId, _hubAddress, _options.fromBlock)
     ) && _program
 
 const main = () =>

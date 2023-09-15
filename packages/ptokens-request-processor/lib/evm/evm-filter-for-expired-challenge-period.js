@@ -19,11 +19,7 @@ const returnEventIfExpiredChallengePeriod = R.curry(
     })
 )
 
-const maybeGetExpirationDate = (
-  _stateManagerContract,
-  _basicChallengePeriodMinutes,
-  _proposedEvent
-) =>
+const maybeGetExpirationDate = (_hubContract, _basicChallengePeriodMinutes, _proposedEvent) =>
   Promise.resolve(new Date(_proposedEvent[constants.db.KEY_PROPOSAL_TS]))
     .then(utils.date.addMinutesToDate(_basicChallengePeriodMinutes))
     .then(_basicExpirationTimestamp => {
@@ -42,7 +38,7 @@ const maybeGetExpirationDate = (
       }
 
       return Promise.resolve(getUserOperationAbiArgsFromReport(_proposedEvent))
-        .then(_args => _stateManagerContract.challengePeriodOf(..._args))
+        .then(_args => _hubContract.challengePeriodOf(..._args))
         .then(([_, _endTs]) => parseInt(_endTs))
         .then(R.multiply(1000)) // We need the ts in ms
         .then(_endTs => new Date(_endTs))
@@ -51,9 +47,9 @@ const maybeGetExpirationDate = (
 const checkIfOperationIsExpiredOrReject = _err =>
   _err.message.includes(ERROR_OPERATION_NOT_EXPIRED) ? Promise.resolve(null) : Promise.reject(_err)
 
-const isOperationExpired = (_stateManagerContract, _basicChallengePeriod, _proposedEvent) =>
+const isOperationExpired = (_hubContract, _basicChallengePeriod, _proposedEvent) =>
   logger.debug(`Checking expiration of ${_proposedEvent[constants.db.KEY_ID]}...`) ||
-  maybeGetExpirationDate(_stateManagerContract, _basicChallengePeriod, _proposedEvent)
+  maybeGetExpirationDate(_hubContract, _basicChallengePeriod, _proposedEvent)
     .then(returnEventIfExpiredChallengePeriod(_proposedEvent))
     .catch(checkIfOperationIsExpiredOrReject)
 
@@ -63,13 +59,13 @@ const filterForExpiredProposalsAndPutThemInState = _state =>
     const providerUrl = _state[constants.state.KEY_PROVIDER_URL]
     const provider = new ethers.JsonRpcProvider(providerUrl)
     const proposedEvents = _state[STATE_PROPOSED_DB_REPORTS] || []
-    const stateManagerAddress = _state[constants.state.KEY_STATE_MANAGER_ADDRESS]
-    const stateManager = new ethers.Contract(stateManagerAddress, abi, provider)
+    const hubAddress = _state[constants.state.KEY_HUB_ADDRESS]
+    const hub = new ethers.Contract(hubAddress, abi, provider)
     const basicChallengePeriod = _state[constants.state.KEY_CHALLENGE_PERIOD]
 
     logger.info(`Checking if ${proposedEvents.length} have expired...`)
     return Promise.all(
-      proposedEvents.map(_report => isOperationExpired(stateManager, basicChallengePeriod, _report))
+      proposedEvents.map(_report => isOperationExpired(hub, basicChallengePeriod, _report))
     )
       .then(utils.removeNilsFromList)
       .then(

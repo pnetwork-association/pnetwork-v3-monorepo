@@ -88,7 +88,7 @@ describe('Main EVM flow for transaction proposal tests', () => {
         [constants.state.KEY_LOOP_SLEEP_TIME]: 1,
         [constants.state.KEY_CHALLENGE_PERIOD]: 20,
         [constants.state.KEY_NETWORK_ID]: '0xe15503e4',
-        [constants.state.KEY_STATE_MANAGER_ADDRESS]: '0xC8E4270a6EF24B67eD38046318Fc8FC2d312f73C',
+        [constants.state.KEY_HUB_ADDRESS]: '0xC8E4270a6EF24B67eD38046318Fc8FC2d312f73C',
         [constants.state.KEY_IDENTITY_FILE]: gpgEncryptedFile,
       }
 

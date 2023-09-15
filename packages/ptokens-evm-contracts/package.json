@@ -27,7 +27,6 @@
     "@nomicfoundation/hardhat-network-helpers": "^1.0.6",
     "@nomicfoundation/hardhat-toolbox": "^2.0.2",
     "@nomiclabs/hardhat-ethers": "^2.2.3",
-    "@nomiclabs/hardhat-etherscan": "3.1.6",
     "@nomiclabs/hardhat-web3": "2.0.0",
     "@openzeppelin/contracts": "^4.9.2",
     "@openzeppelin/contracts-upgradeable": "4.9.2",
@@ -56,7 +55,7 @@
     "ramda": "^0.29.0",
     "safe-buffer": "^5.2.1",
     "solhint": "^3.3.6",
-    "solidity-coverage": "^0.8.2",
+    "solidity-coverage": "^0.8.4",
     "solidity-rlp": "^2.0.8"
   }
 }

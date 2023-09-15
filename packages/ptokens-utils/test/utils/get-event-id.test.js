@@ -7,31 +7,37 @@ describe('Tests for schemas utilities', () => {
       const ret = await utils.getEventId({
         status: 'detected',
         eventName: 'UserOperation',
-        nonce: 52083,
-        destinationAccount: '0xa41657bf225F8Ec7E2010C89c3F084172948264D',
-        destinationNetworkId: '0xe15503e4',
-        underlyingAssetName: 'Token',
-        underlyingAssetSymbol: 'TKN',
-        underlyingAssetDecimals: 18,
-        underlyingAssetTokenAddress: '0x49a5D1CF92772328Ad70f51894FD632a14dF12C9',
-        underlyingAssetNetworkId: '0xe15503e4',
-        assetTokenAddress: '0x49a5D1CF92772328Ad70f51894FD632a14dF12C9',
-        assetAmount: '100000000000000000000',
+        nonce: '85671',
+        destinationAccount: '0xdDb5f4535123DAa5aE343c24006F4075aBAF5F7B',
+        destinationNetworkId: '0xf9b459a1',
+        underlyingAssetName: 'USD//C on xDai',
+        underlyingAssetSymbol: 'USDC',
+        underlyingAssetDecimals: 6,
+        underlyingAssetTokenAddress: '0xDDAfbb505ad214D7b80b1f830fcCc89B60fb7A83',
+        underlyingAssetNetworkId: '0xd41b1c5b',
+        assetTokenAddress: '0xDDAfbb505ad214D7b80b1f830fcCc89B60fb7A83',
+        assetAmount: '1455000000000000',
         userData: '0x',
         optionsMask: '0x0000000000000000000000000000000000000000000000000000000000000000',
-        originatingBlockHash: '0xe19ab626cfc3f471238da9a375d396e3bd8a10c55601425d69677c908f0ad8f1',
+        originatingBlockHash: null,
         originatingAddress: null,
-        originatingNetworkId: '0xe15503e4',
-        originatingTransactionHash:
-          '0x009fb472130864d1ea9d9e011a1e5ff2d1fae827668f2807146dd3e227eb42ce',
+        originatingNetworkId: null,
+        originatingTransactionHash: null,
+        blockHash: '0x2c3f80c427a454df34e9f7b4684cd0767ebe7672db167151369af3f49b9326c4',
+        networkId: '0xd41b1c5b',
+        transactionHash: '0x2d300f8aeed6cee69f50dde84d0a6e991d0836b2a1a3b3a6737b3ae3493f710f',
         proposedTransactionTimestamp: null,
         proposedTransactionHash: null,
-        witnessedTimestamp: '2023-03-14T16:00:00.000Z',
+        witnessedTimestamp: '2023-07-27T13:29:43.101Z',
         finalTransactionHash: null,
         finalTransactionTimestamp: null,
+        forwardDestinationNetworkId: '0xfc8ebb2b',
+        protocolFeeAssetAmount: '0',
+        networkFeeAssetAmount: '0',
+        forwardNetworkFeeAssetAmount: '0',
       })
 
-      assert.strictEqual(ret, '0x5ac3de11a54ac11a448052ad1c3f57ab5fe18a35024aa6fee622620fd1098d55')
+      assert.strictEqual(ret, '0x0e629afc57c3f95207c44fee302cedb89c7051b99df35847586b569073e8f425')
     })
   })
 })

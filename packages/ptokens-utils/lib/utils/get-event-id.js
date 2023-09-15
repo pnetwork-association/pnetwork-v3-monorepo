@@ -13,12 +13,16 @@ const getEventIdEvm = ({
   nonce,
   destinationAccount,
   destinationNetworkId,
+  forwardDestinationNetworkId,
   underlyingAssetName,
   underlyingAssetSymbol,
   underlyingAssetDecimals,
   underlyingAssetTokenAddress,
   underlyingAssetNetworkId,
   assetAmount,
+  protocolFeeAssetAmount,
+  networkFeeAssetAmount,
+  forwardNetworkFeeAssetAmount,
   userData,
   optionsMask,
 }) => {
@@ -29,57 +33,69 @@ const getEventIdEvm = ({
         bytes32 optionsMask;
         uint256 nonce;
         uint256 underlyingAssetDecimals;
-        uint256 amount;
+        uint256 assetAmount;
+        uint256 protocolFeeAssetAmount;
+        uint256 networkFeeAssetAmount;
+        uint256 forwardNetworkFeeAssetAmount;
         address underlyingAssetTokenAddress;
         bytes4 originNetworkId;
         bytes4 destinationNetworkId;
+        bytes4 forwardDestinationNetworkId;
         bytes4 underlyingAssetNetworkId;
         string destinationAccount;
         string underlyingAssetName;
         string underlyingAssetSymbol;
         bytes userData;
     }
-    function operationIdOf(Operation memory operation) public pure returns (bytes32) {
+    function operationIdOf(Operation calldata operation) public pure returns (bytes32) {
     return
-        keccak256(
-            abi.encode(
-                operation.originBlockHash,
-                operation.originTransactionHash,
-                operation.originNetworkId,
-                operation.nonce,
-                operation.destinationAccount,
-                operation.destinationNetworkId,
-                operation.underlyingAssetName,
-                operation.underlyingAssetSymbol,
-                operation.underlyingAssetDecimals,
-                operation.underlyingAssetTokenAddress,
-                operation.underlyingAssetNetworkId,
-                operation.amount,
-                operation.userData,
-                operation.optionsMask
-            )
-        );
+      sha256(
+        abi.encode(
+            operation.originBlockHash,
+            operation.originTransactionHash,
+            operation.originNetworkId,
+            operation.nonce,
+            operation.destinationAccount,
+            operation.destinationNetworkId,
+            operation.forwardDestinationNetworkId,
+            operation.underlyingAssetName,
+            operation.underlyingAssetSymbol,
+            operation.underlyingAssetDecimals,
+            operation.underlyingAssetTokenAddress,
+            operation.underlyingAssetNetworkId,
+            operation.assetAmount,
+            operation.protocolFeeAssetAmount,
+            operation.networkFeeAssetAmount,
+            operation.forwardNetworkFeeAssetAmount,
+            operation.userData,
+            operation.optionsMask
+        )
+      );
     }
   */
 
   const types = [
-    'bytes32',
-    'bytes32',
-    'bytes4',
-    'uint256',
-    'string',
-    'bytes4',
-    'string',
-    'string',
-    'uint256',
-    'address',
-    'bytes4',
-    'uint256',
-    'bytes',
-    'bytes32',
+    'bytes32', // operation.originBlockHash,
+    'bytes32', // operation.originTransactionHash,
+    'bytes4', // operation.originNetworkId,
+    'uint256', // operation.nonce,
+    'string', // operation.destinationAccount,
+    'bytes4', // operation.destinationNetworkId,
+    'bytes4', // operation.forwardDestinationNetworkId,
+    'string', // operation.underlyingAssetName,
+    'string', // operation.underlyingAssetSymbol,
+    'uint256', // operation.underlyingAssetDecimals,
+    'address', // operation.underlyingAssetTokenAddress,
+    'bytes4', // operation.underlyingAssetNetworkId,
+    'uint256', // operation.assetAmount,
+    'uint256', // operation.protocolFeeAssetAmount,
+    'uint256', // operation.networkFeeAssetAmount,
+    'uint256', // operation.forwardNetworkFeeAssetAmount,
+    'bytes', // operation.userData,
+    'bytes32', // operation.optionsMask
   ]
   const coder = new ethers.AbiCoder()
-  return ethers.keccak256(
+  return ethers.sha256(
     coder.encode(types, [
       originatingBlockHash || blockHash,
       originatingTransactionHash || transactionHash,
@@ -87,12 +103,16 @@ const getEventIdEvm = ({
       nonce,
       destinationAccount,
       destinationNetworkId,
+      forwardDestinationNetworkId,
       underlyingAssetName,
       underlyingAssetSymbol,
       underlyingAssetDecimals,
       underlyingAssetTokenAddress,
       underlyingAssetNetworkId,
       assetAmount,
+      protocolFeeAssetAmount,
+      networkFeeAssetAmount,
+      forwardNetworkFeeAssetAmount,
       userData,
       optionsMask,
     ])
@@ -112,12 +132,16 @@ const getEventId = ({
   nonce,
   destinationAccount,
   destinationNetworkId,
+  forwardDestinationNetworkId,
   underlyingAssetName,
   underlyingAssetSymbol,
   underlyingAssetDecimals,
   underlyingAssetTokenAddress,
   underlyingAssetNetworkId,
   assetAmount,
+  protocolFeeAssetAmount,
+  networkFeeAssetAmount,
+  forwardNetworkFeeAssetAmount,
   userData,
   optionsMask,
 }) =>
@@ -135,12 +159,16 @@ const getEventId = ({
             nonce,
             destinationAccount,
             destinationNetworkId,
+            forwardDestinationNetworkId,
             underlyingAssetName,
             underlyingAssetSymbol,
             underlyingAssetDecimals,
             underlyingAssetTokenAddress,
             underlyingAssetNetworkId,
             assetAmount,
+            protocolFeeAssetAmount,
+            networkFeeAssetAmount,
+            forwardNetworkFeeAssetAmount,
             userData,
             optionsMask,
           })

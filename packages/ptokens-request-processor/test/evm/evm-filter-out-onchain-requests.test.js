@@ -1,4 +1,3 @@
-const R = require('ramda')
 const { db } = require('ptokens-utils')
 const constants = require('ptokens-constants')
 const { jestMockContractConstructor } = require('./mock/jest-utils')
@@ -19,13 +18,8 @@ describe('Tests for already processed requests filtering', () => {
     beforeEach(async () => {
       jest.resetAllMocks()
       jest.resetModules()
+      await collection.deleteMany({})
       await collection.insertMany(detectedEvents)
-    })
-
-    afterEach(async () => {
-      await Promise.all(detectedEvents.map(R.prop('_id'))).then(_ids =>
-        Promise.all(_ids.map(db.deleteReport(collection)))
-      )
     })
 
     afterAll(async () => {
@@ -46,9 +40,9 @@ describe('Tests for already processed requests filtering', () => {
       const state = {
         [constants.state.KEY_DB]: collection,
         [STATE_DETECTED_DB_REPORTS]: detectedEvents,
-        [constants.state.KEY_NETWORK_ID]: '0xe15503e4',
+        [constants.state.KEY_NETWORK_ID]: '0xf9b459a1',
         [constants.state.KEY_PROVIDER_URL]: 'http://localhost:8545',
-        [constants.state.KEY_STATE_MANAGER_ADDRESS]: '0xC8E4270a6EF24B67eD38046318Fc8FC2d312f73C',
+        [constants.state.KEY_HUB_ADDRESS]: '0xC8E4270a6EF24B67eD38046318Fc8FC2d312f73C',
       }
 
       const {

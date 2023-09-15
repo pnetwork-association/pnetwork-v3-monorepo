@@ -2,7 +2,6 @@ const {
   KEY_ADDRESS,
   KEY_UNDERLYING_ASSET_LIST,
   KEY_PFACTORY,
-  KEY_PROUTER,
   KEY_PNETWORKHUB,
   KEY_ASSET_NAME,
   KEY_ASSET_SYMBOL,
@@ -28,9 +27,6 @@ const configEntryLookup = {
     [KEY_ADDRESS]: _contractAddress,
   }),
   [KEY_PFACTORY]: (_taskArgs, _contractAddress) => ({
-    [KEY_ADDRESS]: _contractAddress,
-  }),
-  [KEY_PROUTER]: (_taskArgs, _contractAddress) => ({
     [KEY_ADDRESS]: _contractAddress,
   }),
   [KEY_PNETWORKHUB]: (_taskArgs, _contractAddress) => ({

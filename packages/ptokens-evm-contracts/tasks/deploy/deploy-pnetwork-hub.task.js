@@ -11,7 +11,7 @@ const TASK_DESC_DEPLOY_PNETWORKHUB =
 const PARAM_NAME_CHALLENGE_PERIOD = 'challengePeriod'
 const PARAM_DESC_CHALLENGE_PERIOD = 'Set challenge period for pnetwork protocol state manager'
 
-const setStateManagerAddressInPFactory = R.curry(
+const setHubAddressInPFactory = R.curry(
   (_pFactory, _hub) =>
     console.info('Setting pNetworkHub address in pFactory...') ||
     _pFactory
@@ -21,7 +21,7 @@ const setStateManagerAddressInPFactory = R.curry(
       .then(_ => _hub)
 )
 
-const deployStateManager = R.curry(
+const deployHub = R.curry(
   (taskArgs, hre, _pFactory) =>
     console.info('Deploying hub ...') ||
     hre
@@ -30,11 +30,11 @@ const deployStateManager = R.curry(
         contractFactoryName: CONTRACT_NAME_PNETWORKHUB,
         deployArgsArray: [_pFactory.address, taskArgs.challengePeriod],
       })
-      .then(setStateManagerAddressInPFactory(_pFactory))
+      .then(setHubAddressInPFactory(_pFactory))
 )
 
-const deployStateManagerTask = (taskArgs, hre) =>
-  deployPFactoryTask(null, hre).then(deployStateManager(taskArgs, hre))
+const deployHubTask = (taskArgs, hre) =>
+  deployPFactoryTask(null, hre).then(deployHub(taskArgs, hre))
 
 task(TASK_NAME_DEPLOY_PNETWORKHUB, TASK_DESC_DEPLOY_PNETWORKHUB)
   .addPositionalParam(
@@ -43,8 +43,8 @@ task(TASK_NAME_DEPLOY_PNETWORKHUB, TASK_DESC_DEPLOY_PNETWORKHUB)
     undefined,
     types.string
   )
-  .setAction(deployStateManagerTask)
+  .setAction(deployHubTask)
 
 module.exports = {
-  deployStateManagerTask,
+  deployHubTask,
 }

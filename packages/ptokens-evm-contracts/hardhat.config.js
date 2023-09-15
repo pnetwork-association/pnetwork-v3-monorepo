@@ -1,7 +1,6 @@
 require('dotenv').config()
 require('hardhat-tracer')
 require('@nomiclabs/hardhat-ethers')
-require('@nomiclabs/hardhat-etherscan')
 require('@openzeppelin/hardhat-upgrades')
 require('hardhat-gas-reporter')
 require('@nomicfoundation/hardhat-chai-matchers')
@@ -103,6 +102,8 @@ module.exports = {
       mainnet: getEnvironmentVariable('ETHERSCAN_API_KEY'),
       polygon: getEnvironmentVariable('POLYGONSCAN_API_KEY'),
       mumbai: getEnvironmentVariable('POLYGONSCAN_API_KEY'),
+      arbitrum: getEnvironmentVariable('ARBISCAN_API_KEY'),
+      gnosis: getEnvironmentVariable('GNOSISSCAN_API_KEY'),
     },
     customChains: [
       {
@@ -141,8 +142,8 @@ module.exports = {
         network: 'arbitrum',
         chainId: 42161,
         urls: {
-          apiURL: 'https://api.mumbai.polygonscan.com/api',
-          browserURL: 'https://api.arbiscan.io',
+          apiURL: 'https://api.arbiscan.io/api',
+          browserURL: 'https://arbiscan.io',
         },
       },
     ],

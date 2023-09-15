@@ -1,10 +1,10 @@
-class StateManagerError extends Error {
+class HubError extends Error {
   constructor(ethersErrorDescription) {
     super(`${ethersErrorDescription.name}(${ethersErrorDescription.args})`)
-    this.name = 'StateManagerError'
+    this.name = 'HubError'
   }
 }
 
 module.exports = {
-  StateManagerError,
+  HubError,
 }
