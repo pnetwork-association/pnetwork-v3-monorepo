@@ -2294,6 +2294,7 @@ describe('PNetworkHub', () => {
     const forwardDestinationNetworkId = '0x00000000'
     const userData = encodedBytes
     const optionsMask = '0x0000000000000000000000000000000000000000000000000000000000000000'
+    const isSpecial = true
     const expectedEvent = [
       nonce,
       originAccount,
@@ -2313,6 +2314,7 @@ describe('PNetworkHub', () => {
       forwardDestinationNetworkId,
       userData,
       optionsMask,
+      isSpecial,
     ]
     tx = await hub.connect(challenger).slashByChallenge(challenge)
     await expect(tx).not.to.be.reverted
@@ -2348,6 +2350,7 @@ describe('PNetworkHub', () => {
       forwardDestinationNetworkId,
       userData,
       optionsMask,
+      isSpecial,
     })
 
     tx = await hubInterim
