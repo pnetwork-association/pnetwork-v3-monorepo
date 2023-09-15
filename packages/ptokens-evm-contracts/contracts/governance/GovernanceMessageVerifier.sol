@@ -18,7 +18,7 @@ error InvalidNonce(uint256 nonce, uint256 expectedNonce);
 
 contract GovernanceMessageVerifier is IGovernanceMessageVerifier {
     address public constant TELEPATHY_ROUTER = 0x41EA857C32c8Cb42EEFa00AF67862eCFf4eB795a;
-    address public constant ROOT_CHAIN_ADDRESS = 0x2890bA17EfE978480615e330ecB65333b880928e;
+    address public constant ROOT_CHAIN_ADDRESS = 0x86e4dc95c7fbdbf52e33d563bbdb00823894c287;
     bytes32 public constant EVENT_SIGNATURE_TOPIC = 0x85aab78efe4e39fd3b313a465f645990e6a1b923f5f5b979957c176e632c5a07; //keccak256(GovernanceMessage(bytes));
 
     address public immutable governanceMessageEmitter;
