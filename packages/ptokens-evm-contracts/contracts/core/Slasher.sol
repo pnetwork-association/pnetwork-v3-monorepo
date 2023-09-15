@@ -52,10 +52,7 @@ contract Slasher is ISlasher {
         //
         // Borrowing sentinels have nothing at stake, so the slashing
         // quantity will be zero
-        uint256 amountToSlash = 0;
-        if (registration.kind == 0x01) {
-            amountToSlash = stakingSentinelAmountToSlash;
-        }
+        uint256 amountToSlash = registration.kind == 0x01 ? stakingSentinelAmountToSlash : 0;
 
         IRegistrationManager(registrationManager).slash(actor, amountToSlash, challenger);
     }
