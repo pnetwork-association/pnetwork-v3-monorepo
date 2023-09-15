@@ -6,6 +6,7 @@ const deployPFactory = require('./deploy-pfactory.task')
 const deployPNetworkHub = require('./deploy-pnetwork-hub.task')
 const deployV3Contracts = require('./deploy-v3-contracts.task')
 const generateConfig = require('./deploy-copy-config.task')
+const deployGovernanceMessageEmitter = require('./deploy-governance-emitter')
 
 module.exports = {
   deployInit,
@@ -16,4 +17,5 @@ module.exports = {
   deployPNetworkHub,
   deployV3Contracts,
   generateConfig,
+  deployGovernanceMessageEmitter,
 }
