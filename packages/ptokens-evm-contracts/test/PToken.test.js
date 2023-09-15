@@ -50,9 +50,6 @@ describe('PToken', () => {
           TELEPATHY_ROUTER_ADDRESS,
           fakeGovernanceMessageVerifier.address,
           slasher.address,
-          (
-            await ethers.provider.getNetwork()
-          ).chainId,
           LOCKED_AMOUNT_CHALLENGE_PERIOD,
           K_CHALLENGE_PERIOD,
           MAX_OPERATIONS_IN_QUEUE,

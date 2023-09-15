@@ -31,7 +31,6 @@ task('pnetwork-deploy-v3-contracts', 'Deploy v3 contracts providing an underlyin
   .addPositionalParam('telepathyRouter')
   .addPositionalParam('governanceMessageVerifier')
   .addPositionalParam('slasher')
-  .addPositionalParam('allowedSourceChainId')
   .addPositionalParam('lockedAmountChallengePeriod')
   .addPositionalParam('kChallengePeriod')
   .addPositionalParam('maxOperationsInQueue')
@@ -72,7 +71,6 @@ const main = async _args => {
     _args.telepathyRouter,
     _args.governanceMessageVerifier,
     _args.slasher,
-    _args.allowedSourceChainId,
     _args.lockedAmountChallengePeriod,
     _args.kChallengePeriod,
     _args.maxOperationsInQueue,

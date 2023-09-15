@@ -12,12 +12,10 @@ error InvalidGovernanceMessageVerifier(address governanceMessagerVerifier, addre
 abstract contract GovernanceMessageHandler is IGovernanceMessageHandler, Context {
     address public immutable telepathyRouter;
     address public immutable governanceMessageVerifier;
-    uint32 public immutable allowedSourceChainId;
 
-    constructor(address telepathyRouter_, address governanceMessageVerifier_, uint32 allowedSourceChainId_) {
+    constructor(address telepathyRouter_, address governanceMessageVerifier_) {
         telepathyRouter = telepathyRouter_;
         governanceMessageVerifier = governanceMessageVerifier_;
-        allowedSourceChainId = allowedSourceChainId_;
     }
 
     function handleTelepathy(uint32 sourceChainId, address sourceSender, bytes memory data) external returns (bytes4) {
@@ -26,9 +24,11 @@ abstract contract GovernanceMessageHandler is IGovernanceMessageHandler, Context
         // NOTE: we just need to check the address that called the telepathy router (GovernanceMessageVerifier)
         // and not who emitted the event on Polygon since it's the GovernanceMessageVerifier that verifies that
         // a certain event has been emitted by the GovernanceMessageEmitter
-        if (sourceChainId != allowedSourceChainId) {
+
+        // TODO: check it using registry once done
+        /*if (sourceChainId != allowedSourceChainId) {
             revert InvalidSourceChainId(sourceChainId, allowedSourceChainId);
-        }
+        }*/
         if (sourceSender != governanceMessageVerifier) {
             revert InvalidGovernanceMessageVerifier(sourceSender, governanceMessageVerifier);
         }
