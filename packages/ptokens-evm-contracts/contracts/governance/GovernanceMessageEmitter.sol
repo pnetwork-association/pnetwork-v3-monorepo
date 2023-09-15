@@ -26,6 +26,8 @@ contract GovernanceMessageEmitter is IGovernanceMessageEmitter {
     address public immutable lendingManager;
     address public immutable registrationManager;
 
+    uint256 public totalNumberOfMessages;
+
     modifier onlyRegistrationManager() {
         if (msg.sender != registrationManager) {
             revert NotRegistrationManager();
@@ -72,7 +74,7 @@ contract GovernanceMessageEmitter is IGovernanceMessageEmitter {
         //     revert InvalidNumberOfGuardians(numberOfValidGuardians, totalNumberOfGuardians);
         // }
 
-        emit GovernanceMessage(
+        _sendMessage(
             abi.encode(
                 GOVERNANCE_MESSAGE_GUARDIANS,
                 abi.encode(currentEpoch, guardians.length, MerkleTree.getRoot(_hashAddresses(guardians)))
@@ -85,7 +87,7 @@ contract GovernanceMessageEmitter is IGovernanceMessageEmitter {
         uint16 currentEpoch = IEpochsManager(epochsManager).currentEpoch();
         address[] memory effectiveSentinels = _filterSentinels(sentinels, currentEpoch);
 
-        emit GovernanceMessage(
+        _sendMessage(
             abi.encode(
                 GOVERNANCE_MESSAGE_SENTINELS,
                 abi.encode(
@@ -99,7 +101,7 @@ contract GovernanceMessageEmitter is IGovernanceMessageEmitter {
 
     /// @inheritdoc IGovernanceMessageEmitter
     function resumeGuardian(address guardian) external onlyRegistrationManager {
-        emit GovernanceMessage(
+        _sendMessage(
             abi.encode(
                 GOVERNANCE_MESSAGE_RESUME_GUARDIAN,
                 abi.encode(IEpochsManager(epochsManager).currentEpoch(), guardian)
@@ -109,7 +111,7 @@ contract GovernanceMessageEmitter is IGovernanceMessageEmitter {
 
     /// @inheritdoc IGovernanceMessageEmitter
     function resumeSentinel(address sentinel) external onlyRegistrationManager {
-        emit GovernanceMessage(
+        _sendMessage(
             abi.encode(
                 GOVERNANCE_MESSAGE_RESUME_SENTINEL,
                 abi.encode(IEpochsManager(epochsManager).currentEpoch(), sentinel)
@@ -119,7 +121,7 @@ contract GovernanceMessageEmitter is IGovernanceMessageEmitter {
 
     /// @inheritdoc IGovernanceMessageEmitter
     function slashGuardian(address guardian) external onlyRegistrationManager {
-        emit GovernanceMessage(
+        _sendMessage(
             abi.encode(
                 GOVERNANCE_MESSAGE_SLASH_GUARDIAN,
                 abi.encode(IEpochsManager(epochsManager).currentEpoch(), guardian)
@@ -129,12 +131,21 @@ contract GovernanceMessageEmitter is IGovernanceMessageEmitter {
 
     /// @inheritdoc IGovernanceMessageEmitter
     function slashSentinel(address sentinel) external onlyRegistrationManager {
-        emit GovernanceMessage(
+        _sendMessage(
             abi.encode(
                 GOVERNANCE_MESSAGE_SLASH_SENTINEL,
                 abi.encode(IEpochsManager(epochsManager).currentEpoch(), sentinel)
             )
         );
+    }
+
+    function _sendMessage(bytes memory message) internal {
+        // TODO: add here hubAddresses and chainIds
+        emit GovernanceMessage(abi.encode(totalNumberOfMessages, message));
+
+        unchecked {
+            ++totalNumberOfMessages;
+        }
     }
 
     function _filterSentinels(

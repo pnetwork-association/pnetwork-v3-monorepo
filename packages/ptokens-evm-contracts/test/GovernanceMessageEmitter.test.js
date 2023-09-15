@@ -85,15 +85,21 @@ describe('GovernanceMessageEmitter', () => {
     const sentinels = [...stakingSentinels, ...borrowingSentinels]
     const merkleRootWithoutSlashedSentinel = getMerkleRoot(sentinels)
     const abiCoder = new ethers.utils.AbiCoder()
-    const messageData = abiCoder.encode(
-      ['uint16', 'uint16', 'bytes32'],
-      [currentEpoch, sentinels.length, merkleRootWithoutSlashedSentinel]
-    )
+
     const message = abiCoder.encode(
-      ['bytes32', 'bytes'],
+      ['uint256', 'bytes'],
       [
-        ethers.utils.keccak256(ethers.utils.toUtf8Bytes('GOVERNANCE_MESSAGE_SENTINELS')),
-        messageData,
+        0,
+        abiCoder.encode(
+          ['bytes32', 'bytes'],
+          [
+            ethers.utils.keccak256(ethers.utils.toUtf8Bytes('GOVERNANCE_MESSAGE_SENTINELS')),
+            abiCoder.encode(
+              ['uint16', 'uint16', 'bytes32'],
+              [currentEpoch, sentinels.length, merkleRootWithoutSlashedSentinel]
+            ),
+          ]
+        ),
       ]
     )
 
@@ -147,15 +153,20 @@ describe('GovernanceMessageEmitter', () => {
     const merkleRootWithoutSlashedSentinel = getMerkleRoot(sentinels)
 
     const abiCoder = new ethers.utils.AbiCoder()
-    const messageData = abiCoder.encode(
-      ['uint16', 'uint16', 'bytes32'],
-      [currentEpoch, sentinels.length, merkleRootWithoutSlashedSentinel]
-    )
     const message = abiCoder.encode(
-      ['bytes32', 'bytes'],
+      ['uint256', 'bytes'],
       [
-        ethers.utils.keccak256(ethers.utils.toUtf8Bytes('GOVERNANCE_MESSAGE_SENTINELS')),
-        messageData,
+        0,
+        abiCoder.encode(
+          ['bytes32', 'bytes'],
+          [
+            ethers.utils.keccak256(ethers.utils.toUtf8Bytes('GOVERNANCE_MESSAGE_SENTINELS')),
+            abiCoder.encode(
+              ['uint16', 'uint16', 'bytes32'],
+              [currentEpoch, sentinels.length, merkleRootWithoutSlashedSentinel]
+            ),
+          ]
+        ),
       ]
     )
 
@@ -202,12 +213,17 @@ describe('GovernanceMessageEmitter', () => {
     const merkleRootWithoutSlashedSentinel = getMerkleRoot(sentinelsWithoutSlashedOne)
 
     const abiCoder = new ethers.utils.AbiCoder()
-    const messageData = abiCoder.encode(['uint16', 'address'], [currentEpoch, slashedSentinel])
     const message = abiCoder.encode(
-      ['bytes32', 'bytes'],
+      ['uint256', 'bytes'],
       [
-        ethers.utils.keccak256(ethers.utils.toUtf8Bytes('GOVERNANCE_MESSAGE_SLASH_SENTINEL')),
-        messageData,
+        0,
+        abiCoder.encode(
+          ['bytes32', 'bytes'],
+          [
+            ethers.utils.keccak256(ethers.utils.toUtf8Bytes('GOVERNANCE_MESSAGE_SLASH_SENTINEL')),
+            abiCoder.encode(['uint16', 'address'], [currentEpoch, slashedSentinel]),
+          ]
+        ),
       ]
     )
 
