@@ -22,7 +22,7 @@ module.exports = class Operation {
       underlyingAssetName = 'NAME',
       underlyingAssetSymbol = 'SYMBOL',
       userData = '0x',
-      isSpecial = false,
+      isForProtocol = false,
     } = _opts
 
     this.originBlockHash = originBlockHash
@@ -44,7 +44,7 @@ module.exports = class Operation {
     this.forwardDestinationNetworkId = forwardDestinationNetworkId
     this.networkFeeAssetAmount = networkFeeAssetAmount
     this.forwardNetworkFeeAssetAmount = forwardNetworkFeeAssetAmount
-    this.isSpecial = isSpecial
+    this.isForProtocol = isForProtocol
   }
 
   serialize() {
@@ -68,7 +68,7 @@ module.exports = class Operation {
       this.underlyingAssetName,
       this.underlyingAssetSymbol,
       this.userData,
-      this.isSpecial,
+      this.isForProtocol,
     ]
   }
 

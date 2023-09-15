@@ -71,7 +71,7 @@ interface IPNetworkHub is IGovernanceMessageHandler {
         string underlyingAssetName;
         string underlyingAssetSymbol;
         bytes userData;
-        bool isSpecial;
+        bool isForProtocol;
     }
 
     /**
@@ -224,7 +224,7 @@ interface IPNetworkHub is IGovernanceMessageHandler {
         bytes4 forwardDestinationNetworkId,
         bytes userData,
         bytes32 optionsMask,
-        bool isSpecial
+        bool isForProtocol
     );
 
     /*

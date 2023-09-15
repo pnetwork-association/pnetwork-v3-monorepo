@@ -435,7 +435,7 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
                     bytes4(0),
                     operation.userData,
                     operation.optionsMask,
-                    operation.isSpecial
+                    operation.isForProtocol
                 );
 
                 emit OperationExecuted(operation);
@@ -574,7 +574,7 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
                 0,
                 abi.encode(challenge.actor, challenge.challenger),
                 bytes32(0),
-                true // isSpecial
+                true // isForProtocol
             );
         }
 
@@ -749,7 +749,7 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
             destinationNetworkId,
             userData,
             optionsMask,
-            false // isSpecial
+            false // isForProtocol
         );
     }
 
@@ -1073,11 +1073,7 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
             return operation.assetAmount > 0 ? operation.assetAmount - operation.protocolFeeAssetAmount : 0;
         }
 
-        if (
-            operation.protocolFeeAssetAmount == 0 &&
-            // Utils.hexStringToAddress(operation.destinationAccount) == address(slasher) &&
-            operation.assetAmount == 0
-        ) {
+        if (operation.isForProtocol) {
             // TODO: recheck conditions^^
             // Special UserOperation => slashing in progress => do not take fees
             return 0;
