@@ -55,7 +55,7 @@ describe('GovernanceMessageEmitter', () => {
     signers = await ethers.getSigners()
     owner = signers[0]
 
-    await registrationManager.setGovernanceStateReader(governanceMessageEmitter.address)
+    await registrationManager.setGovernanceMessageEmitter(governanceMessageEmitter.address)
 
     currentEpoch = await epochsManager.currentEpoch()
   })

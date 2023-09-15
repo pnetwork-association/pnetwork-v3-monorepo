@@ -12,7 +12,7 @@ const main = async (
   {
     transactionHash,
     rootChainAddress,
-    governanceStateReaderAddress,
+    governanceMessageEmitterAddress,
     governanceMessageVerifierAddress,
     stateManagerAddress,
     destinationChainId,
@@ -40,7 +40,7 @@ const main = async (
     if (
       !logs.find(
         ({ address, topics }) =>
-          address.toLowerCase() === governanceStateReaderAddress.toLowerCase() &&
+          address.toLowerCase() === governanceMessageEmitterAddress.toLowerCase() &&
           topics[0] === TOPIC
       )
     ) {
@@ -108,7 +108,8 @@ const main = async (
     )
     const logIndex = receipt.logs.findIndex(
       ({ address, topics }) =>
-        address.toLowerCase() === governanceStateReaderAddress.toLowerCase() && topics[0] === TOPIC
+        address.toLowerCase() === governanceMessageEmitterAddress.toLowerCase() &&
+        topics[0] === TOPIC
     )
 
     const encodedReceipts = receipts.map(_receipt => getBytesEncodedReceipt(_receipt))
@@ -167,7 +168,7 @@ task(
 )
   .addPositionalParam('transactionHash')
   .addPositionalParam('rootChainAddress')
-  .addPositionalParam('governanceStateReaderAddress')
+  .addPositionalParam('governanceMessageEmitterAddress')
   .addPositionalParam('governanceMessageVerifierAddress')
   .addPositionalParam('stateManagerAddress')
   .addPositionalParam('destinationChainId')
