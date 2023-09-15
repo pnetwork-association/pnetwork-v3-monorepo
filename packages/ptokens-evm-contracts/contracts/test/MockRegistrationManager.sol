@@ -72,8 +72,8 @@ contract MockRegistrationManager {
         }
     }
 
-    function setGovernanceStateReader(address governanceStateReader_) external {
-        governanceMessageEmitter = governanceStateReader_;
+    function setGovernanceStateReader(address governanceMessageEmitter_) external {
+        governanceMessageEmitter = governanceMessageEmitter_;
     }
 
     function slash(address sentinel) external {

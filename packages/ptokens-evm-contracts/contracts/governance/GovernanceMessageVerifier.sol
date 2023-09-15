@@ -8,7 +8,7 @@ import {ITelepathyRouter} from "../interfaces/external/ITelepathyRouter.sol";
 import {Merkle} from "../libraries/Merkle.sol";
 import {MerklePatriciaProof} from "../libraries/MerklePatriciaProof.sol";
 
-error InvalidGovernanceStateReader(address governanceStateReader, address expecteDgovernanceStateReader);
+error InvalidGovernanceMessageEmitter(address governanceMessageEmitter, address expecteDgovernanceStateReader);
 error InvalidTopic(bytes32 topic, bytes32 expectedTopic);
 error InvalidReceiptsRootMerkleProof();
 error InvalidRootHashMerkleProof();
@@ -19,10 +19,10 @@ contract GovernanceMessageVerifier is IGovernanceMessageVerifier {
     address public constant ROOT_CHAIN_ADDRESS = 0x2890bA17EfE978480615e330ecB65333b880928e;
     bytes32 public constant EVENT_SIGNATURE_TOPIC = 0x85aab78efe4e39fd3b313a465f645990e6a1b923f5f5b979957c176e632c5a07; //keccak256(GovernanceMessage(bytes));
 
-    address public governanceStateReader;
+    address public governanceMessageEmitter;
 
-    constructor(address governanceStateReader_) {
-        governanceStateReader = governanceStateReader_;
+    constructor(address governanceMessageEmitter_) {
+        governanceMessageEmitter = governanceMessageEmitter_;
     }
 
     /// @inheritdoc IGovernanceMessageVerifier
@@ -38,10 +38,10 @@ contract GovernanceMessageVerifier is IGovernanceMessageVerifier {
         RLPReader.RLPItem[] memory logs = RLPReader.toList(receiptData[3]);
         RLPReader.RLPItem[] memory log = RLPReader.toList(logs[proof.logIndex]);
 
-        // NOTE: only events emitted from the GovernanceStateReader will be propagated
+        // NOTE: only events emitted from the GovernanceMessageEmitter will be propagated
         address proofGovernanceStateReader = RLPReader.toAddress(log[0]);
-        if (governanceStateReader != proofGovernanceStateReader) {
-            revert InvalidGovernanceStateReader(proofGovernanceStateReader, governanceStateReader);
+        if (governanceMessageEmitter != proofGovernanceStateReader) {
+            revert InvalidGovernanceMessageEmitter(proofGovernanceStateReader, governanceMessageEmitter);
         }
 
         RLPReader.RLPItem[] memory topics = RLPReader.toList(log[1]);
