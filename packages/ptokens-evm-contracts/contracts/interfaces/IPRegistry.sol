@@ -1,5 +1,10 @@
 // SPDX-License-Identifier: MIT
 
+/**
+ * Created on 2023-09-15 14:48
+ * @summary:
+ * @author: mauro
+ */
 pragma solidity ^0.8.19;
 
 interface IPRegistry {
@@ -9,7 +14,7 @@ interface IPRegistry {
    * @param networkId the network ID
    * @param hub pNetwork hub contract address
    */
-  function addSupportedNetworkId(bytes4 networkId, address hub) external;
+  function addProtocolBlockchain(uint32 chainId, bytes4 networkId, address hub) external;
 
   /*
    * @dev Return true if the given network id has been registered on pNetwork
@@ -20,6 +25,27 @@ interface IPRegistry {
    */
   function isNetworkIdSupported(bytes4 networkId) external view returns (bool);
 
+  /**
+   * @dev Return the supported chain ID
+   * @param chainId the chain id
+   */
+  function isChainIdSupported(uint32 chainId) external view returns (bool);
+
+  /**
+   * @dev Return the supported hubs
+   */
+  function getSupportedHubs() external view returns (address[] memory);
+
+  /**
+   * @dev Return the supported chain IDs
+   * @return uint32[] the array of supported chain ids
+   */
+  function getSupportedChainIds() external view returns (uint32[] memory);
+
+  /**
+   * @dev Return the supported network IDs
+   */
+  function getSupportedNetworkIds() external view returns (bytes4[] memory);
 
   /**
    * @dev Returns the pNetwork hub address for the given network ID
@@ -28,5 +54,5 @@ interface IPRegistry {
    *
    * @return address pNetwork hub address on the given network ID
    */
-  function hubByNetworkId(bytes4 sourceNetworkId) external view returns (address);
+  function getHubByNetworkId(bytes4 sourceNetworkId) external view returns (address);
 }

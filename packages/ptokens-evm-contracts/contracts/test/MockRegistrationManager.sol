@@ -78,10 +78,6 @@ contract MockRegistrationManager {
         governanceMessageEmitter = governanceMessageEmitter_;
     }
 
-    function setGovernanceMessageEmitter(address governanceMessageEmitter_) external {
-        governanceMessageEmitter = governanceMessageEmitter_;
-    }
-
     function slash(address actor, uint256 amount, address challenger) external {
         IGovernanceMessageEmitter(governanceMessageEmitter).slashSentinel(actor);
         emit StakingSentinelSlashed(actor, amount);

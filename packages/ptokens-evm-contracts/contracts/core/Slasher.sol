@@ -37,7 +37,7 @@ contract Slasher is ISlasher {
         if (!IPRegistry(pRegistry).isNetworkIdSupported(originNetworkId))
             revert NotSupportedNetworkId(originNetworkId);
 
-        address registeredHub = IPRegistry(pRegistry).hubByNetworkId(originNetworkId);
+        address registeredHub = IPRegistry(pRegistry).getHubByNetworkId(originNetworkId);
 
         if (originAccountAddress != registeredHub)
             revert NotHub(originAccountAddress);

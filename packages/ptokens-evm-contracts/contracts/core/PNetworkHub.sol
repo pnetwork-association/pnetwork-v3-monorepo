@@ -180,6 +180,7 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
         address feesManager_,
         address telepathyRouter,
         address governanceMessageVerifier,
+        address registry,
         address slasher_,
         uint256 lockedAmountChallengePeriod_,
         uint16 kChallengePeriod_,
@@ -187,7 +188,7 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
         bytes4 interimChainNetworkId_,
         uint256 lockedAmountOpenChallenge_,
         uint64 maxChallengeDuration_
-    ) GovernanceMessageHandler(telepathyRouter, governanceMessageVerifier) {
+    ) GovernanceMessageHandler(telepathyRouter, governanceMessageVerifier, registry) {
         // NOTE: see the comment within onlyFarFromEpochClosingStartChallenge
         if (
             maxChallengeDuration_ >
