@@ -17,10 +17,6 @@ contract Slasher is ISlasher {
     // Quantity of PNT to slash
     uint256 public immutable stakingSentinelAmountToSlash;
 
-    // TODO: this could be a good metric on how
-    // to change the slashing quantity value.
-    // uint256 public immutable slashingFrequency
-
     constructor(address pRegistry_, address registrationManager_, uint256 stakingSentinelAmountToSlash_) {
         pRegistry = pRegistry_;
         stakingSentinelAmountToSlash = stakingSentinelAmountToSlash_;

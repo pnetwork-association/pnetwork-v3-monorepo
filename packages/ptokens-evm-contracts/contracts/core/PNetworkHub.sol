@@ -1075,8 +1075,6 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
         }
 
         if (operation.isForProtocol) {
-            // TODO: recheck conditions^^
-            // Special UserOperation => slashing in progress => do not take fees
             return 0;
         }
 
