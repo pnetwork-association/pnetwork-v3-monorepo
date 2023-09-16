@@ -50,6 +50,7 @@ contract Slasher is ISlasher {
         // quantity will be zero
         uint256 amountToSlash = registration.kind == 0x01 ? stakingSentinelAmountToSlash : 0;
 
+
         IRegistrationManager(registrationManager).slash(actor, amountToSlash, challenger);
     }
 }

@@ -7,15 +7,19 @@ library Network {
         return Network.getCurrentNetworkId() == networkId;
     }
 
+    function getNetworkIdFromChainId(uint32 chainId) internal pure returns (bytes4) {
+        bytes1 version = 0x01;
+        bytes1 networkType = 0x01;
+        bytes1 extraData = 0x00;
+        return bytes4(sha256(abi.encode(version, networkType, chainId, extraData)));
+    }
+
     function getCurrentNetworkId() internal view returns (bytes4) {
         uint256 currentchainId;
         assembly {
             currentchainId := chainid()
         }
 
-        bytes1 version = 0x01;
-        bytes1 networkType = 0x01;
-        bytes1 extraData = 0x00;
-        return bytes4(sha256(abi.encode(version, networkType, currentchainId, extraData)));
+        return getNetworkIdFromChainId(uint32(currentchainId));
     }
 }

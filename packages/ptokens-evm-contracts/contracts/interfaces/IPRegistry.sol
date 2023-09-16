@@ -14,7 +14,7 @@ interface IPRegistry {
    * @param networkId the network ID
    * @param hub pNetwork hub contract address
    */
-  function addProtocolBlockchain(uint32 chainId, bytes4 networkId, address hub) external;
+  function addProtocolBlockchain(uint32 chainId, address hub) external;
 
   /*
    * @dev Return true if the given network id has been registered on pNetwork
@@ -41,11 +41,6 @@ interface IPRegistry {
    * @return uint32[] the array of supported chain ids
    */
   function getSupportedChainIds() external view returns (uint32[] memory);
-
-  /**
-   * @dev Return the supported network IDs
-   */
-  function getSupportedNetworkIds() external view returns (bytes4[] memory);
 
   /**
    * @dev Returns the pNetwork hub address for the given network ID

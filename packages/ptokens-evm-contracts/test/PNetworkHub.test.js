@@ -45,12 +45,13 @@ let token,
   sentinels,
   guardians,
   challenger,
-  interimChainId,
+  chainId,
   slasher,
   feesManager,
   dao,
   pRegistry,
   lendingManager,
+  interimChainId,
   mockRegistrationManager
 
 describe('PNetworkHub', () => {
@@ -145,7 +146,8 @@ describe('PNetworkHub', () => {
       method: 'hardhat_reset',
     })
 
-    interimChainId = (await ethers.provider.getNetwork()).chainId
+    chainId = (await ethers.provider.getNetwork()).chainId
+    interimChainId = 0
 
     const Slasher = await ethers.getContractFactory('Slasher')
     const PFactory = await ethers.getContractFactory('PFactory')
@@ -222,12 +224,8 @@ describe('PNetworkHub', () => {
       MAX_CHALLENGE_DURATION
     )
 
-    await pRegistry
-      .connect(dao)
-      .addProtocolBlockchain(31337, PNETWORK_NETWORK_IDS.hardhat, hub.address)
-    await pRegistry
-      .connect(dao)
-      .addProtocolBlockchain(0, PNETWORK_NETWORK_IDS.ethereumMainnet, hubInterim.address)
+    await pRegistry.connect(dao).addProtocolBlockchain(chainId, hub.address)
+    await pRegistry.connect(dao).addProtocolBlockchain(interimChainId, hubInterim.address)
 
     token = await StandardToken.deploy('Token', 'TKN', 18, ethers.utils.parseEther('100000000'))
     telepathyRouter = await ethers.getImpersonatedSigner(TELEPATHY_ROUTER_ADDRESS)
@@ -286,7 +284,7 @@ describe('PNetworkHub', () => {
       messages.map(_message =>
         hub
           .connect(telepathyRouter)
-          .handleTelepathy(interimChainId, fakeGovernanceMessageVerifier.address, _message)
+          .handleTelepathy(chainId, fakeGovernanceMessageVerifier.address, _message)
       )
     )
 
@@ -294,7 +292,7 @@ describe('PNetworkHub', () => {
       messages.map(_message =>
         hubInterim
           .connect(telepathyRouter)
-          .handleTelepathy(interimChainId, fakeGovernanceMessageVerifier.address, _message)
+          .handleTelepathy(chainId, fakeGovernanceMessageVerifier.address, _message)
       )
     )
   })
@@ -1367,7 +1365,7 @@ describe('PNetworkHub', () => {
     await expect(
       hub
         .connect(telepathyRouter)
-        .handleTelepathy(interimChainId, fakeGovernanceMessageVerifier.address, message.data)
+        .handleTelepathy(chainId, fakeGovernanceMessageVerifier.address, message.data)
     )
       .to.emit(hub, 'SentinelResumed')
       .withArgs(currentEpoch, challengedSentinel.address)
@@ -1509,7 +1507,7 @@ describe('PNetworkHub', () => {
     await expect(
       hub
         .connect(telepathyRouter)
-        .handleTelepathy(interimChainId, fakeGovernanceMessageVerifier.address, message.data)
+        .handleTelepathy(chainId, fakeGovernanceMessageVerifier.address, message.data)
     )
       .to.emit(hub, 'GuardianResumed')
       .withArgs(currentEpoch, challengedGuardian.address)
@@ -1731,7 +1729,7 @@ describe('PNetworkHub', () => {
     await expect(
       hub
         .connect(telepathyRouter)
-        .handleTelepathy(interimChainId, fakeGovernanceMessageVerifier.address, message.data)
+        .handleTelepathy(chainId, fakeGovernanceMessageVerifier.address, message.data)
     )
       .to.emit(hub, 'GuardianResumed')
       .withArgs(currentEpoch, guardians[0].address)
@@ -1767,7 +1765,7 @@ describe('PNetworkHub', () => {
       messages.map(_message =>
         hub
           .connect(telepathyRouter)
-          .handleTelepathy(interimChainId, fakeGovernanceMessageVerifier.address, _message)
+          .handleTelepathy(chainId, fakeGovernanceMessageVerifier.address, _message)
       )
     )
 
@@ -1799,7 +1797,7 @@ describe('PNetworkHub', () => {
       messages.map(_message =>
         hub
           .connect(telepathyRouter)
-          .handleTelepathy(interimChainId, fakeGovernanceMessageVerifier.address, _message)
+          .handleTelepathy(chainId, fakeGovernanceMessageVerifier.address, _message)
       )
     )
 
@@ -1950,7 +1948,7 @@ describe('PNetworkHub', () => {
 
     await hub
       .connect(telepathyRouter)
-      .handleTelepathy(interimChainId, fakeGovernanceMessageVerifier.address, message.data)
+      .handleTelepathy(chainId, fakeGovernanceMessageVerifier.address, message.data)
 
     // At this point sentinel1 should resume itself
     tx = await governanceMessageEmitter.resumeSentinel(slashedSentinel.address)
@@ -1960,7 +1958,7 @@ describe('PNetworkHub', () => {
     await expect(
       hub
         .connect(telepathyRouter)
-        .handleTelepathy(interimChainId, fakeGovernanceMessageVerifier.address, message.data)
+        .handleTelepathy(chainId, fakeGovernanceMessageVerifier.address, message.data)
     )
       .to.emit(hub, 'SentinelResumed')
       .withArgs(currentEpoch, slashedSentinel.address)
@@ -2009,7 +2007,7 @@ describe('PNetworkHub', () => {
       await expect(
         hub
           .connect(telepathyRouter)
-          .handleTelepathy(interimChainId, fakeGovernanceMessageVerifier.address, message.data)
+          .handleTelepathy(chainId, fakeGovernanceMessageVerifier.address, message.data)
       )
         .to.emit(hub, 'SentinelSlashed')
         .withArgs(currentEpoch, sentinels[i].address)
@@ -2049,7 +2047,7 @@ describe('PNetworkHub', () => {
     const message = receipt.events.find(({ event }) => event === 'GovernanceMessage')
     await hub
       .connect(telepathyRouter)
-      .handleTelepathy(interimChainId, fakeGovernanceMessageVerifier.address, message.data)
+      .handleTelepathy(chainId, fakeGovernanceMessageVerifier.address, message.data)
 
     tx = await hub.connect(challenger).startChallengeGuardian(challengedGuardian.address, proof, {
       value: LOCKED_AMOUNT_START_CHALLENGE,
@@ -2117,7 +2115,7 @@ describe('PNetworkHub', () => {
     await expect(
       hub
         .connect(telepathyRouter)
-        .handleTelepathy(interimChainId, fakeGovernanceMessageVerifier.address, message.data)
+        .handleTelepathy(chainId, fakeGovernanceMessageVerifier.address, message.data)
     )
       .to.emit(hub, 'ChallengeCancelled')
       .withArgs(challenge.serialize())
@@ -2154,7 +2152,7 @@ describe('PNetworkHub', () => {
     // cancel challenge
     await hub
       .connect(telepathyRouter)
-      .handleTelepathy(interimChainId, fakeGovernanceMessageVerifier.address, message.data)
+      .handleTelepathy(chainId, fakeGovernanceMessageVerifier.address, message.data)
 
     await expect(hub.connect(challenger).slashByChallenge(challenge))
       .to.be.revertedWithCustomError(hub, 'InvalidChallengeStatus')
@@ -2209,7 +2207,7 @@ describe('PNetworkHub', () => {
       const message = receipt.events.find(({ event }) => event === 'GovernanceMessage')
       await hub
         .connect(telepathyRouter)
-        .handleTelepathy(interimChainId, fakeGovernanceMessageVerifier.address, message.data)
+        .handleTelepathy(chainId, fakeGovernanceMessageVerifier.address, message.data)
 
       activeActors++
     }
@@ -2229,7 +2227,7 @@ describe('PNetworkHub', () => {
       const message = receipt.events.find(({ event }) => event === 'GovernanceMessage')
       await hub
         .connect(telepathyRouter)
-        .handleTelepathy(interimChainId, fakeGovernanceMessageVerifier.address, message.data)
+        .handleTelepathy(chainId, fakeGovernanceMessageVerifier.address, message.data)
 
       activeActors++
     }
@@ -2244,7 +2242,7 @@ describe('PNetworkHub', () => {
     const networkId = await hubInterim.getNetworkId()
 
     const expectedNetworkId = await getNetworkId(
-      { chainId: interimChainId, versionByte, extraData, networkType, quiet },
+      { chainId, versionByte, extraData, networkType, quiet },
       hre
     )
 
@@ -2383,6 +2381,7 @@ describe('PNetworkHub', () => {
         ),
       ]
     )
+
     await expect(tx)
       .to.emit(hubInterim, 'OperationExecuted')
       .withArgs(operation.serialize())

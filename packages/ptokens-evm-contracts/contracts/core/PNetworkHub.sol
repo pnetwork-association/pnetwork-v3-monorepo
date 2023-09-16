@@ -471,6 +471,7 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
 
         if (operation.userData.length > 0) {
             if (destinationAddress.code.length == 0) revert NotContract(destinationAddress);
+
             try
                 IPReceiver(destinationAddress).receiveUserData(
                     operation.originNetworkId,
