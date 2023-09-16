@@ -18,7 +18,7 @@ contract PRegistry is IPRegistry, AccessControl {
   }
 
   // @inheritdoc IPRegistry
-  function addProtocolBlockchain(uint32 chainId, bytes4 networkId, address hub) public onlyRole(ADD_SUPPORTED_NETWORK_ID_ROLE) {
+  function addProtocolBlockchain(uint32 chainId, bytes4 networkId, address hub) external onlyRole(ADD_SUPPORTED_NETWORK_ID_ROLE) {
     _supportedHubs.push(hub);
     _supportedChainIds.push(chainId);
     _supportedNetworkIds.push(networkId);
@@ -28,36 +28,36 @@ contract PRegistry is IPRegistry, AccessControl {
   }
 
   // @inheritdoc IPRegistry
-  function isNetworkIdSupported(bytes4 networkId) public view returns (bool) {
+  function isNetworkIdSupported(bytes4 networkId) external view returns (bool) {
     address hub = _networkIdToHub[networkId];
 
     return (hub != address(0));
   }
 
   // @inheritdoc IPRegistry
-  function isChainIdSupported(uint32 chainId) public view returns (bool) {
+  function isChainIdSupported(uint32 chainId) external view returns (bool) {
     bytes4 networkId = _chainIdToNetworkId[chainId];
 
     return (networkId != bytes4(0));
   }
 
   // @inheritdoc IPRegistry
-  function getHubByNetworkId(bytes4 networkId) public view returns (address) {
+  function getHubByNetworkId(bytes4 networkId) external view returns (address) {
     return _networkIdToHub[networkId];
   }
 
   // @inheritdoc IPRegistry
-  function getSupportedHubs() public view returns (address[] memory) {
+  function getSupportedHubs() external view returns (address[] memory) {
     return _supportedHubs;
   }
 
   // @inheritdoc IPRegistry
-  function getSupportedChainIds() public view returns (uint32[] memory) {
+  function getSupportedChainIds() external view returns (uint32[] memory) {
     return _supportedChainIds;
   }
 
   // @inheritdoc IPRegistry
-  function getSupportedNetworkIds() public view returns (bytes4[] memory) {
+  function getSupportedNetworkIds() external view returns (bytes4[] memory) {
     return _supportedNetworkIds;
   }
 }
