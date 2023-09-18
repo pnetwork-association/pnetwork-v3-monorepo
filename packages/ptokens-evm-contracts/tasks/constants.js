@@ -12,11 +12,13 @@ module.exports = {
   KEY_PNETWORKHUB: 'hub',
   KEY_PFACTORY: 'pFactory',
   KEY_PREGISTRY: 'pRegistry',
+  KEY_SLASHER: 'slasher',
   KEY_CHALLENGE_PERIOD: 'challegePeriod',
 
   // Contract names
   CONTRACT_NAME_PFACTORY: 'PFactory',
   CONTRACT_NAME_REGISTRY: 'PRegistry',
+  CONTRACT_NAME_SLASHER: 'Slasher',
 
   // Params names and descriptions
   PARAM_NAME_DEST_CHAIN: 'destinationChainName',
