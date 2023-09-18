@@ -1,0 +1,22 @@
+{
+  "author": "allemanfredi",
+  "description": "Challenger project",
+  "keywords": [
+    "challenger"
+  ],
+  "license": "MIT",
+  "main": "index.js",
+  "name": "ptokens-challenger",
+  "type": "module",
+  "version": "1.0.0",
+  "dependencies": {
+    "@chainsafe/libp2p-gossipsub": "^10.1.0",
+    "@chainsafe/libp2p-noise": "^13.0.1",
+    "@chainsafe/libp2p-yamux": "^5.0.0",
+    "@libp2p/mplex": "^9.0.6",
+    "@libp2p/tcp": "^8.0.7",
+    "libp2p": "^0.46.11",
+    "uint8arrays": "^4.0.6",
+    "viem": "^1.10.14"
+  }
+}
