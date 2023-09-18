@@ -1,9 +1,14 @@
 {
   "extends": ["../../.eslintrc.json"],
+  "parser": "@babel/eslint-parser",
   "parserOptions": {
-    "ecmaVersion": 2020,
-    "sourceType": "module",
-    "requireConfigFile": false
+    "requireConfigFile": false,
+    "babelOptions": {
+      "plugins": [
+        "@babel/plugin-syntax-import-assertions"
+      ]
+    },
+    "sourceType": "module"
   },
   "rules": {
     "no-console": "off",
