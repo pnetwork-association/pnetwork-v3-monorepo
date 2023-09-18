@@ -180,6 +180,7 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
         address feesManager_,
         address telepathyRouter,
         address governanceMessageVerifier,
+        address registry,
         address slasher_,
         uint256 lockedAmountChallengePeriod_,
         uint16 kChallengePeriod_,
@@ -187,7 +188,7 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
         bytes4 interimChainNetworkId_,
         uint256 lockedAmountOpenChallenge_,
         uint64 maxChallengeDuration_
-    ) GovernanceMessageHandler(telepathyRouter, governanceMessageVerifier) {
+    ) GovernanceMessageHandler(telepathyRouter, governanceMessageVerifier, registry) {
         // NOTE: see the comment within onlyFarFromEpochClosingStartChallenge
         if (
             maxChallengeDuration_ >
@@ -209,6 +210,11 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
         interimChainNetworkId = interimChainNetworkId_;
         lockedAmountStartChallenge = lockedAmountOpenChallenge_;
         maxChallengeDuration = maxChallengeDuration_;
+    }
+
+    /// @inheritdoc IPNetworkHub
+    function getNetworkId() public view returns (bytes4) {
+        return Network.getCurrentNetworkId();
     }
 
     /// @inheritdoc IPNetworkHub
@@ -368,7 +374,6 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
         Operation calldata operation
     ) external payable onlyWhenIsNotInLockDown(false) nonReentrant {
         bytes32 operationId = operationIdOf(operation);
-
         OperationStatus operationStatus = _operationsStatus[operationId];
         if (operationStatus == OperationStatus.Executed) {
             revert OperationAlreadyExecuted(operation);
@@ -430,7 +435,8 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
                     0,
                     bytes4(0),
                     operation.userData,
-                    operation.optionsMask
+                    operation.optionsMask,
+                    operation.isForProtocol
                 );
 
                 emit OperationExecuted(operation);
@@ -465,6 +471,7 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
 
         if (operation.userData.length > 0) {
             if (destinationAddress.code.length == 0) revert NotContract(destinationAddress);
+
             try
                 IPReceiver(destinationAddress).receiveUserData(
                     operation.originNetworkId,
@@ -568,7 +575,8 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
                 0,
                 0,
                 abi.encode(challenge.actor, challenge.challenger),
-                bytes32(0)
+                bytes32(0),
+                true // isForProtocol
             );
         }
 
@@ -742,7 +750,8 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
                 : forwardNetworkFeeAssetAmount,
             destinationNetworkId,
             userData,
-            optionsMask
+            optionsMask,
+            false // isForProtocol
         );
     }
 
@@ -1064,6 +1073,10 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
             IPToken(pTokenAddress).protocolMint(address(this), operation.protocolFeeAssetAmount);
             // TODO: send it to the DAO
             return operation.assetAmount > 0 ? operation.assetAmount - operation.protocolFeeAssetAmount : 0;
+        }
+
+        if (operation.isForProtocol) {
+            return 0;
         }
 
         revert InvalidProtocolFee(operation);

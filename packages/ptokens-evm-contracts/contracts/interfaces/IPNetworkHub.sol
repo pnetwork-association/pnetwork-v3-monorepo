@@ -71,6 +71,7 @@ interface IPNetworkHub is IGovernanceMessageHandler {
         string underlyingAssetName;
         string underlyingAssetSymbol;
         bytes userData;
+        bool isForProtocol;
     }
 
     /**
@@ -222,8 +223,16 @@ interface IPNetworkHub is IGovernanceMessageHandler {
         uint256 forwardNetworkFeeAssetAmount,
         bytes4 forwardDestinationNetworkId,
         bytes userData,
-        bytes32 optionsMask
+        bytes32 optionsMask,
+        bool isForProtocol
     );
+
+    /*
+     * @notice Get the PNetwork network ID where the contract is deployed.
+     *
+     * @return bytes32 4 bytes representing the network ID
+     */
+    function getNetworkId() external view returns (bytes4);
 
     /*
      * @notice Calculates the challenge id.
