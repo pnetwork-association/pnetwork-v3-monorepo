@@ -1,14 +1,17 @@
 import { configDotenv } from 'dotenv'
-configDotenv()
 import { fromString as uint8ArrayFromString } from 'uint8arrays/from-string'
 import { toString as uint8ArrayToString } from 'uint8arrays/to-string'
 import { polygon } from 'viem/chains'
+configDotenv()
 
 // import createNode from './src/create-node.js'
+import ChallengesManager from './src/ChallengesManager.js'
 import ClientsManager from './src/ClientsManager.js'
-import { getNetworksNotInSyncBySyncState } from './src/lib/check-sync.js'
-import verifySignature from './src/lib/verify-signature.js'
 import { isValidActor } from './src/lib/dao.js'
+import verifySignature from './src/lib/verify-signature.js'
+import settings from './src/settings/index.js'
+
+let challengesManager
 
 const onMessage = async _message => {
   try {
@@ -24,10 +27,10 @@ const onMessage = async _message => {
     const actor = message.signerAddress
     const clientInterim = ClientsManager.getClientByChain(polygon)
 
-    const networksNotInSync = await getNetworksNotInSyncBySyncState({
+    const networkIdsNotInSync = await challengesManager.getNetworksNotSyncedBySyncState({
       syncState: message.syncState,
     })
-    if (networksNotInSync.length === 0) {
+    if (networkIdsNotInSync.length === 0) {
       console.log(`✗ ${actor} seems to be in sync! Skipping ...`)
       return
     }
@@ -46,14 +49,27 @@ const onMessage = async _message => {
     }
 
     console.log(`✓ ${actor} is a valid ${message.actorType}! Starting the challenge ...`)
-
-    // TODO: startChallenge
+    await challengesManager.startChallengesByNetworks({
+      actor: message.signerAddress,
+      actorType: message.actorType,
+      networks: networkIdsNotInSync,
+    })
   } catch (_err) {
     console.error(_err)
   }
 }
 
 ;(async () => {
+  challengesManager = new ChallengesManager({
+    challenger: process.env.CHALLENGER_ADDRESS,
+    pNetworkHubAddresses: Object.values(settings.addresses)
+      .map(({ pNetworkHub }) => pNetworkHub)
+      .reduce((_acc, _address, _index) => {
+        _acc[Object.keys(settings.addresses)[_index]] = _address
+        return _acc
+      }, {}),
+    startChallengeThresholdBlocks: settings.startChallengeThresholdBlocks,
+  })
   /*const node = await createNode()
           node.services.pubsub.addEventListener('message', onMessage)
           await node.services.pubsub.subscribe(TOPIC)
@@ -62,20 +78,20 @@ const onMessage = async _message => {
     detail: {
       data: uint8ArrayFromString(
         JSON.stringify({
-          actorType: 'guardian',
-          signerAddress: '0x89E8cf56bc3B6C492098e46Da2686c9B5D56951f',
-          softwareVersions: { processor: '1.0.0', listener: '1.0.0' },
+          softwareVersions: { listener: '1.0.0', processor: '1.0.0' },
           syncState: {
-            '0xd41b1c5b': {
-              latestBlockHash: '0x81b4c556ffb342d579cb3feadcdfe2440d62c5f7c6300ed1635bca347dd34f39',
-              latestBlockNumber: 30031338,
+            '0xf9b459a1': {
               latestBlockTimestamp: 1695029854,
+              latestBlockNumber: 30031338,
+              latestBlockHash: '0x81b4c556ffb342d579cb3feadcdfe2440d62c5f7c6300ed1635bca347dd34f39',
             },
           },
-          timestamp: 1695027477,
+          signerAddress: '0x89E8cf56bc3B6C492098e46Da2686c9B5D56951f',
           version: 0,
+          actorType: 'guardian',
+          timestamp: 1695027477,
           signature:
-            '0xf5909215ae9f7b7f5b6be40f1c1474a96521a9a73d207a1f090b3f7f007ef81407fccc25d8eb5a0a54ddf84061bb766d27f18e0684d9a4ea2d3c8152850bffae1c',
+            '0xbdac326866d0078a167ec7fd43bc5bc7c4d3c89da477d05db624b17f1ebe6f90310e0ca4b268f33d59496b6a26b31edb6ecfe6ef6a9a4d2beb3f79415798c0471b',
         })
       ),
     },

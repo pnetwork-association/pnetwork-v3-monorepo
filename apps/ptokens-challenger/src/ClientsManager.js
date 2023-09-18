@@ -33,6 +33,9 @@ class ClientsManager {
   }
 }
 
-const instance = new ClientsManager({ chains: settings.chains, privateKey: process.env.PK })
+const instance = new ClientsManager({
+  chains: settings.chains,
+  privateKey: process.env.CHALLENGER_PK,
+})
 Object.freeze(instance)
 export default instance
