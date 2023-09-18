@@ -20,7 +20,7 @@ contract Slasher is ISlasher {
     constructor(address pRegistry_, address registrationManager_, uint256 stakingSentinelAmountToSlash_) {
         pRegistry = pRegistry_;
         stakingSentinelAmountToSlash = stakingSentinelAmountToSlash_;
-        registrationManager =  registrationManager_;
+        registrationManager = registrationManager_;
     }
 
     function receiveUserData(
@@ -30,17 +30,16 @@ contract Slasher is ISlasher {
     ) external override {
         address originAccountAddress = Utils.hexStringToAddress(originAccount);
 
-        if (!IPRegistry(pRegistry).isNetworkIdSupported(originNetworkId))
-            revert NotSupportedNetworkId(originNetworkId);
+        if (!IPRegistry(pRegistry).isNetworkIdSupported(originNetworkId)) revert NotSupportedNetworkId(originNetworkId);
 
         address registeredHub = IPRegistry(pRegistry).getHubByNetworkId(originNetworkId);
 
-        if (originAccountAddress != registeredHub)
-            revert NotHub(originAccountAddress);
+        if (originAccountAddress != registeredHub) revert NotHub(originAccountAddress);
 
         (address actor, address challenger) = abi.decode(userData, (address, address));
 
-        IRegistrationManager.Registration memory registration = IRegistrationManager(registrationManager).sentinelRegistration(actor);
+        IRegistrationManager.Registration memory registration = IRegistrationManager(registrationManager)
+            .sentinelRegistration(actor);
 
         // See file `Constants.sol` in dao-v2-contracts:
         //
@@ -49,7 +48,6 @@ contract Slasher is ISlasher {
         // Borrowing sentinels have nothing at stake, so the slashing
         // quantity will be zero
         uint256 amountToSlash = registration.kind == 0x01 ? stakingSentinelAmountToSlash : 0;
-
 
         IRegistrationManager(registrationManager).slash(actor, amountToSlash, challenger);
     }
