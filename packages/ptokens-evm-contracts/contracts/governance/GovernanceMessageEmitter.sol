@@ -83,6 +83,8 @@ contract GovernanceMessageEmitter is IGovernanceMessageEmitter {
                 abi.encode(currentEpoch, guardians.length, MerkleTree.getRoot(_hashAddresses(guardians)))
             )
         );
+
+        emit GuardiansPropagated(currentEpoch, guardians);
     }
 
     /// @inheritdoc IGovernanceMessageEmitter
@@ -100,6 +102,8 @@ contract GovernanceMessageEmitter is IGovernanceMessageEmitter {
                 )
             )
         );
+
+        emit SentinelsPropagated(currentEpoch, effectiveSentinels);
     }
 
     /// @inheritdoc IGovernanceMessageEmitter
