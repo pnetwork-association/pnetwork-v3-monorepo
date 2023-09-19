@@ -11,6 +11,8 @@ module.exports = {
   KEY_PTOKEN_UNDERLYING_ASSET_NETWORKID: 'underlyingAssetNetworkId',
   KEY_PNETWORKHUB: 'hub',
   KEY_PFACTORY: 'pFactory',
+  KEY_GOVERNANCE_MESSAGE_EMITTER: 'governanceMessageEmitter',
+  KEY_GOVERNANCE_MESSAGE_VERIFIER: 'governanceMessageVerifier',
   KEY_PREGISTRY: 'pRegistry',
   KEY_SLASHER: 'slasher',
   KEY_CHALLENGE_PERIOD: 'challegePeriod',
@@ -19,6 +21,8 @@ module.exports = {
   CONTRACT_NAME_PFACTORY: 'PFactory',
   CONTRACT_NAME_REGISTRY: 'PRegistry',
   CONTRACT_NAME_SLASHER: 'Slasher',
+  CONTRACT_NAME_GOVERNANCE_MESSAGE_EMITTER: 'GovernanceMessageEmitter',
+  CONTRACT_NAME_GOVERNANCE_MESSAGE_VERIFIER: 'GovernanceMessageVerifier',
 
   // Params names and descriptions
   PARAM_NAME_DEST_CHAIN: 'destinationChainName',

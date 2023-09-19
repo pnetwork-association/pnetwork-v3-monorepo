@@ -8,7 +8,7 @@ const deploySlasher = require('./deploy-slasher.task')
 const deployPNetworkHub = require('./deploy-pnetwork-hub.task')
 const deployV3Contracts = require('./deploy-v3-contracts.task')
 const generateConfig = require('./deploy-copy-config.task')
-const deployGovernanceMessageEmitter = require('./deploy-governance-emitter')
+const deployGovernanceMessageEmitter = require('./deploy-governance-message-emitter.task')
 
 module.exports = {
   deployInit,
