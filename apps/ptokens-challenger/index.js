@@ -5,13 +5,13 @@ import { polygon } from 'viem/chains'
 configDotenv()
 
 // import createNode from './src/create-node.js'
+import ActorsManager from './src/ActorsManager.js'
 import ChallengesManager from './src/ChallengesManager.js'
 import ClientsManager from './src/ClientsManager.js'
-import { isValidActor } from './src/lib/dao.js'
 import verifySignature from './src/lib/verify-signature.js'
 import settings from './src/settings/index.js'
 
-let challengesManager
+let actorsManager, challengesManager
 
 const onMessage = async _message => {
   try {
@@ -25,8 +25,6 @@ const onMessage = async _message => {
 
     console.log('✓ Valid signature! Checking actor state ...')
     const actor = message.signerAddress
-    const clientInterim = ClientsManager.getClientByChain(polygon)
-
     const networkIdsNotSynced = await challengesManager.getNetworksNotSyncedBySyncState({
       syncState: message.syncState,
     })
@@ -37,11 +35,10 @@ const onMessage = async _message => {
 
     console.log(`✓ ${actor} seems to be not in sync! Checking entity ...`)
     if (
-      !(await isValidActor({
+      !(await actorsManager.isActor({
         actor: '0x74aa490c9728a728f3f767b0dea060c2be63b508',
         // actorType: message.actorType,
         actorType: 'sentinel',
-        client: clientInterim,
       }))
     ) {
       console.log(`✗ ${actor} is not a valid guardian/sentinel`)
@@ -60,8 +57,16 @@ const onMessage = async _message => {
 }
 
 ;(async () => {
+  actorsManager = new ActorsManager({
+    client: ClientsManager.getClientByChain(polygon),
+    governanceMessageEmitterAddress: process.env.GOVERNANCE_MESSAGE_EMITTER_ADDRESS,
+    epochsManagerAddress: process.env.EPOCHS_MANAGER_ADDRESS,
+    registrationManagerAddress: process.env.REGISTRATION_MANAGER_ADDRESS,
+  })
+
   challengesManager = new ChallengesManager({
-    challenger: process.env.CHALLENGER_ADDRESS,
+    challengerAddress: process.env.CHALLENGER_ADDRESS,
+    clientsManager: ClientsManager,
     pNetworkHubAddresses: Object.values(settings.addresses)
       .map(({ pNetworkHub }) => pNetworkHub)
       .reduce((_acc, _address, _index) => {
