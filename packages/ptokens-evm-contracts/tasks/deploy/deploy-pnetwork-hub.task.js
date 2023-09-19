@@ -4,7 +4,6 @@ const { deployPFactoryTask } = require('./deploy-pfactory.task')
 const TASK_CONSTANTS = require('../constants')
 const { TASK_NAME_DEPLOY_CONTRACT } = require('../deploy/deploy-contract.task')
 
-const CONTRACT_NAME_PNETWORKHUB = 'PNetworkHub'
 const TASK_NAME_DEPLOY_PNETWORKHUB = 'deploy:pnetworkhub'
 const TASK_DESC_DEPLOY_PNETWORKHUB =
   'Deploy a hub contract or attach to an existing one from the configuration.'
@@ -25,7 +24,7 @@ const deployHub = R.curry(
     hre
       .run(TASK_NAME_DEPLOY_CONTRACT, {
         configurableName: TASK_CONSTANTS.KEY_PNETWORKHUB,
-        contractFactoryName: CONTRACT_NAME_PNETWORKHUB,
+        contractFactoryName: TASK_CONSTANTS.CONTRACT_NAME_PNETWORKHUB,
         deployArgsArray: [
           _pFactory.address,
           taskArgs[TASK_CONSTANTS.PARAM_NAME_BASE_CHALLENGE_PERIOD],

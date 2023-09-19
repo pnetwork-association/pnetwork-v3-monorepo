@@ -20,6 +20,7 @@ module.exports = {
 
   // Contract names
   CONTRACT_NAME_PFACTORY: 'PFactory',
+  CONTRACT_NAME_PNETWORKHUB: 'PNetworkHub',
   CONTRACT_NAME_EPOCHS_MANAGER: 'EpochsManager',
   CONTRACT_NAME_REGISTRY: 'PRegistry',
   CONTRACT_NAME_SLASHER: 'Slasher',
