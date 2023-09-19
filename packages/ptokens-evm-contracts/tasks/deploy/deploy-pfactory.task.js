@@ -1,4 +1,4 @@
-const { KEY_PFACTORY, CONTRACT_NAME_PFACTORY } = require('../constants')
+const TASK_CONSTANTS = require('../constants')
 const { TASK_NAME_DEPLOY_CONTRACT } = require('../deploy/deploy-contract.task')
 const TASK_NAME_DEPLOY_PFACTORY = 'deploy:pfactory'
 const TASK_DESC_DEPLOY_PFACTORY =
@@ -7,8 +7,8 @@ const TASK_DESC_DEPLOY_PFACTORY =
 const deployPFactoryTask = (_, hre) =>
   console.info('Deploying pFactory ...') ||
   hre.run(TASK_NAME_DEPLOY_CONTRACT, {
-    configurableName: KEY_PFACTORY,
-    contractFactoryName: CONTRACT_NAME_PFACTORY,
+    configurableName: TASK_CONSTANTS.KEY_PFACTORY,
+    contractFactoryName: TASK_CONSTANTS.CONTRACT_NAME_PFACTORY,
     deployArgsArray: [],
   })
 

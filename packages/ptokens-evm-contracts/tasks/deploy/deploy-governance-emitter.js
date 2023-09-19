@@ -1,21 +1,23 @@
 const { types } = require('hardhat/config')
 
+const TASK_CONSTANTS = require('../constants')
+
 task('deploy-governance-emitter', 'Deploy a GovernanceMessageEmitter contract')
   .addPositionalParam(
-    'epochsManagerAddress',
-    'Epochs Manager Contract Address',
+    TASK_CONSTANTS.PARAM_NAME_EPOCHS_MANAGER,
+    TASK_CONSTANTS.PARAM_DESC_EPOCHS_MANAGER,
     undefined,
     types.string
   )
   .addPositionalParam(
-    'lendingManagerAddress',
-    'Lending Manager Contract Address',
+    TASK_CONSTANTS.PARAM_NAME_LENDING_MANAGER,
+    TASK_CONSTANTS.PARAM_DESC_LENDING_MANAGER,
     undefined,
     types.string
   )
   .addPositionalParam(
-    'registrationManagerAddress',
-    'Registration Manager Contract Address',
+    TASK_CONSTANTS.PARAM_NAME_REGISTRATION_MANAGER_ADDRESS,
+    TASK_CONSTANTS.PARAM_DESC_REGISTRATION_MANAGER_ADDRESS,
     undefined,
     types.string
   )
@@ -36,12 +38,12 @@ const main = async _args => {
 
   console.log('Deploying GovernanceMessageEmitter ...')
   const governanceMessageEmitter = await GovernanceMessageEmitter.deploy(
-    _args.epochsManagerAddress,
-    _args.lendingManagerAddress,
-    _args.registrationManagerAddress
+    _args[TASK_CONSTANTS.PARAM_NAME_EPOCHS_MANAGER],
+    _args[TASK_CONSTANTS.PARAM_NAME_LENDING_MANAGER],
+    _args[TASK_CONSTANTS.PARAM_NAME_REGISTRATION_MANAGER_ADDRESS]
   )
 
   console.log({
-    governanceMessageEmitter: governanceMessageEmitter.address,
+    [TASK_CONSTANTS.PARAM_NAME_GOVERNANCE_MESSAGE_EMITTER]: governanceMessageEmitter.address,
   })
 }
