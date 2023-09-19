@@ -21,7 +21,9 @@ let user,
   epochsManager,
   fakeGovernanceMessageVerifier,
   slasher,
-  feesManager
+  feesManager,
+  dao,
+  registry
 
 describe('PToken', () => {
   for (const decimals of [6, 18]) {
@@ -32,16 +34,19 @@ describe('PToken', () => {
         const PFactory = await ethers.getContractFactory('PFactory')
         const EpochsManager = await ethers.getContractFactory('EpochsManager')
         const FeesManager = await ethers.getContractFactory('MockFeesManager')
+        const PRegistry = await ethers.getContractFactory('PRegistry')
 
         const signers = await ethers.getSigners()
         user = signers[1]
         fakeGovernanceMessageVerifier = signers[2]
         slasher = signers[3]
+        dao = signers[4]
         feesManager = await FeesManager.deploy()
 
         // H A R D H A T
         pFactory = await PFactory.deploy()
         epochsManager = await EpochsManager.deploy()
+        registry = await PRegistry.deploy(dao.address)
         hub = await PNetworkHub.deploy(
           pFactory.address,
           BASE_CHALLENGE_PERIOD_DURATION,
@@ -49,6 +54,7 @@ describe('PToken', () => {
           feesManager.address,
           TELEPATHY_ROUTER_ADDRESS,
           fakeGovernanceMessageVerifier.address,
+          registry.address,
           slasher.address,
           LOCKED_AMOUNT_CHALLENGE_PERIOD,
           K_CHALLENGE_PERIOD,

@@ -1,7 +1,6 @@
 const { expect } = require('chai')
 const { ethers } = require('hardhat')
-
-const { ZERO_ADDRESS } = require('./constants')
+const { ZERO_ADDRESS, SLASHING_QUANTITY } = require('./constants')
 const { MerkleTree } = require('merkletreejs')
 
 let governanceMessageEmitter,
@@ -10,6 +9,9 @@ let governanceMessageEmitter,
   registrationManager,
   signers,
   currentEpoch,
+  challenger,
+  registry,
+  dao,
   owner
 
 describe('GovernanceMessageEmitter', () => {
@@ -38,22 +40,27 @@ describe('GovernanceMessageEmitter', () => {
   }
 
   beforeEach(async () => {
+    signers = await ethers.getSigners()
+    owner = signers[0]
+    challenger = signers[1]
+    dao = signers[2]
+
     const GovernanceMessageEmitter = await ethers.getContractFactory('GovernanceMessageEmitter')
     const RegistrationManager = await ethers.getContractFactory('MockRegistrationManager')
     const LendingManager = await ethers.getContractFactory('MockLendingManager')
     const EpochsManager = await ethers.getContractFactory('EpochsManager')
+    const PRegistry = await ethers.getContractFactory('PRegistry')
 
     epochsManager = await EpochsManager.deploy()
     lendingManager = await LendingManager.deploy()
+    registry = await PRegistry.deploy(dao.address)
     registrationManager = await RegistrationManager.deploy(lendingManager.address)
     governanceMessageEmitter = await GovernanceMessageEmitter.deploy(
       epochsManager.address,
       lendingManager.address,
-      registrationManager.address
+      registrationManager.address,
+      registry.address
     )
-
-    signers = await ethers.getSigners()
-    owner = signers[0]
 
     await registrationManager.setGovernanceMessageEmitter(governanceMessageEmitter.address)
 
@@ -87,9 +94,11 @@ describe('GovernanceMessageEmitter', () => {
     const abiCoder = new ethers.utils.AbiCoder()
 
     const message = abiCoder.encode(
-      ['uint256', 'bytes'],
+      ['uint256', 'uint32[]', 'address[]', 'bytes'],
       [
         0,
+        [],
+        [],
         abiCoder.encode(
           ['bytes32', 'bytes'],
           [
@@ -154,9 +163,11 @@ describe('GovernanceMessageEmitter', () => {
 
     const abiCoder = new ethers.utils.AbiCoder()
     const message = abiCoder.encode(
-      ['uint256', 'bytes'],
+      ['uint256', 'uint32[]', 'address[]', 'bytes'],
       [
         0,
+        [],
+        [],
         abiCoder.encode(
           ['bytes32', 'bytes'],
           [
@@ -214,9 +225,11 @@ describe('GovernanceMessageEmitter', () => {
 
     const abiCoder = new ethers.utils.AbiCoder()
     const message = abiCoder.encode(
-      ['uint256', 'bytes'],
+      ['uint256', 'uint32[]', 'address[]', 'bytes'],
       [
         0,
+        [],
+        [],
         abiCoder.encode(
           ['bytes32', 'bytes'],
           [
@@ -227,7 +240,7 @@ describe('GovernanceMessageEmitter', () => {
       ]
     )
 
-    await expect(registrationManager.slash(slashedSentinel))
+    await expect(registrationManager.slash(slashedSentinel, SLASHING_QUANTITY, challenger.address))
       .to.emit(governanceMessageEmitter, 'GovernanceMessage')
       .withArgs(message)
 

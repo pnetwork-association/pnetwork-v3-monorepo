@@ -17,6 +17,22 @@ interface IGovernanceMessageEmitter {
      */
     event GovernanceMessage(bytes data);
 
+    /**
+     * @dev Emitted when guardians are emitted.
+     *
+     * @param epoch The epoch
+     * @param guardians The guardians
+     */
+    event GuardiansPropagated(uint16 indexed epoch, address[] guardians);
+
+    /**
+     * @dev Emitted when sentinels are emitted.
+     *
+     * @param epoch The epoch
+     * @param sentinels The sentinels
+     */
+    event SentinelsPropagated(uint16 indexed epoch, address[] sentinels);
+
     /*
      * @notice Just call propagateGuardians and propagateSentinels
      *

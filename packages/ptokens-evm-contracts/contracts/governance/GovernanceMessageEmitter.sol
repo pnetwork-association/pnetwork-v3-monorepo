@@ -6,6 +6,7 @@ import {IRegistrationManager} from "@pnetwork-association/dao-v2-contracts/contr
 import {ILendingManager} from "@pnetwork-association/dao-v2-contracts/contracts/interfaces/ILendingManager.sol";
 import {IEpochsManager} from "@pnetwork-association/dao-v2-contracts/contracts/interfaces/IEpochsManager.sol";
 import {MerkleProof} from "@openzeppelin/contracts/utils/cryptography/MerkleProof.sol";
+import {IPRegistry} from "../interfaces/IPRegistry.sol";
 import {MerkleTree} from "../libraries/MerkleTree.sol";
 
 error InvalidAmount(uint256 amount, uint256 expectedAmount);
@@ -22,6 +23,7 @@ contract GovernanceMessageEmitter is IGovernanceMessageEmitter {
     bytes32 public constant GOVERNANCE_MESSAGE_RESUME_SENTINEL = keccak256("GOVERNANCE_MESSAGE_RESUME_SENTINEL");
     bytes32 public constant GOVERNANCE_MESSAGE_RESUME_GUARDIAN = keccak256("GOVERNANCE_MESSAGE_RESUME_GUARDIAN");
 
+    address public immutable registry;
     address public immutable epochsManager;
     address public immutable lendingManager;
     address public immutable registrationManager;
@@ -36,7 +38,8 @@ contract GovernanceMessageEmitter is IGovernanceMessageEmitter {
         _;
     }
 
-    constructor(address epochsManager_, address lendingManager_, address registrationManager_) {
+    constructor(address epochsManager_, address lendingManager_, address registrationManager_, address registry_) {
+        registry = registry_;
         epochsManager = epochsManager_;
         lendingManager = lendingManager_;
         registrationManager = registrationManager_;
@@ -80,6 +83,8 @@ contract GovernanceMessageEmitter is IGovernanceMessageEmitter {
                 abi.encode(currentEpoch, guardians.length, MerkleTree.getRoot(_hashAddresses(guardians)))
             )
         );
+
+        emit GuardiansPropagated(currentEpoch, guardians);
     }
 
     /// @inheritdoc IGovernanceMessageEmitter
@@ -97,6 +102,8 @@ contract GovernanceMessageEmitter is IGovernanceMessageEmitter {
                 )
             )
         );
+
+        emit SentinelsPropagated(currentEpoch, effectiveSentinels);
     }
 
     /// @inheritdoc IGovernanceMessageEmitter
@@ -140,8 +147,10 @@ contract GovernanceMessageEmitter is IGovernanceMessageEmitter {
     }
 
     function _sendMessage(bytes memory message) internal {
-        // TODO: add here hubAddresses and chainIds
-        emit GovernanceMessage(abi.encode(totalNumberOfMessages, message));
+        address[] memory hubs = IPRegistry(registry).getSupportedHubs();
+        uint32[] memory chainIds = IPRegistry(registry).getSupportedChainIds();
+
+        emit GovernanceMessage(abi.encode(totalNumberOfMessages, chainIds, hubs, message));
 
         unchecked {
             ++totalNumberOfMessages;
