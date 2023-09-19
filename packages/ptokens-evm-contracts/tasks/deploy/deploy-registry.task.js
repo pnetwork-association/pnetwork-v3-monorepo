@@ -3,7 +3,7 @@ const { types } = require('hardhat/config')
 const TASK_CONSTANTS = require('../constants')
 const { TASK_NAME_DEPLOY_CONTRACT } = require('../deploy/deploy-contract.task')
 
-const TASK_NAME_DEPLOY_REGISTRY = 'deploy:registry'
+const TASK_NAME_DEPLOY_REGISTRY = 'deploy:pregistry'
 const TASK_DESC_DEPLOY_REGISTRY =
   'Deploy the PRegistry contract or returns the existing address defined in the configuration.'
 
