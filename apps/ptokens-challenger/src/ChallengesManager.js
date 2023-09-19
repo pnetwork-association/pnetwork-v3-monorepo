@@ -1,8 +1,12 @@
+import { ObjectId } from 'mongodb'
+import moment from 'moment'
+
 import PNetworkHubABI from './abi/PNetworkHub.json' assert { type: 'json' }
 
 class ChallengesManager {
   constructor({
     actorsManager,
+    challengeDuration,
     challengerAddress,
     clientsManager,
     db,
@@ -14,7 +18,45 @@ class ChallengesManager {
     this.pNetworkHubAddresses = pNetworkHubAddresses
     this.startChallengeThresholdBlocks = startChallengeThresholdBlocks
     this.clientsManager = clientsManager
-    this.db = db
+    this.challengeDuration = challengeDuration
+
+    this.challenges = db.collection('challenges')
+
+    this.processPendingChallenges()
+    setInterval(() => {
+      this.processPendingChallenges()
+    }, 20000)
+  }
+
+  async processPendingChallenges() {
+    try {
+      console.log('✓ Checking pending challenges ...')
+      const pendingChallenges = await this.challenges
+        .find({
+          status: 'pending',
+          timestamp: { $lt: moment().unix() - this.challengeDuration },
+        })
+        .toArray()
+
+      if (pendingChallenges.length === 0) {
+        console.log('✓ No pending challenges found! Skipping ...')
+        return
+      }
+
+      // TODO: solve challenge
+
+      console.log(
+        `✓ Found ${pendingChallenges.length} solvable challenge${
+          pendingChallenges.length > 1 ? 's' : ''
+        }! Setting as solved ...`
+      )
+      this.challenges.updateMany(
+        { _id: { $in: pendingChallenges.map(({ _id }) => new ObjectId(_id)) } },
+        { $set: { status: 'solved' } }
+      )
+    } catch (_err) {
+      console.error(_err)
+    }
   }
 
   async getNetworksNotSyncedBySyncState({ syncState }) {
@@ -41,9 +83,6 @@ class ChallengesManager {
 
   async startChallengesByNetworks({ actor, actorType, networks }) {
     const proof = await this.actorsManager.getActorsMerkleProofForCurrentEpoch({ actor, actorType })
-
-    console.log(proof)
-
     const validRequests = (
       await Promise.all(
         networks.map(
@@ -68,6 +107,11 @@ class ChallengesManager {
     console.log(validRequests)
 
     // TODO: start challenge + store challenge within mongo
+    /*await this.challenges.insertOne({
+      status: 'pending',
+      test: 'test',
+      timestamp: moment().unix(),
+    })*/
   }
 }
 

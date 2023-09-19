@@ -6,6 +6,7 @@ import { getNetworkIdByChain } from '../lib/network.js'
 
 export default {
   chains: [mainnet, gnosis, polygon],
+  challengeDuration: 0, // TODO fix it
   startChallengeThresholdBlocks: {
     [getNetworkIdByChain(mainnet)]: 80,
     [getNetworkIdByChain(goerli)]: 80,
@@ -28,5 +29,9 @@ export default {
   },
   rpcUrls: {
     [getNetworkIdByChain(polygon)]: process.env.POLYGON_RPC,
+  },
+  db: {
+    uri: process.env.MONGODB_URI,
+    name: 'challengerDB',
   },
 }

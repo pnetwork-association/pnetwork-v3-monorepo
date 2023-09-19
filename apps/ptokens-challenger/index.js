@@ -2,6 +2,7 @@ import { configDotenv } from 'dotenv'
 import { fromString as uint8ArrayFromString } from 'uint8arrays/from-string'
 import { toString as uint8ArrayToString } from 'uint8arrays/to-string'
 import { polygon } from 'viem/chains'
+import { MongoClient } from 'mongodb'
 configDotenv()
 
 // import createNode from './src/create-node.js'
@@ -58,6 +59,10 @@ const onMessage = async _message => {
 }
 
 ;(async () => {
+  console.log('✓ Connecting to database ...')
+  const client = new MongoClient(settings.db.uri)
+  const db = client.db(settings.db.name)
+
   clientsManager = new ClientsManager({
     chains: settings.chains,
     privateKey: process.env.CHALLENGER_PK,
@@ -66,9 +71,9 @@ const onMessage = async _message => {
 
   actorsManager = new ActorsManager({
     client: clientsManager.getClientByChain(polygon),
+    epochsManagerAddress: settings.addresses[getNetworkIdByChain(polygon)].epochsManager,
     governanceMessageEmitterAddress:
       settings.addresses[getNetworkIdByChain(polygon)].governanceMessageEmitter,
-    epochsManagerAddress: settings.addresses[getNetworkIdByChain(polygon)].epochsManager,
     registrationManagerAddress:
       settings.addresses[getNetworkIdByChain(polygon)].registrationManager,
   })
@@ -76,7 +81,9 @@ const onMessage = async _message => {
   challengesManager = new ChallengesManager({
     actorsManager,
     challengerAddress: process.env.CHALLENGER_ADDRESS,
+    challengeDuration: settings.challengeDuration,
     clientsManager,
+    db,
     pNetworkHubAddresses: Object.values(settings.addresses)
       .map(({ pNetworkHub }) => pNetworkHub)
       .reduce((_acc, _address, _index) => {
