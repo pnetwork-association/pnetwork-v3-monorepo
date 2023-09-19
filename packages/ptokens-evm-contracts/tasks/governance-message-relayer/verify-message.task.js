@@ -1,6 +1,8 @@
 const { Trie } = require('@ethereumjs/trie')
 const { RLP } = require('@ethereumjs/rlp')
 const { bufferToHex } = require('@ethereumjs/util')
+const { types } = require('hardhat/config')
+const fs = require('fs')
 
 const MerkleTree = require('./utils/MerkleTree')
 const { ROOT_CHAIN_CONTRACT_ABI, getBytesBlockHash, getBytesEncodedReceipt } = require('./utils')
@@ -14,15 +16,15 @@ const main = async (
     rootChainAddress,
     governanceMessageEmitterAddress,
     governanceMessageVerifierAddress,
-    hubAddress,
-    destinationChainId,
+    saveBlocks,
+    headerBlock,
   },
   _hre
 ) => {
   const { ethers } = _hre
 
   try {
-    await _hre.changeNetwork('mumbai')
+    await _hre.changeNetwork('polygon')
 
     // check if in the corresponding tx there is an event that we want to verify on Ethereum
     console.log(`Checking if ${transactionHash} exists ...`)
@@ -48,25 +50,41 @@ const main = async (
       return
     }
 
-    await _hre.changeNetwork('goerli')
+    await _hre.changeNetwork('mainnet')
     const rootChain = new ethers.Contract(
       rootChainAddress,
       ROOT_CHAIN_CONTRACT_ABI,
       ethers.provider
     )
-    const currentHeaderBlock = 879110000 //(await rootChain.currentHeaderBlock()).toNumber()
+    const currentHeaderBlock = headerBlock || (await rootChain.currentHeaderBlock()).toNumber()
     const { start, end } = await rootChain.headerBlocks(currentHeaderBlock)
     if (blockNumberWhereEventHappened > end.toNumber()) {
       console.log('Checkpoint not submitted yet. Closing ...')
       return
     }
+    if (blockNumberWhereEventHappened < start.toNumber()) {
+      console.log('Checkpoint too new. Closing ...')
+      return
+    }
 
     console.log('Fetching blocks ...')
-    await _hre.changeNetwork('mumbai')
+    await _hre.changeNetwork('polygon')
     const blocks = []
     // NOTE: Promise.all causes in many cases a timeout error
     for (let blockNumber = start.toNumber(); blockNumber <= end.toNumber(); blockNumber++) {
-      blocks.push(await ethers.provider.send('eth_getBlockByNumber', [blockNumber, false]))
+      if (fs.existsSync(`./blocks/${blockNumber}.json`)) {
+        blocks.push(JSON.parse(fs.readFileSync(`./blocks/${blockNumber}.json`, 'utf-8')))
+      } else {
+        const block = await ethers.provider.send('eth_getBlockByNumber', [
+          ethers.BigNumber.from(blockNumber).toHexString(),
+          false,
+        ])
+        if (saveBlocks) {
+          const json = JSON.stringify(block)
+          fs.writeFileSync(`./blocks/${blockNumber}.json`, json)
+        }
+        blocks.push(block)
+      }
     }
 
     const block = blocks.find(
@@ -128,7 +146,7 @@ const main = async (
       path: key,
     }
 
-    await _hre.changeNetwork('goerli')
+    await _hre.changeNetwork('mainnet')
     const proof = [
       '0x' + Buffer.concat(blockHashTree.getProof(leaf)).toString('hex'),
       index,
@@ -151,11 +169,7 @@ const main = async (
     const governanceMessageVerifier = await GovernanceMessageVerifier.attach(
       governanceMessageVerifierAddress
     )
-    const tx = await governanceMessageVerifier.verifyAndPropagateMessage(
-      proof,
-      [destinationChainId],
-      [hubAddress]
-    )
+    const tx = await governanceMessageVerifier.verifyAndPropagateMessage(proof)
     console.log('Transaction hash', tx.hash)
   } catch (_err) {
     console.error(_err)
@@ -164,12 +178,12 @@ const main = async (
 
 task(
   'governance-message-relayer:verify-message',
-  'Verify a Polygon event on ethereum and propagate it on another chain using telepathy protocol'
+  'Verify a Polygon event on Ethereum and propagate it on another chain using telepathy protocol'
 )
   .addPositionalParam('transactionHash')
   .addPositionalParam('rootChainAddress')
   .addPositionalParam('governanceMessageEmitterAddress')
   .addPositionalParam('governanceMessageVerifierAddress')
-  .addPositionalParam('hubAddress')
-  .addPositionalParam('destinationChainId')
+  .addOptionalParam('saveBlocks', 'Save blocks', false, types.boolean)
+  .addOptionalParam('headerBlock', 'Block Header', undefined, types.int)
   .setAction(main)
