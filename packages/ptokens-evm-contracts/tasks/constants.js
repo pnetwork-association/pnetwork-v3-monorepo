@@ -83,4 +83,7 @@ module.exports = {
   PARAM_DESC_ASSET_ADDRESS: 'Underlying asset address',
   PARAM_NAME_AMOUNT: 'amount',
   PARAM_DESC_AMOUNT: 'Amount of underlying asset to be used',
+  PARAM_NAME_EXPECTED_SOURCE_CHAIN_ID: 'expectedSourceChainId',
+  PARAM_DESC_EXPECTED_SOURCE_CHAIN_ID:
+    'Expected source chain ID for Governance Message Verifier Telepathy messages',
 }
