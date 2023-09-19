@@ -4,24 +4,22 @@ import { createWalletClient, http, publicActions } from 'viem'
 import { privateKeyToAccount } from 'viem/accounts'
 
 import { getNetworkIdByChain } from './lib/network.js'
-import settings from './settings/index.js'
 
-const getClient = ({ chain, privateKey }) =>
+const getClient = ({ chain, privateKey, rpcUrl }) =>
   createWalletClient({
     account: privateKeyToAccount(privateKey),
     chain,
-    transport: http(),
+    transport: http(rpcUrl),
   }).extend(publicActions)
 
 class ClientsManager {
-  constructor({ chains, privateKey }) {
-    if (!ClientsManager.instance) {
-      this._clients = chains.reduce((_acc, _chain) => {
-        _acc[getNetworkIdByChain(_chain)] = getClient({ chain: _chain, privateKey })
-        return _acc
-      }, {})
-      ClientsManager.instance = this
-    }
+  constructor({ chains, privateKey, rpcUrls }) {
+    this._clients = chains.reduce((_acc, _chain) => {
+      const networkId = getNetworkIdByChain(_chain)
+      const rpcUrl = rpcUrls[networkId]
+      _acc[networkId] = getClient({ chain: _chain, privateKey, rpcUrl })
+      return _acc
+    }, {})
   }
 
   getClientByChain(_chain) {
@@ -33,9 +31,4 @@ class ClientsManager {
   }
 }
 
-const instance = new ClientsManager({
-  chains: settings.chains,
-  privateKey: process.env.CHALLENGER_PK,
-})
-Object.freeze(instance)
-export default instance
+export default ClientsManager

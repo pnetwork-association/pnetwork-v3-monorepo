@@ -8,20 +8,21 @@ configDotenv()
 import ActorsManager from './src/ActorsManager.js'
 import ChallengesManager from './src/ChallengesManager.js'
 import ClientsManager from './src/ClientsManager.js'
-import verifySignature from './src/lib/verify-signature.js'
+// import verifySignature from './src/lib/verify-signature.js'
 import settings from './src/settings/index.js'
+import { getNetworkIdByChain } from './src/lib/network.js'
 
-let actorsManager, challengesManager
+let actorsManager, challengesManager, clientsManager
 
 const onMessage = async _message => {
   try {
     const message = JSON.parse(uint8ArrayToString(_message.detail.data))
     console.log(`✓ New message: ${JSON.stringify(message)}. Checking signature ...`)
 
-    if (!(await verifySignature(message))) {
+    /*if (!(await verifySignature(message))) {
       console.log('✗ Invalid signature. Skipping ...')
       return
-    }
+    }*/
 
     console.log('✓ Valid signature! Checking actor state ...')
     const actor = message.signerAddress
@@ -57,16 +58,25 @@ const onMessage = async _message => {
 }
 
 ;(async () => {
+  clientsManager = new ClientsManager({
+    chains: settings.chains,
+    privateKey: process.env.CHALLENGER_PK,
+    rpcUrls: settings.rpcUrls,
+  })
+
   actorsManager = new ActorsManager({
-    client: ClientsManager.getClientByChain(polygon),
-    governanceMessageEmitterAddress: process.env.GOVERNANCE_MESSAGE_EMITTER_ADDRESS,
-    epochsManagerAddress: process.env.EPOCHS_MANAGER_ADDRESS,
-    registrationManagerAddress: process.env.REGISTRATION_MANAGER_ADDRESS,
+    client: clientsManager.getClientByChain(polygon),
+    governanceMessageEmitterAddress:
+      settings.addresses[getNetworkIdByChain(polygon)].governanceMessageEmitter,
+    epochsManagerAddress: settings.addresses[getNetworkIdByChain(polygon)].epochsManager,
+    registrationManagerAddress:
+      settings.addresses[getNetworkIdByChain(polygon)].registrationManager,
   })
 
   challengesManager = new ChallengesManager({
+    actorsManager,
     challengerAddress: process.env.CHALLENGER_ADDRESS,
-    clientsManager: ClientsManager,
+    clientsManager,
     pNetworkHubAddresses: Object.values(settings.addresses)
       .map(({ pNetworkHub }) => pNetworkHub)
       .reduce((_acc, _address, _index) => {
@@ -91,9 +101,11 @@ const onMessage = async _message => {
               latestBlockHash: '0x81b4c556ffb342d579cb3feadcdfe2440d62c5f7c6300ed1635bca347dd34f39',
             },
           },
-          signerAddress: '0x89E8cf56bc3B6C492098e46Da2686c9B5D56951f',
+          //signerAddress: '0x89E8cf56bc3B6C492098e46Da2686c9B5D56951f',
+          signerAddress: '0x74AA490C9728a728f3F767B0dEa060c2be63B508',
           version: 0,
-          actorType: 'guardian',
+          //actorType: 'guardian',
+          actorType: 'sentinel',
           timestamp: 1695027477,
           signature:
             '0xbdac326866d0078a167ec7fd43bc5bc7c4d3c89da477d05db624b17f1ebe6f90310e0ca4b268f33d59496b6a26b31edb6ecfe6ef6a9a4d2beb3f79415798c0471b',

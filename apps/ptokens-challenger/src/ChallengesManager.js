@@ -40,10 +40,9 @@ class ChallengesManager {
   }
 
   async startChallengesByNetworks({ actor, actorType, networks }) {
-    const proof =
-      actorType === 'sentinel'
-        ? await this.actorsManager.getSentinelsMerkleProof({ sentinel: actor })
-        : await this.actorsManager.getGuardiansMerkleProof({ guardian: actor })
+    const proof = await this.actorsManager.getActorsMerkleProofForCurrentEpoch({ actor, actorType })
+
+    console.log(proof)
 
     const validRequests = (
       await Promise.all(
