@@ -20,6 +20,7 @@ contract PRegistry is IPRegistry, AccessControl {
     // @inheritdoc IPRegistry
     function addProtocolBlockchain(uint32 chainId, address hub) external onlyRole(ADD_SUPPORTED_NETWORK_ID_ROLE) {
         bytes4 networkId = Network.getNetworkIdFromChainId(chainId);
+        // TODO: check if hub/chainId has been already pushed
         _supportedHubs.push(hub);
         _supportedChainIds.push(chainId);
         _networkIdToHub[networkId] = hub;
