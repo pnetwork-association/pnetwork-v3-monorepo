@@ -70,10 +70,17 @@ module.exports = {
   PARAM_DESC_AMOUNT_TO_SLASH: 'Staking sentinel amount to slash',
   PARAM_NAME_LENDING_MANAGER: 'lendingManagerAddress',
   PARAM_DESC_LENDING_MANAGER: 'Lending Manager contract address',
-
-  // Global task parameters
-  TASK_PARAM_GASPRICE: 'gasPrice',
-  TASK_PARAM_GASLIMIT: 'gasLimit',
-  TASK_PARAM_GASPRICE_DESC: 'Specify the gas price',
-  TASK_PARAM_GASLIMIT_DESC: 'Specify the gas limit',
+  PARAM_NAME_GAS: 'gas',
+  PARAM_DESC_GAS: 'Optional gas limit setting',
+  PARAM_NAME_GASPRICE: 'gasPrice',
+  PARAM_DESC_GASPRICE: 'Optional gas price setting',
+  PARAM_NAME_UNDERLYING_ASSET_ADDRESS: 'underlyingAssetAddress',
+  PARAM_DESC_UNDERLYING_ASSET_ADDRESS: 'Underlying asset address we want to wrap',
+  PARAM_NAME_UNDERLYING_ASSET_CHAIN_NAME: 'assetChainName',
+  PARAM_DESC_UNDERLYING_ASSET_CHAIN_NAME:
+    'Underlying Asset chain name (defaults to the selected network)',
+  PARAM_NAME_ASSET_ADDRESS: 'assetAddress',
+  PARAM_DESC_ASSET_ADDRESS: 'Underlying asset address',
+  PARAM_NAME_AMOUNT: 'amount',
+  PARAM_DESC_AMOUNT: 'Amount of underlying asset to be used',
 }

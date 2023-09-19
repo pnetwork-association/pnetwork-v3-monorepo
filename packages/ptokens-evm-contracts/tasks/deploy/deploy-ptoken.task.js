@@ -1,27 +1,13 @@
-const {
-  KEY_ADDRESS,
-  KEY_PFACTORY,
-  KEY_NETWORK_ID,
-  KEY_PTOKEN_LIST,
-  KEY_UNDERLYING_ASSET_LIST,
-  CONTRACT_NAME_PFACTORY,
-  KEY_PTOKEN_UNDERLYING_ASSET_ADDRESS,
-  KEY_PTOKEN_UNDERLYING_ASSET_NETWORKID,
-} = require('../constants')
+const TASK_CONSTANTS = require('../constants')
 const R = require('ramda')
 const { types } = require('hardhat/config')
 const { attachToUnderlyingAsset } = require('./deploy-asset.task')
 const {
   getConfiguration,
   updateConfiguration,
-  checkPRouterIsDeployed,
   checkHubIsDeployed,
 } = require('../lib/configuration-manager')
 
-const TASK_PARAM_GAS = 'gas'
-const TASK_PARAM_GASPRICE = 'gasPrice'
-const TASK_PARAM_UNDERLYING_ASSET_ADDRESS = 'underlyingAssetAddress'
-const TASK_PARAM_UNDERLYING_ASSET_CHAIN_NAME = 'assetChainName'
 const TASK_NAME_DEPLOY_PTOKEN = 'deploy:ptoken'
 const TASK_DESC_DEPLOY_PTOKEN =
   'Deploy a pToken contract or attach to an existing one from the configuration.'
@@ -31,7 +17,8 @@ const rejectIfLength0 = R.curry((_errMsg, _array) =>
   _array.length === 0 ? Promise.reject(new Error(_errMsg)) : Promise.resolve(_array)
 )
 
-const isAssetAddressEqualTo = _address => R.compose(R.equals(_address), R.prop(KEY_ADDRESS))
+const isAssetAddressEqualTo = _address =>
+  R.compose(R.equals(_address), R.prop(TASK_CONSTANTS.KEY_ADDRESS))
 
 const changeHardhatNetworkAndReturnArg = R.curry((hre, _chainName, _arg) =>
   Promise.resolve(hre.changeNetwork(_chainName)).then(_ => _arg)
@@ -39,21 +26,26 @@ const changeHardhatNetworkAndReturnArg = R.curry((hre, _chainName, _arg) =>
 
 const createPtokenAssetEntry = taskArgs =>
   Promise.resolve({
-    [KEY_PTOKEN_UNDERLYING_ASSET_ADDRESS]: taskArgs[TASK_PARAM_UNDERLYING_ASSET_ADDRESS],
-    [KEY_PTOKEN_UNDERLYING_ASSET_NETWORKID]: taskArgs[TASK_PARAM_UNDERLYING_ASSET_CHAIN_NAME],
+    [TASK_CONSTANTS.KEY_PTOKEN_UNDERLYING_ASSET_ADDRESS]:
+      taskArgs[TASK_CONSTANTS.PARAM_NAME_UNDERLYING_ASSET_ADDRESS],
+    [TASK_CONSTANTS.KEY_PTOKEN_UNDERLYING_ASSET_NETWORKID]:
+      taskArgs[TASK_CONSTANTS.PARAM_NAME_UNDERLYING_ASSET_CHAIN_NAME],
   })
 
 const saveConfigurationEntry = R.curry((hre, taskArgs, _contract) =>
   getConfiguration()
     .then(_config => Promise.all([_config, createPtokenAssetEntry(taskArgs)]))
     .then(([_config, _entry]) =>
-      Promise.all([_config, R.assoc(KEY_ADDRESS, _contract.address, _entry)])
+      Promise.all([_config, R.assoc(TASK_CONSTANTS.KEY_ADDRESS, _contract.address, _entry)])
     )
     .then(([_config, _entry]) =>
       R.not(
-        R.any(R.equals(_entry), R.defaultTo([], _config.get(hre.network.name)[KEY_PTOKEN_LIST]))
+        R.any(
+          R.equals(_entry),
+          R.defaultTo([], _config.get(hre.network.name)[TASK_CONSTANTS.KEY_PTOKEN_LIST])
+        )
       )
-        ? updateConfiguration(_config, hre.network.name, KEY_PTOKEN_LIST, _entry)
+        ? updateConfiguration(_config, hre.network.name, TASK_CONSTANTS.KEY_PTOKEN_LIST, _entry)
         : null
     )
     .then(_ => _contract)
@@ -61,13 +53,13 @@ const saveConfigurationEntry = R.curry((hre, taskArgs, _contract) =>
 
 const getUnderlyingAsset = (taskArgs, hre) =>
   new Promise(resolve => {
-    const underlyingAssetAddress = taskArgs[TASK_PARAM_UNDERLYING_ASSET_ADDRESS]
-    const underlyingAssetChainName = taskArgs[TASK_PARAM_UNDERLYING_ASSET_CHAIN_NAME]
+    const underlyingAssetAddress = taskArgs[TASK_CONSTANTS.PARAM_NAME_UNDERLYING_ASSET_ADDRESS]
+    const underlyingAssetChainName = taskArgs[TASK_CONSTANTS.PARAM_NAME_UNDERLYING_ASSET_CHAIN_NAME]
     const selectedChain = hre.network.name
 
     return getConfiguration()
-      .then(_config => _config.get(taskArgs[TASK_PARAM_UNDERLYING_ASSET_CHAIN_NAME]))
-      .then(R.prop(KEY_UNDERLYING_ASSET_LIST))
+      .then(_config => _config.get(taskArgs[TASK_CONSTANTS.PARAM_NAME_UNDERLYING_ASSET_CHAIN_NAME]))
+      .then(R.prop(TASK_CONSTANTS.KEY_UNDERLYING_ASSET_LIST))
       .then(R.filter(isAssetAddressEqualTo(underlyingAssetAddress)))
       .then(
         rejectIfLength0(
@@ -87,8 +79,8 @@ const getUnderlyingAsset = (taskArgs, hre) =>
 
 const getUnderlyingAssetNetworkId = taskArgs =>
   getConfiguration()
-    .then(_config => _config.get(taskArgs[TASK_PARAM_UNDERLYING_ASSET_CHAIN_NAME]))
-    .then(R.prop(KEY_NETWORK_ID))
+    .then(_config => _config.get(taskArgs[TASK_CONSTANTS.PARAM_NAME_UNDERLYING_ASSET_CHAIN_NAME]))
+    .then(R.prop(TASK_CONSTANTS.KEY_NETWORK_ID))
 
 const attachToContract = R.curry((hre, _contractName, _address) =>
   hre.ethers.getContractFactory(_contractName).then(_factory => _factory.attach(_address))
@@ -97,8 +89,8 @@ const attachToContract = R.curry((hre, _contractName, _address) =>
 const getFactoryContract = hre =>
   getConfiguration()
     .then(_config => _config.get(hre.network.name))
-    .then(R.path([KEY_PFACTORY, KEY_ADDRESS]))
-    .then(attachToContract(hre, CONTRACT_NAME_PFACTORY))
+    .then(R.path([TASK_CONSTANTS.KEY_PFACTORY, TASK_CONSTANTS.KEY_ADDRESS]))
+    .then(attachToContract(hre, TASK_CONSTANTS.CONTRACT_NAME_PFACTORY))
     .catch(_err =>
       _err.message.includes('invalid contract address')
         ? Promise.reject(
@@ -132,8 +124,8 @@ const getPTokenDeployArgs = (taskArgs, hre) =>
 
 const maybeOverwriteParamsWithDefaultValues = (taskArgs, hre) =>
   Promise.resolve(
-    R.isNil(taskArgs[TASK_PARAM_UNDERLYING_ASSET_CHAIN_NAME])
-      ? R.assoc(TASK_PARAM_UNDERLYING_ASSET_CHAIN_NAME, hre.network.name, taskArgs)
+    R.isNil(taskArgs[TASK_CONSTANTS.PARAM_NAME_UNDERLYING_ASSET_CHAIN_NAME])
+      ? R.assoc(TASK_CONSTANTS.PARAM_NAME_UNDERLYING_ASSET_CHAIN_NAME, hre.network.name, taskArgs)
       : taskArgs
   )
 
@@ -165,8 +157,7 @@ const deployPToken = async (
   }
 
 const deployPTokenTask = (taskArgs, hre) =>
-  checkPRouterIsDeployed(hre)
-    .then(_ => checkHubIsDeployed(hre))
+  checkHubIsDeployed(hre)
     .then(_ => maybeOverwriteParamsWithDefaultValues(taskArgs, hre))
     .then(_taskArgs => getPTokenDeployArgs(_taskArgs, hre))
     .then(_args => deployPToken(..._args))
@@ -181,24 +172,32 @@ const deployPTokenTask = (taskArgs, hre) =>
 
 task(TASK_NAME_DEPLOY_PTOKEN, TASK_DESC_DEPLOY_PTOKEN, deployPTokenTask)
   .addPositionalParam(
-    TASK_PARAM_UNDERLYING_ASSET_ADDRESS,
-    'Underlying asset asset address we want to wrap',
+    TASK_CONSTANTS.PARAM_NAME_UNDERLYING_ASSET_ADDRESS,
+    TASK_CONSTANTS.PARAM_DESC_UNDERLYING_ASSET_ADDRESS,
     undefined,
     types.string
   )
   .addOptionalParam(
-    TASK_PARAM_UNDERLYING_ASSET_CHAIN_NAME,
-    'Underlying Asset chain name (defaults to the selected network)',
+    TASK_CONSTANTS.PARAM_NAME_UNDERLYING_ASSET_CHAIN_NAME,
+    TASK_CONSTANTS.PARAM_DESC_UNDERLYING_ASSET_CHAIN_NAME,
     undefined,
     types.string
   )
-  .addOptionalParam(TASK_PARAM_GAS, 'Optional gas limit setting', undefined, types.int)
-  .addOptionalParam(TASK_PARAM_GASPRICE, 'Optional gas price setting', undefined, types.int)
+  .addOptionalParam(
+    TASK_CONSTANTS.PARAM_NAME_GAS,
+    TASK_CONSTANTS.PARAM_DESC_GAS,
+    undefined,
+    types.int
+  )
+  .addOptionalParam(
+    TASK_CONSTANTS.PARAM_NAME_GASPRICE,
+    TASK_CONSTANTS.PARAM_DESC_GASPRICE,
+    undefined,
+    types.int
+  )
 
 module.exports = {
   getUnderlyingAsset,
   deployPToken,
   saveConfigurationEntry,
-  TASK_PARAM_UNDERLYING_ASSET_ADDRESS,
-  TASK_PARAM_UNDERLYING_ASSET_CHAIN_NAME,
 }

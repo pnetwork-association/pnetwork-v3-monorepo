@@ -1,6 +1,6 @@
 const { types } = require('hardhat/config')
 const { getHubAddress } = require('../lib/configuration-manager')
-const { TASK_PARAM_GASPRICE, TASK_PARAM_GASLIMIT } = require('../constants')
+const TASK_CONSTANTS = require('../constants')
 const {
   getUserOperationAbiArgsFromReport,
 } = require('ptokens-request-processor/lib/evm/evm-abi-manager')
@@ -26,8 +26,8 @@ const protocolExecuteOperation = async (taskArgs, hre) => {
   args.push(proof)
   console.log(args)
   const tx = await PNetworkHub.protocolGuardianCancelOperation(...args, {
-    gasLimit: taskArgs[TASK_PARAM_GASLIMIT],
-    gasPrice: taskArgs[TASK_PARAM_GASPRICE],
+    gasLimit: taskArgs[TASK_CONSTANTS.PARAM_NAME_GAS],
+    gasPrice: taskArgs[TASK_CONSTANTS.PARAM_NAME_GASPRICE],
   })
   const receipt = await tx.wait(1)
 

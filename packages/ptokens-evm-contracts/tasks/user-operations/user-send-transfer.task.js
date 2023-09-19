@@ -7,40 +7,32 @@ const {
   getDeploymentFromNetworkName,
 } = require('../lib/configuration-manager')
 const R = require('ramda')
-const {
-  KEY_ADDRESS,
-  KEY_ASSET_NAME,
-  KEY_PTOKEN_LIST,
-  KEY_ASSET_SYMBOL,
-  KEY_ASSET_DECIMALS,
-  KEY_UNDERLYING_ASSET_LIST,
-  KEY_PTOKEN_UNDERLYING_ASSET_ADDRESS,
-  KEY_PTOKEN_UNDERLYING_ASSET_NETWORKID,
-  TASK_PARAM_GASPRICE,
-  TASK_PARAM_GASLIMIT,
-} = require('../constants')
+const TASK_CONSTANTS = require('../constants')
 
 const TASK_NAME = 'router:transfer'
 const TASK_DESC = 'Move pTokens form a chain to another one.'
-const TASK_PARAM_PTOKEN_ADDRESS = 'pTokenAddress'
-const TASK_PARAM_PTOKEN_ADDRESS_DESC = 'PToken address'
-const TASK_PARAM_DEST_CHAIN_NAME = 'destinationChainName'
-const TASK_PARAM_DEST_CHAIN_NAME_DESC = 'Chain where to send the ptoken to.'
-const TASK_PARAM_DEST_ADDRESS = 'destinationAddress'
-const TASK_PARAM_DEST_ADDRESS_DESC = 'Address where to send the ptoken to.'
-const TASK_PARAM_AMOUNT = 'amount'
-const TASK_PARAM_AMOUNT_DESC = 'Amount of underlying asset to be used'
 
 const getPTokenConfiguration = (taskArgs, hre) =>
   getDeploymentFromHRE(hre)
-    .then(R.prop(KEY_PTOKEN_LIST))
-    .then(R.find(R.propEq(taskArgs[TASK_PARAM_PTOKEN_ADDRESS], KEY_ADDRESS)))
+    .then(R.prop(TASK_CONSTANTS.KEY_PTOKEN_LIST))
+    .then(
+      R.find(
+        R.propEq(taskArgs[TASK_CONSTANTS.PARAM_NAME_PTOKEN_ADDRESS], TASK_CONSTANTS.KEY_ADDRESS)
+      )
+    )
 
 const getUnderlyingAssetConfiguration = (taskArgs, hre, pTokenConfiguration) =>
-  Promise.resolve(pTokenConfiguration[KEY_PTOKEN_UNDERLYING_ASSET_NETWORKID])
+  Promise.resolve(pTokenConfiguration[TASK_CONSTANTS.KEY_PTOKEN_UNDERLYING_ASSET_NETWORKID])
     .then(getDeploymentFromNetworkName)
-    .then(R.prop(KEY_UNDERLYING_ASSET_LIST))
-    .then(R.find(R.propEq(pTokenConfiguration[KEY_PTOKEN_UNDERLYING_ASSET_ADDRESS], KEY_ADDRESS)))
+    .then(R.prop(TASK_CONSTANTS.KEY_UNDERLYING_ASSET_LIST))
+    .then(
+      R.find(
+        R.propEq(
+          pTokenConfiguration[TASK_CONSTANTS.KEY_PTOKEN_UNDERLYING_ASSET_ADDRESS],
+          TASK_CONSTANTS.KEY_ADDRESS
+        )
+      )
+    )
 
 const transfer = async (taskArgs, hre) => {
   const pTokenConfiguration = await getPTokenConfiguration(taskArgs, hre)
@@ -57,22 +49,27 @@ const transfer = async (taskArgs, hre) => {
   const pRouterFactory = await hre.ethers.getContractFactory('PRouter')
   const pRouter = await pRouterFactory.attach(pRouterAddress)
 
-  const pTokenAddress = pTokenConfiguration[KEY_ADDRESS]
+  const pTokenAddress = pTokenConfiguration[TASK_CONSTANTS.KEY_ADDRESS]
   const pTokenFactory = await hre.ethers.getContractFactory('PToken')
   const pToken = await pTokenFactory.attach(pTokenAddress)
   const pTokenDecimals = await pToken.decimals()
   console.log('Signer is:', signer.address)
 
-  const destinationAddress = taskArgs[TASK_PARAM_DEST_ADDRESS]
-  const destinationNetworkId = await getNetworkIdFromChainName(taskArgs[TASK_PARAM_DEST_CHAIN_NAME])
-  const underlyingAssetName = underlyingAssetConfiguration[KEY_ASSET_NAME]
-  const underlyingAssetSymbol = underlyingAssetConfiguration[KEY_ASSET_SYMBOL]
-  const underlyingAssetDecimals = underlyingAssetConfiguration[KEY_ASSET_DECIMALS]
-  const underlyingAssetAddress = underlyingAssetConfiguration[KEY_ADDRESS]
-  const underlyingAssetNetworkId = await getNetworkIdFromChainName(
-    pTokenConfiguration[KEY_PTOKEN_UNDERLYING_ASSET_NETWORKID]
+  const destinationAddress = taskArgs[TASK_CONSTANTS.PARAM_NAME_DEST_ADDRESS]
+  const destinationNetworkId = await getNetworkIdFromChainName(
+    taskArgs[TASK_CONSTANTS.PARAM_NAME_DEST_CHAIN]
   )
-  const parsedAmount = hre.ethers.utils.parseUnits(taskArgs[TASK_PARAM_AMOUNT], pTokenDecimals)
+  const underlyingAssetName = underlyingAssetConfiguration[TASK_CONSTANTS.KEY_ASSET_NAME]
+  const underlyingAssetSymbol = underlyingAssetConfiguration[TASK_CONSTANTS.KEY_ASSET_SYMBOL]
+  const underlyingAssetDecimals = underlyingAssetConfiguration[TASK_CONSTANTS.KEY_ASSET_DECIMALS]
+  const underlyingAssetAddress = underlyingAssetConfiguration[TASK_CONSTANTS.KEY_ADDRESS]
+  const underlyingAssetNetworkId = await getNetworkIdFromChainName(
+    pTokenConfiguration[TASK_CONSTANTS.KEY_PTOKEN_UNDERLYING_ASSET_NETWORKID]
+  )
+  const parsedAmount = hre.ethers.utils.parseUnits(
+    taskArgs[TASK_CONSTANTS.PARAM_NAME_AMOUNT],
+    pTokenDecimals
+  )
   const optionsMask = getOptionMaskWithOptionEnabledForBit(0)
 
   const args = [
@@ -88,8 +85,8 @@ const transfer = async (taskArgs, hre) => {
     '0x',
     optionsMask,
     {
-      gasPrice: taskArgs[TASK_PARAM_GASPRICE],
-      gasLimit: taskArgs[TASK_PARAM_GASLIMIT],
+      gasPrice: taskArgs[TASK_CONSTANTS.PARAM_NAME_GASPRICE],
+      gasLimit: taskArgs[TASK_CONSTANTS.PARAM_NAME_GAS],
     },
   ]
 
@@ -103,24 +100,29 @@ const transfer = async (taskArgs, hre) => {
 
 task(TASK_NAME, TASK_DESC)
   .addPositionalParam(
-    TASK_PARAM_PTOKEN_ADDRESS,
-    TASK_PARAM_PTOKEN_ADDRESS_DESC,
+    TASK_CONSTANTS.PARAM_NAME_PTOKEN_ADDRESS,
+    TASK_CONSTANTS.PARAM_DESC_PTOKEN_ADDRESS,
     undefined,
     types.string
   )
   .addPositionalParam(
-    TASK_PARAM_DEST_CHAIN_NAME,
-    TASK_PARAM_DEST_CHAIN_NAME_DESC,
+    TASK_CONSTANTS.PARAM_NAME_DEST_CHAIN,
+    TASK_CONSTANTS.PARAM_DESC_DEST_CHAIN,
     undefined,
     types.string
   )
   .addPositionalParam(
-    TASK_PARAM_DEST_ADDRESS,
-    TASK_PARAM_DEST_ADDRESS_DESC,
+    TASK_CONSTANTS.PARAM_NAME_DEST_ADDRESS,
+    TASK_CONSTANTS.PARAM_DESC_DEST_ADDRESS,
     undefined,
     types.string
   )
-  .addPositionalParam(TASK_PARAM_AMOUNT, TASK_PARAM_AMOUNT_DESC, undefined, types.string)
+  .addPositionalParam(
+    TASK_CONSTANTS.PARAM_NAME_AMOUNT,
+    TASK_CONSTANTS.PARAM_DESC_DEST_ADDRESS,
+    undefined,
+    types.string
+  )
   .setAction(transfer)
 
 module.exports = {
