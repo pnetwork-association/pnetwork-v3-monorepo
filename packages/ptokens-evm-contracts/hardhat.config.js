@@ -104,6 +104,7 @@ module.exports = {
       mumbai: getEnvironmentVariable('POLYGONSCAN_API_KEY'),
       arbitrum: getEnvironmentVariable('ARBISCAN_API_KEY'),
       gnosis: getEnvironmentVariable('GNOSISSCAN_API_KEY'),
+      goerli: getEnvironmentVariable('GOERLI_API_KEY'),
     },
     customChains: [
       {
@@ -120,6 +121,14 @@ module.exports = {
         urls: {
           apiURL: 'https://api.sepolia.etherscan.io/api',
           browserURL: 'https://sepolia.etherscan.io',
+        },
+      },
+      {
+        network: 'goerli',
+        chainId: 5,
+        urls: {
+          apiURL: 'https://api-goerli.etherscan.io/api',
+          browserURL: 'https://goerli.etherscan.io',
         },
       },
       {
