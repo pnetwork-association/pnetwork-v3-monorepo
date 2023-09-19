@@ -27,10 +27,10 @@ const onMessage = async _message => {
     const actor = message.signerAddress
     const clientInterim = ClientsManager.getClientByChain(polygon)
 
-    const networkIdsNotInSync = await challengesManager.getNetworksNotSyncedBySyncState({
+    const networkIdsNotSynced = await challengesManager.getNetworksNotSyncedBySyncState({
       syncState: message.syncState,
     })
-    if (networkIdsNotInSync.length === 0) {
+    if (networkIdsNotSynced.length === 0) {
       console.log(`✗ ${actor} seems to be in sync! Skipping ...`)
       return
     }
@@ -52,7 +52,7 @@ const onMessage = async _message => {
     await challengesManager.startChallengesByNetworks({
       actor: message.signerAddress,
       actorType: message.actorType,
-      networks: networkIdsNotInSync,
+      networks: networkIdsNotSynced,
     })
   } catch (_err) {
     console.error(_err)
