@@ -34,6 +34,7 @@ const getEventWithAllRequiredSetToNull = _ => ({
   [constants.db.KEY_FORWARD_NETWORK_FEE_ASSET_AMOUNT]: null,
   [constants.db.KEY_NETWORK_FEE_ASSET_AMOUNT]: null,
   [constants.db.KEY_PROTOCOL_FEE_ASSET_AMOUNT]: null,
+  [constants.db.KEY_IS_FOR_PROTOCOL]: null,
 })
 
 const bigIntToNumber = R.tryCatch(_n => Number(_n) || null, R.always(null))
@@ -185,7 +186,7 @@ const addInfoFromParsedLog = (_parsedLog, _obj) =>
     .then(
       maybeAddFieldFromEventArgs(
         _parsedLog.args,
-        ['from'],
+        ['from', 'originAccount'],
         constants.db.KEY_ORIGINATING_ADDRESS,
         R.identity
       )
@@ -227,6 +228,14 @@ const addInfoFromParsedLog = (_parsedLog, _obj) =>
         _parsedLog.args,
         ['userData'],
         constants.db.KEY_USER_DATA,
+        R.identity
+      )
+    )
+    .then(
+      maybeAddFieldFromEventArgs(
+        _parsedLog.args,
+        ['isForProtocol'],
+        constants.db.KEY_IS_FOR_PROTOCOL,
         R.identity
       )
     )
