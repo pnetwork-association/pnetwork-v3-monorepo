@@ -33,11 +33,9 @@ contract Slasher is ISlasher {
         if (!IPRegistry(pRegistry).isNetworkIdSupported(originNetworkId)) revert NotSupportedNetworkId(originNetworkId);
 
         address registeredHub = IPRegistry(pRegistry).getHubByNetworkId(originNetworkId);
-
         if (originAccountAddress != registeredHub) revert NotHub(originAccountAddress);
 
         (address actor, address challenger) = abi.decode(userData, (address, address));
-
         IRegistrationManager.Registration memory registration = IRegistrationManager(registrationManager)
             .sentinelRegistration(actor);
 
@@ -48,7 +46,6 @@ contract Slasher is ISlasher {
         // Borrowing sentinels have nothing at stake, so the slashing
         // quantity will be zero
         uint256 amountToSlash = registration.kind == 0x01 ? stakingSentinelAmountToSlash : 0;
-
         IRegistrationManager(registrationManager).slash(actor, amountToSlash, challenger);
     }
 }

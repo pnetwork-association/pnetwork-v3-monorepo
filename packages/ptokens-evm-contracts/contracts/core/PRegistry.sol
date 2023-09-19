@@ -22,21 +22,18 @@ contract PRegistry is IPRegistry, AccessControl {
         bytes4 networkId = Network.getNetworkIdFromChainId(chainId);
         _supportedHubs.push(hub);
         _supportedChainIds.push(chainId);
-
         _networkIdToHub[networkId] = hub;
     }
 
     // @inheritdoc IPRegistry
     function isNetworkIdSupported(bytes4 networkId) public view returns (bool) {
         address hub = _networkIdToHub[networkId];
-
         return (hub != address(0));
     }
 
     // @inheritdoc IPRegistry
     function isChainIdSupported(uint32 chainId) external view returns (bool) {
         bytes4 networkId = Network.getNetworkIdFromChainId(chainId);
-
         return isNetworkIdSupported(networkId);
     }
 

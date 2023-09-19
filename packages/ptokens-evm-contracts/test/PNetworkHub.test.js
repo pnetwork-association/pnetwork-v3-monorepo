@@ -197,14 +197,14 @@ describe('PNetworkHub', () => {
       feesManager.address,
       TELEPATHY_ROUTER_ADDRESS,
       fakeGovernanceMessageVerifier.address,
-      pRegistry.address,
       slasher.address,
       LOCKED_AMOUNT_CHALLENGE_PERIOD,
       K_CHALLENGE_PERIOD,
       MAX_OPERATIONS_IN_QUEUE,
       PNETWORK_NETWORK_IDS.hardhat,
       LOCKED_AMOUNT_START_CHALLENGE,
-      MAX_CHALLENGE_DURATION
+      MAX_CHALLENGE_DURATION,
+      chainId
     )
     hub = await PNetworkHub.deploy(
       // hub to test the non interim chain behavior
@@ -214,14 +214,14 @@ describe('PNetworkHub', () => {
       feesManager.address,
       TELEPATHY_ROUTER_ADDRESS,
       fakeGovernanceMessageVerifier.address,
-      pRegistry.address,
       slasher.address,
       LOCKED_AMOUNT_CHALLENGE_PERIOD,
       K_CHALLENGE_PERIOD,
       MAX_OPERATIONS_IN_QUEUE,
       PNETWORK_NETWORK_IDS.ethereumMainnet,
       LOCKED_AMOUNT_START_CHALLENGE,
-      MAX_CHALLENGE_DURATION
+      MAX_CHALLENGE_DURATION,
+      chainId
     )
 
     await pRegistry.connect(dao).addProtocolBlockchain(chainId, hub.address)

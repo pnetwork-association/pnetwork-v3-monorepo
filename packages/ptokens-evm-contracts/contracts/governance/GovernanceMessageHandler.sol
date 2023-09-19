@@ -7,18 +7,18 @@ import {IGovernanceMessageHandler} from "../interfaces/IGovernanceMessageHandler
 import {ITelepathyHandler} from "../interfaces/external/ITelepathyHandler.sol";
 
 error NotRouter(address sender, address router);
-error UnsupportedChainId(uint32 sourceChainId);
+error UnsupportedChainId(uint32 sourceChainId, uint32 expectedSourceChainId);
 error InvalidGovernanceMessageVerifier(address governanceMessagerVerifier, address expectedGovernanceMessageVerifier);
 
 abstract contract GovernanceMessageHandler is IGovernanceMessageHandler, Context {
-    address public immutable registry;
     address public immutable telepathyRouter;
     address public immutable governanceMessageVerifier;
+    uint32 public immutable expectedSourceChainId;
 
-    constructor(address telepathyRouter_, address governanceMessageVerifier_, address registry_) {
-        registry = registry_;
+    constructor(address telepathyRouter_, address governanceMessageVerifier_, uint32 expectedSourceChainId_) {
         telepathyRouter = telepathyRouter_;
         governanceMessageVerifier = governanceMessageVerifier_;
+        expectedSourceChainId = expectedSourceChainId_;
     }
 
     function handleTelepathy(uint32 sourceChainId, address sourceSender, bytes memory data) external returns (bytes4) {
@@ -28,8 +28,8 @@ abstract contract GovernanceMessageHandler is IGovernanceMessageHandler, Context
         // and not who emitted the event on Polygon since it's the GovernanceMessageVerifier that verifies that
         // a certain event has been emitted by the GovernanceMessageEmitter
 
-        if (!IPRegistry(registry).isChainIdSupported(sourceChainId)) {
-            revert UnsupportedChainId(sourceChainId);
+        if (sourceChainId != expectedSourceChainId) {
+            revert UnsupportedChainId(sourceChainId, expectedSourceChainId);
         }
 
         if (sourceSender != governanceMessageVerifier) {
