@@ -11,6 +11,7 @@ module.exports = {
   KEY_PTOKEN_UNDERLYING_ASSET_NETWORKID: 'underlyingAssetNetworkId',
   KEY_PNETWORKHUB: 'hub',
   KEY_PFACTORY: 'pFactory',
+  KEY_EPOCHS_MANAGER: 'epochsManager',
   KEY_GOVERNANCE_MESSAGE_EMITTER: 'governanceMessageEmitter',
   KEY_GOVERNANCE_MESSAGE_VERIFIER: 'governanceMessageVerifier',
   KEY_PREGISTRY: 'pRegistry',
@@ -19,6 +20,7 @@ module.exports = {
 
   // Contract names
   CONTRACT_NAME_PFACTORY: 'PFactory',
+  CONTRACT_NAME_EPOCHS_MANAGER: 'EpochsManager',
   CONTRACT_NAME_REGISTRY: 'PRegistry',
   CONTRACT_NAME_SLASHER: 'Slasher',
   CONTRACT_NAME_GOVERNANCE_MESSAGE_EMITTER: 'GovernanceMessageEmitter',
