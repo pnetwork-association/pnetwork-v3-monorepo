@@ -56,7 +56,7 @@ const getUTCTimestampAndAddToStatus = _state =>
 const maybeGetSyncStateByNetworkId = _supportedChainConfig =>
   logger.debug('Status: Adding sync state...') ||
   new Promise((resolve, reject) => {
-    const chainType = _supportedChainConfig[pTokensConstants.config.KEY_CHAIN_TYPE]
+    const chainType = _supportedChainConfig[pTokensConstants.config.KEY_CHAIN_TYPE].toLowerCase()
     const getSyncStateImpl = chains[chainType].getSyncState
 
     return R.isNil(getSyncStateImpl)
