@@ -9,33 +9,34 @@ configDotenv()
 import ActorsManager from './src/ActorsManager.js'
 import ChallengesManager from './src/ChallengesManager.js'
 import ClientsManager from './src/ClientsManager.js'
-// import verifySignature from './src/lib/verify-signature.js'
+// import verifySignature from './src/utils/verify-signature.js'
 import settings from './src/settings/index.js'
-import { getNetworkIdByChain } from './src/lib/network.js'
+import { getNetworkIdByChain } from './src/utils/network.js'
+import logger from './src/utils/logger.js'
 
 let actorsManager, challengesManager, clientsManager
 
 const onMessage = async _message => {
   try {
     const message = JSON.parse(uint8ArrayToString(_message.detail.data))
-    console.log(`✓ New message: ${JSON.stringify(message)}. Checking signature ...`)
+    logger.info(`✓ New message: ${JSON.stringify(message)}. Checking signature ...`)
 
     /*if (!(await verifySignature(message))) {
-      console.log('✗ Invalid signature. Skipping ...')
+      logger.info('✗ Invalid signature. Skipping ...')
       return
     }*/
 
-    console.log('✓ Valid signature! Checking actor state ...')
+    logger.info('✓ Valid signature! Checking actor state ...')
     const actor = message.signerAddress
     const networkIdsNotSynced = await challengesManager.getNetworksNotSyncedBySyncState({
       syncState: message.syncState,
     })
     if (networkIdsNotSynced.length === 0) {
-      console.log(`✗ ${actor} seems to be in sync! Skipping ...`)
+      logger.info(`✗ ${actor} seems to be in sync! Skipping ...`)
       return
     }
 
-    console.log(`✓ ${actor} seems to be not in sync! Checking entity ...`)
+    logger.info(`✓ ${actor} seems to be not in sync! Checking entity ...`)
     if (
       !(await actorsManager.isActor({
         actor: '0x74aa490c9728a728f3f767b0dea060c2be63b508',
@@ -43,23 +44,23 @@ const onMessage = async _message => {
         actorType: 'sentinel',
       }))
     ) {
-      console.log(`✗ ${actor} is not a valid guardian/sentinel`)
+      logger.info(`✗ ${actor} is not a valid guardian/sentinel`)
       return
     }
 
-    console.log(`✓ ${actor} is a valid ${message.actorType}! Starting the challenge ...`)
+    logger.info(`✓ ${actor} is a valid ${message.actorType}! Starting the challenge ...`)
     await challengesManager.startChallengesByNetworks({
       actor: message.signerAddress,
       actorType: message.actorType,
       networks: networkIdsNotSynced,
     })
   } catch (_err) {
-    console.error(_err)
+    logger.error(_err)
   }
 }
 
 ;(async () => {
-  console.log('✓ Connecting to database ...')
+  logger.info('✓ Connecting to database ...')
   const client = new MongoClient(settings.db.uri)
   const db = client.db(settings.db.name)
 
@@ -84,6 +85,7 @@ const onMessage = async _message => {
     challengeDuration: settings.challengeDuration,
     clientsManager,
     db,
+    logger,
     pNetworkHubAddresses: Object.values(settings.addresses)
       .map(({ pNetworkHub }) => pNetworkHub)
       .reduce((_acc, _address, _index) => {
@@ -95,7 +97,7 @@ const onMessage = async _message => {
   /*const node = await createNode()
           node.services.pubsub.addEventListener('message', onMessage)
           await node.services.pubsub.subscribe(TOPIC)
-          console.log(`✓ Subscribed to ${TOPIC} ...`)*/
+          logger.info(`✓ Subscribed to ${TOPIC} ...`)*/
   onMessage({
     detail: {
       data: uint8ArrayFromString(

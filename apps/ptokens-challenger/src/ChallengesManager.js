@@ -10,6 +10,7 @@ class ChallengesManager {
     challengerAddress,
     clientsManager,
     db,
+    logger,
     pNetworkHubAddresses,
     startChallengeThresholdBlocks,
   }) {
@@ -19,6 +20,7 @@ class ChallengesManager {
     this.startChallengeThresholdBlocks = startChallengeThresholdBlocks
     this.clientsManager = clientsManager
     this.challengeDuration = challengeDuration
+    this.logger = logger
 
     this.challenges = db.collection('challenges')
 
@@ -30,7 +32,7 @@ class ChallengesManager {
 
   async processPendingChallenges() {
     try {
-      console.log('✓ Checking pending challenges ...')
+      this.logger.info('✓ Checking pending challenges ...')
       const pendingChallenges = await this.challenges
         .find({
           status: 'pending',
@@ -39,13 +41,13 @@ class ChallengesManager {
         .toArray()
 
       if (pendingChallenges.length === 0) {
-        console.log('✓ No pending challenges found! Skipping ...')
+        this.logger.info('✓ No pending challenges found! Skipping ...')
         return
       }
 
       // TODO: solve challenge
 
-      console.log(
+      this.logger.info(
         `✓ Found ${pendingChallenges.length} solvable challenge${
           pendingChallenges.length > 1 ? 's' : ''
         }! Setting as solved ...`
@@ -55,7 +57,7 @@ class ChallengesManager {
         { $set: { status: 'solved' } }
       )
     } catch (_err) {
-      console.error(_err)
+      this.logger.error(_err)
     }
   }
 
@@ -82,7 +84,10 @@ class ChallengesManager {
   }
 
   async startChallengesByNetworks({ actor, actorType, networks }) {
+    this.logger.info(`✓ Calculating actor merkle proof ...`)
     const proof = await this.actorsManager.getActorsMerkleProofForCurrentEpoch({ actor, actorType })
+
+    this.logger.info(`✓ Simulating contract calls ...`)
     const validRequests = (
       await Promise.all(
         networks.map(
@@ -104,8 +109,9 @@ class ChallengesManager {
         )
       )
     ).filter(_request => _request)
-    console.log(validRequests)
+    this.logger.info(validRequests)
 
+    this.logger.info(`✓ Sending transactions ...`)
     // TODO: start challenge + store challenge within mongo
     /*await this.challenges.insertOne({
       status: 'pending',

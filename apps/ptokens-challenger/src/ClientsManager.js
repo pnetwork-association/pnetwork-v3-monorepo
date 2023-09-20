@@ -3,7 +3,7 @@ configDotenv()
 import { createWalletClient, http, publicActions } from 'viem'
 import { privateKeyToAccount } from 'viem/accounts'
 
-import { getNetworkIdByChain } from './lib/network.js'
+import { getNetworkIdByChain } from './utils/network.js'
 
 const getClient = ({ chain, privateKey, rpcUrl }) =>
   createWalletClient({

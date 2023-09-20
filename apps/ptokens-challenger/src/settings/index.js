@@ -2,7 +2,7 @@ import { configDotenv } from 'dotenv'
 configDotenv()
 import { gnosis, mainnet, polygon, goerli } from 'viem/chains'
 
-import { getNetworkIdByChain } from '../lib/network.js'
+import { getNetworkIdByChain } from '../utils/network.js'
 
 export default {
   chains: [mainnet, gnosis, polygon],
