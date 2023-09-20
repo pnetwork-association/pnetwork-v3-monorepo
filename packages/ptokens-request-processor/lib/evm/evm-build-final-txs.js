@@ -2,10 +2,9 @@ const R = require('ramda')
 const ethers = require('ethers')
 const errors = require('../errors')
 const constants = require('ptokens-constants')
-const { logic } = require('ptokens-utils')
+const { utils, logic } = require('ptokens-utils')
 const { logger } = require('../get-logger')
 const { addErrorToEvent } = require('../add-error-to-event')
-const { readIdentityFile } = require('../read-identity-file')
 const { addFinalizedEventsToState } = require('../state/state-operations.js')
 const { STATE_PROPOSED_DB_REPORTS } = require('../state/constants')
 const {
@@ -98,7 +97,7 @@ const buildFinalTxsAndPutInState = _state =>
     const hub = _state[constants.state.KEY_HUB_ADDRESS]
 
     return checkEventsHaveExpectedDestinationChainId(destinationNetworkId, proposedEvents)
-      .then(_ => readIdentityFile(identityGpgFile))
+      .then(_ => utils.readIdentityFile(identityGpgFile))
       .then(_privateKey => new ethers.Wallet(_privateKey, provider))
       .then(sendFinalTransactions(proposedEvents, hub, txTimeout))
       .then(addFinalizedEventsToState(_state))

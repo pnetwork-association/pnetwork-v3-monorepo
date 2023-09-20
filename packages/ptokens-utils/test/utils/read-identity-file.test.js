@@ -1,4 +1,5 @@
 const crypto = require('crypto')
+const assert = require('assert')
 const { writeFile, rm } = require('fs/promises')
 
 describe('Tests for readIdentityFile', () => {
@@ -6,18 +7,18 @@ describe('Tests for readIdentityFile', () => {
     const TEST_FILE_PATH = './test-file'
     const str = crypto.randomBytes(20).toString('hex')
 
-    beforeAll(async () => {
+    before(async () => {
       await writeFile(TEST_FILE_PATH, str + '\n')
     })
 
-    afterAll(async () => {
+    after(async () => {
       await rm(TEST_FILE_PATH)
     })
 
     it('Should read and strip', async () => {
-      const { readIdentityFile } = require('../lib/read-identity-file')
-      const ret = await readIdentityFile(TEST_FILE_PATH)
-      expect(ret).toStrictEqual(str)
+      const { utils } = require('../..')
+      const ret = await utils.readIdentityFile(TEST_FILE_PATH)
+      assert.deepStrictEqual(ret, str)
     })
   })
 })

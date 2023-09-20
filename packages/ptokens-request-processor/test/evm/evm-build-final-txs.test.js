@@ -1,5 +1,5 @@
 const constants = require('ptokens-constants')
-const { errors } = require('ptokens-utils')
+const { errors, utils } = require('ptokens-utils')
 const {
   STATE_PROPOSED_DB_REPORTS,
   STATE_FINALIZED_DB_REPORTS,
@@ -78,10 +78,9 @@ describe('General final txs testing', () => {
     it('Should build the finalize transactions and add them to the state', async () => {
       const { logic } = require('ptokens-utils')
       const ethers = require('ethers')
-      const fs = require('fs/promises')
 
       jest.spyOn(logic, 'sleepForXMilliseconds').mockImplementation(_ => Promise.resolve())
-      jest.spyOn(fs, 'readFile').mockResolvedValue(privKey)
+      jest.spyOn(utils, 'readIdentityFile').mockResolvedValue(privKey)
       jest.spyOn(ethers, 'JsonRpcProvider').mockResolvedValue({})
       jest.spyOn(ethers, 'Wallet').mockImplementation(_ => jest.fn())
       jest.spyOn(ethers, 'Contract').mockImplementation(_ => jest.fn())
@@ -213,10 +212,9 @@ describe('General final txs testing', () => {
     it('Should build the finalize transactions and handle errors', async () => {
       const { logic } = require('ptokens-utils')
       const ethers = require('ethers')
-      const fs = require('fs/promises')
 
       jest.spyOn(logic, 'sleepForXMilliseconds').mockImplementation(_ => Promise.resolve())
-      jest.spyOn(fs, 'readFile').mockResolvedValue(privKey)
+      jest.spyOn(utils, 'readIdentityFile').mockResolvedValue(privKey)
       jest.spyOn(ethers, 'JsonRpcProvider').mockResolvedValue({})
       jest.spyOn(ethers, 'Wallet').mockImplementation(_ => jest.fn())
       jest.spyOn(ethers, 'Contract').mockImplementation(_ => jest.fn())
