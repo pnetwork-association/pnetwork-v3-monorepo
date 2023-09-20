@@ -1,5 +1,6 @@
 const db = require('./lib/db')
 const cli = require('./lib/cli')
+const ipfs = require('./lib/ipfs')
 const http = require('./lib/http')
 const web3 = require('./lib/web3')
 const logic = require('./lib/logic')
@@ -16,6 +17,7 @@ const ptokensUtils = {
   cli: cli,
   web3: web3,
   http: http,
+  ipfs: ipfs,
   utils: utils,
   logic: logic,
   errors: errors,
