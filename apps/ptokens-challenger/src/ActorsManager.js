@@ -11,6 +11,7 @@ class ActorsManager {
     db,
     epochsManagerAddress,
     governanceMessageEmitterAddress,
+    logger,
     registrationManagerAddress,
   }) {
     this.registrationManager = getContract({
@@ -32,8 +33,10 @@ class ActorsManager {
     })
 
     this.client = client
+    this.logger = logger
 
     this.actors = db.collection('actors')
+    this.actors.drop()
   }
 
   async isActor({ actor, actorType }) {
@@ -61,57 +64,12 @@ class ActorsManager {
 
   async getActorsMerkleTreeForCurrentEpoch({ actorType }) {
     const currentEpoch = await this.epochsManager.read.currentEpoch()
-    const latestBlockNumber = await this.client.getBlockNumber()
 
-    let actors = await this.actors.find({ epoch: currentEpoch, actorType }).toArray()
+    let actors = (await this.actors.find({ epoch: currentEpoch, actorType }).toArray()).map(
+      ({ address }) => address
+    )
     if (actors.length === 0) {
-      let logs = []
-      let fromBlock = latestBlockNumber - 9999n
-      let toBlock = latestBlockNumber
-
-      // eslint-disable-next-line no-constant-condition
-      while (true) {
-        logs = await this.client.getLogs({
-          address: this.governanceMessageEmitter.address,
-          event:
-            actorType === 'sentinel'
-              ? parseAbiItem('event SentinelsPropagated(uint16 indexed epoch, address[] sentinels)')
-              : parseAbiItem(
-                  'event GuardiansPropagated(uint16 indexed epoch, address[] guardians)'
-                ),
-          args: {
-            epoch: currentEpoch,
-          },
-          fromBlock,
-          toBlock,
-        })
-
-        if (logs.length > 0) {
-          // NOTE: if within the current epoch no SentinelsPropagated events have been emitted yet
-          if (logs[0].args.epoch < currentEpoch) {
-            logs = []
-          }
-          break
-        }
-
-        toBlock = fromBlock - 1n
-        fromBlock = fromBlock - 9999n
-      }
-
-      actors =
-        logs.length > 0
-          ? actorType === 'sentinel'
-            ? logs[0].args.sentinels
-            : logs[0].args.guardians
-          : []
-
-      if (actors.length > 0) {
-        await this.actors.insertOne({
-          actors,
-          actorType,
-          epoch: currentEpoch,
-        })
-      }
+      actors = await this.getAndMaybeStoreActorsByEpoch({ actorType, epoch: currentEpoch })
     }
 
     // TODO: Address vulnerability where an attacker could reorder sentinels/guardians, compromising our stored list.
@@ -128,6 +86,64 @@ class ActorsManager {
     const leaves = actors.map(_address => keccak256(encodePacked(['address'], [_address])))
     const tree = new MerkleTree(leaves, keccak256, { sortPairs: true })
     return tree
+  }
+
+  async getAndMaybeStoreActorsByEpoch({ actorType, epoch }) {
+    const latestBlockNumber = await this.client.getBlockNumber()
+
+    let actors = []
+    let logs = []
+    let fromBlock = latestBlockNumber - 9999n
+    let toBlock = latestBlockNumber
+
+    // eslint-disable-next-line no-constant-condition
+    while (true) {
+      logs = await this.client.getLogs({
+        address: this.governanceMessageEmitter.address,
+        event:
+          actorType === 'sentinel'
+            ? parseAbiItem('event SentinelsPropagated(uint16 indexed epoch, address[] sentinels)')
+            : parseAbiItem('event GuardiansPropagated(uint16 indexed epoch, address[] guardians)'),
+        args: {
+          epoch,
+        },
+        fromBlock,
+        toBlock,
+      })
+
+      if (logs.length > 0) {
+        // NOTE: if within the current epoch no SentinelsPropagated events have been emitted yet
+        if (logs[0].args.epoch < epoch) {
+          logs = []
+        }
+        break
+      }
+
+      toBlock = fromBlock - 1n
+      fromBlock = fromBlock - 9999n
+    }
+
+    actors =
+      logs.length > 0
+        ? actorType === 'sentinel'
+          ? logs[0].args.sentinels
+          : logs[0].args.guardians
+        : []
+
+    if (actors.length > 0) {
+      this.logger.info(
+        `✓ Detected ${actorType}s propagation in epoch ${epoch}. Storing in the db ...`
+      )
+      await this.actors.insertMany(
+        actors.map(_address => ({
+          actorType,
+          address: _address,
+          epoch,
+        }))
+      )
+    }
+
+    return actors
   }
 }
 

@@ -77,6 +77,7 @@ const onMessage = async _message => {
     epochsManagerAddress: settings.addresses[getNetworkIdByChain(polygon)].epochsManager,
     governanceMessageEmitterAddress:
       settings.addresses[getNetworkIdByChain(polygon)].governanceMessageEmitter,
+    logger,
     registrationManagerAddress:
       settings.addresses[getNetworkIdByChain(polygon)].registrationManager,
   })
