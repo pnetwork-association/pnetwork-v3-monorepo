@@ -14,4 +14,8 @@ module.exports = {
   KEY_HUB_ADDRESS: 'hub-address',
   KEY_CHALLENGE_PERIOD: 'challenge-period',
   KEY_LOOP_SLEEP_TIME: 'loop-sleep-time',
+  KEY_PROTOCOLS: 'protocols',
+  KEY_SUPPORTED_CHAINS: 'supported-chains',
+  KEY_TYPE: 'type',
+  KEY_DATA: 'data',
 }
