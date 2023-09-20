@@ -796,8 +796,7 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
     }
 
     function _onGovernanceMessage(bytes memory message) internal override {
-        bytes memory decodedMessage = abi.decode(message, (bytes));
-        (bytes32 messageType, bytes memory messageData) = abi.decode(decodedMessage, (bytes32, bytes));
+        (bytes32 messageType, bytes memory messageData) = abi.decode(message, (bytes32, bytes));
 
         if (messageType == GOVERNANCE_MESSAGE_GUARDIANS) {
             (uint16 epoch, uint16 totalNumberOfGuardians, bytes32 guardiansMerkleRoot) = abi.decode(

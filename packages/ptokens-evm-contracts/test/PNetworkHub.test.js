@@ -52,7 +52,8 @@ let token,
   pRegistry,
   lendingManager,
   interimChainId,
-  mockRegistrationManager
+  mockRegistrationManager,
+  abiCoder
 
 describe('PNetworkHub', () => {
   const getActorsMerkleProof = (_actors, _actor) => {
@@ -148,6 +149,7 @@ describe('PNetworkHub', () => {
 
     chainId = (await ethers.provider.getNetwork()).chainId
     interimChainId = 0
+    abiCoder = new ethers.utils.AbiCoder()
 
     const Slasher = await ethers.getContractFactory('Slasher')
     const PFactory = await ethers.getContractFactory('PFactory')
@@ -278,7 +280,7 @@ describe('PNetworkHub', () => {
     const receipt = await tx.wait(1)
     const messages = receipt.events
       .filter(({ event }) => event === 'GovernanceMessage')
-      .map(({ data }) => data)
+      .map(({ data }) => abiCoder.decode(['bytes'], data)[0]) // NOTE: abi.decode is made within GovernanceMessageVerifier
 
     await Promise.all(
       messages.map(_message =>
@@ -1365,7 +1367,11 @@ describe('PNetworkHub', () => {
     await expect(
       hub
         .connect(telepathyRouter)
-        .handleTelepathy(chainId, fakeGovernanceMessageVerifier.address, message.data)
+        .handleTelepathy(
+          chainId,
+          fakeGovernanceMessageVerifier.address,
+          abiCoder.decode(['bytes'], message.data)[0]
+        )
     )
       .to.emit(hub, 'SentinelResumed')
       .withArgs(currentEpoch, challengedSentinel.address)
@@ -1507,7 +1513,11 @@ describe('PNetworkHub', () => {
     await expect(
       hub
         .connect(telepathyRouter)
-        .handleTelepathy(chainId, fakeGovernanceMessageVerifier.address, message.data)
+        .handleTelepathy(
+          chainId,
+          fakeGovernanceMessageVerifier.address,
+          abiCoder.decode(['bytes'], message.data)[0]
+        )
     )
       .to.emit(hub, 'GuardianResumed')
       .withArgs(currentEpoch, challengedGuardian.address)
@@ -1729,7 +1739,11 @@ describe('PNetworkHub', () => {
     await expect(
       hub
         .connect(telepathyRouter)
-        .handleTelepathy(chainId, fakeGovernanceMessageVerifier.address, message.data)
+        .handleTelepathy(
+          chainId,
+          fakeGovernanceMessageVerifier.address,
+          abiCoder.decode(['bytes'], message.data)[0]
+        )
     )
       .to.emit(hub, 'GuardianResumed')
       .withArgs(currentEpoch, guardians[0].address)
@@ -1760,7 +1774,7 @@ describe('PNetworkHub', () => {
     const receipt = await tx.wait(1)
     const messages = receipt.events
       .filter(({ event }) => event === 'GovernanceMessage')
-      .map(({ data }) => data)
+      .map(({ data }) => abiCoder.decode(['bytes'], data)[0])
     await Promise.all(
       messages.map(_message =>
         hub
@@ -1792,7 +1806,7 @@ describe('PNetworkHub', () => {
     const receipt = await tx.wait(1)
     const messages = receipt.events
       .filter(({ event }) => event === 'GovernanceMessage')
-      .map(({ data }) => data)
+      .map(({ data }) => abiCoder.decode(['bytes'], data)[0])
     await Promise.all(
       messages.map(_message =>
         hub
@@ -1948,7 +1962,11 @@ describe('PNetworkHub', () => {
 
     await hub
       .connect(telepathyRouter)
-      .handleTelepathy(chainId, fakeGovernanceMessageVerifier.address, message.data)
+      .handleTelepathy(
+        chainId,
+        fakeGovernanceMessageVerifier.address,
+        abiCoder.decode(['bytes'], message.data)[0]
+      )
 
     // At this point sentinel1 should resume itself
     tx = await governanceMessageEmitter.resumeSentinel(slashedSentinel.address)
@@ -1958,7 +1976,11 @@ describe('PNetworkHub', () => {
     await expect(
       hub
         .connect(telepathyRouter)
-        .handleTelepathy(chainId, fakeGovernanceMessageVerifier.address, message.data)
+        .handleTelepathy(
+          chainId,
+          fakeGovernanceMessageVerifier.address,
+          abiCoder.decode(['bytes'], message.data)[0]
+        )
     )
       .to.emit(hub, 'SentinelResumed')
       .withArgs(currentEpoch, slashedSentinel.address)
@@ -2007,7 +2029,11 @@ describe('PNetworkHub', () => {
       await expect(
         hub
           .connect(telepathyRouter)
-          .handleTelepathy(chainId, fakeGovernanceMessageVerifier.address, message.data)
+          .handleTelepathy(
+            chainId,
+            fakeGovernanceMessageVerifier.address,
+            abiCoder.decode(['bytes'], message.data)[0]
+          )
       )
         .to.emit(hub, 'SentinelSlashed')
         .withArgs(currentEpoch, sentinels[i].address)
@@ -2047,7 +2073,11 @@ describe('PNetworkHub', () => {
     const message = receipt.events.find(({ event }) => event === 'GovernanceMessage')
     await hub
       .connect(telepathyRouter)
-      .handleTelepathy(chainId, fakeGovernanceMessageVerifier.address, message.data)
+      .handleTelepathy(
+        chainId,
+        fakeGovernanceMessageVerifier.address,
+        abiCoder.decode(['bytes'], message.data)[0]
+      )
 
     tx = await hub.connect(challenger).startChallengeGuardian(challengedGuardian.address, proof, {
       value: LOCKED_AMOUNT_START_CHALLENGE,
@@ -2115,7 +2145,11 @@ describe('PNetworkHub', () => {
     await expect(
       hub
         .connect(telepathyRouter)
-        .handleTelepathy(chainId, fakeGovernanceMessageVerifier.address, message.data)
+        .handleTelepathy(
+          chainId,
+          fakeGovernanceMessageVerifier.address,
+          abiCoder.decode(['bytes'], message.data)[0]
+        )
     )
       .to.emit(hub, 'ChallengeCancelled')
       .withArgs(challenge.serialize())
@@ -2152,7 +2186,11 @@ describe('PNetworkHub', () => {
     // cancel challenge
     await hub
       .connect(telepathyRouter)
-      .handleTelepathy(chainId, fakeGovernanceMessageVerifier.address, message.data)
+      .handleTelepathy(
+        chainId,
+        fakeGovernanceMessageVerifier.address,
+        abiCoder.decode(['bytes'], message.data)[0]
+      )
 
     await expect(hub.connect(challenger).slashByChallenge(challenge))
       .to.be.revertedWithCustomError(hub, 'InvalidChallengeStatus')
@@ -2207,7 +2245,11 @@ describe('PNetworkHub', () => {
       const message = receipt.events.find(({ event }) => event === 'GovernanceMessage')
       await hub
         .connect(telepathyRouter)
-        .handleTelepathy(chainId, fakeGovernanceMessageVerifier.address, message.data)
+        .handleTelepathy(
+          chainId,
+          fakeGovernanceMessageVerifier.address,
+          abiCoder.decode(['bytes'], message.data)[0]
+        )
 
       activeActors++
     }
@@ -2227,7 +2269,11 @@ describe('PNetworkHub', () => {
       const message = receipt.events.find(({ event }) => event === 'GovernanceMessage')
       await hub
         .connect(telepathyRouter)
-        .handleTelepathy(chainId, fakeGovernanceMessageVerifier.address, message.data)
+        .handleTelepathy(
+          chainId,
+          fakeGovernanceMessageVerifier.address,
+          abiCoder.decode(['bytes'], message.data)[0]
+        )
 
       activeActors++
     }
