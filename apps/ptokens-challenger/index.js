@@ -3,7 +3,6 @@ import { fromString as uint8ArrayFromString } from 'uint8arrays/from-string'
 import { toString as uint8ArrayToString } from 'uint8arrays/to-string'
 import { polygon } from 'viem/chains'
 import { MongoClient } from 'mongodb'
-configDotenv()
 
 // import createNode from './src/create-node.js'
 import ActorsManager from './src/ActorsManager.js'
@@ -13,6 +12,8 @@ import ClientsManager from './src/ClientsManager.js'
 import settings from './src/settings/index.js'
 import { getNetworkIdByChain } from './src/utils/network.js'
 import logger from './src/utils/logger.js'
+
+configDotenv()
 
 let actorsManager, challengesManager, clientsManager
 

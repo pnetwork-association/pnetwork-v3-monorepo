@@ -1,5 +1,3 @@
-import { configDotenv } from 'dotenv'
-configDotenv()
 import { createWalletClient, http, publicActions } from 'viem'
 import { privateKeyToAccount } from 'viem/accounts'
 
