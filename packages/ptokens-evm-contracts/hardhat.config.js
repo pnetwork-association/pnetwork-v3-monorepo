@@ -105,6 +105,7 @@ module.exports = {
       arbitrum: getEnvironmentVariable('ARBISCAN_API_KEY'),
       gnosis: getEnvironmentVariable('GNOSISSCAN_API_KEY'),
       goerli: getEnvironmentVariable('GOERLI_API_KEY'),
+      bsc: getEnvironmentVariable('BSCSCAN_API_KEY'),
     },
     customChains: [
       {
@@ -143,8 +144,8 @@ module.exports = {
         network: 'bsc',
         chainId: 56,
         urls: {
-          apiURL: 'https://api.mumbai.polygonscan.com/api',
-          browserURL: 'https://mumbai.polygonscan.com/',
+          apiURL: 'https://api.bscscan.com/api',
+          browserURL: 'https://bscscan.com/',
         },
       },
       {
