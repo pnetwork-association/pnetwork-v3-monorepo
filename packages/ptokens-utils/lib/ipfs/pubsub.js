@@ -1,4 +1,5 @@
 const R = require('ramda')
+const { logger } = require('../logger')
 const EventEmitter = require('events')
 const constants = require('./constants')
 const { spawn } = require('node:child_process')
@@ -29,7 +30,10 @@ const pub = R.curry(
       const stderr = []
       const stdout = []
 
-      pub.stdin.write(_content)
+      logger.trace(`topic: '${_topic}'`)
+      logger.trace('content:', _content)
+
+      pub.stdin.write(_content + '\n')
       pub.stdin.end()
 
       pub.stdout.on('data', data => {
