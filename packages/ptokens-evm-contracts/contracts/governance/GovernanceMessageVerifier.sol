@@ -109,7 +109,7 @@ contract GovernanceMessageVerifier is IGovernanceMessageVerifier {
 
         bytes memory message = RLPReader.toBytes(log[2]);
         (uint256 nonce, uint32[] memory chainIds, address[] memory hubs, bytes memory data) = abi.decode(
-            message,
+            abi.decode(message, (bytes)),
             (uint256, uint32[], address[], bytes)
         );
         if (nonce != totalNumberOfProcessedMessages) {
