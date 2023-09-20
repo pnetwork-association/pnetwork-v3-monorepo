@@ -8,6 +8,7 @@ import RegistrationManagerABI from './abi/RegistrationManager.json' assert { typ
 class ActorsManager {
   constructor({
     client,
+    db,
     epochsManagerAddress,
     governanceMessageEmitterAddress,
     registrationManagerAddress,
@@ -31,6 +32,8 @@ class ActorsManager {
     })
 
     this.client = client
+
+    this.actors = db.collection('actors')
   }
 
   async isActor({ actor, actorType }) {
@@ -60,47 +63,68 @@ class ActorsManager {
     const currentEpoch = await this.epochsManager.read.currentEpoch()
     const latestBlockNumber = await this.client.getBlockNumber()
 
-    let logs = []
-    let fromBlock = latestBlockNumber - 5000n
-    let toBlock = latestBlockNumber
+    let actors = await this.actors.find({ epoch: currentEpoch, actorType }).toArray()
+    if (actors.length === 0) {
+      let logs = []
+      let fromBlock = latestBlockNumber - 9999n
+      let toBlock = latestBlockNumber
 
-    // eslint-disable-next-line no-constant-condition
-    while (true) {
-      logs = await this.client.getLogs({
-        address: this.governanceMessageEmitter.address,
-        event:
-          actorType === 'sentinel'
-            ? parseAbiItem('event SentinelsPropagated(uint16 indexed epoch, address[] sentinels)')
-            : parseAbiItem('event GuardiansPropagated(uint16 indexed epoch, address[] guardians)'),
-        args: {
-          epoch: currentEpoch,
-        },
-        fromBlock,
-        toBlock,
-      })
+      // eslint-disable-next-line no-constant-condition
+      while (true) {
+        logs = await this.client.getLogs({
+          address: this.governanceMessageEmitter.address,
+          event:
+            actorType === 'sentinel'
+              ? parseAbiItem('event SentinelsPropagated(uint16 indexed epoch, address[] sentinels)')
+              : parseAbiItem(
+                  'event GuardiansPropagated(uint16 indexed epoch, address[] guardians)'
+                ),
+          args: {
+            epoch: currentEpoch,
+          },
+          fromBlock,
+          toBlock,
+        })
 
-      if (logs.length > 0) {
-        // NOTE: if within the current epoch no SentinelsPropagated events have been emitted yet
-        if (logs[0].args.epoch < currentEpoch) {
-          logs = []
+        if (logs.length > 0) {
+          // NOTE: if within the current epoch no SentinelsPropagated events have been emitted yet
+          if (logs[0].args.epoch < currentEpoch) {
+            logs = []
+          }
+          break
         }
-        break
+
+        toBlock = fromBlock - 1n
+        fromBlock = fromBlock - 9999n
       }
 
-      toBlock = fromBlock - 1n
-      fromBlock = fromBlock - 5000n
+      actors =
+        logs.length > 0
+          ? actorType === 'sentinel'
+            ? logs[0].args.sentinels
+            : logs[0].args.guardians
+          : []
+
+      if (actors.length > 0) {
+        await this.actors.insertOne({
+          actors,
+          actorType,
+          epoch: currentEpoch,
+        })
+      }
     }
 
-    if (logs.length === 0) {
-      throw new Error('SentinelsPropagated not emitted yet in the current epoch')
+    // TODO: Address vulnerability where an attacker could reorder sentinels/guardians, compromising our stored list.
+    // Consider implementing a function to refetch and store the latest events if the transaction fails.
+
+    if (actors.length === 0) {
+      throw new Error(
+        `${
+          actorType === 'sentinel' ? 'SentinelsPropagated' : 'GuardiansPropagated'
+        } not emitted yet in the current epoch`
+      )
     }
 
-    const actors =
-      logs.length > 0
-        ? actorType === 'sentinel'
-          ? logs[0].args.sentinels
-          : logs[0].args.guardians
-        : []
     const leaves = actors.map(_address => keccak256(encodePacked(['address'], [_address])))
     const tree = new MerkleTree(leaves, keccak256, { sortPairs: true })
     return tree

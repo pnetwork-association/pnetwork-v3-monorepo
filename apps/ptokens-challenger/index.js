@@ -72,6 +72,7 @@ const onMessage = async _message => {
 
   actorsManager = new ActorsManager({
     client: clientsManager.getClientByChain(polygon),
+    db,
     epochsManagerAddress: settings.addresses[getNetworkIdByChain(polygon)].epochsManager,
     governanceMessageEmitterAddress:
       settings.addresses[getNetworkIdByChain(polygon)].governanceMessageEmitter,

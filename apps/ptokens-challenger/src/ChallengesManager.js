@@ -84,10 +84,10 @@ class ChallengesManager {
   }
 
   async startChallengesByNetworks({ actor, actorType, networks }) {
-    this.logger.info(`✓ Calculating actor merkle proof ...`)
+    this.logger.info('✓ Calculating actor merkle proof ...')
     const proof = await this.actorsManager.getActorsMerkleProofForCurrentEpoch({ actor, actorType })
 
-    this.logger.info(`✓ Simulating contract calls ...`)
+    this.logger.info('✓ Simulating contract calls ...')
     const validRequests = (
       await Promise.all(
         networks.map(
@@ -111,7 +111,7 @@ class ChallengesManager {
     ).filter(_request => _request)
     this.logger.info(validRequests)
 
-    this.logger.info(`✓ Sending transactions ...`)
+    this.logger.info('✓ Sending transactions ...')
     // TODO: start challenge + store challenge within mongo
     /*await this.challenges.insertOne({
       status: 'pending',
