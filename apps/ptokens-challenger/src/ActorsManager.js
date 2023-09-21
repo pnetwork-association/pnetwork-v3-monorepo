@@ -6,6 +6,8 @@ import EpochsManagerABI from './abi/EpochsManager.json' assert { type: 'json' }
 import GovernanceMessageEmitterABI from './abi/GovernanceMessageEmitter.json' assert { type: 'json' }
 import RegistrationManagerABI from './abi/RegistrationManager.json' assert { type: 'json' }
 
+const sleep = _ms => new Promise(_resolve => setTimeout(() => _resolve(), _ms))
+
 class ActorsManager {
   constructor({
     client,
@@ -60,10 +62,9 @@ class ActorsManager {
       promises.push(this.storeActorsForEpoch({ actorType: 'sentinel', epoch: currentEpoch }))
     }
 
-    this.logger.info('✓ Acquiring mutex ...')
     const release = await this.mutex.acquire()
     await Promise.all(promises)
-    this.logger.info('✓ Actors stored! Releasing mutex ...')
+    this.logger.info('✓ Actors initialization completed!')
     await release()
   }
 
@@ -151,6 +152,7 @@ class ActorsManager {
 
       toBlock = fromBlock - 1n
       fromBlock = fromBlock - 9999n
+      await sleep(200) // avoid to exceed rpc rate limit
     }
 
     actors =

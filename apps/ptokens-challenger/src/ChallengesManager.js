@@ -27,7 +27,7 @@ class ChallengesManager {
     this.processPendingChallenges()
     setInterval(() => {
       this.processPendingChallenges()
-    }, 20000)
+    }, 40000)
   }
 
   async processPendingChallenges() {
@@ -70,6 +70,7 @@ class ChallengesManager {
     const clients = networkIds.map(_networkId =>
       this.clientsManager.getClientByNetworkId(_networkId)
     )
+
     const fetchedLatestBlockNumbers = await Promise.all(
       clients.map(_client => _client.getBlockNumber())
     )
