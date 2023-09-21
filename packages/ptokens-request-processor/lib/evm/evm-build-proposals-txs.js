@@ -2,7 +2,7 @@ const R = require('ramda')
 const ethers = require('ethers')
 const errors = require('../errors')
 const constants = require('ptokens-constants')
-const { logic } = require('ptokens-utils')
+const { utils, logic } = require('ptokens-utils')
 const { logger } = require('../get-logger')
 const { addProposalsReportsToState } = require('../state/state-operations.js')
 const { STATE_DETECTED_DB_REPORTS } = require('../state/constants')
@@ -16,7 +16,6 @@ const {
   getUserOperationAbiArgsFromReport,
   getLockedAmountChallengePeriodAbi,
 } = require('./evm-abi-manager')
-const { readIdentityFile } = require('../read-identity-file')
 const { addErrorToEvent } = require('../add-error-to-event')
 
 // TODO: factor out (check evm-build-final-txs)
@@ -116,7 +115,7 @@ const buildProposalsTxsAndPutInState = _state =>
     return (
       checkEventsHaveExpectedDestinationChainId(destinationNetworkId, detectedEvents)
         // FIXME: use gpg decrypt
-        .then(_ => readIdentityFile(identityGpgFile))
+        .then(_ => utils.readIdentityFile(identityGpgFile))
         .then(_privateKey =>
           Promise.all([
             new ethers.Wallet(_privateKey, provider),

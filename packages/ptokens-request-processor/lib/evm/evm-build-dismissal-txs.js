@@ -12,7 +12,6 @@ const {
   getUserOperationAbiArgsFromReport,
   getProtocolGuardianCancelOperationAbi,
 } = require('./evm-abi-manager')
-const { readIdentityFile } = require('../read-identity-file')
 const { addErrorToEvent } = require('../add-error-to-event')
 
 // TODO: factor out (check evm-build-proposals-txs)
@@ -89,7 +88,8 @@ const buildDismissalTxsAndPutInState = _state =>
     const txTimeout = _state[constants.state.KEY_TX_TIMEOUT]
     const hub = _state[constants.state.KEY_HUB_ADDRESS]
 
-    return readIdentityFile(identityGpgFile)
+    return utils
+      .readIdentityFile(identityGpgFile)
       .then(_privateKey => new ethers.Wallet(_privateKey, provider))
       .then(sendDismissalTransactions(invalidRequests, hub, txTimeout))
       .then(addDismissedReportsToState(_state))

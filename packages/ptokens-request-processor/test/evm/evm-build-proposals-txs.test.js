@@ -7,7 +7,7 @@ const {
   ERROR_OPERATION_ALREADY_QUEUED,
   ERROR_REPLACEMENT_UNDERPRICED,
 } = require('../../lib/errors')
-const { errors, validation } = require('ptokens-utils')
+const { errors, validation, utils } = require('ptokens-utils')
 const constants = require('ptokens-constants')
 const detectedEvents = require('../samples/detected-report-set')
 
@@ -102,9 +102,8 @@ describe('Build proposals test for EVM', () => {
 
     it('Should build the proposals and add them to the state', async () => {
       const ethers = require('ethers')
-      const fs = require('fs/promises')
 
-      jest.spyOn(fs, 'readFile').mockResolvedValue(privKey)
+      jest.spyOn(utils, 'readIdentityFile').mockResolvedValue(privKey)
       jest.spyOn(ethers, 'JsonRpcProvider').mockResolvedValue({})
       jest.spyOn(ethers, 'Wallet').mockImplementation(_ => jest.fn())
 
@@ -200,9 +199,8 @@ describe('Build proposals test for EVM', () => {
 
     it('Should build the proposal and handle timeout error', async () => {
       const ethers = require('ethers')
-      const fs = require('fs/promises')
 
-      jest.spyOn(fs, 'readFile').mockResolvedValue(privKey)
+      jest.spyOn(utils, 'readIdentityFile').mockResolvedValue(privKey)
       jest.spyOn(ethers, 'JsonRpcProvider').mockResolvedValue({})
       jest.spyOn(ethers, 'Wallet').mockImplementation(_ => jest.fn())
 
@@ -288,9 +286,8 @@ describe('Build proposals test for EVM', () => {
 
     it('Should build the proposal and handle already queued error', async () => {
       const ethers = require('ethers')
-      const fs = require('fs/promises')
 
-      jest.spyOn(fs, 'readFile').mockResolvedValue(privKey)
+      jest.spyOn(utils, 'readIdentityFile').mockResolvedValue(privKey)
       jest.spyOn(ethers, 'JsonRpcProvider').mockResolvedValue({})
       jest.spyOn(ethers, 'Wallet').mockImplementation(_ => jest.fn())
 
@@ -375,9 +372,8 @@ describe('Build proposals test for EVM', () => {
 
     it('Should build the proposal and handle underpriced error', async () => {
       const ethers = require('ethers')
-      const fs = require('fs/promises')
 
-      jest.spyOn(fs, 'readFile').mockResolvedValue(privKey)
+      jest.spyOn(utils, 'readIdentityFile').mockResolvedValue(privKey)
       jest.spyOn(ethers, 'JsonRpcProvider').mockResolvedValue({})
       jest.spyOn(ethers, 'Wallet').mockImplementation(_ => jest.fn())
 
