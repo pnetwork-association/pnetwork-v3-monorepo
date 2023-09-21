@@ -6,6 +6,7 @@ import {ReentrancyGuard} from "@openzeppelin/contracts/security/ReentrancyGuard.
 import {IEpochsManager} from "@pnetwork-association/dao-v2-contracts/contracts/interfaces/IEpochsManager.sol";
 import {IFeesManager} from "@pnetwork-association/dao-v2-contracts/contracts/interfaces/IFeesManager.sol";
 import {MerkleProof} from "@openzeppelin/contracts/utils/cryptography/MerkleProof.sol";
+import {ECDSA} from "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import {GovernanceMessageHandler} from "../governance/GovernanceMessageHandler.sol";
 import {IPToken} from "../interfaces/IPToken.sol";
 import {IPFactory} from "../interfaces/IPFactory.sol";
@@ -18,7 +19,7 @@ error OperationAlreadyQueued(IPNetworkHub.Operation operation);
 error OperationAlreadyExecuted(IPNetworkHub.Operation operation);
 error OperationAlreadyCancelled(IPNetworkHub.Operation operation);
 error OperationCancelled(IPNetworkHub.Operation operation);
-error OperationNotQueued(IPNetworkHub.Operation operation);
+error OperationNotFound(IPNetworkHub.Operation operation);
 error GovernanceOperationAlreadyCancelled(IPNetworkHub.Operation operation);
 error GuardianOperationAlreadyCancelled(IPNetworkHub.Operation operation);
 error SentinelOperationAlreadyCancelled(IPNetworkHub.Operation operation);
@@ -52,6 +53,7 @@ error MaxChallengeDurationNotPassed();
 error ChallengeNotFound(IPNetworkHub.Challenge challenge);
 error MaxChallengeDurationMustBeLessOrEqualThanMaxChallengePeriodDuration();
 error InvalidEpoch(uint16 epoch);
+error Inactive();
 
 contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard {
     bytes32 public constant GOVERNANCE_MESSAGE_GUARDIANS = keccak256("GOVERNANCE_MESSAGE_GUARDIANS");
@@ -94,85 +96,6 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
     uint256 public challengesNonce;
     uint16 public numberOfOperationsInQueue;
 
-    modifier onlySentinel(bytes32[] calldata proof) {
-        _;
-    }
-
-    modifier onlyGuardian(bytes32[] calldata proof) {
-        // TODO: check if msg.sender is a guardian
-        _;
-    }
-
-    modifier onlyGovernance(string memory action) {
-        // TODO: check if msg.sender is a governance
-        _;
-    }
-
-    modifier onlyIfNotInactive(bytes32[] calldata proof) {
-        // NOTE: avoid allowing slashed guardians/sentinels to operate without having resume itself on the RegistrationManager
-        // TODO: if _epochsActorsStatus[epoch][sentinel] == ActorsStatus.Inactive revert
-        _;
-    }
-
-    modifier onlyFarFromEpochClosingStartChallenge() {
-        uint256 epochDuration = IEpochsManager(epochsManager).epochDuration();
-        uint16 currentEpoch = IEpochsManager(epochsManager).currentEpoch();
-        uint256 startFirstEpochTimestamp = IEpochsManager(epochsManager).startFirstEpochTimestamp();
-        uint256 currentEpochEndTimestamp = startFirstEpochTimestamp + ((currentEpoch + 1) * epochDuration);
-
-        // NOTE: 1 hours = threshold that a guardian/sentinel or challenger has time to resolve the challenge
-        // before the epoch ends. Not setting this threshold would mean that it is possible
-        // to open a challenge that can be solved an instant before the epoch change causing problems.
-        // It is important that the system enters in lockdown mode before stopping to start challenges.
-        // In this way we are sure that no malicious operations can be queued when keep alive mechanism is disabled.
-        // currentEpochEndTimestamp - 1 hours - maxChallengeDuration <= currentEpochEndTimestamp - 1 hours - maxChallengePeriodDuration
-        // maxChallengeDuration <=  maxChallengePeriodDuration
-        // maxChallengeDuration <= baseChallengePeriodDuration + (maxOperationsInQueue * maxOperationsInQueue * kChallengePeriod) - kChallengePeriod
-        if (block.timestamp + maxChallengeDuration > currentEpochEndTimestamp - 1 hours) {
-            revert NearToEpochEnd();
-        }
-
-        _;
-    }
-
-    modifier onlyWhenIsNotInLockDown(bool addMaxChallengePeriodDuration) {
-        uint16 currentEpoch = IEpochsManager(epochsManager).currentEpoch();
-        if (
-            _epochsSentinelsMerkleRoot[currentEpoch] == bytes32(0) ||
-            _epochsGuardiansMerkleRoot[currentEpoch] == bytes32(0) ||
-            _epochsTotalNumberOfInactiveActors[currentEpoch] ==
-            _epochsTotalNumberOfSentinels[currentEpoch] + _epochsTotalNumberOfGuardians[currentEpoch]
-        ) {
-            revert LockDown();
-        }
-
-        uint256 epochDuration = IEpochsManager(epochsManager).epochDuration();
-        uint256 startFirstEpochTimestamp = IEpochsManager(epochsManager).startFirstEpochTimestamp();
-        uint256 currentEpochEndTimestamp = startFirstEpochTimestamp + ((currentEpoch + 1) * epochDuration);
-
-        // If a relayer queues a malicious operation shortly before lockdown mode begins, what happens?
-        // When lockdown mode is initiated, both sentinels and guardians lose their ability to cancel operations.
-        // Consequently, the malicious operation may be executed immediately after the lockdown period ends,
-        // especially if the operation's queue time is significantly shorter than the lockdown duration.
-        // To mitigate this risk, operations should not be queued if the max challenge period makes
-        // the operation challenge period finish after 1 hour before the end of an epoch.
-        if (
-            block.timestamp +
-                (
-                    addMaxChallengePeriodDuration
-                        ? baseChallengePeriodDuration +
-                            (maxOperationsInQueue * maxOperationsInQueue * kChallengePeriod) -
-                            kChallengePeriod
-                        : 0
-                ) >=
-            currentEpochEndTimestamp - 1 hours
-        ) {
-            revert LockDown();
-        }
-
-        _;
-    }
-
     constructor(
         address factory_,
         uint32 baseChallengePeriodDuration_,
@@ -189,7 +112,7 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
         uint64 maxChallengeDuration_,
         uint32 expectedSourceChainId
     ) GovernanceMessageHandler(telepathyRouter, governanceMessageVerifier, expectedSourceChainId) {
-        // NOTE: see the comment within onlyFarFromEpochClosingStartChallenge
+        // NOTE: see the comment within _checkNearEndOfEpoch
         if (
             maxChallengeDuration_ >
             baseChallengePeriodDuration_ +
@@ -213,15 +136,16 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
     }
 
     /// @inheritdoc IPNetworkHub
-    function getNetworkId() public view returns (bytes4) {
-        return Network.getCurrentNetworkId();
-    }
-
-    /// @inheritdoc IPNetworkHub
-    function challengeIdOf(Challenge memory challenge) public view returns (bytes32) {
+    function challengeIdOf(Challenge memory challenge) public pure returns (bytes32) {
         return
             sha256(
-                abi.encode(challenge.nonce, challenge.actor, challenge.challenger, challenge.timestamp, block.chainid)
+                abi.encode(
+                    challenge.nonce,
+                    challenge.actor,
+                    challenge.challenger,
+                    challenge.timestamp,
+                    challenge.networkId
+                )
             );
     }
 
@@ -269,7 +193,7 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
     }
 
     /// @inheritdoc IPNetworkHub
-    function getChallengeStatus(Challenge calldata challenge) public view returns (ChallengeStatus) {
+    function getChallengeStatus(Challenge calldata challenge) external view returns (ChallengeStatus) {
         return _epochsChallengesStatus[getChallengeEpoch(challenge)][challengeIdOf(challenge)];
     }
 
@@ -298,6 +222,11 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
     /// @inheritdoc IPNetworkHub
     function getGuardiansMerkleRootForEpoch(uint16 epoch) external view returns (bytes32) {
         return _epochsGuardiansMerkleRoot[epoch];
+    }
+
+    /// @inheritdoc IPNetworkHub
+    function getNetworkId() external view returns (bytes4) {
+        return Network.getCurrentNetworkId();
     }
 
     /// @inheritdoc IPNetworkHub
@@ -338,7 +267,8 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
                     operation.networkFeeAssetAmount,
                     operation.forwardNetworkFeeAssetAmount,
                     operation.userData,
-                    operation.optionsMask
+                    operation.optionsMask,
+                    operation.isForProtocol
                 )
             );
     }
@@ -349,30 +279,42 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
     }
 
     /// @inheritdoc IPNetworkHub
-    function protocolGuardianCancelOperation(
-        Operation calldata operation,
-        bytes32[] calldata proof
-    ) external onlyWhenIsNotInLockDown(false) onlyGuardian(proof) onlyIfNotInactive(proof) {
-        _protocolCancelOperation(operation, Actor.Guardian);
+    function protocolGuardianCancelOperation(Operation calldata operation, bytes32[] calldata proof) external {
+        _checkLockDownMode(false);
+        address guardian = _msgSender();
+        if (!_isGuardian(guardian, proof)) {
+            revert InvalidGuardian(guardian);
+        }
+
+        _protocolCancelOperation(operation, operationIdOf(operation), guardian, ActorTypes.Guardian);
     }
 
     /// @inheritdoc IPNetworkHub
-    function protocolGovernanceCancelOperation(Operation calldata operation) external onlyGovernance("cancel") {
-        _protocolCancelOperation(operation, Actor.Governance);
+    function protocolGovernanceCancelOperation(Operation calldata operation) external {
+        // TODO check if msg.sender is governance
+        _protocolCancelOperation(operation, operationIdOf(operation), msg.sender, ActorTypes.Governance);
     }
 
     /// @inheritdoc IPNetworkHub
     function protocolSentinelCancelOperation(
         Operation calldata operation,
-        bytes32[] calldata proof
-    ) external onlyWhenIsNotInLockDown(false) onlySentinel(proof) onlyIfNotInactive(proof) {
-        _protocolCancelOperation(operation, Actor.Sentinel);
+        bytes32[] calldata proof,
+        bytes calldata signature
+    ) external {
+        _checkLockDownMode(false);
+        bytes32 operationId = operationIdOf(operation);
+        address sentinel = ECDSA.recover(ECDSA.toEthSignedMessageHash(operationId), signature);
+        if (!_isSentinel(sentinel, proof)) {
+            revert InvalidSentinel(sentinel);
+        }
+
+        _protocolCancelOperation(operation, operationId, sentinel, ActorTypes.Sentinel);
     }
 
     /// @inheritdoc IPNetworkHub
-    function protocolExecuteOperation(
-        Operation calldata operation
-    ) external payable onlyWhenIsNotInLockDown(false) nonReentrant {
+    function protocolExecuteOperation(Operation calldata operation) external payable nonReentrant {
+        _checkLockDownMode(false);
+
         bytes32 operationId = operationIdOf(operation);
         OperationStatus operationStatus = _operationsStatus[operationId];
         if (operationStatus == OperationStatus.Executed) {
@@ -380,7 +322,7 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
         } else if (operationStatus == OperationStatus.Cancelled) {
             revert OperationAlreadyCancelled(operation);
         } else if (operationStatus == OperationStatus.Null) {
-            revert OperationNotQueued(operation);
+            revert OperationNotFound(operation);
         }
 
         (uint64 startTimestamp, uint64 endTimestamp) = _challengePeriodOf(operationId, operationStatus);
@@ -486,7 +428,9 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
     }
 
     /// @inheritdoc IPNetworkHub
-    function protocolQueueOperation(Operation calldata operation) external payable onlyWhenIsNotInLockDown(true) {
+    function protocolQueueOperation(Operation calldata operation) external payable {
+        _checkLockDownMode(true);
+
         if (msg.value != lockedAmountChallengePeriod) {
             revert InvalidLockedAmountChallengePeriod(msg.value, lockedAmountChallengePeriod);
         }
@@ -584,43 +528,34 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
     }
 
     /// @inheritdoc IPNetworkHub
-    function solveChallengeGuardian(
-        Challenge calldata challenge,
-        bytes32[] calldata proof
-    ) external onlyGuardian(proof) {
+    function solveChallengeGuardian(Challenge calldata challenge, bytes32[] calldata proof) external {
         address guardian = _msgSender();
-        if (guardian != challenge.actor) {
+        if (guardian != challenge.actor || !_isGuardian(guardian, proof)) {
             revert InvalidGuardian(guardian);
         }
 
-        _solveChallenge(challenge);
+        _solveChallenge(challenge, challengeIdOf(challenge));
     }
 
     /// @inheritdoc IPNetworkHub
     function solveChallengeSentinel(
         Challenge calldata challenge,
-        bytes32[] calldata proof
-    ) external onlySentinel(proof) {
-        address sentinel = _msgSender();
-        if (sentinel != challenge.actor) {
+        bytes32[] calldata proof,
+        bytes calldata signature
+    ) external {
+        bytes32 challengeId = challengeIdOf(challenge);
+        address sentinel = ECDSA.recover(ECDSA.toEthSignedMessageHash(challengeId), signature);
+        if (sentinel != challenge.actor || !_isSentinel(sentinel, proof)) {
             revert InvalidSentinel(sentinel);
         }
 
-        _solveChallenge(challenge);
+        _solveChallenge(challenge, challengeId);
     }
 
     /// @inheritdoc IPNetworkHub
-    function startChallengeGuardian(
-        address guardian,
-        bytes32[] memory proof
-    ) external payable onlyFarFromEpochClosingStartChallenge {
-        if (
-            !MerkleProof.verify(
-                proof,
-                _epochsGuardiansMerkleRoot[IEpochsManager(epochsManager).currentEpoch()],
-                keccak256(abi.encodePacked(guardian))
-            )
-        ) {
+    function startChallengeGuardian(address guardian, bytes32[] calldata proof) external payable {
+        _checkNearEndOfEpoch();
+        if (!_isGuardian(guardian, proof)) {
             revert InvalidGuardian(guardian);
         }
 
@@ -628,17 +563,9 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
     }
 
     /// @inheritdoc IPNetworkHub
-    function startChallengeSentinel(
-        address sentinel,
-        bytes32[] calldata proof
-    ) external payable onlyFarFromEpochClosingStartChallenge {
-        if (
-            !MerkleProof.verify(
-                proof,
-                _epochsSentinelsMerkleRoot[IEpochsManager(epochsManager).currentEpoch()],
-                keccak256(abi.encodePacked(sentinel))
-            )
-        ) {
+    function startChallengeSentinel(address sentinel, bytes32[] calldata proof) external payable {
+        _checkNearEndOfEpoch();
+        if (!_isSentinel(sentinel, proof)) {
             revert InvalidSentinel(sentinel);
         }
 
@@ -779,6 +706,79 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
         return (startTimestamp, endTimestamp);
     }
 
+    function _checkLockDownMode(bool addMaxChallengePeriodDuration) internal view {
+        uint16 currentEpoch = IEpochsManager(epochsManager).currentEpoch();
+        if (
+            _epochsSentinelsMerkleRoot[currentEpoch] == bytes32(0) ||
+            _epochsGuardiansMerkleRoot[currentEpoch] == bytes32(0) ||
+            _epochsTotalNumberOfInactiveActors[currentEpoch] ==
+            _epochsTotalNumberOfSentinels[currentEpoch] + _epochsTotalNumberOfGuardians[currentEpoch]
+        ) {
+            revert LockDown();
+        }
+
+        uint256 epochDuration = IEpochsManager(epochsManager).epochDuration();
+        uint256 startFirstEpochTimestamp = IEpochsManager(epochsManager).startFirstEpochTimestamp();
+        uint256 currentEpochEndTimestamp = startFirstEpochTimestamp + ((currentEpoch + 1) * epochDuration);
+
+        // If a relayer queues a malicious operation shortly before lockdown mode begins, what happens?
+        // When lockdown mode is initiated, both sentinels and guardians lose their ability to cancel operations.
+        // Consequently, the malicious operation may be executed immediately after the lockdown period ends,
+        // especially if the operation's queue time is significantly shorter than the lockdown duration.
+        // To mitigate this risk, operations should not be queued if the max challenge period makes
+        // the operation challenge period finish after 1 hour before the end of an epoch.
+        if (
+            block.timestamp +
+                (
+                    addMaxChallengePeriodDuration
+                        ? baseChallengePeriodDuration +
+                            (maxOperationsInQueue * maxOperationsInQueue * kChallengePeriod) -
+                            kChallengePeriod
+                        : 0
+                ) >=
+            currentEpochEndTimestamp - 1 hours
+        ) {
+            revert LockDown();
+        }
+    }
+
+    function _checkNearEndOfEpoch() internal view {
+        uint256 epochDuration = IEpochsManager(epochsManager).epochDuration();
+        uint16 currentEpoch = IEpochsManager(epochsManager).currentEpoch();
+        uint256 startFirstEpochTimestamp = IEpochsManager(epochsManager).startFirstEpochTimestamp();
+        uint256 currentEpochEndTimestamp = startFirstEpochTimestamp + ((currentEpoch + 1) * epochDuration);
+
+        // NOTE: 1 hours = threshold that a guardian/sentinel or challenger has time to resolve the challenge
+        // before the epoch ends. Not setting this threshold would mean that it is possible
+        // to open a challenge that can be solved an instant before the epoch change causing problems.
+        // It is important that the system enters in lockdown mode before stopping to start challenges.
+        // In this way we are sure that no malicious operations can be queued when keep alive mechanism is disabled.
+        // currentEpochEndTimestamp - 1 hours - maxChallengeDuration <= currentEpochEndTimestamp - 1 hours - maxChallengePeriodDuration
+        // maxChallengeDuration <=  maxChallengePeriodDuration
+        // maxChallengeDuration <= baseChallengePeriodDuration + (maxOperationsInQueue * maxOperationsInQueue * kChallengePeriod) - kChallengePeriod
+        if (block.timestamp + maxChallengeDuration > currentEpochEndTimestamp - 1 hours) {
+            revert NearToEpochEnd();
+        }
+    }
+
+    function _isGuardian(address guardian, bytes32[] calldata proof) internal view returns (bool) {
+        return
+            MerkleProof.verify(
+                proof,
+                _epochsGuardiansMerkleRoot[IEpochsManager(epochsManager).currentEpoch()],
+                keccak256(abi.encodePacked(guardian))
+            );
+    }
+
+    function _isSentinel(address sentinel, bytes32[] calldata proof) internal view returns (bool) {
+        return
+            MerkleProof.verify(
+                proof,
+                _epochsSentinelsMerkleRoot[IEpochsManager(epochsManager).currentEpoch()],
+                keccak256(abi.encodePacked(sentinel))
+            );
+    }
+
     function _maybeCancelPendingChallenge(uint16 epoch, address actor) internal {
         bytes32 pendingChallengeId = _epochsActorsPendingChallengeId[epoch][actor];
         if (pendingChallengeId != bytes32(0)) {
@@ -889,8 +889,16 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
         revert InvalidGovernanceMessage(message);
     }
 
-    function _protocolCancelOperation(Operation calldata operation, Actor actor) internal {
-        bytes32 operationId = operationIdOf(operation);
+    function _protocolCancelOperation(
+        Operation calldata operation,
+        bytes32 operationId,
+        address actor,
+        ActorTypes actorType
+    ) internal {
+        uint16 currentEpoch = IEpochsManager(epochsManager).currentEpoch();
+        if (_epochsActorsStatus[currentEpoch][actor] == ActorStatus.Inactive) {
+            revert Inactive();
+        }
 
         OperationStatus operationStatus = _operationsStatus[operationId];
         if (operationStatus == OperationStatus.Executed) {
@@ -898,7 +906,7 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
         } else if (operationStatus == OperationStatus.Cancelled) {
             revert OperationAlreadyCancelled(operation);
         } else if (operationStatus == OperationStatus.Null) {
-            revert OperationNotQueued(operation);
+            revert OperationNotFound(operation);
         }
 
         (uint64 startTimestamp, uint64 endTimestamp) = _challengePeriodOf(operationId, operationStatus);
@@ -907,7 +915,7 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
         }
 
         Action memory action = Action({actor: _msgSender(), timestamp: uint64(block.timestamp)});
-        if (actor == Actor.Governance) {
+        if (actorType == ActorTypes.Governance) {
             if (_operationsGovernanceCancelAction[operationId].actor != address(0)) {
                 revert GovernanceOperationAlreadyCancelled(operation);
             }
@@ -915,7 +923,7 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
             _operationsGovernanceCancelAction[operationId] = action;
             emit GovernanceOperationCancelled(operation);
         }
-        if (actor == Actor.Guardian) {
+        if (actorType == ActorTypes.Guardian) {
             if (_operationsGuardianCancelAction[operationId].actor != address(0)) {
                 revert GuardianOperationAlreadyCancelled(operation);
             }
@@ -923,7 +931,7 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
             _operationsGuardianCancelAction[operationId] = action;
             emit GuardianOperationCancelled(operation);
         }
-        if (actor == Actor.Sentinel) {
+        if (actorType == ActorTypes.Sentinel) {
             if (_operationsSentinelCancelAction[operationId].actor != address(0)) {
                 revert SentinelOperationAlreadyCancelled(operation);
             }
@@ -966,8 +974,7 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
         }
     }
 
-    function _solveChallenge(Challenge calldata challenge) internal {
-        bytes32 challengeId = challengeIdOf(challenge);
+    function _solveChallenge(Challenge calldata challenge, bytes32 challengeId) internal {
         uint16 currentEpoch = IEpochsManager(epochsManager).currentEpoch();
         ChallengeStatus challengeStatus = _epochsChallengesStatus[currentEpoch][challengeId];
 
@@ -1012,7 +1019,8 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
             nonce: challengesNonce,
             actor: actor,
             challenger: challenger,
-            timestamp: uint64(block.timestamp)
+            timestamp: uint64(block.timestamp),
+            networkId: Network.getCurrentNetworkId()
         });
         bytes32 challengeId = challengeIdOf(challenge);
         _epochsChallenges[currentEpoch][challengeId] = challenge;

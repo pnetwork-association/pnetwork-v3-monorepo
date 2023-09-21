@@ -99,4 +99,56 @@ module.exports = class Operation {
   get executeRelayerNetworkFeeAssetAmount() {
     return this.networkFeeAssetAmount.mul(6300).div(10000)
   }
+
+  get id() {
+    const abiCoder = new ethers.utils.AbiCoder()
+    return ethers.utils.sha256(
+      abiCoder.encode(
+        [
+          'bytes32',
+          'bytes32',
+          'bytes4',
+          'uint256',
+          'string',
+          'string',
+          'bytes4',
+          'bytes4',
+          'string',
+          'string',
+          'uint256',
+          'address',
+          'bytes4',
+          'uint256',
+          'uint256',
+          'uint256',
+          'uint256',
+          'bytes',
+          'bytes32',
+          'bool',
+        ],
+        [
+          this.originBlockHash,
+          this.originTransactionHash,
+          this.originNetworkId,
+          this.nonce,
+          this.originAccount,
+          this.destinationAccount,
+          this.destinationNetworkId,
+          this.forwardDestinationNetworkId,
+          this.underlyingAssetName,
+          this.underlyingAssetSymbol,
+          this.underlyingAssetDecimals,
+          this.underlyingAssetTokenAddress,
+          this.underlyingAssetNetworkId,
+          this.assetAmount,
+          this.protocolFeeAssetAmount,
+          this.networkFeeAssetAmount,
+          this.forwardNetworkFeeAssetAmount,
+          this.userData,
+          this.optionsMask,
+          this.isForProtocol,
+        ]
+      )
+    )
+  }
 }
