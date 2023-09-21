@@ -97,6 +97,7 @@ const onMessage = async _message => {
       }, {}),
     startChallengeThresholdBlocks: settings.startChallengeThresholdBlocks,
   })
+
   /*const node = await createNode()
           node.services.pubsub.addEventListener('message', onMessage)
           await node.services.pubsub.subscribe(TOPIC)

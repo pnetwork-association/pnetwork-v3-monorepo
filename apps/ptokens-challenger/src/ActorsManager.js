@@ -1,5 +1,6 @@
 import { getContract, keccak256, encodePacked, parseAbiItem } from 'viem'
 import { MerkleTree } from 'merkletreejs'
+import { Mutex } from 'async-mutex'
 
 import EpochsManagerABI from './abi/EpochsManager.json' assert { type: 'json' }
 import GovernanceMessageEmitterABI from './abi/GovernanceMessageEmitter.json' assert { type: 'json' }
@@ -36,7 +37,34 @@ class ActorsManager {
     this.logger = logger
 
     this.actors = db.collection('actors')
-    this.actors.drop()
+    this.mutex = new Mutex()
+
+    this.init()
+  }
+
+  async init() {
+    this.logger.info('✓ Initializing actors ...')
+    const promises = []
+    const currentEpoch = await this.epochsManager.read.currentEpoch()
+    const [guardians, sentinels] = await Promise.all([
+      this.actors.find({ epoch: currentEpoch, actorType: 'guardian' }).toArray(),
+      this.actors.find({ epoch: currentEpoch, actorType: 'sentinel' }).toArray(),
+    ])
+
+    if (guardians.length === 0) {
+      this.logger.info('✓ Storing guardians ...')
+      promises.push(this.storeActorsForEpoch({ actorType: 'guardian', epoch: currentEpoch }))
+    }
+    if (sentinels.length === 0) {
+      this.logger.info('✓ Storing sentinels ...')
+      promises.push(this.storeActorsForEpoch({ actorType: 'sentinel', epoch: currentEpoch }))
+    }
+
+    this.logger.info('✓ Acquiring mutex ...')
+    const release = await this.mutex.acquire()
+    await Promise.all(promises)
+    this.logger.info('✓ Actors stored! Releasing mutex ...')
+    await release()
   }
 
   async isActor({ actor, actorType }) {
@@ -65,12 +93,14 @@ class ActorsManager {
   async getActorsMerkleTreeForCurrentEpoch({ actorType }) {
     const currentEpoch = await this.epochsManager.read.currentEpoch()
 
-    let actors = (await this.actors.find({ epoch: currentEpoch, actorType }).toArray()).map(
-      ({ address }) => address
-    )
-    if (actors.length === 0) {
-      actors = await this.getAndMaybeStoreActorsByEpoch({ actorType, epoch: currentEpoch })
+    if (this.mutex.isLocked()) {
+      this.logger.info('✓ Waiting mutex to be released ...')
     }
+    const actors = await this.mutex.runExclusive(async () =>
+      (
+        await this.actors.find({ epoch: currentEpoch, actorType }).toArray()
+      ).map(({ address }) => address)
+    )
 
     // TODO: Address vulnerability where an attacker could reorder sentinels/guardians, compromising our stored list.
     // Consider implementing a function to refetch and store the latest events if the transaction fails.
@@ -88,7 +118,7 @@ class ActorsManager {
     return tree
   }
 
-  async getAndMaybeStoreActorsByEpoch({ actorType, epoch }) {
+  async storeActorsForEpoch({ actorType, epoch }) {
     const latestBlockNumber = await this.client.getBlockNumber()
 
     let actors = []
