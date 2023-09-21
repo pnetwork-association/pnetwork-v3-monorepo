@@ -42,6 +42,8 @@ const bitIntToString = R.tryCatch(_n => _n.toString(), R.always(null))
 
 const addEventName = _eventLog => R.assoc(constants.db.KEY_EVENT_NAME, _eventLog.name)
 
+const addEventArgs = _eventLog => R.assoc(constants.db.KEY_EVENT_ARGS, Array.from(_eventLog.args))
+
 const setCorrectStatus = R.curry((_parsedLog, _obj) =>
   _parsedLog.name === constants.db.eventNames.QUEUED_OPERATION
     ? R.assoc(constants.db.KEY_STATUS, constants.db.txStatus.PROPOSED, _obj)
@@ -76,6 +78,7 @@ const addInfoFromParsedLog = (_parsedLog, _obj) =>
   Promise.resolve(_obj)
     .then(setCorrectStatus(_parsedLog))
     .then(addEventName(_parsedLog))
+    .then(addEventArgs(_parsedLog))
     .then(
       maybeAddFieldFromEventArgs(_parsedLog.args, ['nonce'], constants.db.KEY_NONCE, bitIntToString)
     )
@@ -260,6 +263,7 @@ const parseLog = (_interface, _log) =>
       logger.debug('  name:', _parsedLog.name) ||
       logger.debug('  signature:', _parsedLog.signature) ||
       logger.debug('  args:', _parsedLog.args) ||
+      logger.debug('  data:', _parsedLog.data) ||
       _parsedLog
   )
 

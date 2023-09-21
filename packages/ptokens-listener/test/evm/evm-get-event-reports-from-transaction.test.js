@@ -43,6 +43,7 @@ describe('Get EVM event reports', () => {
           status: 'detected',
           eventName: 'OperationExecuted',
           nonce: '98322',
+          eventArgs: expect.any(Array),
           destinationAccount: '0xdDb5f4535123DAa5aE343c24006F4075aBAF5F7B',
           destinationNetworkId: '0xf9b459a1',
           underlyingAssetName: 'pNetwork Token',
