@@ -12,14 +12,6 @@ const TASK_NAME_DEPLOY_PTOKEN = 'deploy:ptoken'
 const TASK_DESC_DEPLOY_PTOKEN =
   'Deploy a pToken contract or attach to an existing one from the configuration.'
 
-// TODO: export to ptokens-utils
-const rejectIfLength0 = R.curry((_errMsg, _array) =>
-  _array.length === 0 ? Promise.reject(new Error(_errMsg)) : Promise.resolve(_array)
-)
-
-const isAssetAddressEqualTo = _address =>
-  R.compose(R.equals(_address), R.prop(TASK_CONSTANTS.KEY_ADDRESS))
-
 const changeHardhatNetworkAndReturnArg = R.curry((hre, _chainName, _arg) =>
   Promise.resolve(hre.changeNetwork(_chainName)).then(_ => _arg)
 )
@@ -59,20 +51,8 @@ const getUnderlyingAsset = (taskArgs, hre) =>
 
     return getConfiguration()
       .then(_config => _config.get(taskArgs[TASK_CONSTANTS.PARAM_NAME_UNDERLYING_ASSET_CHAIN_NAME]))
-      .then(R.prop(TASK_CONSTANTS.KEY_UNDERLYING_ASSET_LIST))
-      .then(R.filter(isAssetAddressEqualTo(underlyingAssetAddress)))
-      .then(
-        rejectIfLength0(
-          `Could not find any underlying asset with address ${underlyingAssetAddress}`
-        )
-      )
-      .then(R.prop(0))
-      .then(
-        _underlyingAsset =>
-          console.info(`Underlying asset for ${underlyingAssetAddress} found!`) || _underlyingAsset
-      )
       .then(changeHardhatNetworkAndReturnArg(hre, underlyingAssetChainName))
-      .then(attachToUnderlyingAsset(taskArgs, hre))
+      .then(_ => attachToUnderlyingAsset(taskArgs, hre, underlyingAssetAddress))
       .then(changeHardhatNetworkAndReturnArg(hre, selectedChain))
       .then(resolve)
   })
