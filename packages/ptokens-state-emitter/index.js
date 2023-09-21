@@ -2,6 +2,7 @@ const config = require('./config.json')
 const constants = require('ptokens-constants')
 const { logger } = require('./lib/get-logger')
 const { validation } = require('ptokens-utils')
+const { setupExitEventListeners } = require('./lib/setup-exit-listeners')
 const { signStatusObjectAndAddToState } = require('./lib/interfaces/sign-state-object')
 const { publishStatusObjectAndReturnState } = require('./lib/interfaces/publish-status-object')
 const { buildStatusObjectAndAddToState } = require('./lib/interfaces/build-status-object')
@@ -18,6 +19,7 @@ const cycle = _config =>
     .then(publishStatusObjectAndReturnState)
     .catch(_err => logger.error(_err) || process.exit(1))
 
-const main = _config => setInterval(cycle, _config.interval || 4000, _config)
+const main = _config =>
+  setupExitEventListeners().then(_ => setInterval(cycle, _config.interval || 4000, _config))
 
 main(config)
