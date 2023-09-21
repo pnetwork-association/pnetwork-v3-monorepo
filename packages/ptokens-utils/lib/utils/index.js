@@ -9,6 +9,7 @@ const objectUtils = require('./utils-objects')
 const getChainSymbol = require('./get-chain-symbol')
 const networkIdUtils = require('./utils-network-id')
 const getEventId = require('./get-event-id')
+const readIdentityFileUtil = require('./read-identity-file')
 
 module.exports = {
   ...fsUtils,
@@ -18,6 +19,7 @@ module.exports = {
   ...ramdaExtUtils,
   ...getChainSymbol,
   ...networkIdUtils,
+  ...readIdentityFileUtil,
   promises,
   bench: tick,
   date: dateUtils,

@@ -1,0 +1,15 @@
+{
+  "identity": "./private-key",
+  "supported-chains": [{
+    "chain-type": "evm",
+    "chain-name": "gnosis",
+    "network-id": "0xd41b1c5b",
+    "provider-url": "https://provider.url/"
+  }],
+  "protocols": [{
+    "type": "ipfs",
+    "data": {
+      "topic": "pnetwork-v3"
+    }
+  }]
+}

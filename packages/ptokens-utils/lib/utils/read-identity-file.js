@@ -1,5 +1,5 @@
 const { readFile } = require('fs/promises')
-const { logger } = require('./get-logger')
+const { logger } = require('../logger')
 
 const readIdentityFile = _identityFile =>
   // TODO: replace this implementation with ptokens-utils readGpgEncryptedFile()

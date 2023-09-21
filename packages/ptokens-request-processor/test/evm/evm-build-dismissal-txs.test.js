@@ -5,6 +5,7 @@ const {
 const errors = require('../../lib/errors')
 const constants = require('ptokens-constants')
 const pTokensUtils = require('ptokens-utils')
+const { utils } = require('ptokens-utils')
 const queuedReports = require('../samples/queued-report-set')
 
 describe('Build dismissal test for EVM', () => {
@@ -20,9 +21,8 @@ describe('Build dismissal test for EVM', () => {
 
     it('Should build the dismissal and add them to the state', async () => {
       const ethers = require('ethers')
-      const fs = require('fs/promises')
 
-      jest.spyOn(fs, 'readFile').mockResolvedValue(privKey)
+      jest.spyOn(utils, 'readIdentityFile').mockResolvedValue(privKey)
       jest.spyOn(ethers, 'JsonRpcProvider').mockResolvedValue({})
       jest.spyOn(ethers, 'Wallet').mockImplementation(_ => jest.fn())
       jest.spyOn(ethers, 'Contract').mockImplementation(_ => jest.fn())
@@ -108,9 +108,8 @@ describe('Build dismissal test for EVM', () => {
 
     it('Should build the dismissal and handle errors', async () => {
       const ethers = require('ethers')
-      const fs = require('fs/promises')
 
-      jest.spyOn(fs, 'readFile').mockResolvedValue(privKey)
+      jest.spyOn(utils, 'readIdentityFile').mockResolvedValue(privKey)
       jest.spyOn(ethers, 'JsonRpcProvider').mockResolvedValue({})
       jest.spyOn(ethers, 'Wallet').mockImplementation(_ => jest.fn())
       jest.spyOn(ethers, 'Contract').mockImplementation(_ => jest.fn())
@@ -193,9 +192,8 @@ describe('Build dismissal test for EVM', () => {
 
     it('Should build the dismissal and handle not-queued error', async () => {
       const ethers = require('ethers')
-      const fs = require('fs/promises')
 
-      jest.spyOn(fs, 'readFile').mockResolvedValue(privKey)
+      jest.spyOn(utils, 'readIdentityFile').mockResolvedValue(privKey)
       jest.spyOn(ethers, 'JsonRpcProvider').mockResolvedValue({})
       jest.spyOn(ethers, 'Wallet').mockImplementation(_ => jest.fn())
       jest.spyOn(ethers, 'Contract').mockImplementation(_ => jest.fn())
@@ -277,9 +275,8 @@ describe('Build dismissal test for EVM', () => {
 
     it('Should build the dismissal and handle underpriced replacement error', async () => {
       const ethers = require('ethers')
-      const fs = require('fs/promises')
 
-      jest.spyOn(fs, 'readFile').mockResolvedValue(privKey)
+      jest.spyOn(utils, 'readIdentityFile').mockResolvedValue(privKey)
       jest.spyOn(ethers, 'JsonRpcProvider').mockResolvedValue({})
       jest.spyOn(ethers, 'Wallet').mockImplementation(_ => jest.fn())
       jest.spyOn(ethers, 'Contract').mockImplementation(_ => jest.fn())

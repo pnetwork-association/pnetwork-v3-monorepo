@@ -1,5 +1,5 @@
 const R = require('ramda')
-const { db, logic } = require('ptokens-utils')
+const { db, logic, utils } = require('ptokens-utils')
 
 const constants = require('ptokens-constants')
 const {
@@ -33,7 +33,6 @@ describe('Main EVM flow for transaction proposal tests', () => {
 
     it('Should detect the new events and build the proposals', async () => {
       const ethers = require('ethers')
-      const fs = require('fs/promises')
 
       const proposedTxHashes = [
         '0xd656ffac17b71e2ea2e24f72cd4c15c909a0ebe1696f8ead388eb268268f1cbf',
@@ -69,7 +68,7 @@ describe('Main EVM flow for transaction proposal tests', () => {
         lockedAmountChallengePeriod: mockLockedAmountChallengePeriod,
       }))
 
-      jest.spyOn(fs, 'readFile').mockResolvedValue(privKey)
+      jest.spyOn(utils, 'readIdentityFile').mockResolvedValue(privKey)
 
       const state = {
         [constants.state.KEY_DB]: collection,

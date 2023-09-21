@@ -42,8 +42,7 @@ describe('Tests for queued requests detection and dismissal', () => {
     })
 
     it('Should put invalid transactions to be dismissed into state', async () => {
-      const { logic } = require('ptokens-utils')
-      const fs = require('fs/promises')
+      const { logic, utils } = require('ptokens-utils')
       const ethers = require('ethers')
 
       const expectedCallResult = [
@@ -77,7 +76,7 @@ describe('Tests for queued requests detection and dismissal', () => {
         operationStatusOf: mockOperationStatusOf,
       }))
 
-      jest.spyOn(fs, 'readFile').mockResolvedValue(privKey)
+      jest.spyOn(utils, 'readIdentityFile').mockResolvedValue(privKey)
 
       const {
         maybeProcessNewRequestsAndDismiss,
