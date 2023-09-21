@@ -4,6 +4,13 @@ const chains = require('../chains')
 const { utils } = require('ptokens-utils')
 const { logger } = require('../get-logger')
 const pTokensConstants = require('ptokens-constants')
+
+// TODO: find a better way to handle versions
+// eslint-disable-next-line node/no-unpublished-require
+const { version: versionListener } = require('../../../ptokens-listener/package.json')
+// eslint-disable-next-line node/no-unpublished-require
+const { version: versionProcessor } = require('../../../ptokens-request-processor/package.json')
+
 const { ERROR_UNSUPPORTED_CHAIN } = require('../errors')
 const {
   KEY_STATUS_OBJECT,
@@ -40,11 +47,14 @@ const maybeGetSoftwareVersionsAndAddToStatus = _state =>
   Promise.resolve(
     R.assocPath(
       [KEY_STATUS_OBJECT, KEY_STATUS_SW_VERSIONS, KEY_SW_VERSIONS_LISTENER],
-      '1.0.0',
+      versionListener,
       _state
     )
   ).then(
-    R.assocPath([KEY_STATUS_OBJECT, KEY_STATUS_SW_VERSIONS, KEY_SW_VERSIONS_PROCESSOR], '1.0.0')
+    R.assocPath(
+      [KEY_STATUS_OBJECT, KEY_STATUS_SW_VERSIONS, KEY_SW_VERSIONS_PROCESSOR],
+      versionProcessor
+    )
   )
 
 const getUTCTimestampAndAddToStatus = _state =>
