@@ -16,7 +16,7 @@ as standalone and not through Docker)
 ### Description
 
 - New component that grabs all the guardian listeners configurations and builds up a unique one that is used to fetch the sync state of each supported chain
-- This intermittenly publish the following object by using the IPFS pub sub protocol:
+- This intermittently publish the following object by using the IPFS pub sub protocol:
 
 ```
 {

@@ -1,10 +1,10 @@
 #!/bin/bash
 
 #
-# Script in order to facilitate the ptokens-state-emitter
-# compoenent configuration
+# Facilitates the ptokens-state-emitter
+# component configuration:
 #
-#  - Reads the ptoekns-guardians processor config.json
+#  - Reads the ptokens-guardians processor config.json
 #  - Builds the supported chains object based on that one
 #
 
