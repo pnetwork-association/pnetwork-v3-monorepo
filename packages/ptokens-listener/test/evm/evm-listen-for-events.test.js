@@ -70,6 +70,7 @@ describe('EVM listen for events', () => {
             },
             expect.anything()
           )
+
           expect(callback).toHaveBeenCalledTimes(2)
           expect(callback).toHaveBeenNthCalledWith(1, {
             [constants.db.KEY_ID]:
@@ -78,6 +79,7 @@ describe('EVM listen for events', () => {
             [constants.db.KEY_ASSET_AMOUNT]: '200000000',
             [constants.db.KEY_USER_DATA]: null,
             [constants.db.KEY_EVENT_NAME]: 'Transfer',
+            [constants.db.KEY_EVENT_ARGS]: expect.any(Array),
             [constants.db.KEY_ASSET_TOKEN_ADDRESS]: null,
             [constants.db.KEY_PROPOSAL_TS]: null,
             [constants.db.KEY_PROPOSAL_TX_HASH]: null,
@@ -108,6 +110,7 @@ describe('EVM listen for events', () => {
             [constants.db.KEY_TX_HASH]:
               '0x37eeb55eab329c73aeac6a172faa6c77e7013cd0cda0fc472274c5faf0df7003',
           })
+
           expect(callback).toHaveBeenNthCalledWith(2, {
             [constants.db.KEY_ID]:
               'useroperation_0x1b5cce11167a6e2801ca4031aab7d815217747730f0790f83e0c43d9766cf48e',
@@ -116,6 +119,7 @@ describe('EVM listen for events', () => {
 
             [constants.db.KEY_NONCE]: '629648',
             [constants.db.KEY_ASSET_AMOUNT]: '198600',
+            [constants.db.KEY_EVENT_ARGS]: expect.any(Array),
             [constants.db.KEY_DESTINATION_ACCOUNT]: '0xdDb5f4535123DAa5aE343c24006F4075aBAF5F7B',
             [constants.db.KEY_DESTINATION_NETWORK_ID]: '0xb9286154',
 
