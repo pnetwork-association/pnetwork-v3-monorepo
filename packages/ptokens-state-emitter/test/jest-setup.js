@@ -1,4 +1,4 @@
-// jest.mock('../lib/get-logger')
+jest.mock('../lib/get-logger')
 
 // Enable when testing
 // jest.mock('../lib/get-logger', () => ({
