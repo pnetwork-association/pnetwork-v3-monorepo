@@ -48,6 +48,11 @@ const parseJsonAsync = _jsonStr =>
     }
   })
 
+// Needed when stringifying objects
+// with BigInt values
+const stringifyJsonSync = _object =>
+  JSON.stringify(_object, (key, value) => (R.type(value) === 'BigInt' ? value.toString() : value))
+
 const objectifySync = _json => JSON.parse(JSON.stringify(_json))
 
 /**
@@ -77,6 +82,7 @@ module.exports = {
   getKeyFromObj,
   objectifySync,
   parseJsonAsync,
+  stringifyJsonSync,
   flipObjectPropertiesSync,
   getKeyFromObjThroughPath,
   getKeyFromObjThroughPossiblePaths,
