@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.19;
 
-import {IPRegistry} from "../interfaces/IPRegistry.sol";
 import {Context} from "@openzeppelin/contracts/utils/Context.sol";
 import {IGovernanceMessageHandler} from "../interfaces/IGovernanceMessageHandler.sol";
 import {ITelepathyHandler} from "../interfaces/external/ITelepathyHandler.sol";

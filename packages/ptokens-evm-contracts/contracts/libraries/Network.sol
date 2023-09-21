@@ -15,11 +15,6 @@ library Network {
     }
 
     function getCurrentNetworkId() internal view returns (bytes4) {
-        uint256 currentchainId;
-        assembly {
-            currentchainId := chainid()
-        }
-
-        return getNetworkIdFromChainId(uint32(currentchainId));
+        return getNetworkIdFromChainId(uint32(block.chainid));
     }
 }

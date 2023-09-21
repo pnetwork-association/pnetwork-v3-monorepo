@@ -11,7 +11,7 @@ import {IGovernanceMessageHandler} from "./IGovernanceMessageHandler.sol";
  * @notice
  */
 interface IPNetworkHub is IGovernanceMessageHandler {
-    enum Actor {
+    enum ActorTypes {
         Governance,
         Guardian,
         Sentinel
@@ -49,6 +49,7 @@ interface IPNetworkHub is IGovernanceMessageHandler {
         address actor;
         address challenger;
         uint64 timestamp;
+        bytes4 networkId;
     }
 
     struct Operation {
@@ -380,9 +381,14 @@ interface IPNetworkHub is IGovernanceMessageHandler {
      *
      * @param operation
      * @param proof
+     * @param signature
      *
      */
-    function protocolSentinelCancelOperation(Operation calldata operation, bytes32[] calldata proof) external;
+    function protocolSentinelCancelOperation(
+        Operation calldata operation,
+        bytes32[] calldata proof,
+        bytes calldata signature
+    ) external;
 
     /*
      * @notice Execute an operation that has been queued.
@@ -412,6 +418,7 @@ interface IPNetworkHub is IGovernanceMessageHandler {
      * @notice Solve a challenge of a guardian and sends the bond (lockedAmountStartChallenge) to the DAO.
      *
      * @param challenge
+     * @param proof
      *
      */
     function solveChallengeGuardian(Challenge calldata challenge, bytes32[] calldata proof) external;
@@ -420,9 +427,15 @@ interface IPNetworkHub is IGovernanceMessageHandler {
      * @notice Solve a challenge of a sentinel and sends the bond (lockedAmountStartChallenge) to the DAO.
      *
      * @param challenge
+     * @param proof
+     * @param signature
      *
      */
-    function solveChallengeSentinel(Challenge calldata challenge, bytes32[] calldata proof) external;
+    function solveChallengeSentinel(
+        Challenge calldata challenge,
+        bytes32[] calldata proof,
+        bytes calldata signature
+    ) external;
 
     /*
      * @notice Start a challenge for a guardian.
