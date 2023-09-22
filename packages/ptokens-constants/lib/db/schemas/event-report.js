@@ -35,6 +35,8 @@ const {
   KEY_FORWARD_NETWORK_FEE_ASSET_AMOUNT,
   KEY_NETWORK_FEE_ASSET_AMOUNT,
   KEY_PROTOCOL_FEE_ASSET_AMOUNT,
+
+  KEY_EVENT_ARGS,
 } = require('../constants')
 const enumTxStatus = require('../tx-status')
 
@@ -45,7 +47,7 @@ module.exports = {
     KEY_ID,
     KEY_STATUS,
     KEY_EVENT_NAME,
-
+    KEY_EVENT_ARGS,
     KEY_NONCE,
     KEY_DESTINATION_ACCOUNT,
     KEY_DESTINATION_NETWORK_ID,
@@ -88,6 +90,9 @@ module.exports = {
     },
     [KEY_EVENT_NAME]: {
       type: 'string',
+    },
+    [KEY_EVENT_ARGS]: {
+      type: ['array', 'null'],
     },
     [KEY_NONCE]: {
       type: 'string',
