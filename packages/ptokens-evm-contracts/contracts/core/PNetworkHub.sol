@@ -51,7 +51,10 @@ error NearToEpochEnd();
 error ChallengeDurationPassed();
 error MaxChallengeDurationNotPassed();
 error ChallengeNotFound(IPNetworkHub.Challenge challenge);
-error ChallengeDurationMustBeLessOrEqualThanMaxChallengePeriodDuration(uint64 challengeDuration, uint64 maxChallengePeriodDuration);
+error ChallengeDurationMustBeLessOrEqualThanMaxChallengePeriodDuration(
+    uint64 challengeDuration,
+    uint64 maxChallengePeriodDuration
+);
 error InvalidEpoch(uint16 epoch);
 error Inactive();
 
@@ -119,7 +122,10 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
             ((maxOperationsInQueue_ ** 2) * kChallengePeriod_) -
             kChallengePeriod_;
         if (challengeDuration_ > maxChallengePeriodDuration) {
-            revert ChallengeDurationMustBeLessOrEqualThanMaxChallengePeriodDuration(challengeDuration_, maxChallengePeriodDuration);
+            revert ChallengeDurationMustBeLessOrEqualThanMaxChallengePeriodDuration(
+                challengeDuration_,
+                maxChallengePeriodDuration
+            );
         }
 
         factory = factory_;
@@ -251,23 +257,23 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
                 abi.encode(
                     operation.originBlockHash,
                     operation.originTransactionHash,
-                    operation.originNetworkId,
+                    operation.optionsMask,
                     operation.nonce,
-                    operation.originAccount,
-                    operation.destinationAccount,
-                    operation.destinationNetworkId,
-                    operation.forwardDestinationNetworkId,
-                    operation.underlyingAssetName,
-                    operation.underlyingAssetSymbol,
                     operation.underlyingAssetDecimals,
-                    operation.underlyingAssetTokenAddress,
-                    operation.underlyingAssetNetworkId,
                     operation.assetAmount,
                     operation.protocolFeeAssetAmount,
                     operation.networkFeeAssetAmount,
                     operation.forwardNetworkFeeAssetAmount,
+                    operation.underlyingAssetTokenAddress,
+                    operation.originNetworkId,
+                    operation.destinationNetworkId,
+                    operation.forwardDestinationNetworkId,
+                    operation.underlyingAssetNetworkId,
+                    operation.originAccount,
+                    operation.destinationAccount,
+                    operation.underlyingAssetName,
+                    operation.underlyingAssetSymbol,
                     operation.userData,
-                    operation.optionsMask,
                     operation.isForProtocol
                 )
             );
