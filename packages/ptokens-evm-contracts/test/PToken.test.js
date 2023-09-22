@@ -6,7 +6,7 @@ const {
   K_CHALLENGE_PERIOD,
   LOCKED_AMOUNT_CHALLENGE_PERIOD,
   LOCKED_AMOUNT_START_CHALLENGE,
-  MAX_CHALLENGE_DURATION,
+  CHALLENGE_DURATION,
   MAX_OPERATIONS_IN_QUEUE,
   PNETWORK_NETWORK_IDS,
   TELEPATHY_ROUTER_ADDRESS,
@@ -55,7 +55,7 @@ describe('PToken', () => {
           MAX_OPERATIONS_IN_QUEUE,
           PNETWORK_NETWORK_IDS.ethereumMainnet,
           LOCKED_AMOUNT_START_CHALLENGE,
-          MAX_CHALLENGE_DURATION,
+          CHALLENGE_DURATION,
           (
             await ethers.provider.getNetwork()
           ).chainId

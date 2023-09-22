@@ -48,10 +48,10 @@ error InvalidLockedAmountStartChallenge(uint256 lockedAmountStartChallenge, uint
 error InvalidActorStatus(IPNetworkHub.ActorStatus status, IPNetworkHub.ActorStatus expectedStatus);
 error InvalidChallengeStatus(IPNetworkHub.ChallengeStatus status, IPNetworkHub.ChallengeStatus expectedStatus);
 error NearToEpochEnd();
-error MaxChallengeDurationPassed();
+error ChallengeDurationPassed();
 error MaxChallengeDurationNotPassed();
 error ChallengeNotFound(IPNetworkHub.Challenge challenge);
-error MaxChallengeDurationMustBeLessOrEqualThanMaxChallengePeriodDuration();
+error ChallengeDurationMustBeLessOrEqualThanMaxChallengePeriodDuration(uint64 challengeDuration, uint64 maxChallengePeriodDuration);
 error InvalidEpoch(uint16 epoch);
 error Inactive();
 
@@ -86,12 +86,13 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
     address public immutable feesManager;
     address public immutable slasher;
     uint32 public immutable baseChallengePeriodDuration;
+    uint32 public immutable maxChallengePeriodDuration;
     uint16 public immutable kChallengePeriod;
     uint16 public immutable maxOperationsInQueue;
     bytes4 public immutable interimChainNetworkId;
     uint256 public immutable lockedAmountChallengePeriod;
     uint256 public immutable lockedAmountStartChallenge;
-    uint64 public immutable maxChallengeDuration;
+    uint64 public immutable challengeDuration;
 
     uint256 public challengesNonce;
     uint16 public numberOfOperationsInQueue;
@@ -109,17 +110,16 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
         uint16 maxOperationsInQueue_,
         bytes4 interimChainNetworkId_,
         uint256 lockedAmountOpenChallenge_,
-        uint64 maxChallengeDuration_,
+        uint64 challengeDuration_,
         uint32 expectedSourceChainId
     ) GovernanceMessageHandler(telepathyRouter, governanceMessageVerifier, expectedSourceChainId) {
-        // NOTE: see the comment within _checkNearEndOfEpoch
-        if (
-            maxChallengeDuration_ >
+        // NOTE: see the comment within _checkNearEndOfEpochStartChallenge
+        maxChallengePeriodDuration =
             baseChallengePeriodDuration_ +
-                (maxOperationsInQueue_ * maxOperationsInQueue_ * kChallengePeriod_) -
-                kChallengePeriod_
-        ) {
-            revert MaxChallengeDurationMustBeLessOrEqualThanMaxChallengePeriodDuration();
+            ((maxOperationsInQueue_ ** 2) * kChallengePeriod_) -
+            kChallengePeriod_;
+        if (challengeDuration_ > maxChallengePeriodDuration) {
+            revert ChallengeDurationMustBeLessOrEqualThanMaxChallengePeriodDuration(challengeDuration_, maxChallengePeriodDuration);
         }
 
         factory = factory_;
@@ -132,7 +132,7 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
         maxOperationsInQueue = maxOperationsInQueue_;
         interimChainNetworkId = interimChainNetworkId_;
         lockedAmountStartChallenge = lockedAmountOpenChallenge_;
-        maxChallengeDuration = maxChallengeDuration_;
+        challengeDuration = challengeDuration_;
     }
 
     /// @inheritdoc IPNetworkHub
@@ -474,7 +474,7 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
             revert InvalidChallengeStatus(challengeStatus, ChallengeStatus.Pending);
         }
 
-        if (block.timestamp <= challenge.timestamp + maxChallengeDuration) {
+        if (block.timestamp <= challenge.timestamp + challengeDuration) {
             revert MaxChallengeDurationNotPassed();
         }
 
@@ -554,7 +554,7 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
 
     /// @inheritdoc IPNetworkHub
     function startChallengeGuardian(address guardian, bytes32[] calldata proof) external payable {
-        _checkNearEndOfEpoch();
+        _checkNearEndOfEpochStartChallenge();
         if (!_isGuardian(guardian, proof)) {
             revert InvalidGuardian(guardian);
         }
@@ -564,7 +564,7 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
 
     /// @inheritdoc IPNetworkHub
     function startChallengeSentinel(address sentinel, bytes32[] calldata proof) external payable {
-        _checkNearEndOfEpoch();
+        _checkNearEndOfEpochStartChallenge();
         if (!_isSentinel(sentinel, proof)) {
             revert InvalidSentinel(sentinel);
         }
@@ -728,21 +728,14 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
         // To mitigate this risk, operations should not be queued if the max challenge period makes
         // the operation challenge period finish after 1 hour before the end of an epoch.
         if (
-            block.timestamp +
-                (
-                    addMaxChallengePeriodDuration
-                        ? baseChallengePeriodDuration +
-                            (maxOperationsInQueue * maxOperationsInQueue * kChallengePeriod) -
-                            kChallengePeriod
-                        : 0
-                ) >=
+            block.timestamp + (addMaxChallengePeriodDuration ? maxChallengePeriodDuration : 0) >=
             currentEpochEndTimestamp - 1 hours
         ) {
             revert LockDown();
         }
     }
 
-    function _checkNearEndOfEpoch() internal view {
+    function _checkNearEndOfEpochStartChallenge() internal view {
         uint256 epochDuration = IEpochsManager(epochsManager).epochDuration();
         uint16 currentEpoch = IEpochsManager(epochsManager).currentEpoch();
         uint256 startFirstEpochTimestamp = IEpochsManager(epochsManager).startFirstEpochTimestamp();
@@ -753,10 +746,10 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
         // to open a challenge that can be solved an instant before the epoch change causing problems.
         // It is important that the system enters in lockdown mode before stopping to start challenges.
         // In this way we are sure that no malicious operations can be queued when keep alive mechanism is disabled.
-        // currentEpochEndTimestamp - 1 hours - maxChallengeDuration <= currentEpochEndTimestamp - 1 hours - maxChallengePeriodDuration
-        // maxChallengeDuration <=  maxChallengePeriodDuration
-        // maxChallengeDuration <= baseChallengePeriodDuration + (maxOperationsInQueue * maxOperationsInQueue * kChallengePeriod) - kChallengePeriod
-        if (block.timestamp + maxChallengeDuration > currentEpochEndTimestamp - 1 hours) {
+        // currentEpochEndTimestamp - 1 hours - challengeDuration <= currentEpochEndTimestamp - 1 hours - maxChallengePeriodDuration
+        // challengeDuration <=  maxChallengePeriodDuration
+        // challengeDuration <= baseChallengePeriodDuration + (maxOperationsInQueue * maxOperationsInQueue * kChallengePeriod) - kChallengePeriod
+        if (block.timestamp + challengeDuration > currentEpochEndTimestamp - 1 hours) {
             revert NearToEpochEnd();
         }
     }
@@ -986,8 +979,8 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
             revert InvalidChallengeStatus(challengeStatus, ChallengeStatus.Pending);
         }
 
-        if (block.timestamp > challenge.timestamp + maxChallengeDuration) {
-            revert MaxChallengeDurationPassed();
+        if (block.timestamp > challenge.timestamp + challengeDuration) {
+            revert ChallengeDurationPassed();
         }
 
         // TODO: send the lockedAmountStartChallenge to the DAO
