@@ -166,7 +166,9 @@ contract GovernanceMessageEmitter is IGovernanceMessageEmitter {
             currentEpoch
         );
         uint256 totalAmount = totalBorrowedAmount + totalSentinelStakedAmount;
-        address[] memory effectiveSentinels = new address[](sentinels.length);
+
+        int256[] memory validIndexes = new int256[](sentinels.length);
+        uint256 totalValidSentinels = 0;
         uint256 cumulativeAmount = 0;
 
         // NOTE: be sure that totalSentinelStakedAmount + totalBorrowedAmount = cumulativeAmount.
@@ -184,15 +186,24 @@ contract GovernanceMessageEmitter is IGovernanceMessageEmitter {
                     currentEpoch
                 );
                 cumulativeAmount += amount;
-
-                effectiveSentinels[index] = amount >= 200000 ? sentinels[index] : address(0);
+                if (amount >= 200000) {
+                    validIndexes[index] = int256(index);
+                    unchecked {
+                        totalValidSentinels++;
+                    }
+                } else {
+                    validIndexes[index] = -1;
+                }
             } else if (
                 registrationKind == 0x02 &&
                 currentEpoch >= registration.startEpoch &&
                 currentEpoch <= registration.endEpoch
             ) {
                 cumulativeAmount += 200000;
-                effectiveSentinels[index] = sentinels[index];
+                validIndexes[index] = int256(index);
+                unchecked {
+                    totalValidSentinels++;
+                }
             } else {
                 revert InvalidSentinelRegistration(registrationKind);
             }
@@ -204,6 +215,21 @@ contract GovernanceMessageEmitter is IGovernanceMessageEmitter {
 
         if (totalAmount != cumulativeAmount) {
             revert InvalidAmount(totalAmount, cumulativeAmount);
+        }
+
+        address[] memory effectiveSentinels = new address[](totalValidSentinels);
+        uint256 j = 0;
+        for (uint256 i = 0; i < validIndexes.length; ) {
+            int256 validIndex = validIndexes[i];
+            if (validIndex != -1) {
+                effectiveSentinels[j] = sentinels[uint256(validIndex)];
+                unchecked {
+                    j++;
+                }
+            }
+            unchecked {
+                i++;
+            }
         }
 
         return effectiveSentinels;

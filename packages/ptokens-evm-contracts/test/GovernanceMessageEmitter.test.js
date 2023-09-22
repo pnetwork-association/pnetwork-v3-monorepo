@@ -1,6 +1,6 @@
 const { expect } = require('chai')
 const { ethers } = require('hardhat')
-const { ZERO_ADDRESS, SLASHING_QUANTITY } = require('./constants')
+const { SLASHING_QUANTITY } = require('./constants')
 const { MerkleTree } = require('merkletreejs')
 
 let governanceMessageEmitter,
@@ -158,7 +158,7 @@ describe('GovernanceMessageEmitter', () => {
       )
     }
 
-    const sentinels = [...stakingSentinels, ZERO_ADDRESS, ZERO_ADDRESS, ...borrowingSentinels] // slashedStakingSentinel1 and slashedStakingSentinel2 are replaced by address 0
+    const sentinels = [...stakingSentinels, ...borrowingSentinels] // slashedStakingSentinel1 and slashedStakingSentinel2 are filtered
     const merkleRootWithoutSlashedSentinel = getMerkleRoot(sentinels)
 
     const abiCoder = new ethers.utils.AbiCoder()
@@ -181,7 +181,7 @@ describe('GovernanceMessageEmitter', () => {
       ]
     )
 
-    // NOTE: slashedStakingSentinel1 and slashedStakingSentinel2 are needed in order to calculate the staked amount but they will be replaced by address(0) in the merkle tree
+    // NOTE: slashedStakingSentinel1 and slashedStakingSentinel2 are needed in order to calculate the staked amount but they will be filtered in the merkle tree
     await expect(
       governanceMessageEmitter.propagateSentinels([
         ...stakingSentinels,
