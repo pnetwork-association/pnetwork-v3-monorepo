@@ -4,7 +4,11 @@ const constants = require('ptokens-constants')
 const { logger } = require('../get-logger')
 const { STATE_DETECTED_DB_REPORTS, STATE_QUEUED_DB_REPORTS } = require('../state/constants')
 const { updateEventInDb } = require('../update-events-in-db')
-const { getOperationStatusOfAbi, getUserOperationAbiArgsFromReport } = require('./evm-abi-manager')
+const {
+  logUserOperationFromAbiArgs,
+  getOperationStatusOfAbi,
+  getUserOperationAbiArgsFromReport,
+} = require('./evm-abi-manager')
 const {
   getDetectedEventsFromDbAndPutInState,
   getQueuedEventsFromDbAndPutInState,
@@ -69,9 +73,12 @@ const getOperationStatus = R.curry(
     new Promise(resolve => {
       const abi = getOperationStatusOfAbi()
       const args = getUserOperationAbiArgsFromReport(_report)
+      logger.info(_hubAddress)
+      logger.info(_provider)
       const hub = new ethers.Contract(_hubAddress, abi, _provider)
-
+      logger.info(abi)
       logger.info(`Getting operation status of ${_report[constants.db.KEY_ID]}...`)
+      logUserOperationFromAbiArgs('', args)
 
       return hub
         .operationStatusOf(...args)
@@ -87,7 +94,6 @@ const filterOutDetectedEventsWithWrongStatusAndPutInState = _state =>
     const hubAddress = _state[constants.state.KEY_HUB_ADDRESS]
     const provider = new ethers.JsonRpcProvider(providerUrl)
     const db = _state[constants.state.KEY_DB]
-
     logger.info('Checking EVM requests on chain status...')
     return Promise.all(pendingRequests.map(getOperationStatus(provider, hubAddress)))
       .then(setRequestsStatusAccordinglyIntoDb(db, pendingRequests))
