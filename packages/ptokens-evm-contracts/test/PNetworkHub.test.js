@@ -12,7 +12,7 @@ const {
   K_CHALLENGE_PERIOD,
   LOCKED_AMOUNT_CHALLENGE_PERIOD,
   LOCKED_AMOUNT_START_CHALLENGE,
-  MAX_CHALLENGE_DURATION,
+  CHALLENGE_DURATION,
   MAX_OPERATIONS_IN_QUEUE,
   PNETWORK_NETWORK_IDS,
   TELEPATHY_ROUTER_ADDRESS,
@@ -226,7 +226,7 @@ describe('PNetworkHub', () => {
       MAX_OPERATIONS_IN_QUEUE,
       PNETWORK_NETWORK_IDS.hardhat,
       LOCKED_AMOUNT_START_CHALLENGE,
-      MAX_CHALLENGE_DURATION,
+      CHALLENGE_DURATION,
       chainId
     )
     hub = await PNetworkHub.deploy(
@@ -243,7 +243,7 @@ describe('PNetworkHub', () => {
       MAX_OPERATIONS_IN_QUEUE,
       PNETWORK_NETWORK_IDS.ethereumMainnet,
       LOCKED_AMOUNT_START_CHALLENGE,
-      MAX_CHALLENGE_DURATION,
+      CHALLENGE_DURATION,
       chainId
     )
 
@@ -1317,7 +1317,7 @@ describe('PNetworkHub', () => {
         value: LOCKED_AMOUNT_START_CHALLENGE,
       })
     const challenge = Challenge.fromReceipt(await tx.wait(1))
-    await time.increase(MAX_CHALLENGE_DURATION)
+    await time.increase(CHALLENGE_DURATION)
 
     await expect(
       hub
@@ -1327,7 +1327,7 @@ describe('PNetworkHub', () => {
           proof,
           await challengedSentinel.signMessage(ethers.utils.arrayify(challenge.id))
         )
-    ).to.be.revertedWithCustomError(hub, 'MaxChallengeDurationPassed')
+    ).to.be.revertedWithCustomError(hub, 'ChallengeDurationPassed')
   })
 
   it('should not be able to solve a challenge of a sentinel by using another sentinel', async () => {
@@ -1362,7 +1362,7 @@ describe('PNetworkHub', () => {
         value: LOCKED_AMOUNT_START_CHALLENGE,
       })
     const challenge = Challenge.fromReceipt(await tx.wait(1))
-    await time.increase(MAX_CHALLENGE_DURATION)
+    await time.increase(CHALLENGE_DURATION)
 
     const balancePre = await ethers.provider.getBalance(challenger.address)
 
@@ -1406,7 +1406,7 @@ describe('PNetworkHub', () => {
         value: LOCKED_AMOUNT_START_CHALLENGE,
       })
     const challenge = Challenge.fromReceipt(await tx.wait(1))
-    await time.increase(MAX_CHALLENGE_DURATION)
+    await time.increase(CHALLENGE_DURATION)
 
     const initialTotalNumberOfInactiveActors =
       await hub.getTotalNumberOfInactiveActorsForCurrentEpoch()
@@ -1445,7 +1445,7 @@ describe('PNetworkHub', () => {
         value: LOCKED_AMOUNT_START_CHALLENGE,
       })
     const challenge = Challenge.fromReceipt(await tx.wait(1))
-    await time.increase(MAX_CHALLENGE_DURATION)
+    await time.increase(CHALLENGE_DURATION)
     await hub.connect(challenger).slashByChallenge(challenge)
     await expect(hub.connect(challenger).slashByChallenge(challenge))
       .to.be.revertedWithCustomError(hub, 'InvalidChallengeStatus')
@@ -1478,11 +1478,11 @@ describe('PNetworkHub', () => {
         value: LOCKED_AMOUNT_START_CHALLENGE,
       })
     const challenge = Challenge.fromReceipt(await tx.wait(1))
-    await time.increase(MAX_CHALLENGE_DURATION)
+    await time.increase(CHALLENGE_DURATION)
 
     await expect(
       hub.connect(challengedGuardian).solveChallengeGuardian(challenge, proof)
-    ).to.be.revertedWithCustomError(hub, 'MaxChallengeDurationPassed')
+    ).to.be.revertedWithCustomError(hub, 'ChallengeDurationPassed')
   })
 
   it('should not be able to solve a challenge of a sentinel by using another sentinel', async () => {
@@ -1509,7 +1509,7 @@ describe('PNetworkHub', () => {
         value: LOCKED_AMOUNT_START_CHALLENGE,
       })
     const challenge = Challenge.fromReceipt(await tx.wait(1))
-    await time.increase(MAX_CHALLENGE_DURATION)
+    await time.increase(CHALLENGE_DURATION)
 
     const balancePre = await ethers.provider.getBalance(challenger.address)
 
@@ -1552,7 +1552,7 @@ describe('PNetworkHub', () => {
         value: LOCKED_AMOUNT_START_CHALLENGE,
       })
     const challenge = Challenge.fromReceipt(await tx.wait(1))
-    await time.increase(MAX_CHALLENGE_DURATION)
+    await time.increase(CHALLENGE_DURATION)
 
     const initialTotalNumberOfInactiveActors =
       await hub.getTotalNumberOfInactiveActorsForCurrentEpoch()
@@ -1591,7 +1591,7 @@ describe('PNetworkHub', () => {
         value: LOCKED_AMOUNT_START_CHALLENGE,
       })
     const challenge = Challenge.fromReceipt(await tx.wait(1))
-    await time.increase(MAX_CHALLENGE_DURATION)
+    await time.increase(CHALLENGE_DURATION)
     await hub.connect(challenger).slashByChallenge(challenge)
     await expect(hub.connect(challenger).slashByChallenge(challenge))
       .to.be.revertedWithCustomError(hub, 'InvalidChallengeStatus')
@@ -1620,7 +1620,7 @@ describe('PNetworkHub', () => {
       challenges.push(Challenge.fromReceipt(await tx.wait(1)))
     }
 
-    await time.increase(MAX_CHALLENGE_DURATION)
+    await time.increase(CHALLENGE_DURATION)
 
     for (const challenge of challenges) {
       await hub.connect(challenger).slashByChallenge(challenge)
@@ -1641,7 +1641,7 @@ describe('PNetworkHub', () => {
     const proof = getActorsMerkleProof(guardians, challengedGuardian)
     const startFirstEpochTimestamp = (await epochsManager.startFirstEpochTimestamp()).toNumber()
     const currentEpochEndTimestamp = startFirstEpochTimestamp + (currentEpoch + 1) * epochDuration
-    await time.increaseTo(currentEpochEndTimestamp - MAX_CHALLENGE_DURATION - 3600 + 1)
+    await time.increaseTo(currentEpochEndTimestamp - CHALLENGE_DURATION - 3600 + 1)
     await expect(
       hub.connect(challenger).startChallengeGuardian(challengedGuardian.address, proof, {
         value: LOCKED_AMOUNT_START_CHALLENGE,
@@ -1686,7 +1686,7 @@ describe('PNetworkHub', () => {
     const proof = getActorsMerkleProof(guardians, challengedGuardian)
     const startFirstEpochTimestamp = (await epochsManager.startFirstEpochTimestamp()).toNumber()
     const currentEpochEndTimestamp = startFirstEpochTimestamp + (currentEpoch + 1) * epochDuration
-    await time.increaseTo(currentEpochEndTimestamp - MAX_CHALLENGE_DURATION - 3600 - 1)
+    await time.increaseTo(currentEpochEndTimestamp - CHALLENGE_DURATION - 3600 - 1)
     const tx = await hub
       .connect(challenger)
       .startChallengeGuardian(challengedGuardian.address, proof, {
@@ -1707,7 +1707,7 @@ describe('PNetworkHub', () => {
     const proof = getActorsMerkleProof(guardians, challengedGuardian)
     const startFirstEpochTimestamp = (await epochsManager.startFirstEpochTimestamp()).toNumber()
     const currentEpochEndTimestamp = startFirstEpochTimestamp + (currentEpoch + 1) * epochDuration
-    await time.increaseTo(currentEpochEndTimestamp - MAX_CHALLENGE_DURATION - 3600 - 1)
+    await time.increaseTo(currentEpochEndTimestamp - CHALLENGE_DURATION - 3600 - 1)
     const tx = await hub
       .connect(challenger)
       .startChallengeGuardian(challengedGuardian.address, proof, {
@@ -1719,7 +1719,7 @@ describe('PNetworkHub', () => {
 
     await expect(
       hub.connect(challengedGuardian).solveChallengeGuardian(challenge, proof)
-    ).to.be.revertedWithCustomError(hub, 'MaxChallengeDurationPassed')
+    ).to.be.revertedWithCustomError(hub, 'ChallengeDurationPassed')
 
     await time.setNextBlockTimestamp(currentEpochEndTimestamp - 1)
 
@@ -1737,7 +1737,7 @@ describe('PNetworkHub', () => {
     const proof = getActorsMerkleProof(guardians, challengedGuardian)
     const startFirstEpochTimestamp = (await epochsManager.startFirstEpochTimestamp()).toNumber()
     const currentEpochEndTimestamp = startFirstEpochTimestamp + (currentEpoch + 1) * epochDuration
-    await time.increaseTo(currentEpochEndTimestamp - MAX_CHALLENGE_DURATION - 3600 - 1)
+    await time.increaseTo(currentEpochEndTimestamp - CHALLENGE_DURATION - 3600 - 1)
     const tx = await hub
       .connect(challenger)
       .startChallengeGuardian(challengedGuardian.address, proof, {
@@ -1776,7 +1776,7 @@ describe('PNetworkHub', () => {
       challenges.push(Challenge.fromReceipt(await tx.wait(1)))
     }
 
-    await time.increase(MAX_CHALLENGE_DURATION)
+    await time.increase(CHALLENGE_DURATION)
 
     for (const challenge of challenges) {
       await hub.connect(challenger).slashByChallenge(challenge)
@@ -1966,7 +1966,7 @@ describe('PNetworkHub', () => {
       challenges.push(Challenge.fromReceipt(await tx.wait(1)))
     }
 
-    await time.increase(MAX_CHALLENGE_DURATION)
+    await time.increase(CHALLENGE_DURATION)
 
     for (const challenge of challenges) {
       await hub.connect(challenger).slashByChallenge(challenge)
@@ -2044,7 +2044,7 @@ describe('PNetworkHub', () => {
       challenges.push(Challenge.fromReceipt(await tx.wait(1)))
     }
 
-    await time.increase(MAX_CHALLENGE_DURATION)
+    await time.increase(CHALLENGE_DURATION)
 
     for (const challenge of challenges) {
       await hub.connect(challenger).slashByChallenge(challenge)
@@ -2095,7 +2095,7 @@ describe('PNetworkHub', () => {
       await hub.getPendingChallengeIdByEpochOf(currentEpoch, challengedGuardian.address)
     ).to.be.eq(expectedChallengeId)
 
-    await time.increase(MAX_CHALLENGE_DURATION)
+    await time.increase(CHALLENGE_DURATION)
     await hub.connect(challenger).slashByChallenge(challenge)
     expect(
       await hub.getPendingChallengeIdByEpochOf(currentEpoch, challengedGuardian.address)
@@ -2148,7 +2148,7 @@ describe('PNetworkHub', () => {
       challenges.push(Challenge.fromReceipt(await tx.wait(1)))
     }
 
-    await time.increase(MAX_CHALLENGE_DURATION)
+    await time.increase(CHALLENGE_DURATION)
     for (const challenge of challenges) {
       await hub.connect(challenger).slashByChallenge(challenge)
     }
@@ -2266,7 +2266,7 @@ describe('PNetworkHub', () => {
       challenges.push(Challenge.fromReceipt(await tx.wait(1)))
     }
 
-    await time.increase(MAX_CHALLENGE_DURATION)
+    await time.increase(CHALLENGE_DURATION)
     for (const challenge of challenges) {
       await hub.connect(challenger).slashByChallenge(challenge)
     }
@@ -2359,7 +2359,7 @@ describe('PNetworkHub', () => {
     )
 
     // Increase time
-    time.increase(MAX_CHALLENGE_DURATION)
+    time.increase(CHALLENGE_DURATION)
 
     const encodedBytes = ethers.utils.defaultAbiCoder.encode(
       ['address', 'address'],

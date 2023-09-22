@@ -285,7 +285,7 @@ interface IPNetworkHub is IGovernanceMessageHandler {
     function getChallengeStatus(Challenge calldata challenge) external view returns (ChallengeStatus);
 
     /*
-     * @notice Calculates the current active actors duration which is use to secure the system when few there are few actor that secure the system.
+     * @notice Calculates the current active actors duration which is use to secure the system when few there are few active actors.
      *
      * @return uint64 representing the current active actors duration.
      */
