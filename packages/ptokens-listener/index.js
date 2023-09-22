@@ -23,6 +23,7 @@ const disableLoggingForCLICommand = _ => {
 const GET_OPERATIONS_CMD = 'getOperations'
 const GET_USER_OPERATION_CMD = 'getUserOperation'
 const GET_OPERATION_QUEUED_CMD = 'getOperationQueued'
+const GET_CHALLENGE_PENDING_CMD = 'getChallengePending'
 const GET_OPERATION_EXECUTED_CMD = 'getOperationExecuted'
 const GET_GUARDIANS_PROPAGATED_CMD = 'getGuardiansPropagated'
 const GET_EVENT_LOGS_FROM_TRANSACTION_CMD = 'getEventsLogsFromTransaction'
@@ -48,6 +49,11 @@ $ node index.js ${GET_EVENT_LOGS_FROM_TRANSACTION_CMD} 0x2d300f8aeed6cee69f50dde
 const GET_GUARDIANS_PROPAGATED_HELP_MESSAGE =
   EXAMPLE_CALLS +
   `$ node index.js ${GET_GUARDIANS_PROPAGATED_CMD} 0xFf310f8aeed6cee69f50dde84d0a6e991d0836b2a1a3b3a6737b3ae3493f710f
+`
+
+const GET_CHALLENGE_PENDING_HELP_MESSAGE =
+  EXAMPLE_CALLS +
+  `$ node index.js ${GET_CHALLENGE_PENDING_CMD} 0xFf310f8aeed6cee69f50dde84d0a6e991d0836b2a1a3b3a6737b3ae3493f710f
 `
 
 const GET_USER_OPERATION_HELP_MESSAGE =
@@ -157,6 +163,24 @@ const addGetOperationExecutedCommand = _program =>
         )
     ) && _program
 
+const addGetChallengePendingCommand = _program =>
+  _program
+    .command(GET_CHALLENGE_PENDING_CMD)
+    .description('Get ChallengePending event reports in a specific transaction')
+    .argument('<tx–hash>', 'transaction hash')
+    .option('-s, --save', 'save report into database')
+    .addHelpText('after', GET_CHALLENGE_PENDING_HELP_MESSAGE)
+    .action(
+      (_hash, _options) =>
+        disableLoggingForCLICommand() ||
+        getEventReportsFromTransactionCommand(
+          config,
+          _hash,
+          constants.evm.events.CHALLENGE_PENDING_SIGNATURE,
+          _options.save
+        )
+    ) && _program
+
 const addGetGuardiansPropagatedCommand = _program =>
   _program
     .command(GET_GUARDIANS_PROPAGATED_CMD)
@@ -199,6 +223,7 @@ const main = () =>
     .then(addGetOperationExecutedCommand)
     .then(addGetGuardiansPropagatedCommand)
     .then(addGetOperationsCommand)
+    .then(addGetChallengePendingCommand)
     .then(_program => _program.parseAsync(process.argv))
     .catch(printErrorAndExit)
     .then(_ => exitCleanly(0))
