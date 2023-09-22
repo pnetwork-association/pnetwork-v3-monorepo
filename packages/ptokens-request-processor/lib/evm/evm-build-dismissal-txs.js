@@ -3,6 +3,7 @@ const ethers = require('ethers')
 const errors = require('../errors')
 const constants = require('ptokens-constants')
 const { logger } = require('../get-logger')
+const { getMerkleProof } = require('./get-merkle-proof')
 const { constants: ptokensUtilsConstants, logic, utils } = require('ptokens-utils')
 const { addDismissedReportsToState } = require('../state/state-operations.js')
 const { STATE_TO_BE_DISMISSED_REQUESTS } = require('../state/constants')
@@ -37,7 +38,7 @@ const cancelOperationErrorHandler = R.curry((resolve, reject, _eventReport, _err
 )
 
 const makeDismissalContractCall = R.curry(
-  (_wallet, _hubAddress, _txTimeout, _eventReport) =>
+  (_wallet, _hubAddress, _proof, _txTimeout, _eventReport) =>
     new Promise((resolve, reject) => {
       const id = _eventReport[constants.db.KEY_ID]
       const eventName = _eventReport[constants.db.KEY_EVENT_NAME]
@@ -46,12 +47,11 @@ const makeDismissalContractCall = R.curry(
         return reject(new Error(`${errors.ERROR_INVALID_EVENT_NAME}: ${eventName}`))
       }
 
-      const emptyProof = '0x'
-      const abi = getProtocolGuardianCancelOperationAbi()
       const contractAddress = _hubAddress
+      const abi = getProtocolGuardianCancelOperationAbi()
       const functionName = 'protocolGuardianCancelOperation'
       const args = getUserOperationAbiArgsFromReport(_eventReport)
-      args.push(emptyProof)
+      args.push(_proof)
       const contract = new ethers.Contract(contractAddress, abi, _wallet)
 
       logger.info(`Executing _id: ${id}`)
@@ -65,21 +65,29 @@ const makeDismissalContractCall = R.curry(
     })
 )
 
-const sendDismissalTransactions = R.curry(async (_eventReports, _hubAddress, _timeOut, _wallet) => {
-  logger.info(`Sending final txs w/ address ${_wallet.address}`)
-  const newReports = []
-  for (const report of _eventReports) {
-    const newReport = await makeDismissalContractCall(_wallet, _hubAddress, _timeOut, report)
-    newReports.push(newReport)
-    await logic.sleepForXMilliseconds(1000) // TODO: make configurable
-  }
+const sendDismissalTransactions = R.curry(
+  async (_eventReports, _proof, _hubAddress, _timeOut, _wallet) => {
+    logger.info(`Sending final txs w/ address ${_wallet.address} w/ proof ${_proof}`)
+    const newReports = []
+    for (const report of _eventReports) {
+      const newReport = await makeDismissalContractCall(
+        _wallet,
+        _hubAddress,
+        _proof,
+        _timeOut,
+        report
+      )
+      newReports.push(newReport)
+      await logic.sleepForXMilliseconds(1000) // TODO: make configurable
+    }
 
-  return newReports
-})
+    return newReports
+  }
+)
 
 // TODO: function very similar to the one for building proposals...factor out?
 const buildDismissalTxsAndPutInState = _state =>
-  new Promise(resolve => {
+  new Promise((resolve, reject) => {
     logger.info('Building dismissal txs...')
     const invalidRequests = _state[STATE_TO_BE_DISMISSED_REQUESTS] || []
     const providerUrl = _state[constants.state.KEY_PROVIDER_URL]
@@ -87,13 +95,19 @@ const buildDismissalTxsAndPutInState = _state =>
     const provider = new ethers.JsonRpcProvider(providerUrl)
     const txTimeout = _state[constants.state.KEY_TX_TIMEOUT]
     const hub = _state[constants.state.KEY_HUB_ADDRESS]
+    const db = _state[constants.state.KEY_DB]
 
     return utils
       .readIdentityFile(identityGpgFile)
-      .then(_privateKey => new ethers.Wallet(_privateKey, provider))
-      .then(sendDismissalTransactions(invalidRequests, hub, txTimeout))
+      .then(_privateKey =>
+        Promise.all([new ethers.Wallet(_privateKey, provider), getMerkleProof(db)])
+      )
+      .then(([_wallet, _proof]) =>
+        sendDismissalTransactions(invalidRequests, _proof, hub, txTimeout, _wallet)
+      )
       .then(addDismissedReportsToState(_state))
       .then(resolve)
+      .catch(reject)
   })
 
 const maybeBuildDismissalTxsAndPutInState = _state =>

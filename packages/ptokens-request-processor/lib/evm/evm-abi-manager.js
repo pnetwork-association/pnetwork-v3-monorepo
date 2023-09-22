@@ -69,7 +69,7 @@ const getProtocolOperationAbi = _operationName => {
 
 const getProtocolGuardianCancelOperationAbi = () => {
   const abi = [
-    `function protocolGuardianCancelOperation(${userOperationTuple} calldata operation, bytes calldata proof)`,
+    `function protocolGuardianCancelOperation(${userOperationTuple} calldata operation, bytes32[] calldata proof)`,
   ]
   return R.concat(abi, hubErrors)
 }
