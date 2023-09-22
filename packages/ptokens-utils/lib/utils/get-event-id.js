@@ -136,6 +136,7 @@ const getEventId = ({
   originatingBlockHash,
   originatingTransactionHash,
   originatingNetworkId,
+  originatingAddress,
   blockHash,
   transactionHash,
   networkId,
@@ -154,6 +155,7 @@ const getEventId = ({
   forwardNetworkFeeAssetAmount,
   userData,
   optionsMask,
+  isForProtocol,
 }) =>
   getBlockchainTypeFromChainId(destinationNetworkId)
     .then(_type => {
@@ -163,6 +165,7 @@ const getEventId = ({
             originatingBlockHash,
             originatingTransactionHash,
             originatingNetworkId,
+            originatingAddress,
             blockHash,
             transactionHash,
             networkId,
@@ -181,6 +184,7 @@ const getEventId = ({
             forwardNetworkFeeAssetAmount,
             userData,
             optionsMask,
+            isForProtocol,
           })
         default:
           return fallbackEventId(networkId, blockHash, transactionHash)
