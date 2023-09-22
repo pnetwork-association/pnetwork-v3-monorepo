@@ -29,8 +29,8 @@ module.exports = class Challenge {
     const abiCoder = new ethers.utils.AbiCoder()
     return ethers.utils.sha256(
       abiCoder.encode(
-        ['uint256', 'address', 'address', 'uint64', 'bytes4'],
-        [this.nonce, this.actor, this.challenger, this.timestamp, this.networkId]
+        ['tuple(uint256,address,address,uint64,bytes4)'],
+        [[this.nonce, this.actor, this.challenger, this.timestamp, this.networkId]]
       )
     )
   }

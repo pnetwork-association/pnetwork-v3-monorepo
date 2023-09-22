@@ -145,13 +145,7 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
     function challengeIdOf(Challenge memory challenge) public pure returns (bytes32) {
         return
             sha256(
-                abi.encode(
-                    challenge.nonce,
-                    challenge.actor,
-                    challenge.challenger,
-                    challenge.timestamp,
-                    challenge.networkId
-                )
+                abi.encode(challenge)
             );
     }
 
@@ -254,28 +248,7 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
     function operationIdOf(Operation calldata operation) public pure returns (bytes32) {
         return
             sha256(
-                abi.encode(
-                    operation.originBlockHash,
-                    operation.originTransactionHash,
-                    operation.optionsMask,
-                    operation.nonce,
-                    operation.underlyingAssetDecimals,
-                    operation.assetAmount,
-                    operation.protocolFeeAssetAmount,
-                    operation.networkFeeAssetAmount,
-                    operation.forwardNetworkFeeAssetAmount,
-                    operation.underlyingAssetTokenAddress,
-                    operation.originNetworkId,
-                    operation.destinationNetworkId,
-                    operation.forwardDestinationNetworkId,
-                    operation.underlyingAssetNetworkId,
-                    operation.originAccount,
-                    operation.destinationAccount,
-                    operation.underlyingAssetName,
-                    operation.underlyingAssetSymbol,
-                    operation.userData,
-                    operation.isForProtocol
-                )
+                abi.encode(operation)
             );
     }
 
