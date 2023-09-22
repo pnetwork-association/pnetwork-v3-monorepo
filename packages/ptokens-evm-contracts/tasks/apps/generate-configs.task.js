@@ -2,7 +2,12 @@ const R = require('ramda')
 const path = require('path')
 const fs = require('node:fs/promises')
 const constants = require('ptokens-constants')
-const { getNetworkId, getHubAddress } = require('../lib/configuration-manager')
+const pTokensUtils = require('ptokens-utils')
+const {
+  getNetworkId,
+  getHubAddress,
+  getGovernanceMessageEmitterAddress,
+} = require('../lib/configuration-manager')
 
 const TASK_FLAG_SHOW = 'show'
 const TASK_FLAG_SHOW_DESC = 'Show result instead of saving it to a file'
@@ -35,6 +40,28 @@ const maybeSaveConfiguration = R.curry((taskArgs, _what, _path, _configuration) 
 const getMongoUrlFromTaskArgs = taskArgs =>
   taskArgs[TASK_FLAG_MONGO_LOCALHOST] ? 'mongodb://localhost:27017' : 'mongodb://mongodb:27017'
 
+const addGuardiansPropagatedEvent = R.curry((_config, _governanceMessageEmitterAddress) => {
+  const obj = {
+    [constants.config.KEY_CONTRACTS]: [_governanceMessageEmitterAddress],
+    [constants.config.KEY_NAME]: constants.evm.events.GUADIANS_PROPAGATED_SIGNATURE,
+  }
+
+  const events = _config[constants.config.KEY_EVENTS]
+
+  events.push(obj)
+  return Promise.resolve(R.assoc(constants.config.KEY_EVENTS, events, _config))
+})
+
+const addGovernanceMessageEmitterEvent = R.curry((taskArgs, hre, _networkId, _config) =>
+  getGovernanceMessageEmitterAddress(hre).then(addGuardiansPropagatedEvent(_config))
+)
+
+const maybeAddGovernanceMessageEmitterEvents = R.curry((taskArgs, hre, _networkId, _config) =>
+  _networkId === pTokensUtils.constants.networkIds.POLYGON_MAINNET
+    ? addGovernanceMessageEmitterEvent(taskArgs, hre, _networkId, _config)
+    : Promise.resolve(_config)
+)
+
 const generateListenerConfiguration = (
   taskArgs,
   hre,
@@ -59,6 +86,9 @@ const generateListenerConfiguration = (
       [constants.config.KEY_URL]: getMongoUrlFromTaskArgs(taskArgs),
     },
   })
+    // FIXME: add component name to the args and add the event only
+    // in the case of a guardian
+    .then(maybeAddGovernanceMessageEmitterEvents(taskArgs, hre, _networkId))
 
 const generateRequestProcessorConfiguration = (taskArgs, hre, _networkId, _contractAddress) =>
   Promise.all([getHubAddress(hre), getNetworkId(hre)]).then(([_hubAddress, _networkId]) => ({

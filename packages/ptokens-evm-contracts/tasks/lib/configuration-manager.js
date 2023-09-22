@@ -7,6 +7,7 @@ const {
   KEY_PTOKEN_LIST,
   KEY_PNETWORKHUB,
   KEY_UNDERLYING_ASSET_LIST,
+  KEY_GOVERNANCE_MESSAGE_EMITTER,
 } = require('../constants')
 const { utils } = require('ptokens-utils')
 const { TASK_NAME_GET_NETWORK_ID } = require('../get-network-id')
@@ -68,6 +69,9 @@ const getNetworkIdFromChainName = _networkName =>
     .then(_config => _config.get(_networkName))
     .then(R.prop(KEY_NETWORK_ID))
 
+const getGovernanceMessageEmitterAddress = hre =>
+  getDeploymentFromHRE(hre).then(R.path([KEY_GOVERNANCE_MESSAGE_EMITTER, KEY_ADDRESS]))
+
 const checkHubIsDeployed = hre =>
   getHubAddress(hre).then(
     utils.promises.rejectIfNil(
@@ -87,4 +91,5 @@ module.exports = {
   checkHubIsDeployed,
   getDeploymentFromNetworkName,
   maybeAddEmptyUnderlyingAssetList,
+  getGovernanceMessageEmitterAddress,
 }
