@@ -3,6 +3,9 @@ const OPERATION_TUPLE =
 
 const OPERATION_CANCELLED_SIGNATURE = `OperationCancelFinalized(${OPERATION_TUPLE} operation)`
 
+const CHALLENGE_TUPLE =
+  'tuple(uint256 nonce, address actor, address challenger, uint64 timestamp, bytes4 networkId)'
+
 const OPERATION_EXECUTED_SIGNATURE = `OperationExecuted(${OPERATION_TUPLE} operation)`
 
 const OPERATION_QUEUED_SIGNATURE = `OperationQueued(${OPERATION_TUPLE} operation)`
@@ -13,6 +16,8 @@ const GUADIANS_PROPAGATED_SIGNATURE =
 const USER_OPERATION_SIGNATURE =
   'UserOperation(uint256 nonce, string originAccount, string destinationAccount, bytes4 destinationNetworkId, string underlyingAssetName, string underlyingAssetSymbol, uint256 underlyingAssetDecimals, address underlyingAssetTokenAddress, bytes4 underlyingAssetNetworkId, address assetTokenAddress, uint256 assetAmount, address protocolFeeAssetTokenAddress, uint256 protocolFeeAssetAmount, uint256 networkFeeAssetAmount, uint256 forwardNetworkFeeAssetAmount, bytes4 forwardDestinationNetworkId, bytes userData, bytes32 optionsMask, bool isForProtocol)'
 
+const CHALLENGE_PENDING_SIGNATURE = `ChallengePending(${CHALLENGE_TUPLE} challenge)`
+
 module.exports = {
   OPERATION_TUPLE,
   GUADIANS_PROPAGATED_SIGNATURE,
@@ -20,4 +25,5 @@ module.exports = {
   OPERATION_EXECUTED_SIGNATURE,
   OPERATION_QUEUED_SIGNATURE,
   USER_OPERATION_SIGNATURE,
+  CHALLENGE_PENDING_SIGNATURE,
 }
