@@ -1,3 +1,4 @@
+const { readFileSync } = require('fs')
 const { readFile } = require('fs/promises')
 const { logger } = require('../logger')
 
@@ -8,4 +9,8 @@ const readIdentityFile = _identityFile =>
     .then(_s => _s.trim())
     .catch(_err => logger.error(`Problem when reading ${_identityFile}: ${_err.message}`))
 
-module.exports = { readIdentityFile }
+const readIdentityFileSync = _identityFile =>
+  logger.warn('FIXME: READING PRIV KEY IN CLEAR TEXT') ||
+  readFileSync(_identityFile, { encoding: 'utf-8' })
+
+module.exports = { readIdentityFile, readIdentityFileSync }

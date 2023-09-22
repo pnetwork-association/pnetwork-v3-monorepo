@@ -5,10 +5,10 @@ const getBlockchainTypeFromChainId = _networkId =>
     switch (_networkId) {
       case constants.networkIds.HARDHAT1:
       case constants.networkIds.HARDHAT2:
+      case constants.networkIds.BSC_MAINNET:
       case constants.networkIds.GNOSIS_MAINNET:
       case constants.networkIds.POLYGON_MAINNET:
       case constants.networkIds.ARBITRUM_MAINNET:
-      case constants.networkIds.BSC_MAINNET:
       case constants.networkIds.ETHEREUM_MAINNET:
       case constants.networkIds.ETHEREUM_GOERLI:
         return resolve(constants.blockchainType.EVM)
