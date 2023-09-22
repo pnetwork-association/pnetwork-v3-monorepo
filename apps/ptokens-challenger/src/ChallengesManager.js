@@ -1,5 +1,7 @@
 import { ObjectId } from 'mongodb'
 import moment from 'moment'
+import { encodeFunctionData, decodeAbiParameters } from 'viem'
+import { Mutex } from 'async-mutex'
 
 import PNetworkHubABI from './abi/PNetworkHub.json' assert { type: 'json' }
 
@@ -7,21 +9,22 @@ class ChallengesManager {
   constructor({
     actorsManager,
     challengeDuration,
-    challengerAddress,
     clientsManager,
     db,
+    lockAmountsStartChallenge,
     logger,
     pNetworkHubAddresses,
     startChallengeThresholdBlocks,
   }) {
     this.actorsManager = actorsManager
-    this.challengerAddress = challengerAddress
     this.pNetworkHubAddresses = pNetworkHubAddresses
     this.startChallengeThresholdBlocks = startChallengeThresholdBlocks
     this.clientsManager = clientsManager
     this.challengeDuration = challengeDuration
+    this.lockAmountsStartChallenge = lockAmountsStartChallenge
     this.logger = logger
 
+    this.mutex = new Mutex()
     this.challenges = db.collection('challenges')
 
     this.processPendingChallenges()
@@ -31,6 +34,7 @@ class ChallengesManager {
   }
 
   async processPendingChallenges() {
+    const release = await this.mutex.acquire()
     try {
       this.logger.info('✓ Checking pending challenges ...')
       const pendingChallenges = await this.challenges
@@ -45,19 +49,96 @@ class ChallengesManager {
         return
       }
 
-      // TODO: solve challenge
-
+      const networks = pendingChallenges.map(({ networkId }) => networkId)
       this.logger.info(
         `✓ Found ${pendingChallenges.length} solvable challenge${
           pendingChallenges.length > 1 ? 's' : ''
-        }! Setting as solved ...`
+        } on ${networks}! Starting slashing ...`
       )
-      this.challenges.updateMany(
-        { _id: { $in: pendingChallenges.map(({ _id }) => new ObjectId(_id)) } },
-        { $set: { status: 'solved' } }
+
+      const clients = networks.reduce((_acc, _networkId) => {
+        _acc[_networkId] = this.clientsManager.getClientByNetworkId(_networkId)
+        return _acc
+      }, {})
+
+      this.logger.info('✓ Simulating slashing contract calls ...')
+      const requests = (
+        await Promise.all(
+          pendingChallenges.map(
+            _challenge =>
+              new Promise(_resolve => {
+                const { nonce, actor, challenger, timestamp, networkId } = _challenge
+                clients[networkId]
+                  .prepareTransactionRequest({
+                    to: this.pNetworkHubAddresses[networkId],
+                    data: encodeFunctionData({
+                      abi: PNetworkHubABI,
+                      functionName: 'slashByChallenge',
+                      args: [{ nonce, actor, challenger, timestamp, networkId }],
+                    }),
+                    value: 0,
+                  })
+                  .then(_request =>
+                    _resolve({
+                      challenge: _challenge,
+                      request: _request,
+                      networkId,
+                    })
+                  )
+                  .catch(_err => {
+                    // TODO: check if the challenge has been solved
+                    this.logger.error(_err)
+                    _resolve()
+                  })
+              })
+          )
+        )
+      ).filter(_request => _request)
+
+      if (requests.length === 0) {
+        this.logger.info('No valid slashing requests! Stopping slashing ...')
+        return
+      }
+
+      const rawTransactions = await Promise.all(
+        requests.map(({ request, networkId }, _index) =>
+          clients[networkId].signTransaction(request)
+        )
       )
+
+      const hashes = await Promise.all(
+        rawTransactions.map((_rawTransaction, _index) => {
+          const networkId = requests[_index].networkId
+          const challenge = requests[_index].challenge
+
+          this.logger.info(
+            `✓ Broadcasting slashing transaction on ${networkId} for ${JSON.stringify(
+              challenge
+            )} ...`
+          )
+          return clients[networkId].sendRawTransaction({ serializedTransaction: _rawTransaction })
+        })
+      )
+
+      for (const [index, hash] of hashes.entries()) {
+        const networkId = requests[index].networkId
+        const challenge = requests[index].challenge
+
+        this.logger.info(`✓ Waiting ${hash} receipt for ${JSON.stringify(challenge)}...`)
+        await clients[networkId].waitForTransactionReceipt({ hash })
+
+        this.logger.info(
+          `Successfully slashed ${challenge.actor} on ${challenge.networkId} (${hash})!`
+        )
+        await this.challenges.updateOne(
+          { _id: new ObjectId(challenge._id) },
+          { $set: { status: 'unsolved' } }
+        )
+      }
     } catch (_err) {
       this.logger.error(_err)
+    } finally {
+      release()
     }
   }
 
@@ -67,12 +148,10 @@ class ChallengesManager {
       ({ latestBlockNumber }) => latestBlockNumber
     )
 
-    const clients = networkIds.map(_networkId =>
-      this.clientsManager.getClientByNetworkId(_networkId)
-    )
-
     const fetchedLatestBlockNumbers = await Promise.all(
-      clients.map(_client => _client.getBlockNumber())
+      networkIds
+        .map(_networkId => this.clientsManager.getClientByNetworkId(_networkId))
+        .map(_client => _client.getBlockNumber())
     )
 
     // TODO: improve checks
@@ -88,37 +167,104 @@ class ChallengesManager {
     this.logger.info('✓ Calculating actor merkle proof ...')
     const proof = await this.actorsManager.getActorsMerkleProofForCurrentEpoch({ actor, actorType })
 
-    this.logger.info('✓ Simulating contract calls ...')
-    const validRequests = (
+    const clients = networks.reduce((_acc, _networkId) => {
+      _acc[_networkId] = this.clientsManager.getClientByNetworkId(_networkId)
+      return _acc
+    }, {})
+
+    this.logger.info('✓ Simulating challenge contract calls ...')
+    const requests = (
       await Promise.all(
         networks.map(
           _networkId =>
             new Promise(_resolve => {
-              this.clientsManager
-                .getClientByNetworkId(_networkId)
-                .simulateContract({
-                  account: this.challengerAddress,
-                  address: this.pNetworkHubAddresses[_networkId],
-                  abi: PNetworkHubABI,
-                  functionName:
-                    actorType === 'guardian' ? 'startChallengeGuardian' : 'startChallengeSentinel',
-                  args: [actor, [proof]],
+              clients[_networkId]
+                .prepareTransactionRequest({
+                  to: this.pNetworkHubAddresses[_networkId],
+                  data: encodeFunctionData({
+                    abi: PNetworkHubABI,
+                    functionName:
+                      actorType === 'guardian'
+                        ? 'startChallengeGuardian'
+                        : 'startChallengeSentinel',
+                    args: [actor, proof],
+                  }),
+                  value: this.lockAmountsStartChallenge[_networkId],
                 })
-                .then(_resolve)
-                .catch(() => _resolve(null))
+                .then(_request =>
+                  _resolve({
+                    request: _request,
+                    networkId: _networkId,
+                  })
+                )
+                .catch(_err => {
+                  this.logger.error(_err)
+                  _resolve()
+                })
             })
         )
       )
     ).filter(_request => _request)
-    this.logger.info(validRequests)
 
-    this.logger.info('✓ Sending transactions ...')
-    // TODO: start challenge + store challenge within mongo
-    /*await this.challenges.insertOne({
-      status: 'pending',
-      test: 'test',
-      timestamp: moment().unix(),
-    })*/
+    if (requests.length === 0) {
+      this.logger.info('No valid requests! Stopping challenge ...')
+      return
+    }
+
+    const rawTransactions = await Promise.all(
+      requests.map(({ request, networkId }, _index) => clients[networkId].signTransaction(request))
+    )
+
+    const hashes = await Promise.all(
+      rawTransactions.map((_rawTransaction, _index) => {
+        const networkId = requests[_index].networkId
+        this.logger.info(`✓ Broadcasting challenge transaction on ${networkId} ...`)
+        return clients[networkId].sendRawTransaction({ serializedTransaction: _rawTransaction })
+      })
+    )
+
+    for (const [index, hash] of hashes.entries()) {
+      const networkId = requests[index].networkId
+
+      this.logger.info(`✓ Waiting challenge receipt (${hash}) on ${networkId} ...`)
+      const receipt = await clients[networkId].waitForTransactionReceipt({ hash })
+
+      const challenge = decodeAbiParameters(
+        [
+          {
+            name: 'nonce',
+            type: 'uint256',
+          },
+          {
+            name: 'actor',
+            type: 'address',
+          },
+          {
+            name: 'challenger',
+            type: 'address',
+          },
+          {
+            name: 'timestamp',
+            type: 'uint64',
+          },
+          {
+            name: 'networkId',
+            type: 'bytes4',
+          },
+        ],
+        receipt.logs[0].data
+      )
+
+      await this.challenges.insertOne({
+        status: 'pending',
+        nonce: challenge[0],
+        actor: challenge[1],
+        challenger: challenge[2],
+        timestamp: challenge[3],
+        networkId: challenge[4],
+      })
+      this.logger.info(`✓ Successfully challenged ${actor} on ${networkId} ...`)
+    }
   }
 }
 

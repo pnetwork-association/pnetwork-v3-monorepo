@@ -14,7 +14,7 @@ export default {
       registrationManager: '0x4b9793A73B30f2687bC1aBEad2ADDcaB94af604F',
     },
     [getNetworkIdByChain(goerli)]: {
-      pNetworkHub: '',
+      pNetworkHub: '0xE5c5fefDd08Ed0be5568FfFA6C1614E7B41455a3',
     },
     [getNetworkIdByChain(mainnet)]: {
       governanceMessageVerifier: '',
@@ -27,16 +27,25 @@ export default {
       pNetworkHub: '',
     },
   },
-  chains: [arbitrum, mainnet, gnosis, polygon],
-  challengeDuration: 0,
+  chains: [arbitrum, mainnet, gnosis, polygon, goerli],
+  challengeDuration: 600,
   db: {
     name: 'challengerDB',
     uri: process.env.MONGODB_URI,
   },
   ipfsPubSubTopic: 'pnetwork-v3',
+  lockAmountsStartChallenge: {
+    [getNetworkIdByChain(mainnet)]: 200n,
+    [getNetworkIdByChain(goerli)]: 200n,
+    [getNetworkIdByChain(gnosis)]: 200n,
+    [getNetworkIdByChain(polygon)]: 200n,
+    [getNetworkIdByChain(arbitrum)]: 200n,
+  },
   rpcUrls: {
     [getNetworkIdByChain(polygon)]: process.env.POLYGON_RPC,
     [getNetworkIdByChain(arbitrum)]: process.env.ARBITRUM_RPC,
+    [getNetworkIdByChain(goerli)]: process.env.GOERLI_RPC,
+    [getNetworkIdByChain(mainnet)]: process.env.MAINNET_RPC,
   },
   // TODO fix it
   startChallengeThresholdBlocks: {

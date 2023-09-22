@@ -65,6 +65,11 @@
         "internalType": "uint64",
         "name": "maxChallengeDuration_",
         "type": "uint64"
+      },
+      {
+        "internalType": "uint32",
+        "name": "expectedSourceChainId",
+        "type": "uint32"
       }
     ],
     "stateMutability": "nonpayable",
@@ -98,6 +103,11 @@
             "internalType": "uint64",
             "name": "timestamp",
             "type": "uint64"
+          },
+          {
+            "internalType": "bytes4",
+            "name": "networkId",
+            "type": "bytes4"
           }
         ],
         "internalType": "struct IPNetworkHub.Challenge",
@@ -238,6 +248,11 @@
             "internalType": "bytes",
             "name": "userData",
             "type": "bytes"
+          },
+          {
+            "internalType": "bool",
+            "name": "isForProtocol",
+            "type": "bool"
           }
         ],
         "internalType": "struct IPNetworkHub.Operation",
@@ -346,6 +361,11 @@
             "internalType": "bytes",
             "name": "userData",
             "type": "bytes"
+          },
+          {
+            "internalType": "bool",
+            "name": "isForProtocol",
+            "type": "bool"
           }
         ],
         "internalType": "struct IPNetworkHub.Operation",
@@ -354,6 +374,11 @@
       }
     ],
     "name": "GuardianOperationAlreadyCancelled",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "Inactive",
     "type": "error"
   },
   {
@@ -599,6 +624,11 @@
             "internalType": "bytes",
             "name": "userData",
             "type": "bytes"
+          },
+          {
+            "internalType": "bool",
+            "name": "isForProtocol",
+            "type": "bool"
           }
         ],
         "internalType": "struct IPNetworkHub.Operation",
@@ -796,6 +826,11 @@
             "internalType": "bytes",
             "name": "userData",
             "type": "bytes"
+          },
+          {
+            "internalType": "bool",
+            "name": "isForProtocol",
+            "type": "bool"
           }
         ],
         "internalType": "struct IPNetworkHub.Operation",
@@ -904,6 +939,11 @@
             "internalType": "bytes",
             "name": "userData",
             "type": "bytes"
+          },
+          {
+            "internalType": "bool",
+            "name": "isForProtocol",
+            "type": "bool"
           }
         ],
         "internalType": "struct IPNetworkHub.Operation",
@@ -1012,6 +1052,11 @@
             "internalType": "bytes",
             "name": "userData",
             "type": "bytes"
+          },
+          {
+            "internalType": "bool",
+            "name": "isForProtocol",
+            "type": "bool"
           }
         ],
         "internalType": "struct IPNetworkHub.Operation",
@@ -1120,6 +1165,11 @@
             "internalType": "bytes",
             "name": "userData",
             "type": "bytes"
+          },
+          {
+            "internalType": "bool",
+            "name": "isForProtocol",
+            "type": "bool"
           }
         ],
         "internalType": "struct IPNetworkHub.Operation",
@@ -1127,7 +1177,7 @@
         "type": "tuple"
       }
     ],
-    "name": "OperationNotQueued",
+    "name": "OperationNotFound",
     "type": "error"
   },
   {
@@ -1244,6 +1294,11 @@
             "internalType": "bytes",
             "name": "userData",
             "type": "bytes"
+          },
+          {
+            "internalType": "bool",
+            "name": "isForProtocol",
+            "type": "bool"
           }
         ],
         "internalType": "struct IPNetworkHub.Operation",
@@ -1252,6 +1307,22 @@
       }
     ],
     "name": "SentinelOperationAlreadyCancelled",
+    "type": "error"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint32",
+        "name": "sourceChainId",
+        "type": "uint32"
+      },
+      {
+        "internalType": "uint32",
+        "name": "expectedSourceChainId",
+        "type": "uint32"
+      }
+    ],
+    "name": "UnsupportedChainId",
     "type": "error"
   },
   {
@@ -1278,6 +1349,11 @@
             "internalType": "uint64",
             "name": "timestamp",
             "type": "uint64"
+          },
+          {
+            "internalType": "bytes4",
+            "name": "networkId",
+            "type": "bytes4"
           }
         ],
         "indexed": false,
@@ -1313,6 +1389,11 @@
             "internalType": "uint64",
             "name": "timestamp",
             "type": "uint64"
+          },
+          {
+            "internalType": "bytes4",
+            "name": "networkId",
+            "type": "bytes4"
           }
         ],
         "indexed": false,
@@ -1348,6 +1429,11 @@
             "internalType": "uint64",
             "name": "timestamp",
             "type": "uint64"
+          },
+          {
+            "internalType": "bytes4",
+            "name": "networkId",
+            "type": "bytes4"
           }
         ],
         "indexed": false,
@@ -1383,6 +1469,11 @@
             "internalType": "uint64",
             "name": "timestamp",
             "type": "uint64"
+          },
+          {
+            "internalType": "bytes4",
+            "name": "networkId",
+            "type": "bytes4"
           }
         ],
         "indexed": false,
@@ -1418,6 +1509,11 @@
             "internalType": "uint64",
             "name": "timestamp",
             "type": "uint64"
+          },
+          {
+            "internalType": "bytes4",
+            "name": "networkId",
+            "type": "bytes4"
           }
         ],
         "indexed": false,
@@ -1528,6 +1624,11 @@
             "internalType": "bytes",
             "name": "userData",
             "type": "bytes"
+          },
+          {
+            "internalType": "bool",
+            "name": "isForProtocol",
+            "type": "bool"
           }
         ],
         "indexed": false,
@@ -1638,6 +1739,11 @@
             "internalType": "bytes",
             "name": "userData",
             "type": "bytes"
+          },
+          {
+            "internalType": "bool",
+            "name": "isForProtocol",
+            "type": "bool"
           }
         ],
         "indexed": false,
@@ -1786,6 +1892,11 @@
             "internalType": "bytes",
             "name": "userData",
             "type": "bytes"
+          },
+          {
+            "internalType": "bool",
+            "name": "isForProtocol",
+            "type": "bool"
           }
         ],
         "indexed": false,
@@ -1896,6 +2007,11 @@
             "internalType": "bytes",
             "name": "userData",
             "type": "bytes"
+          },
+          {
+            "internalType": "bool",
+            "name": "isForProtocol",
+            "type": "bool"
           }
         ],
         "indexed": false,
@@ -2006,6 +2122,11 @@
             "internalType": "bytes",
             "name": "userData",
             "type": "bytes"
+          },
+          {
+            "internalType": "bool",
+            "name": "isForProtocol",
+            "type": "bool"
           }
         ],
         "indexed": false,
@@ -2116,6 +2237,11 @@
             "internalType": "bytes",
             "name": "userData",
             "type": "bytes"
+          },
+          {
+            "internalType": "bool",
+            "name": "isForProtocol",
+            "type": "bool"
           }
         ],
         "indexed": false,
@@ -2275,6 +2401,12 @@
         "internalType": "bytes32",
         "name": "optionsMask",
         "type": "bytes32"
+      },
+      {
+        "indexed": false,
+        "internalType": "bool",
+        "name": "isForProtocol",
+        "type": "bool"
       }
     ],
     "name": "UserOperation",
@@ -2407,6 +2539,11 @@
             "internalType": "uint64",
             "name": "timestamp",
             "type": "uint64"
+          },
+          {
+            "internalType": "bytes4",
+            "name": "networkId",
+            "type": "bytes4"
           }
         ],
         "internalType": "struct IPNetworkHub.Challenge",
@@ -2422,7 +2559,7 @@
         "type": "bytes32"
       }
     ],
-    "stateMutability": "view",
+    "stateMutability": "pure",
     "type": "function"
   },
   {
@@ -2523,6 +2660,11 @@
             "internalType": "bytes",
             "name": "userData",
             "type": "bytes"
+          },
+          {
+            "internalType": "bool",
+            "name": "isForProtocol",
+            "type": "bool"
           }
         ],
         "internalType": "struct IPNetworkHub.Operation",
@@ -2582,6 +2724,11 @@
             "internalType": "uint64",
             "name": "timestamp",
             "type": "uint64"
+          },
+          {
+            "internalType": "bytes4",
+            "name": "networkId",
+            "type": "bytes4"
           }
         ],
         "internalType": "struct IPNetworkHub.Challenge",
@@ -2602,6 +2749,19 @@
         "internalType": "address",
         "name": "",
         "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "expectedSourceChainId",
+    "outputs": [
+      {
+        "internalType": "uint32",
+        "name": "",
+        "type": "uint32"
       }
     ],
     "stateMutability": "view",
@@ -2656,6 +2816,11 @@
             "internalType": "uint64",
             "name": "timestamp",
             "type": "uint64"
+          },
+          {
+            "internalType": "bytes4",
+            "name": "networkId",
+            "type": "bytes4"
           }
         ],
         "internalType": "struct IPNetworkHub.Challenge",
@@ -2697,6 +2862,11 @@
             "internalType": "uint64",
             "name": "timestamp",
             "type": "uint64"
+          },
+          {
+            "internalType": "bytes4",
+            "name": "networkId",
+            "type": "bytes4"
           }
         ],
         "internalType": "struct IPNetworkHub.Challenge",
@@ -2768,6 +2938,19 @@
         "internalType": "bytes32",
         "name": "",
         "type": "bytes32"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "getNetworkId",
+    "outputs": [
+      {
+        "internalType": "bytes4",
+        "name": "",
+        "type": "bytes4"
       }
     ],
     "stateMutability": "view",
@@ -3060,6 +3243,11 @@
             "internalType": "bytes",
             "name": "userData",
             "type": "bytes"
+          },
+          {
+            "internalType": "bool",
+            "name": "isForProtocol",
+            "type": "bool"
           }
         ],
         "internalType": "struct IPNetworkHub.Operation",
@@ -3176,6 +3364,11 @@
             "internalType": "bytes",
             "name": "userData",
             "type": "bytes"
+          },
+          {
+            "internalType": "bool",
+            "name": "isForProtocol",
+            "type": "bool"
           }
         ],
         "internalType": "struct IPNetworkHub.Operation",
@@ -3292,6 +3485,11 @@
             "internalType": "bytes",
             "name": "userData",
             "type": "bytes"
+          },
+          {
+            "internalType": "bool",
+            "name": "isForProtocol",
+            "type": "bool"
           }
         ],
         "internalType": "struct IPNetworkHub.Operation",
@@ -3402,6 +3600,11 @@
             "internalType": "bytes",
             "name": "userData",
             "type": "bytes"
+          },
+          {
+            "internalType": "bool",
+            "name": "isForProtocol",
+            "type": "bool"
           }
         ],
         "internalType": "struct IPNetworkHub.Operation",
@@ -3512,6 +3715,11 @@
             "internalType": "bytes",
             "name": "userData",
             "type": "bytes"
+          },
+          {
+            "internalType": "bool",
+            "name": "isForProtocol",
+            "type": "bool"
           }
         ],
         "internalType": "struct IPNetworkHub.Operation",
@@ -3627,6 +3835,11 @@
             "internalType": "bytes",
             "name": "userData",
             "type": "bytes"
+          },
+          {
+            "internalType": "bool",
+            "name": "isForProtocol",
+            "type": "bool"
           }
         ],
         "internalType": "struct IPNetworkHub.Operation",
@@ -3737,6 +3950,11 @@
             "internalType": "bytes",
             "name": "userData",
             "type": "bytes"
+          },
+          {
+            "internalType": "bool",
+            "name": "isForProtocol",
+            "type": "bool"
           }
         ],
         "internalType": "struct IPNetworkHub.Operation",
@@ -3747,6 +3965,11 @@
         "internalType": "bytes32[]",
         "name": "proof",
         "type": "bytes32[]"
+      },
+      {
+        "internalType": "bytes",
+        "name": "signature",
+        "type": "bytes"
       }
     ],
     "name": "protocolSentinelCancelOperation",
@@ -3777,6 +4000,11 @@
             "internalType": "uint64",
             "name": "timestamp",
             "type": "uint64"
+          },
+          {
+            "internalType": "bytes4",
+            "name": "networkId",
+            "type": "bytes4"
           }
         ],
         "internalType": "struct IPNetworkHub.Challenge",
@@ -3825,6 +4053,11 @@
             "internalType": "uint64",
             "name": "timestamp",
             "type": "uint64"
+          },
+          {
+            "internalType": "bytes4",
+            "name": "networkId",
+            "type": "bytes4"
           }
         ],
         "internalType": "struct IPNetworkHub.Challenge",
@@ -3865,6 +4098,11 @@
             "internalType": "uint64",
             "name": "timestamp",
             "type": "uint64"
+          },
+          {
+            "internalType": "bytes4",
+            "name": "networkId",
+            "type": "bytes4"
           }
         ],
         "internalType": "struct IPNetworkHub.Challenge",
@@ -3875,6 +4113,11 @@
         "internalType": "bytes32[]",
         "name": "proof",
         "type": "bytes32[]"
+      },
+      {
+        "internalType": "bytes",
+        "name": "signature",
+        "type": "bytes"
       }
     ],
     "name": "solveChallengeSentinel",
