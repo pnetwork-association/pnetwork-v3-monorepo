@@ -76,12 +76,12 @@ const generateRequestProcessorConfiguration = (taskArgs, hre, _networkId, _contr
     },
   }))
 
-const saveRelayerListenerConfiguration = (taskArgs, hre, _networkId, _pRouterAddress) =>
+const saveRelayerListenerConfiguration = (taskArgs, hre, _networkId, _hubAddress) =>
   generateListenerConfiguration(
     taskArgs,
     hre,
     _networkId,
-    _pRouterAddress,
+    _hubAddress,
     constants.evm.events.USER_OPERATION_SIGNATURE
   ).then(
     maybeSaveConfiguration(
@@ -142,9 +142,9 @@ const saveGuardianProcessorConfiguration = (taskArgs, hre, _networkId, _hubAddre
 const generateRelayerConfigurationTask = (taskArgs, hre) =>
   Promise.all([getNetworkId(hre), getHubAddress(hre)]).then(([_networkId, _hubAddress]) =>
     Promise.all([
-      saveRelayerListenerConfiguration(taskArgs, hre, _networkId),
+      saveRelayerListenerConfiguration(taskArgs, hre, _networkId, _hubAddress),
       saveRelayerProcessorConfiguration(taskArgs, hre, _networkId, _hubAddress),
-      saveGuardianRequestListenerConfiguration(taskArgs, hre, _networkId),
+      saveGuardianRequestListenerConfiguration(taskArgs, hre, _networkId, _hubAddress),
       saveGuardianQueueListenerConfiguration(taskArgs, hre, _networkId, _hubAddress),
       saveGuardianProcessorConfiguration(taskArgs, hre, _networkId, _hubAddress),
     ])
