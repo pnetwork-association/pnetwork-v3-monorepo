@@ -63,7 +63,7 @@ contract GovernanceMessageEmitter is IGovernanceMessageEmitter {
         //     IRegistrationManager.Registration memory registration = IRegistrationManager(registrationManager)
         //         .guardianRegistration(guardians[index]);
 
-        //     if (registration.kind == 0x03 && registration.endEpoch >= currentEpoch) {
+        //     if (registration.kind == 0x03 && currentEpoch >= registration.startEpoch && currentEpoch <= registration.endEpoch) {
         //         unchecked {
         //             ++numberOfValidGuardians;
         //         }
@@ -178,6 +178,7 @@ contract GovernanceMessageEmitter is IGovernanceMessageEmitter {
 
             bytes1 registrationKind = registration.kind;
             if (registrationKind == 0x01) {
+                // NOTE: no need to check startEpoch and endEpoch since we are using sentinelStakedAmountByEpochOf
                 uint256 amount = IRegistrationManager(registrationManager).sentinelStakedAmountByEpochOf(
                     sentinels[index],
                     currentEpoch
@@ -185,7 +186,11 @@ contract GovernanceMessageEmitter is IGovernanceMessageEmitter {
                 cumulativeAmount += amount;
 
                 effectiveSentinels[index] = amount >= 200000 ? sentinels[index] : address(0);
-            } else if (registrationKind == 0x02) {
+            } else if (
+                registrationKind == 0x02 &&
+                currentEpoch >= registration.startEpoch &&
+                currentEpoch <= registration.endEpoch
+            ) {
                 cumulativeAmount += 200000;
                 effectiveSentinels[index] = sentinels[index];
             } else {
