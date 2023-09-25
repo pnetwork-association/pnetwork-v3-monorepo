@@ -21,7 +21,8 @@ let user,
   epochsManager,
   fakeGovernanceMessageVerifier,
   slasher,
-  feesManager
+  feesManager,
+  fakeDandelionVoting
 
 describe('PToken', () => {
   for (const decimals of [6, 18]) {
@@ -37,6 +38,7 @@ describe('PToken', () => {
         user = signers[1]
         fakeGovernanceMessageVerifier = signers[2]
         slasher = signers[3]
+        fakeDandelionVoting = signers[4]
         feesManager = await FeesManager.deploy()
 
         // H A R D H A T
@@ -50,6 +52,7 @@ describe('PToken', () => {
           TELEPATHY_ROUTER_ADDRESS,
           fakeGovernanceMessageVerifier.address,
           slasher.address,
+          fakeDandelionVoting.address,
           LOCKED_AMOUNT_CHALLENGE_PERIOD,
           K_CHALLENGE_PERIOD,
           MAX_OPERATIONS_IN_QUEUE,

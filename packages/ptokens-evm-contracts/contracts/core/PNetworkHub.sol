@@ -15,11 +15,7 @@ import {IPReceiver} from "../interfaces/IPReceiver.sol";
 import {Utils} from "../libraries/Utils.sol";
 import {Network} from "../libraries/Network.sol";
 
-error OperationAlreadyQueued(IPNetworkHub.Operation operation);
-error OperationAlreadyExecuted(IPNetworkHub.Operation operation);
-error OperationAlreadyCancelled(IPNetworkHub.Operation operation);
-error OperationCancelled(IPNetworkHub.Operation operation);
-error OperationNotFound(IPNetworkHub.Operation operation);
+error InvalidOperationStatus(IPNetworkHub.OperationStatus status, IPNetworkHub.OperationStatus expectedStatus);
 error GovernanceOperationAlreadyCancelled(IPNetworkHub.Operation operation);
 error GuardianOperationAlreadyCancelled(IPNetworkHub.Operation operation);
 error SentinelOperationAlreadyCancelled(IPNetworkHub.Operation operation);
@@ -30,7 +26,7 @@ error InvalidProtocolFeeAssetParameters(uint256 protocolFeeAssetAmount, address 
 error InvalidUserOperation();
 error NoUserOperation();
 error PTokenNotCreated(address pTokenAddress);
-error InvalidNetwork(bytes4 networkId);
+error InvalidNetwork(bytes4 networkId, bytes4 expectedNetworkId);
 error NotContract(address addr);
 error LockDown();
 error InvalidGovernanceMessage(bytes message);
@@ -38,7 +34,6 @@ error InvalidLockedAmountChallengePeriod(
     uint256 lockedAmountChallengePeriod,
     uint256 expectedLockedAmountChallengePeriod
 );
-error CallFailed();
 error QueueFull();
 error InvalidProtocolFee(IPNetworkHub.Operation operation);
 error InvalidNetworkFeeAssetAmount();
@@ -57,6 +52,7 @@ error ChallengeDurationMustBeLessOrEqualThanMaxChallengePeriodDuration(
 );
 error InvalidEpoch(uint16 epoch);
 error Inactive();
+error NotDandelionVoting(address dandelionVoting, address expectedDandelionVoting);
 
 contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard {
     bytes32 public constant GOVERNANCE_MESSAGE_GUARDIANS = keccak256("GOVERNANCE_MESSAGE_GUARDIANS");
@@ -65,6 +61,8 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
     bytes32 public constant GOVERNANCE_MESSAGE_SLASH_GUARDIAN = keccak256("GOVERNANCE_MESSAGE_SLASH_GUARDIAN");
     bytes32 public constant GOVERNANCE_MESSAGE_RESUME_SENTINEL = keccak256("GOVERNANCE_MESSAGE_RESUME_SENTINEL");
     bytes32 public constant GOVERNANCE_MESSAGE_RESUME_GUARDIAN = keccak256("GOVERNANCE_MESSAGE_RESUME_GUARDIAN");
+    bytes32 public constant GOVERNANCE_MESSAGE_PROTOCOL_GOVERNANCE_CANCEL_OPERATION =
+        keccak256("GOVERNANCE_MESSAGE_PROTOCOL_GOVERNANCE_CANCEL_OPERATION");
     uint256 public constant FEE_BASIS_POINTS_DIVISOR = 10000;
 
     mapping(bytes32 => Action) private _operationsRelayerQueueAction;
@@ -88,6 +86,7 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
     address public immutable epochsManager;
     address public immutable feesManager;
     address public immutable slasher;
+    address public immutable dandelionVoting;
     uint32 public immutable baseChallengePeriodDuration;
     uint32 public immutable maxChallengePeriodDuration;
     uint16 public immutable kChallengePeriod;
@@ -108,6 +107,7 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
         address telepathyRouter,
         address governanceMessageVerifier,
         address slasher_,
+        address dandelionVoting_,
         uint256 lockedAmountChallengePeriod_,
         uint16 kChallengePeriod_,
         uint16 maxOperationsInQueue_,
@@ -132,6 +132,7 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
         epochsManager = epochsManager_;
         feesManager = feesManager_;
         slasher = slasher_;
+        dandelionVoting = dandelionVoting_;
         baseChallengePeriodDuration = baseChallengePeriodDuration_;
         lockedAmountChallengePeriod = lockedAmountChallengePeriod_;
         kChallengePeriod = kChallengePeriod_;
@@ -173,11 +174,7 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
         }
 
         _epochsChallengesStatus[challengeEpoch][challengeId] = ChallengeStatus.PartiallyUnsolved;
-
-        (bool sent, ) = challenge.challenger.call{value: lockedAmountStartChallenge}("");
-        if (!sent) {
-            revert CallFailed();
-        }
+        Utils.sendEther(challenge.challenger, lockedAmountStartChallenge);
 
         emit ChallengePartiallyUnsolved(challenge);
     }
@@ -222,11 +219,6 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
     }
 
     /// @inheritdoc IPNetworkHub
-    function getNetworkId() external view returns (bytes4) {
-        return Network.getCurrentNetworkId();
-    }
-
-    /// @inheritdoc IPNetworkHub
     function getPendingChallengeIdByEpochOf(uint16 epoch, address actor) external view returns (bytes32) {
         return _epochsActorsPendingChallengeId[epoch][actor];
     }
@@ -242,7 +234,7 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
     }
 
     /// @inheritdoc IPNetworkHub
-    function operationIdOf(Operation calldata operation) public pure returns (bytes32) {
+    function operationIdOf(Operation memory operation) public pure returns (bytes32) {
         return sha256(abi.encode(operation));
     }
 
@@ -264,8 +256,17 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
 
     /// @inheritdoc IPNetworkHub
     function protocolGovernanceCancelOperation(Operation calldata operation) external {
-        // TODO check if msg.sender is governance
-        _protocolCancelOperation(operation, operationIdOf(operation), msg.sender, ActorTypes.Governance);
+        bytes4 networkId = Network.getCurrentNetworkId();
+        if (networkId != interimChainNetworkId) {
+            revert InvalidNetwork(networkId, interimChainNetworkId);
+        }
+
+        address msgSender = _msgSender();
+        if (msgSender != dandelionVoting) {
+            revert NotDandelionVoting(msgSender, dandelionVoting);
+        }
+
+        _protocolCancelOperation(operation, operationIdOf(operation), msgSender, ActorTypes.Governance);
     }
 
     /// @inheritdoc IPNetworkHub
@@ -290,12 +291,8 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
 
         bytes32 operationId = operationIdOf(operation);
         OperationStatus operationStatus = _operationsStatus[operationId];
-        if (operationStatus == OperationStatus.Executed) {
-            revert OperationAlreadyExecuted(operation);
-        } else if (operationStatus == OperationStatus.Cancelled) {
-            revert OperationAlreadyCancelled(operation);
-        } else if (operationStatus == OperationStatus.Null) {
-            revert OperationNotFound(operation);
+        if (operationStatus != OperationStatus.Queued) {
+            revert InvalidOperationStatus(operationStatus, OperationStatus.Queued);
         }
 
         (uint64 startTimestamp, uint64 endTimestamp) = _challengePeriodOf(operationId, operationStatus);
@@ -378,7 +375,7 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
 
             if (Utils.isBitSet(operation.optionsMask, 0)) {
                 if (!Network.isCurrentNetwork(operation.underlyingAssetNetworkId)) {
-                    revert InvalidNetwork(operation.underlyingAssetNetworkId);
+                    revert InvalidNetwork(operation.underlyingAssetNetworkId, Network.getCurrentNetworkId());
                 }
                 IPToken(pTokenAddress).protocolBurn(destinationAddress, effectiveOperationAssetAmount);
             }
@@ -415,12 +412,8 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
         bytes32 operationId = operationIdOf(operation);
 
         OperationStatus operationStatus = _operationsStatus[operationId];
-        if (operationStatus == OperationStatus.Executed) {
-            revert OperationAlreadyExecuted(operation);
-        } else if (operationStatus == OperationStatus.Cancelled) {
-            revert OperationAlreadyCancelled(operation);
-        } else if (operationStatus == OperationStatus.Queued) {
-            revert OperationAlreadyQueued(operation);
+        if (operationStatus != OperationStatus.NotQueued) {
+            revert InvalidOperationStatus(operationStatus, OperationStatus.NotQueued);
         }
 
         _operationsRelayerQueueAction[operationId] = Action({actor: _msgSender(), timestamp: uint64(block.timestamp)});
@@ -455,11 +448,7 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
         _epochsActorsStatus[currentEpoch][challenge.actor] = ActorStatus.Inactive;
         delete _epochsActorsPendingChallengeId[currentEpoch][challenge.actor];
 
-        (bool sent, ) = challenge.challenger.call{value: lockedAmountStartChallenge}("");
-        if (!sent) {
-            revert CallFailed();
-        }
-
+        Utils.sendEther(challenge.challenger, lockedAmountStartChallenge);
         unchecked {
             ++_epochsTotalNumberOfInactiveActors[currentEpoch];
         }
@@ -635,19 +624,27 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
             underlyingAssetNetworkId,
             assetTokenAddress,
             // NOTE: pTokens on host chains have always 18 decimals.
-            Network.isCurrentNetwork(underlyingAssetNetworkId)
-                ? Utils.normalizeAmount(assetAmount, underlyingAssetDecimals, true)
-                : assetAmount,
+            Utils.normalizeAmountToProtocolFormatOnCurrentNetwork(
+                assetAmount,
+                underlyingAssetDecimals,
+                underlyingAssetNetworkId
+            ),
             protocolFeeAssetTokenAddress,
-            Network.isCurrentNetwork(underlyingAssetNetworkId)
-                ? Utils.normalizeAmount(protocolFeeAssetAmount, underlyingAssetDecimals, true)
-                : protocolFeeAssetAmount,
-            Network.isCurrentNetwork(underlyingAssetNetworkId)
-                ? Utils.normalizeAmount(networkFeeAssetAmount, underlyingAssetDecimals, true)
-                : networkFeeAssetAmount,
-            Network.isCurrentNetwork(underlyingAssetNetworkId)
-                ? Utils.normalizeAmount(forwardNetworkFeeAssetAmount, underlyingAssetDecimals, true)
-                : forwardNetworkFeeAssetAmount,
+            Utils.normalizeAmountToProtocolFormatOnCurrentNetwork(
+                protocolFeeAssetAmount,
+                underlyingAssetDecimals,
+                underlyingAssetNetworkId
+            ),
+            Utils.normalizeAmountToProtocolFormatOnCurrentNetwork(
+                networkFeeAssetAmount,
+                underlyingAssetDecimals,
+                underlyingAssetNetworkId
+            ),
+            Utils.normalizeAmountToProtocolFormatOnCurrentNetwork(
+                forwardNetworkFeeAssetAmount,
+                underlyingAssetDecimals,
+                underlyingAssetNetworkId
+            ),
             destinationNetworkId,
             userData,
             optionsMask,
@@ -752,10 +749,7 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
             delete _epochsActorsPendingChallengeId[epoch][actor];
             _epochsChallengesStatus[epoch][pendingChallengeId] = ChallengeStatus.Cancelled;
             _epochsActorsStatus[epoch][challenge.actor] = ActorStatus.Active; // NOTE: Change Slashed into Active in order to trigger the slash below
-            (bool sent, ) = challenge.challenger.call{value: lockedAmountStartChallenge}("");
-            if (!sent) {
-                revert CallFailed();
-            }
+            Utils.sendEther(challenge.challenger, lockedAmountStartChallenge);
 
             emit ChallengeCancelled(challenge);
         }
@@ -852,27 +846,32 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
             return;
         }
 
+        if (messageType == GOVERNANCE_MESSAGE_PROTOCOL_GOVERNANCE_CANCEL_OPERATION) {
+            Operation memory operation = abi.decode(messageData, (Operation));
+            // TODO; What should i use ad actor address? address(this) ???
+            _protocolCancelOperation(operation, operationIdOf(operation), address(this), ActorTypes.Governance);
+            return;
+        }
+
         revert InvalidGovernanceMessage(message);
     }
 
     function _protocolCancelOperation(
-        Operation calldata operation,
+        Operation memory operation,
         bytes32 operationId,
         address actor,
         ActorTypes actorType
     ) internal {
-        uint16 currentEpoch = IEpochsManager(epochsManager).currentEpoch();
-        if (_epochsActorsStatus[currentEpoch][actor] == ActorStatus.Inactive) {
-            revert Inactive();
+        if (actorType != ActorTypes.Governance) {
+            uint16 currentEpoch = IEpochsManager(epochsManager).currentEpoch();
+            if (_epochsActorsStatus[currentEpoch][actor] == ActorStatus.Inactive) {
+                revert Inactive();
+            }
         }
 
         OperationStatus operationStatus = _operationsStatus[operationId];
-        if (operationStatus == OperationStatus.Executed) {
-            revert OperationAlreadyExecuted(operation);
-        } else if (operationStatus == OperationStatus.Cancelled) {
-            revert OperationAlreadyCancelled(operation);
-        } else if (operationStatus == OperationStatus.Null) {
-            revert OperationNotFound(operation);
+        if (operationStatus != OperationStatus.Queued) {
+            revert InvalidOperationStatus(operationStatus, OperationStatus.Queued);
         }
 
         (uint64 startTimestamp, uint64 endTimestamp) = _challengePeriodOf(operationId, operationStatus);
@@ -916,10 +915,7 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
             _operationsStatus[operationId] = OperationStatus.Cancelled;
 
             // TODO: send the lockedAmountChallengePeriod to the DAO
-            (bool sent, ) = address(0).call{value: lockedAmountChallengePeriod}("");
-            if (!sent) {
-                revert CallFailed();
-            }
+            Utils.sendEther(address(0), lockedAmountChallengePeriod);
 
             emit OperationCancelled(operation);
         }
@@ -930,10 +926,7 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
         _operationsExecuteAction[operationId] = Action({actor: _msgSender(), timestamp: uint64(block.timestamp)});
 
         Action storage queuedAction = _operationsRelayerQueueAction[operationId];
-        (bool sent, ) = queuedAction.actor.call{value: lockedAmountChallengePeriod}("");
-        if (!sent) {
-            revert CallFailed();
-        }
+        Utils.sendEther(queuedAction.actor, lockedAmountChallengePeriod);
 
         unchecked {
             --numberOfOperationsInQueue;
@@ -957,10 +950,7 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
         }
 
         // TODO: send the lockedAmountStartChallenge to the DAO
-        (bool sent, ) = address(0).call{value: lockedAmountStartChallenge}("");
-        if (!sent) {
-            revert CallFailed();
-        }
+        Utils.sendEther(address(0), lockedAmountStartChallenge);
 
         _epochsChallengesStatus[currentEpoch][challengeId] = ChallengeStatus.Solved;
         _epochsActorsStatus[currentEpoch][challenge.actor] = ActorStatus.Active;

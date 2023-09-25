@@ -1,29 +1,29 @@
 pragma solidity ^0.8.19;
 
-import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
-import "@openzeppelin/contracts/access/AccessControl.sol";
 import {Network} from "../libraries/Network.sol";
 import {IPRegistry} from "../interfaces/IPRegistry.sol";
 
-contract PRegistry is IPRegistry, AccessControl {
-    bytes32 public constant ADD_SUPPORTED_NETWORK_ID_ROLE = keccak256("ADD_SUPPORTED_NETWORK_ID_ROLE");
+error NotDandelionVoting(address dandelionVoting, address expectedDandelionVoting);
+error NetworkAlreadyAdded(bytes4 networkId);
+
+contract PRegistry is IPRegistry {
+    address public immutable dandelionVoting;
 
     address[] private _supportedHubs;
     uint32[] private _supportedChainIds;
-
     mapping(bytes4 => address) _networkIdToHub;
+    mapping(bytes4 => uint32) _networkIdToChainId;
 
-    constructor(address dandelionVoting) {
-        _setupRole(ADD_SUPPORTED_NETWORK_ID_ROLE, dandelionVoting);
+    modifier onlyDandelionVoting() {
+        if (msg.sender != dandelionVoting) {
+            revert NotDandelionVoting(msg.sender, dandelionVoting);
+        }
+
+        _;
     }
 
-    // @inheritdoc IPRegistry
-    function addProtocolBlockchain(uint32 chainId, address hub) external onlyRole(ADD_SUPPORTED_NETWORK_ID_ROLE) {
-        bytes4 networkId = Network.getNetworkIdFromChainId(chainId);
-        // TODO: check if hub/chainId has been already pushed
-        _supportedHubs.push(hub);
-        _supportedChainIds.push(chainId);
-        _networkIdToHub[networkId] = hub;
+    constructor(address dandelionVoting_) {
+        dandelionVoting = dandelionVoting_;
     }
 
     // @inheritdoc IPRegistry
@@ -39,6 +39,11 @@ contract PRegistry is IPRegistry, AccessControl {
     }
 
     // @inheritdoc IPRegistry
+    function getChainIdByNetworkId(bytes4 networkId) external view returns (uint32) {
+        return _networkIdToChainId[networkId];
+    }
+
+    // @inheritdoc IPRegistry
     function getHubByNetworkId(bytes4 networkId) external view returns (address) {
         return _networkIdToHub[networkId];
     }
@@ -51,5 +56,20 @@ contract PRegistry is IPRegistry, AccessControl {
     // @inheritdoc IPRegistry
     function getSupportedChainIds() external view returns (uint32[] memory) {
         return _supportedChainIds;
+    }
+
+    // @inheritdoc IPRegistry
+    function protocolAddNetwork(uint32 chainId, address hub) external onlyDandelionVoting {
+        bytes4 networkId = Network.getNetworkIdFromChainId(chainId);
+
+        if (_networkIdToHub[networkId] != address(0)) {
+            revert NetworkAlreadyAdded(networkId);
+        }
+
+        _supportedHubs.push(hub);
+        _supportedChainIds.push(chainId);
+        _networkIdToHub[networkId] = hub;
+        _networkIdToChainId[networkId] = chainId;
+        emit NetworkAdded(networkId, chainId, hub);
     }
 }

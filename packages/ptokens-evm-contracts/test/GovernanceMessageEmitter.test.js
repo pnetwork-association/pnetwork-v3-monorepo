@@ -12,7 +12,8 @@ let governanceMessageEmitter,
   challenger,
   registry,
   dao,
-  owner
+  owner,
+  fakeDandelionVoting
 
 describe('GovernanceMessageEmitter', () => {
   const getMerkleRoot = _addresses => {
@@ -44,6 +45,7 @@ describe('GovernanceMessageEmitter', () => {
     owner = signers[0]
     challenger = signers[1]
     dao = signers[2]
+    fakeDandelionVoting = signers[3]
 
     const GovernanceMessageEmitter = await ethers.getContractFactory('GovernanceMessageEmitter')
     const RegistrationManager = await ethers.getContractFactory('MockRegistrationManager')
@@ -59,6 +61,7 @@ describe('GovernanceMessageEmitter', () => {
       epochsManager.address,
       lendingManager.address,
       registrationManager.address,
+      fakeDandelionVoting.address,
       registry.address
     )
 

@@ -1,6 +1,5 @@
 const { expect } = require('chai')
 const { ethers } = require('hardhat')
-const { getNetworkId } = require('../tasks/get-network-id')
 const { time } = require('@nomicfoundation/hardhat-network-helpers')
 const { anyValue } = require('@nomicfoundation/hardhat-chai-matchers/withArgs')
 const { MerkleTree } = require('merkletreejs')
@@ -17,6 +16,7 @@ const {
   PNETWORK_NETWORK_IDS,
   TELEPATHY_ROUTER_ADDRESS,
   ZERO_ADDRESS,
+  OPERATION_STATUS,
 } = require('./constants')
 const { deployPToken, getOptionMaskWithOptionEnabledForBit } = require('./utils')
 const Operation = require('./utils/Operation')
@@ -54,7 +54,8 @@ let token,
   interimChainId,
   mockRegistrationManager,
   abiCoder,
-  broadcaster
+  broadcaster,
+  fakeDandelionVoting
 
 describe('PNetworkHub', () => {
   const getActorsMerkleProof = (_actors, _actor) => {
@@ -197,6 +198,7 @@ describe('PNetworkHub', () => {
     lendingManager = signers[14]
     dao = signers[15]
     broadcaster = signers[16]
+    fakeDandelionVoting = signers[17]
 
     // H A R D H A T
     testReceiver = await TestReceiver.deploy()
@@ -221,6 +223,7 @@ describe('PNetworkHub', () => {
       TELEPATHY_ROUTER_ADDRESS,
       fakeGovernanceMessageVerifier.address,
       slasher.address,
+      fakeDandelionVoting.address,
       LOCKED_AMOUNT_CHALLENGE_PERIOD,
       K_CHALLENGE_PERIOD,
       MAX_OPERATIONS_IN_QUEUE,
@@ -238,6 +241,7 @@ describe('PNetworkHub', () => {
       TELEPATHY_ROUTER_ADDRESS,
       fakeGovernanceMessageVerifier.address,
       slasher.address,
+      fakeDandelionVoting.address,
       LOCKED_AMOUNT_CHALLENGE_PERIOD,
       K_CHALLENGE_PERIOD,
       MAX_OPERATIONS_IN_QUEUE,
@@ -247,8 +251,8 @@ describe('PNetworkHub', () => {
       chainId
     )
 
-    await pRegistry.connect(dao).addProtocolBlockchain(chainId, hub.address)
-    await pRegistry.connect(dao).addProtocolBlockchain(interimChainId, hubInterim.address)
+    await pRegistry.connect(dao).protocolAddNetwork(chainId, hub.address)
+    await pRegistry.connect(dao).protocolAddNetwork(interimChainId, hubInterim.address)
 
     token = await StandardToken.deploy('Token', 'TKN', 18, ethers.utils.parseEther('100000000'))
     telepathyRouter = await ethers.getImpersonatedSigner(TELEPATHY_ROUTER_ADDRESS)
@@ -347,7 +351,9 @@ describe('PNetworkHub', () => {
       hub
         .connect(relayer)
         .protocolQueueOperation(operation, { value: LOCKED_AMOUNT_CHALLENGE_PERIOD })
-    ).to.be.revertedWithCustomError(hub, 'OperationAlreadyQueued')
+    )
+      .to.be.revertedWithCustomError(hub, 'InvalidOperationStatus')
+      .withArgs(OPERATION_STATUS.Queued, OPERATION_STATUS.NotQueued)
   })
 
   it('a guardian should be able to cancel an operation within the challenge period', async () => {
@@ -384,28 +390,77 @@ describe('PNetworkHub', () => {
       hub
         .connect(guardian)
         .protocolGuardianCancelOperation(fakeOperation, getActorsMerkleProof(guardians, guardian))
-    ).to.be.revertedWithCustomError(hub, 'OperationNotFound')
+    )
+      .to.be.revertedWithCustomError(hub, 'InvalidOperationStatus')
+      .withArgs(OPERATION_STATUS.NotQueued, OPERATION_STATUS.Queued)
   })
 
   it('should not be able to execute an operation that has not been queued', async () => {
     const fakeOperation = new Operation()
-    await expect(
-      hub.connect(relayer).protocolExecuteOperation(fakeOperation)
-    ).to.be.revertedWithCustomError(hub, 'OperationNotFound')
+    await expect(hub.connect(relayer).protocolExecuteOperation(fakeOperation))
+      .to.be.revertedWithCustomError(hub, 'InvalidOperationStatus')
+      .withArgs(OPERATION_STATUS.NotQueued, OPERATION_STATUS.Queued)
   })
 
   it('should not be able to execute an operation that has been cancelled', async () => {
     const operation = await generateOperation()
+    await hubInterim
+      .connect(relayer)
+      .protocolQueueOperation(operation, { value: LOCKED_AMOUNT_CHALLENGE_PERIOD })
+    await hubInterim
+      .connect(guardian)
+      .protocolGuardianCancelOperation(operation, getActorsMerkleProof(guardians, guardian))
+    await hubInterim.connect(fakeDandelionVoting).protocolGovernanceCancelOperation(operation)
+    await expect(hubInterim.connect(relayer).protocolExecuteOperation(operation))
+      .to.be.revertedWithCustomError(hubInterim, 'InvalidOperationStatus')
+      .withArgs(OPERATION_STATUS.Cancelled, OPERATION_STATUS.Queued)
+  })
+
+  it('should not be able to cancel an operation on the interim chain if it msg.sender is not dandelion voting', async () => {
+    const operation = await generateOperation()
+    await hubInterim
+      .connect(relayer)
+      .protocolQueueOperation(operation, { value: LOCKED_AMOUNT_CHALLENGE_PERIOD })
+    await expect(
+      hubInterim.connect(sentinel).protocolGovernanceCancelOperation(operation)
+    ).to.be.revertedWithCustomError(hubInterim, 'NotDandelionVoting')
+  })
+
+  it('should not be able to cancel an operation calling protocolGovernanceCancelOperation when network != interim chain', async () => {
+    const operation = await generateOperation()
     await hub
       .connect(relayer)
       .protocolQueueOperation(operation, { value: LOCKED_AMOUNT_CHALLENGE_PERIOD })
+    await expect(
+      hub.connect(fakeDandelionVoting).protocolGovernanceCancelOperation(operation)
+    ).to.be.revertedWithCustomError(hub, 'InvalidNetwork')
+  })
+
+  it('should be able to cancel an operation using a crosschain message', async () => {
+    const operation = await generateOperation()
+    await hub
+      .connect(relayer)
+      .protocolQueueOperation(operation, { value: LOCKED_AMOUNT_CHALLENGE_PERIOD })
+
     await hub
       .connect(guardian)
       .protocolGuardianCancelOperation(operation, getActorsMerkleProof(guardians, guardian))
-    await hub.connect(sentinel).protocolGovernanceCancelOperation(operation)
+
+    const tx = await governanceMessageEmitter.protocolGovernanceCancelOperation(operation)
+    const receipt = await tx.wait(1)
+    const message = receipt.events.find(({ event }) => event === 'GovernanceMessage')
+
     await expect(
-      hub.connect(relayer).protocolExecuteOperation(operation)
-    ).to.be.revertedWithCustomError(hub, 'OperationAlreadyCancelled')
+      hub
+        .connect(telepathyRouter)
+        .handleTelepathy(
+          chainId,
+          fakeGovernanceMessageVerifier.address,
+          abiCoder.decode(['bytes'], message.data)[0]
+        )
+    )
+      .to.emit(hub, 'OperationCancelled')
+      .withArgs(operation.serialize())
   })
 
   it('should not be able to execute an operation before that the execution timestamp is reached', async () => {
@@ -598,9 +653,9 @@ describe('PNetworkHub', () => {
       .protocolQueueOperation(operation, { value: LOCKED_AMOUNT_CHALLENGE_PERIOD })
     await time.increase(await hub.getCurrentChallengePeriodDuration())
     await hub.connect(relayer).protocolExecuteOperation(operation)
-    await expect(
-      hub.connect(relayer).protocolExecuteOperation(operation)
-    ).to.be.revertedWithCustomError(hub, 'OperationAlreadyExecuted')
+    await expect(hub.connect(relayer).protocolExecuteOperation(operation))
+      .to.be.revertedWithCustomError(hub, 'InvalidOperationStatus')
+      .withArgs(OPERATION_STATUS.Executed, OPERATION_STATUS.Queued)
   })
 
   it('should be able to execute an operation that contains user data', async () => {
@@ -715,13 +770,14 @@ describe('PNetworkHub', () => {
       numberOfOperations++
     ) {
       const operation = await generateOperation()
-      await hub
+      await hubInterim
         .connect(relayer)
         .protocolQueueOperation(operation, { value: LOCKED_AMOUNT_CHALLENGE_PERIOD })
 
-      const [startTimestamp, endTimestamp] = await hub.challengePeriodOf(operation)
+      const [startTimestamp, endTimestamp] = await hubInterim.challengePeriodOf(operation)
 
-      const currentActiveActorsAdjustment = await hub.getCurrentActiveActorsAdjustmentDuration()
+      const currentActiveActorsAdjustment =
+        await hubInterim.getCurrentActiveActorsAdjustmentDuration()
       const expectedCurrentChallengePeriodDuration =
         BASE_CHALLENGE_PERIOD_DURATION +
         currentActiveActorsAdjustment.toNumber() +
@@ -732,11 +788,11 @@ describe('PNetworkHub', () => {
     }
 
     await expect(
-      hub.connect(relayer).protocolQueueOperation(await generateOperation(), {
+      hubInterim.connect(relayer).protocolQueueOperation(await generateOperation(), {
         value: LOCKED_AMOUNT_CHALLENGE_PERIOD,
       })
-    ).to.be.revertedWithCustomError(hub, 'QueueFull')
-    expect(await hub.numberOfOperationsInQueue()).to.be.eq(MAX_OPERATIONS_IN_QUEUE)
+    ).to.be.revertedWithCustomError(hubInterim, 'QueueFull')
+    expect(await hubInterim.numberOfOperationsInQueue()).to.be.eq(MAX_OPERATIONS_IN_QUEUE)
 
     for (
       let index = 0, numberOfOperations = MAX_OPERATIONS_IN_QUEUE;
@@ -744,9 +800,10 @@ describe('PNetworkHub', () => {
       index++, numberOfOperations--
     ) {
       const operation = operations[index]
-      const [startTimestamp, endTimestamp] = await hub.challengePeriodOf(operation)
+      const [startTimestamp, endTimestamp] = await hubInterim.challengePeriodOf(operation)
 
-      const currentActiveActorsAdjustment = await hub.getCurrentActiveActorsAdjustmentDuration()
+      const currentActiveActorsAdjustment =
+        await hubInterim.getCurrentActiveActorsAdjustmentDuration()
       const expectedCurrentChallengePeriodDuration =
         BASE_CHALLENGE_PERIOD_DURATION +
         currentActiveActorsAdjustment.toNumber() +
@@ -754,10 +811,10 @@ describe('PNetworkHub', () => {
         K_CHALLENGE_PERIOD
       expect(expectedCurrentChallengePeriodDuration).to.be.eq(endTimestamp.sub(startTimestamp))
 
-      await hub
+      await hubInterim
         .connect(guardian)
         .protocolGuardianCancelOperation(operation, getActorsMerkleProof(guardians, guardian))
-      await hub.connect(sentinel).protocolGovernanceCancelOperation(operation)
+      await hubInterim.connect(fakeDandelionVoting).protocolGovernanceCancelOperation(operation)
     }
   })
 
@@ -2318,22 +2375,6 @@ describe('PNetworkHub', () => {
 
       activeActors++
     }
-  })
-
-  it('should get the expected network id', async () => {
-    const hre = require('hardhat')
-    const quiet = true
-    const versionByte = 0x01
-    const extraData = 0x00
-    const networkType = 0x01
-    const networkId = await hubInterim.getNetworkId()
-
-    const expectedNetworkId = await getNetworkId(
-      { chainId, versionByte, extraData, networkType, quiet },
-      hre
-    )
-
-    expect(networkId).to.be.equal(expectedNetworkId)
   })
 
   it('should slash an actor(sentinel) successfully on the interim chain', async () => {

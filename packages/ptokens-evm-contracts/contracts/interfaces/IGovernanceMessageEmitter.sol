@@ -2,6 +2,8 @@
 
 pragma solidity ^0.8.19;
 
+import {IPNetworkHub} from "./IPNetworkHub.sol";
+
 /**
  * @title IGovernanceMessageEmitter
  * @author pNetwork
@@ -57,6 +59,14 @@ interface IGovernanceMessageEmitter {
      * @param guardians
      */
     function propagateSentinels(address[] calldata sentinels) external;
+
+    /*
+     * @notice Emit a GovernanceMessage to cancel an operation on a given network
+     *
+     * @param operation
+     * @param networkId
+     */
+    function protocolGovernanceCancelOperation(IPNetworkHub.Operation calldata operation, bytes4 networkId) external;
 
     /*
      * @notice Emit a GovernanceMessage event containing the address of the resumed guardian

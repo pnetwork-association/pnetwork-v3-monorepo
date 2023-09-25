@@ -2,6 +2,7 @@
 pragma solidity ^0.8.19;
 
 import {IEpochsManager} from "@pnetwork-association/dao-v2-contracts/contracts/interfaces/IEpochsManager.sol";
+import {IPNetworkHub} from "../interfaces/IPNetworkHub.sol";
 import {MerkleTree} from "../libraries/MerkleTree.sol";
 
 contract MockGovernanceMessageEmitter {
@@ -11,6 +12,8 @@ contract MockGovernanceMessageEmitter {
     bytes32 public constant GOVERNANCE_MESSAGE_SLASH_GUARDIAN = keccak256("GOVERNANCE_MESSAGE_SLASH_GUARDIAN");
     bytes32 public constant GOVERNANCE_MESSAGE_RESUME_SENTINEL = keccak256("GOVERNANCE_MESSAGE_RESUME_SENTINEL");
     bytes32 public constant GOVERNANCE_MESSAGE_RESUME_GUARDIAN = keccak256("GOVERNANCE_MESSAGE_RESUME_GUARDIAN");
+    bytes32 public constant GOVERNANCE_MESSAGE_PROTOCOL_GOVERNANCE_CANCEL_OPERATION =
+        keccak256("GOVERNANCE_MESSAGE_PROTOCOL_GOVERNANCE_CANCEL_OPERATION");
 
     address public immutable epochsManager;
 
@@ -69,6 +72,12 @@ contract MockGovernanceMessageEmitter {
                 GOVERNANCE_MESSAGE_GUARDIANS,
                 abi.encode(epoch, guardians.length, MerkleTree.getRoot(_hashAddresses(guardians)))
             )
+        );
+    }
+
+    function protocolGovernanceCancelOperation(IPNetworkHub.Operation calldata operation) external {
+        emit GovernanceMessage(
+            abi.encode(GOVERNANCE_MESSAGE_PROTOCOL_GOVERNANCE_CANCEL_OPERATION, abi.encode(operation))
         );
     }
 

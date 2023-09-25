@@ -33,7 +33,7 @@ interface IPNetworkHub is IGovernanceMessageHandler {
     }
 
     enum OperationStatus {
-        Null,
+        NotQueued,
         Queued,
         Executed,
         Cancelled
@@ -229,13 +229,6 @@ interface IPNetworkHub is IGovernanceMessageHandler {
     );
 
     /*
-     * @notice Get the PNetwork network ID where the contract is deployed.
-     *
-     * @return bytes32 4 bytes representing the network ID
-     */
-    function getNetworkId() external view returns (bytes4);
-
-    /*
      * @notice Calculates the challenge id.
      *
      * @param challenge
@@ -370,6 +363,7 @@ interface IPNetworkHub is IGovernanceMessageHandler {
 
     /*
      * @notice The Governance instruct a cancel action. If 2 actors agree on it the operation is cancelled.
+     *          This function can be invoked ONLY by the DandelionVoting contract ONLY on the interim chain
      *
      * @param operation
      *

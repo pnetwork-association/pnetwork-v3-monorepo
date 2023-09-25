@@ -5,15 +5,17 @@ import {IGovernanceMessageEmitter} from "../interfaces/IGovernanceMessageEmitter
 import {IRegistrationManager} from "@pnetwork-association/dao-v2-contracts/contracts/interfaces/IRegistrationManager.sol";
 import {ILendingManager} from "@pnetwork-association/dao-v2-contracts/contracts/interfaces/ILendingManager.sol";
 import {IEpochsManager} from "@pnetwork-association/dao-v2-contracts/contracts/interfaces/IEpochsManager.sol";
-import {MerkleProof} from "@openzeppelin/contracts/utils/cryptography/MerkleProof.sol";
 import {IPRegistry} from "../interfaces/IPRegistry.sol";
+import {IPNetworkHub} from "../interfaces/IPNetworkHub.sol";
 import {MerkleTree} from "../libraries/MerkleTree.sol";
 
 error InvalidAmount(uint256 amount, uint256 expectedAmount);
 error InvalidGovernanceMessageVerifier(address governanceMessagerVerifier, address expectedGovernanceMessageVerifier);
 error InvalidSentinelRegistration(bytes1 kind);
-error NotRegistrationManager();
+error NotRegistrationManager(address registrationManager, address expectedRegistrationManager);
+error NotDandelionVoting(address dandelionVoting, address expectedDandelionVoting);
 error InvalidNumberOfGuardians(uint16 numberOfGuardians, uint16 expectedNumberOfGuardians);
+error NetworkNotSupported(bytes4 networkId);
 
 contract GovernanceMessageEmitter is IGovernanceMessageEmitter {
     bytes32 public constant GOVERNANCE_MESSAGE_SENTINELS = keccak256("GOVERNANCE_MESSAGE_SENTINELS");
@@ -22,26 +24,44 @@ contract GovernanceMessageEmitter is IGovernanceMessageEmitter {
     bytes32 public constant GOVERNANCE_MESSAGE_SLASH_GUARDIAN = keccak256("GOVERNANCE_MESSAGE_SLASH_GUARDIAN");
     bytes32 public constant GOVERNANCE_MESSAGE_RESUME_SENTINEL = keccak256("GOVERNANCE_MESSAGE_RESUME_SENTINEL");
     bytes32 public constant GOVERNANCE_MESSAGE_RESUME_GUARDIAN = keccak256("GOVERNANCE_MESSAGE_RESUME_GUARDIAN");
+    bytes32 public constant GOVERNANCE_MESSAGE_PROTOCOL_GOVERNANCE_CANCEL_OPERATION =
+        keccak256("GOVERNANCE_MESSAGE_PROTOCOL_GOVERNANCE_CANCEL_OPERATION");
 
-    address public immutable registry;
     address public immutable epochsManager;
     address public immutable lendingManager;
     address public immutable registrationManager;
+    address public immutable dandelionVoting;
+    address public immutable registry;
 
     uint256 public totalNumberOfMessages;
 
     modifier onlyRegistrationManager() {
         if (msg.sender != registrationManager) {
-            revert NotRegistrationManager();
+            revert NotRegistrationManager(msg.sender, dandelionVoting);
         }
 
         _;
     }
 
-    constructor(address epochsManager_, address lendingManager_, address registrationManager_, address registry_) {
+    modifier onlyDandelionVoting() {
+        if (msg.sender != dandelionVoting) {
+            revert NotDandelionVoting(msg.sender, dandelionVoting);
+        }
+
+        _;
+    }
+
+    constructor(
+        address epochsManager_,
+        address lendingManager_,
+        address registrationManager_,
+        address dandelionVoting_,
+        address registry_
+    ) {
         registry = registry_;
         epochsManager = epochsManager_;
         lendingManager = lendingManager_;
+        dandelionVoting = dandelionVoting_;
         registrationManager = registrationManager_;
     }
 
@@ -104,6 +124,37 @@ contract GovernanceMessageEmitter is IGovernanceMessageEmitter {
         );
 
         emit SentinelsPropagated(currentEpoch, effectiveSentinels);
+    }
+
+    /// @inheritdoc IGovernanceMessageEmitter
+    function protocolGovernanceCancelOperation(
+        IPNetworkHub.Operation calldata operation,
+        bytes4 networkId
+    ) external onlyDandelionVoting {
+        address[] memory hubs = new address[](1);
+        uint32[] memory chainIds = new uint32[](1);
+
+        address hub = IPRegistry(registry).getHubByNetworkId(networkId);
+        if (hub == address(0)) {
+            revert NetworkNotSupported(networkId);
+        }
+
+        uint32 chainId = IPRegistry(registry).getChainIdByNetworkId(networkId);
+        hubs[0] = hub;
+        chainIds[0] = chainId;
+
+        emit GovernanceMessage(
+            abi.encode(
+                totalNumberOfMessages,
+                chainIds,
+                hubs,
+                abi.encode(GOVERNANCE_MESSAGE_PROTOCOL_GOVERNANCE_CANCEL_OPERATION, abi.encode(operation))
+            )
+        );
+
+        unchecked {
+            ++totalNumberOfMessages;
+        }
     }
 
     /// @inheritdoc IGovernanceMessageEmitter

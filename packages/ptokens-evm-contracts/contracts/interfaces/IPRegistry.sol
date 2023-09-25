@@ -8,13 +8,14 @@
 pragma solidity ^0.8.19;
 
 interface IPRegistry {
-    /*
-     * @dev Add a new entry for the map network ID => hub
+    /**
+     * @dev Emitted when a challenge is started.
      *
-     * @param networkId the network ID
-     * @param hub pNetwork hub contract address
+     * @param networkId The network id
+     * @param chainId The chain id
+     * @param hub The hub
      */
-    function addProtocolBlockchain(uint32 chainId, address hub) external;
+    event NetworkAdded(bytes4 indexed networkId, uint32 indexed chainId, address hub);
 
     /*
      * @dev Return true if the given network id has been registered on pNetwork
@@ -32,6 +33,15 @@ interface IPRegistry {
     function isChainIdSupported(uint32 chainId) external view returns (bool);
 
     /**
+     * @dev Returns the chain id for the given network ID
+     *
+     * @param networkId a network ID
+     *
+     * @return uint32 chain id for the given network ID
+     */
+    function getChainIdByNetworkId(bytes4 networkId) external view returns (uint32);
+
+    /**
      * @dev Return the supported hubs
      */
     function getSupportedHubs() external view returns (address[] memory);
@@ -45,9 +55,17 @@ interface IPRegistry {
     /**
      * @dev Returns the pNetwork hub address for the given network ID
      *
-     * @param sourceNetworkId a network ID
+     * @param networkId a network ID
      *
      * @return address pNetwork hub address on the given network ID
      */
-    function getHubByNetworkId(bytes4 sourceNetworkId) external view returns (address);
+    function getHubByNetworkId(bytes4 networkId) external view returns (address);
+
+    /*
+     * @dev Add a new entry for the map network ID => hub
+     *
+     * @param networkId the network ID
+     * @param hub pNetwork hub contract address
+     */
+    function protocolAddNetwork(uint32 chainId, address hub) external;
 }
