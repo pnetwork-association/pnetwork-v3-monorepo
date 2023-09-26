@@ -9,7 +9,7 @@ module.exports = class Operation {
       nonce = 0,
       underlyingAssetDecimals = 0,
       assetAmount = '0',
-      protocolFeeAssetAmount = '0',
+      userDataProtocolFeeAssetAmount = '0',
       networkFeeAssetAmount = '0',
       underlyingAssetTokenAddress = '0x'.padEnd(42, '0'),
       originNetworkId = PNETWORK_NETWORK_IDS.hardhat,
@@ -40,7 +40,7 @@ module.exports = class Operation {
     this.underlyingAssetName = underlyingAssetName
     this.underlyingAssetSymbol = underlyingAssetSymbol
     this.userData = userData
-    this.protocolFeeAssetAmount = protocolFeeAssetAmount
+    this.userDataProtocolFeeAssetAmount = userDataProtocolFeeAssetAmount
     this.forwardDestinationNetworkId = forwardDestinationNetworkId
     this.networkFeeAssetAmount = networkFeeAssetAmount
     this.forwardNetworkFeeAssetAmount = forwardNetworkFeeAssetAmount
@@ -55,7 +55,7 @@ module.exports = class Operation {
       this.nonce,
       this.underlyingAssetDecimals,
       this.assetAmount,
-      this.protocolFeeAssetAmount,
+      this.userDataProtocolFeeAssetAmount,
       this.networkFeeAssetAmount,
       this.forwardNetworkFeeAssetAmount,
       this.underlyingAssetTokenAddress,
@@ -116,7 +116,7 @@ module.exports = class Operation {
             this.nonce,
             this.underlyingAssetDecimals,
             this.assetAmount,
-            this.protocolFeeAssetAmount,
+            this.userDataProtocolFeeAssetAmount,
             this.networkFeeAssetAmount,
             this.forwardNetworkFeeAssetAmount,
             this.underlyingAssetTokenAddress,

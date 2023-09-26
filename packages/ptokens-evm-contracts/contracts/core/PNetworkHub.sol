@@ -16,7 +16,7 @@ import {Utils} from "../libraries/Utils.sol";
 import {Network} from "../libraries/Network.sol";
 
 error InvalidOperationStatus(IPNetworkHub.OperationStatus status, IPNetworkHub.OperationStatus expectedStatus);
-error GovernanceOperationAlreadyCancelled(IPNetworkHub.Operation operation);
+error ActorAlreadyCancelledOperation(IPNetworkHub.Operation operation);
 error GuardianOperationAlreadyCancelled(IPNetworkHub.Operation operation);
 error SentinelOperationAlreadyCancelled(IPNetworkHub.Operation operation);
 error ChallengePeriodNotTerminated(uint64 startTimestamp, uint64 endTimestamp);
@@ -24,7 +24,6 @@ error ChallengePeriodTerminated(uint64 startTimestamp, uint64 endTimestamp);
 error InvalidAssetParameters(uint256 assetAmount, address assetTokenAddress);
 error InvalidProtocolFeeAssetParameters(uint256 protocolFeeAssetAmount, address protocolFeeAssetTokenAddress);
 error InvalidUserOperation();
-error NoUserOperation();
 error PTokenNotCreated(address pTokenAddress);
 error InvalidNetwork(bytes4 networkId, bytes4 expectedNetworkId);
 error NotContract(address addr);
@@ -35,7 +34,6 @@ error InvalidLockedAmountChallengePeriod(
     uint256 expectedLockedAmountChallengePeriod
 );
 error QueueFull();
-error InvalidProtocolFee(IPNetworkHub.Operation operation);
 error InvalidNetworkFeeAssetAmount();
 error InvalidSentinel(address sentinel);
 error InvalidGuardian(address guardian);
@@ -65,11 +63,15 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
         keccak256("GOVERNANCE_MESSAGE_PROTOCOL_GOVERNANCE_CANCEL_OPERATION");
     uint256 public constant FEE_BASIS_POINTS_DIVISOR = 10000;
 
+    address public constant UNDERLYING_ASSET_TOKEN_ADDRESS_USER_DATA_PROTOCOL_FEE =
+        0x6B175474E89094C44Da98b954EedeAC495271d0F;
+    bytes4 public constant UNDERLYING_ASSET_NETWORK_ID_USER_DATA_PROTOCOL_FEE = 0x005fe7f9;
+    uint256 public constant UNDERLYING_ASSET_DECIMALS_USER_DATA_PROTOCOL_FEE = 18;
+    string public constant UNDERLYING_ASSET_NAME_USER_DATA_PROTOCOL_FEE = "Dai Stablecoin";
+    string public constant UNDERLYING_ASSET_SYMBOL_USER_DATA_PROTOCOL_FEE = "DAI";
+
     mapping(bytes32 => Action) private _operationsRelayerQueueAction;
-    mapping(bytes32 => Action) private _operationsGovernanceCancelAction;
-    mapping(bytes32 => Action) private _operationsGuardianCancelAction;
-    mapping(bytes32 => Action) private _operationsSentinelCancelAction;
-    mapping(bytes32 => Action) private _operationsExecuteAction;
+    mapping(bytes32 => Action[]) private _operationsCancelActions;
     mapping(bytes32 => uint8) private _operationsTotalCancelActions;
     mapping(bytes32 => OperationStatus) private _operationsStatus;
     mapping(uint16 => bytes32) private _epochsSentinelsMerkleRoot;
@@ -214,23 +216,8 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
     }
 
     /// @inheritdoc IPNetworkHub
-    function getGuardiansMerkleRootForEpoch(uint16 epoch) external view returns (bytes32) {
-        return _epochsGuardiansMerkleRoot[epoch];
-    }
-
-    /// @inheritdoc IPNetworkHub
     function getPendingChallengeIdByEpochOf(uint16 epoch, address actor) external view returns (bytes32) {
         return _epochsActorsPendingChallengeId[epoch][actor];
-    }
-
-    /// @inheritdoc IPNetworkHub
-    function getSentinelsMerkleRootForEpoch(uint16 epoch) external view returns (bytes32) {
-        return _epochsSentinelsMerkleRoot[epoch];
-    }
-
-    /// @inheritdoc IPNetworkHub
-    function getTotalNumberOfInactiveActorsForCurrentEpoch() external view returns (uint16) {
-        return _epochsTotalNumberOfInactiveActors[IEpochsManager(epochsManager).currentEpoch()];
     }
 
     /// @inheritdoc IPNetworkHub
@@ -341,10 +328,9 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
                     operation.underlyingAssetNetworkId,
                     pTokenAddress,
                     effectiveOperationAssetAmount,
-                    address(0),
+                    0,
                     0,
                     operation.forwardNetworkFeeAssetAmount,
-                    0,
                     bytes4(0),
                     operation.userData,
                     operation.optionsMask,
@@ -475,7 +461,6 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
                 bytes4(0),
                 address(0),
                 0,
-                address(0),
                 0,
                 0,
                 0,
@@ -545,8 +530,6 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
         bytes4 underlyingAssetNetworkId,
         address assetTokenAddress,
         uint256 assetAmount,
-        address protocolFeeAssetTokenAddress,
-        uint256 protocolFeeAssetAmount,
         uint256 networkFeeAssetAmount,
         uint256 forwardNetworkFeeAssetAmount,
         bytes calldata userData,
@@ -565,51 +548,60 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
             revert InvalidNetworkFeeAssetAmount();
         }
 
-        address pTokenAddress = IPFactory(factory).getPTokenAddress(
-            underlyingAssetName,
-            underlyingAssetSymbol,
-            underlyingAssetDecimals,
-            underlyingAssetTokenAddress,
-            underlyingAssetNetworkId
-        );
-        if (pTokenAddress.code.length == 0) {
-            revert PTokenNotCreated(pTokenAddress);
+        if (assetAmount == 0 && userData.length == 0) {
+            revert InvalidUserOperation();
         }
 
-        bool isCurrentNetwork = Network.isCurrentNetwork(destinationNetworkId);
+        bool isSendingOnCurrentNetwork = Network.isCurrentNetwork(destinationNetworkId);
 
-        // TODO: A user might bypass paying the protocol fee when sending userData, particularly
-        // if they dispatch userData with an assetAmount greater than zero. However, if the countervalue of
-        // the assetAmount is less than the protocol fee, it implies the user has paid less than the
-        // required protocol fee to transmit userData. How can we fix this problem?
         if (assetAmount > 0) {
-            if (protocolFeeAssetAmount > 0 || protocolFeeAssetTokenAddress != address(0)) {
-                revert InvalidProtocolFeeAssetParameters(protocolFeeAssetAmount, protocolFeeAssetTokenAddress);
+            address pTokenAddress = IPFactory(factory).getPTokenAddress(
+                underlyingAssetName,
+                underlyingAssetSymbol,
+                underlyingAssetDecimals,
+                underlyingAssetTokenAddress,
+                underlyingAssetNetworkId
+            );
+            if (pTokenAddress.code.length == 0) {
+                revert PTokenNotCreated(pTokenAddress);
             }
 
-            if (underlyingAssetTokenAddress == assetTokenAddress && isCurrentNetwork) {
+            if (underlyingAssetTokenAddress == assetTokenAddress && isSendingOnCurrentNetwork) {
                 IPToken(pTokenAddress).userMint(msgSender, assetAmount);
-            } else if (underlyingAssetTokenAddress == assetTokenAddress && !isCurrentNetwork) {
+            } else if (underlyingAssetTokenAddress == assetTokenAddress && !isSendingOnCurrentNetwork) {
                 IPToken(pTokenAddress).userMintAndBurn(msgSender, assetAmount);
-            } else if (pTokenAddress == assetTokenAddress && !isCurrentNetwork) {
+            } else if (pTokenAddress == assetTokenAddress && !isSendingOnCurrentNetwork) {
                 IPToken(pTokenAddress).userBurn(msgSender, assetAmount);
             } else {
                 revert InvalidUserOperation();
             }
-        } else if (userData.length > 0) {
-            if (protocolFeeAssetAmount == 0 || protocolFeeAssetTokenAddress == address(0)) {
-                revert InvalidProtocolFeeAssetParameters(protocolFeeAssetAmount, protocolFeeAssetTokenAddress);
+        }
+
+        uint256 userDataProtocolFeeAssetAmount = 0;
+        if (userData.length > 0) {
+            userDataProtocolFeeAssetAmount = 1; // TODO: calculate it based on user data length
+
+            address pTokenAddressUserDataProtocolFee = IPFactory(factory).getPTokenAddress(
+                UNDERLYING_ASSET_NAME_USER_DATA_PROTOCOL_FEE,
+                UNDERLYING_ASSET_SYMBOL_USER_DATA_PROTOCOL_FEE,
+                UNDERLYING_ASSET_DECIMALS_USER_DATA_PROTOCOL_FEE,
+                UNDERLYING_ASSET_TOKEN_ADDRESS_USER_DATA_PROTOCOL_FEE,
+                UNDERLYING_ASSET_NETWORK_ID_USER_DATA_PROTOCOL_FEE
+            );
+            if (pTokenAddressUserDataProtocolFee.code.length == 0) {
+                revert PTokenNotCreated(pTokenAddressUserDataProtocolFee);
             }
 
-            if (underlyingAssetTokenAddress == protocolFeeAssetTokenAddress && !isCurrentNetwork) {
-                IPToken(pTokenAddress).userMintAndBurn(msgSender, protocolFeeAssetAmount);
-            } else if (pTokenAddress == protocolFeeAssetTokenAddress && !isCurrentNetwork) {
-                IPToken(pTokenAddress).userBurn(msgSender, protocolFeeAssetAmount);
+            bytes4 currentNetworkId = Network.getCurrentNetworkId();
+            if (UNDERLYING_ASSET_NETWORK_ID_USER_DATA_PROTOCOL_FEE == currentNetworkId && !isSendingOnCurrentNetwork) {
+                IPToken(pTokenAddressUserDataProtocolFee).userMintAndBurn(msgSender, userDataProtocolFeeAssetAmount);
+            } else if (
+                UNDERLYING_ASSET_NETWORK_ID_USER_DATA_PROTOCOL_FEE == currentNetworkId && !isSendingOnCurrentNetwork
+            ) {
+                IPToken(pTokenAddressUserDataProtocolFee).userBurn(msgSender, userDataProtocolFeeAssetAmount);
             } else {
                 revert InvalidUserOperation();
             }
-        } else {
-            revert NoUserOperation();
         }
 
         emit UserOperation(
@@ -629,11 +621,10 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
                 underlyingAssetDecimals,
                 underlyingAssetNetworkId
             ),
-            protocolFeeAssetTokenAddress,
             Utils.normalizeAmountToProtocolFormatOnCurrentNetwork(
-                protocolFeeAssetAmount,
-                underlyingAssetDecimals,
-                underlyingAssetNetworkId
+                userDataProtocolFeeAssetAmount,
+                UNDERLYING_ASSET_DECIMALS_USER_DATA_PROTOCOL_FEE,
+                UNDERLYING_ASSET_NETWORK_ID_USER_DATA_PROTOCOL_FEE
             ),
             Utils.normalizeAmountToProtocolFormatOnCurrentNetwork(
                 networkFeeAssetAmount,
@@ -661,19 +652,9 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
         Action storage queueAction = _operationsRelayerQueueAction[operationId];
         uint64 startTimestamp = queueAction.timestamp;
         uint64 endTimestamp = startTimestamp + getCurrentChallengePeriodDuration();
-        if (_operationsTotalCancelActions[operationId] == 0) {
-            return (startTimestamp, endTimestamp);
-        }
 
-        if (_operationsGuardianCancelAction[operationId].actor != address(0)) {
-            endTimestamp += 5 days;
-        }
-
-        if (_operationsSentinelCancelAction[operationId].actor != address(0)) {
-            endTimestamp += 5 days;
-        }
-
-        return (startTimestamp, endTimestamp);
+        uint256 operationTotalCancelActions = _operationsTotalCancelActions[operationId];
+        return (startTimestamp, endTimestamp + uint64(5 days * operationTotalCancelActions));
     }
 
     function _checkLockDownMode(bool addMaxChallengePeriodDuration) internal view {
@@ -879,31 +860,19 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
             revert ChallengePeriodTerminated(startTimestamp, endTimestamp);
         }
 
-        Action memory action = Action({actor: _msgSender(), timestamp: uint64(block.timestamp)});
-        if (actorType == ActorTypes.Governance) {
-            if (_operationsGovernanceCancelAction[operationId].actor != address(0)) {
-                revert GovernanceOperationAlreadyCancelled(operation);
+        Action[] storage operationCancelActions = _operationsCancelActions[operationId];
+        uint256 operationCancelActionsLength = operationCancelActions.length;
+        for (uint256 index = 0; index < operationCancelActionsLength; ) {
+            if (operationCancelActions[index].actor == actor) {
+                revert ActorAlreadyCancelledOperation(operation);
             }
 
-            _operationsGovernanceCancelAction[operationId] = action;
-            emit GovernanceOperationCancelled(operation);
-        }
-        if (actorType == ActorTypes.Guardian) {
-            if (_operationsGuardianCancelAction[operationId].actor != address(0)) {
-                revert GuardianOperationAlreadyCancelled(operation);
+            unchecked {
+                ++index;
             }
-
-            _operationsGuardianCancelAction[operationId] = action;
-            emit GuardianOperationCancelled(operation);
         }
-        if (actorType == ActorTypes.Sentinel) {
-            if (_operationsSentinelCancelAction[operationId].actor != address(0)) {
-                revert SentinelOperationAlreadyCancelled(operation);
-            }
 
-            _operationsSentinelCancelAction[operationId] = action;
-            emit SentinelOperationCancelled(operation);
-        }
+        _operationsCancelActions[operationId].push(Action({actor: actor, timestamp: uint64(block.timestamp)}));
 
         unchecked {
             ++_operationsTotalCancelActions[operationId];
@@ -923,8 +892,6 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
 
     function _releaseOperationLockedAmountChallengePeriod(bytes32 operationId) internal {
         _operationsStatus[operationId] = OperationStatus.Executed;
-        _operationsExecuteAction[operationId] = Action({actor: _msgSender(), timestamp: uint64(block.timestamp)});
-
         Action storage queuedAction = _operationsRelayerQueueAction[operationId];
         Utils.sendEther(queuedAction.actor, lockedAmountChallengePeriod);
 
@@ -1019,29 +986,39 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
     }
 
     function _takeProtocolFee(Operation calldata operation, address pTokenAddress) internal returns (uint256) {
-        if (operation.assetAmount > 0 && operation.userData.length == 0) {
-            uint256 feeBps = 20; // 0.2%
-            uint256 fee = (operation.assetAmount * feeBps) / FEE_BASIS_POINTS_DIVISOR;
-            IPToken(pTokenAddress).protocolMint(address(this), fee);
-            IPToken(pTokenAddress).approve(feesManager, fee);
-            IFeesManager(feesManager).depositFee(pTokenAddress, fee);
-            return operation.assetAmount - fee;
-        }
-        // TODO: We need to determine how to process the fee when operation.userData.length is greater than zero
-        //and operation.assetAmount is also greater than zero. By current design, userData is paid in USDC,
-        // but what happens if a user wraps Ethereum, for example, and wants to couple it with a non-null
-        //userData during the wrap operation? We must decide which token should be used for the userData fee payment.
-        else if (operation.userData.length > 0 && operation.protocolFeeAssetAmount > 0) {
-            // Take fee using pTokenAddress and operation.protocolFeeAssetAmount
-            IPToken(pTokenAddress).protocolMint(address(this), operation.protocolFeeAssetAmount);
-            // TODO: send it to the DAO
-            return operation.assetAmount > 0 ? operation.assetAmount - operation.protocolFeeAssetAmount : 0;
-        }
-
         if (operation.isForProtocol) {
             return 0;
         }
 
-        revert InvalidProtocolFee(operation);
+        uint256 fee = 0;
+        if (operation.assetAmount > 0) {
+            uint256 feeBps = 20; // 0.2%
+            fee = (operation.assetAmount * feeBps) / FEE_BASIS_POINTS_DIVISOR;
+            IPToken(pTokenAddress).protocolMint(address(this), fee);
+            IPToken(pTokenAddress).approve(feesManager, fee);
+            IFeesManager(feesManager).depositFee(pTokenAddress, fee);
+        }
+
+        if (operation.userData.length > 0) {
+            address pTokenAddressUserDataProtocolFee = IPFactory(factory).getPTokenAddress(
+                UNDERLYING_ASSET_NAME_USER_DATA_PROTOCOL_FEE,
+                UNDERLYING_ASSET_SYMBOL_USER_DATA_PROTOCOL_FEE,
+                UNDERLYING_ASSET_DECIMALS_USER_DATA_PROTOCOL_FEE,
+                UNDERLYING_ASSET_TOKEN_ADDRESS_USER_DATA_PROTOCOL_FEE,
+                UNDERLYING_ASSET_NETWORK_ID_USER_DATA_PROTOCOL_FEE
+            );
+
+            IPToken(pTokenAddressUserDataProtocolFee).protocolMint(
+                address(this),
+                operation.userDataProtocolFeeAssetAmount
+            );
+            IPToken(pTokenAddressUserDataProtocolFee).approve(feesManager, operation.userDataProtocolFeeAssetAmount);
+            IFeesManager(feesManager).depositFee(
+                pTokenAddressUserDataProtocolFee,
+                operation.userDataProtocolFeeAssetAmount
+            );
+        }
+
+        return operation.assetAmount - fee;
     }
 }

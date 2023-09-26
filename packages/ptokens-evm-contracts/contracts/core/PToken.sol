@@ -23,7 +23,9 @@ contract PToken is IPToken, ERC20 {
     address public immutable hub;
     address public immutable underlyingAssetTokenAddress;
     bytes4 public immutable underlyingAssetNetworkId;
-    uint256 private immutable _underlyingAssetDecimals;
+    uint256 public immutable underlyingAssetDecimals;
+    string public underlyingAssetName;
+    string public underlyingAssetSymbol;
 
     modifier onlyHub() {
         if (_msgSender() != hub) {
@@ -33,39 +35,41 @@ contract PToken is IPToken, ERC20 {
     }
 
     constructor(
-        string memory underlyingAssetName,
-        string memory underlyingAssetSymbol,
-        uint256 underlyingAssetDecimals,
+        string memory underlyingAssetName_,
+        string memory underlyingAssetSymbol_,
+        uint256 underlyingAssetDecimals_,
         address underlyingAssetTokenAddress_,
         bytes4 underlyingAssetNetworkId_,
         address hub_
-    ) ERC20(string.concat("p", underlyingAssetName), string.concat("p", underlyingAssetSymbol)) {
+    ) ERC20(string.concat("p", underlyingAssetName_), string.concat("p", underlyingAssetSymbol_)) {
         if (Network.isCurrentNetwork(underlyingAssetNetworkId_)) {
             string memory expectedUnderlyingAssetName = IERC20Metadata(underlyingAssetTokenAddress_).name();
             if (
-                keccak256(abi.encodePacked(underlyingAssetName)) !=
+                keccak256(abi.encodePacked(underlyingAssetName_)) !=
                 keccak256(abi.encodePacked(expectedUnderlyingAssetName))
             ) {
-                revert InvalidUnderlyingAssetName(underlyingAssetName, expectedUnderlyingAssetName);
+                revert InvalidUnderlyingAssetName(underlyingAssetName_, expectedUnderlyingAssetName);
             }
 
             string memory expectedUnderlyingAssetSymbol = IERC20Metadata(underlyingAssetTokenAddress_).symbol();
             if (
-                keccak256(abi.encodePacked(underlyingAssetSymbol)) !=
+                keccak256(abi.encodePacked(underlyingAssetSymbol_)) !=
                 keccak256(abi.encodePacked(expectedUnderlyingAssetSymbol))
             ) {
                 revert InvalidUnderlyingAssetSymbol(underlyingAssetName, expectedUnderlyingAssetName);
             }
 
             uint256 expectedUnderliyngAssetDecimals = IERC20Metadata(underlyingAssetTokenAddress_).decimals();
-            if (underlyingAssetDecimals != expectedUnderliyngAssetDecimals || expectedUnderliyngAssetDecimals > 18) {
-                revert InvalidUnderlyingAssetDecimals(underlyingAssetDecimals, expectedUnderliyngAssetDecimals);
+            if (underlyingAssetDecimals_ != expectedUnderliyngAssetDecimals || expectedUnderliyngAssetDecimals > 18) {
+                revert InvalidUnderlyingAssetDecimals(underlyingAssetDecimals_, expectedUnderliyngAssetDecimals);
             }
         }
 
+        underlyingAssetName = underlyingAssetName_;
+        underlyingAssetSymbol = underlyingAssetSymbol_;
         underlyingAssetNetworkId = underlyingAssetNetworkId_;
         underlyingAssetTokenAddress = underlyingAssetTokenAddress_;
-        _underlyingAssetDecimals = underlyingAssetDecimals;
+        underlyingAssetDecimals = underlyingAssetDecimals_;
         hub = hub_;
     }
 
@@ -97,7 +101,7 @@ contract PToken is IPToken, ERC20 {
     /// @inheritdoc IPToken
     function userMintAndBurn(address account, uint256 amount) external onlyHub {
         _takeCollateral(account, amount);
-        uint256 normalizedAmount = Utils.normalizeAmountToProtocolFormat(amount, _underlyingAssetDecimals);
+        uint256 normalizedAmount = Utils.normalizeAmountToProtocolFormat(amount, underlyingAssetDecimals);
         emit Transfer(address(0), account, normalizedAmount);
         emit Transfer(account, address(0), normalizedAmount);
     }
@@ -112,7 +116,7 @@ contract PToken is IPToken, ERC20 {
         _burn(account, amount);
         IERC20Metadata(underlyingAssetTokenAddress).safeTransfer(
             account,
-            Utils.normalizeAmountToOriginalFormat(amount, _underlyingAssetDecimals)
+            Utils.normalizeAmountToOriginalFormat(amount, underlyingAssetDecimals)
         );
     }
 
@@ -123,6 +127,6 @@ contract PToken is IPToken, ERC20 {
 
     function _takeCollateralAndMint(address account, uint256 amount) internal {
         _takeCollateral(account, amount);
-        _mint(account, Utils.normalizeAmountToProtocolFormat(amount, _underlyingAssetDecimals));
+        _mint(account, Utils.normalizeAmountToProtocolFormat(amount, underlyingAssetDecimals));
     }
 }

@@ -41,6 +41,16 @@ interface IPToken is IERC20 {
      */
     function protocolBurn(address account, uint256 amount) external;
 
+    function underlyingAssetDecimals() external returns (uint256);
+
+    function underlyingAssetName() external returns (string memory);
+
+    function underlyingAssetNetworkId() external returns (bytes4);
+
+    function underlyingAssetSymbol() external returns (string memory);
+
+    function underlyingAssetTokenAddress() external returns (address);
+
     /*
      * @notice Take the collateral and mint the corresponding `amount` of pToken through the PRouter to `account`.
      *

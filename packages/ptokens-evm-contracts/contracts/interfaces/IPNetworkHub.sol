@@ -59,7 +59,7 @@ interface IPNetworkHub is IGovernanceMessageHandler {
         uint256 nonce;
         uint256 underlyingAssetDecimals;
         uint256 assetAmount;
-        uint256 protocolFeeAssetAmount;
+        uint256 userDataProtocolFeeAssetAmount;
         uint256 networkFeeAssetAmount;
         uint256 forwardNetworkFeeAssetAmount;
         address underlyingAssetTokenAddress;
@@ -132,20 +132,6 @@ interface IPNetworkHub is IGovernanceMessageHandler {
     event OperationCancelled(Operation operation);
 
     /**
-     * @dev Emitted when the Governance instruct an cancel action on an operation.
-     *
-     * @param operation The cancelled operation
-     */
-    event GovernanceOperationCancelled(Operation operation);
-
-    /**
-     * @dev Emitted when a Guardian instruct an cancel action on an operation.
-     *
-     * @param operation The cancelled operation
-     */
-    event GuardianOperationCancelled(Operation operation);
-
-    /**
      * @dev Emitted when a guardian is resumed after having being slashed
      *
      * @param epoch The epoch in which the guardian is has been resumed
@@ -160,13 +146,6 @@ interface IPNetworkHub is IGovernanceMessageHandler {
      * @param guardian The slashed guardian
      */
     event GuardianSlashed(uint16 indexed epoch, address indexed guardian);
-
-    /**
-     * @dev Emitted when a Sentinel instruct an cancel action on an operation.
-     *
-     * @param operation The cancelled operation
-     */
-    event SentinelOperationCancelled(Operation operation);
 
     /**
      * @dev Emitted when a sentinel is resumed after having being slashed
@@ -198,11 +177,10 @@ interface IPNetworkHub is IGovernanceMessageHandler {
      * @param underlyingAssetNetworkId The network id of the underlying asset
      * @param assetTokenAddress The asset token address
      * @param assetAmount The asset mount
-     * @param protocolFeeAssetTokenAddress the protocol fee asset token address
-     * @param protocolFeeAssetAmount the protocol fee asset amount
+     * @param userDataProtocolFeeAssetAmount the protocol fee asset amount for the user data
      * @param networkFeeAssetAmount the network fee asset amount
      * @param forwardNetworkFeeAssetAmount the forward network fee asset amount
-     * @param forwardDestinationNetworkId the protocol fee network id
+     * @param forwardDestinationNetworkId the forward destination network id
      * @param userData The user data
      * @param optionsMask The options
      */
@@ -218,8 +196,7 @@ interface IPNetworkHub is IGovernanceMessageHandler {
         bytes4 underlyingAssetNetworkId,
         address assetTokenAddress,
         uint256 assetAmount,
-        address protocolFeeAssetTokenAddress,
-        uint256 protocolFeeAssetAmount,
+        uint256 userDataProtocolFeeAssetAmount,
         uint256 networkFeeAssetAmount,
         uint256 forwardNetworkFeeAssetAmount,
         bytes4 forwardDestinationNetworkId,
@@ -299,15 +276,6 @@ interface IPNetworkHub is IGovernanceMessageHandler {
     function getCurrentQueuedOperationsAdjustmentDuration() external view returns (uint64);
 
     /*
-     * @notice Returns the guardians merkle root for a given epoch.
-     *
-     * @param epoch
-     *
-     * @return bytes32 representing the guardians merkle root for a given epoch.
-     */
-    function getGuardiansMerkleRootForEpoch(uint16 epoch) external view returns (bytes32);
-
-    /*
      * @notice Returns the pending challenge id for an actor in a given epoch.
      *
      * @param epoch
@@ -316,23 +284,6 @@ interface IPNetworkHub is IGovernanceMessageHandler {
      * @return bytes32 representing the pending challenge id for an actor in a given epoch.
      */
     function getPendingChallengeIdByEpochOf(uint16 epoch, address actor) external view returns (bytes32);
-
-    /*
-     * @notice Returns the sentinels merkle root for a given epoch.
-     *
-     * @param epoch
-     *
-     * @return bytes32 representing the sentinels merkle root for a given epoch.
-     */
-    function getSentinelsMerkleRootForEpoch(uint16 epoch) external view returns (bytes32);
-
-    /*
-     * @notice Returns the number of inactive actors for the current epoch.
-     *
-     *
-     * @return bytes32 representing the number of inactive actors for the current epoch.
-     */
-    function getTotalNumberOfInactiveActorsForCurrentEpoch() external view returns (uint16);
 
     /*
      * @notice Return the status of an operation.
@@ -462,8 +413,6 @@ interface IPNetworkHub is IGovernanceMessageHandler {
      * @param underlyingAssetNetworkId
      * @param assetTokenAddress
      * @param assetAmount
-     * @param protocolFeeAssetTokenAddress
-     * @param protocolFeeAssetAmount
      * @param networkFeeAssetAmount
      * @param forwardNetworkFeeAssetAmount
      * @param userData
@@ -479,8 +428,6 @@ interface IPNetworkHub is IGovernanceMessageHandler {
         bytes4 underlyingAssetNetworkId,
         address assetTokenAddress,
         uint256 assetAmount,
-        address protocolFeeAssetTokenAddress,
-        uint256 protocolFeeAssetAmount,
         uint256 networkFeeAssetAmount,
         uint256 forwardNetworkFeeAssetAmount,
         bytes calldata userData,

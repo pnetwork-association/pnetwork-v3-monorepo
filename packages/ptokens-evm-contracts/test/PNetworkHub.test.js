@@ -102,8 +102,7 @@ describe('PNetworkHub', () => {
       underlyingAssetNetworkId = PNETWORK_NETWORK_IDS.hardhat,
       assetTokenAddress = token.address,
       assetAmount = ethers.utils.parseEther('1000'),
-      protocolFeeAssetTokenAddress = ZERO_ADDRESS,
-      protocolFeeAssetAmount = '0',
+      userDataProtocolFeeAssetAmount = '0',
       networkFeeAssetAmount = '0',
       userData = '0x',
       optionsMask = '0x'.padEnd(66, '0'),
@@ -127,8 +126,6 @@ describe('PNetworkHub', () => {
       underlyingAssetNetworkId,
       assetTokenAddress,
       assetAmount,
-      protocolFeeAssetTokenAddress,
-      protocolFeeAssetAmount,
       networkFeeAssetAmount,
       forwardNetworkFeeAssetAmount,
       userData,
@@ -152,7 +149,7 @@ describe('PNetworkHub', () => {
       originBlockHash: blockHash,
       originNetworkId: PNETWORK_NETWORK_IDS.hardhat,
       originTransactionHash: transactionHash,
-      protocolFeeAssetAmount: '0',
+      userDataProtocolFeeAssetAmount,
       underlyingAssetDecimals,
       underlyingAssetName,
       underlyingAssetNetworkId,
@@ -362,6 +359,13 @@ describe('PNetworkHub', () => {
       .connect(relayer)
       .protocolQueueOperation(operation, { value: LOCKED_AMOUNT_CHALLENGE_PERIOD })
     await time.increase((await hub.getCurrentChallengePeriodDuration()).div(2))
+    await hub
+      .connect(broadcaster)
+      .protocolSentinelCancelOperation(
+        operation,
+        getActorsMerkleProof(sentinels, sentinels[0]),
+        await sentinels[0].signMessage(ethers.utils.arrayify(operation.id))
+      )
     await expect(
       hub
         .connect(guardian)
@@ -869,8 +873,7 @@ describe('PNetworkHub', () => {
       underlyingAssetNetworkId: PNETWORK_NETWORK_IDS.hardhat,
       assetTokenAddress: token.address,
       assetAmount,
-      protocolFeeAssetTokenAddress: ZERO_ADDRESS,
-      protocolFeeAssetAmount: '0',
+      userDataProtocolFeeAssetAmount: '0',
       networkFeeAssetAmount: '0',
       forwardNetworkFeeAssetAmount: '0',
       userData: '0x',
@@ -881,46 +884,8 @@ describe('PNetworkHub', () => {
     await expect(hub.userSend(...Object.values(data))).to.emit(hub, 'UserOperation')
   })
 
-  it('should not be able to call userSend to wrap only tokens specifying protocolFeeAssetAmount or protocolFeeAssetTokenAddress or protocolFeeAssetAmount and protocolFeeAssetTokenAddress', async () => {
-    const assetAmount = ethers.utils.parseEther('1000')
-    const data = {
-      destinationAccount: owner.address,
-      destinationNetworkId: PNETWORK_NETWORK_IDS.ethereumMainnet,
-      underlyingAssetName: await token.name(),
-      underlyingAssetSymbol: await token.symbol(),
-      underlyingAssetDecimals: await token.decimals(),
-      underlyingAssetTokenAddress: token.address,
-      underlyingAssetNetworkId: PNETWORK_NETWORK_IDS.hardhat,
-      assetTokenAddress: token.address,
-      assetAmount,
-      protocolFeeAssetTokenAddress: ZERO_ADDRESS,
-      protocolFeeAssetAmount: assetAmount,
-      networkFeeAssetAmount: '0',
-      forwardNetworkFeeAssetAmount: '0',
-      userData: '0x',
-      optionsMask: '0x'.padEnd(66, '0'),
-    }
-    await expect(hub.userSend(...Object.values(data))).to.be.revertedWithCustomError(
-      hub,
-      'InvalidProtocolFeeAssetParameters'
-    )
-
-    data.protocolFeeAssetAmount = '0'
-    data.protocolFeeAssetTokenAddress = token.address
-    await expect(hub.userSend(...Object.values(data))).to.be.revertedWithCustomError(
-      hub,
-      'InvalidProtocolFeeAssetParameters'
-    )
-
-    data.protocolFeeAssetAmount = assetAmount
-    await expect(hub.userSend(...Object.values(data))).to.be.revertedWithCustomError(
-      hub,
-      'InvalidProtocolFeeAssetParameters'
-    )
-  })
-
   it('should be able to call userSend to send userData', async () => {
-    const protocolFeeAssetAmount = ethers.utils.parseEther('1000')
+    const userDataProtocolFeeAssetAmount = ethers.utils.parseEther('1000')
     const data = {
       destinationAccount: owner.address,
       destinationNetworkId: PNETWORK_NETWORK_IDS.ethereumMainnet,
@@ -931,55 +896,15 @@ describe('PNetworkHub', () => {
       underlyingAssetNetworkId: PNETWORK_NETWORK_IDS.hardhat,
       assetTokenAddress: ZERO_ADDRESS,
       assetAmount: '0',
-      protocolFeeAssetTokenAddress: token.address,
-      protocolFeeAssetAmount,
+      userDataProtocolFeeAssetAmount,
       networkFeeAssetAmount: '0',
       forwardNetworkFeeAssetAmount: '0',
       userData: '0x00',
       optionsMask: '0x'.padEnd(66, '0'),
     }
 
-    await token.approve(pToken.address, protocolFeeAssetAmount)
+    await token.approve(pToken.address, userDataProtocolFeeAssetAmount)
     await expect(hub.userSend(...Object.values(data))).to.emit(hub, 'UserOperation')
-  })
-
-  it('should not be able to call userSend to send userData specifying assetAmount or assetTokenAddress or and assetTokenAddress and assetTokenAmount', async () => {
-    const protocolFeeAssetAmount = ethers.utils.parseEther('1000')
-    const data = {
-      destinationAccount: owner.address,
-      destinationNetworkId: PNETWORK_NETWORK_IDS.ethereumMainnet,
-      underlyingAssetName: await token.name(),
-      underlyingAssetSymbol: await token.symbol(),
-      underlyingAssetDecimals: await token.decimals(),
-      underlyingAssetTokenAddress: token.address,
-      underlyingAssetNetworkId: PNETWORK_NETWORK_IDS.hardhat,
-      assetTokenAddress: token.address,
-      assetAmount: '1',
-      protocolFeeAssetTokenAddress: token.address,
-      protocolFeeAssetAmount,
-      networkFeeAssetAmount: '0',
-      forwardNetworkFeeAssetAmount: '0',
-      userData: '0x00',
-      optionsMask: '0x'.padEnd(66, '0'),
-    }
-
-    await expect(hub.userSend(...Object.values(data))).to.be.revertedWithCustomError(
-      hub,
-      'InvalidProtocolFeeAssetParameters'
-    )
-
-    data.assetAmount = '0'
-    await expect(hub.userSend(...Object.values(data))).to.be.revertedWithCustomError(
-      hub,
-      'InvalidAssetParameters'
-    )
-
-    data.assetAmount = '1'
-    data.assetTokenAddress = ZERO_ADDRESS
-    await expect(hub.userSend(...Object.values(data))).to.be.revertedWithCustomError(
-      hub,
-      'InvalidAssetParameters'
-    )
   })
 
   it('should be able to execute an operation on the destination chain (!= interim) when network fee is greather than 0. Queue and execute are sent by the same relayer', async () => {
@@ -2077,6 +2002,9 @@ describe('PNetworkHub', () => {
     expect(await hub.getTotalNumberOfInactiveActorsForCurrentEpoch()).to.be.eq(
       sentinels.length + guardians.length - 1
     )
+    await hub
+      .connect(guardian)
+      .protocolGuardianCancelOperation(operation, getActorsMerkleProof(guardians, guardian))
     await expect(
       hub
         .connect(broadcaster)
@@ -2086,7 +2014,7 @@ describe('PNetworkHub', () => {
           await slashedSentinel.signMessage(ethers.utils.arrayify(operation.id))
         )
     )
-      .to.emit(hub, 'SentinelOperationCancelled')
+      .to.emit(hub, 'OperationCancelled')
       .withArgs(operation.serialize())
   })
 
@@ -2418,8 +2346,7 @@ describe('PNetworkHub', () => {
     const underlyingAssetNetworkId = '0x00000000'
     const assetTokenAddress = ZERO_ADDRESS
     const assetAmount = 0
-    const protocolFeeAssetTokenAddress = ZERO_ADDRESS
-    const protocolFeeAssetAmount = 0
+    const userDataProtocolFeeAssetAmount = 0
     const networkFeeAssetAmount = 0
     const forwardNetworkFeeAssetAmount = 0
     const forwardDestinationNetworkId = '0x00000000'
@@ -2438,8 +2365,7 @@ describe('PNetworkHub', () => {
       underlyingAssetNetworkId,
       assetTokenAddress,
       assetAmount,
-      protocolFeeAssetTokenAddress,
-      protocolFeeAssetAmount,
+      userDataProtocolFeeAssetAmount,
       networkFeeAssetAmount,
       forwardNetworkFeeAssetAmount,
       forwardDestinationNetworkId,
@@ -2474,8 +2400,7 @@ describe('PNetworkHub', () => {
       underlyingAssetNetworkId,
       assetTokenAddress,
       assetAmount,
-      protocolFeeAssetTokenAddress,
-      protocolFeeAssetAmount,
+      userDataProtocolFeeAssetAmount,
       networkFeeAssetAmount,
       forwardNetworkFeeAssetAmount,
       forwardDestinationNetworkId,
