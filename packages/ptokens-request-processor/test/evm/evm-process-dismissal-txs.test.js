@@ -1,6 +1,8 @@
 const R = require('ramda')
+const pendingChallenges = require('../samples/pending-challenges-report-set')
+const guardianspropagated = require('../samples/guardians-propagated-report-set')
 const constants = require('ptokens-constants')
-const { db } = require('ptokens-utils')
+const { db, utils, logic } = require('ptokens-utils')
 
 const {
   STATE_ONCHAIN_REQUESTS,
@@ -9,23 +11,29 @@ const {
   STATE_FINALIZED_DB_REPORTS,
   STATE_TO_BE_DISMISSED_REQUESTS,
   STATE_DISMISSED_DB_REPORTS,
+  STATE_PENDING_CHALLENGES,
 } = require('../../lib/state/constants')
 const queuedReports = require('../samples/queued-report-set.json')
 const requestsReports = require('../samples/detected-report-set.json')
 const reports = [...queuedReports, ...requestsReports]
 
 describe('Tests for queued requests detection and dismissal', () => {
+  let collection = null
+  const uri = global.__MONGO_URI__
+  const dbName = global.__MONGO_DB_NAME__
+  const table = 'test'
+  const privKey = '0xdf57089febbacf7ba0bc227dafbffa9fc08a93fdc68e1e42411a14efcf23656e'
+  const gpgEncryptedFile = './identity.gpg'
+
+  beforeAll(async () => {
+    collection = await db.getCollection(uri, dbName, table)
+  })
+
+  afterAll(async () => {
+    await db.closeConnection(uri)
+  })
+
   describe('maybeProcessNewRequestsAndDismiss', () => {
-    let collection = null
-    const uri = global.__MONGO_URI__
-    const dbName = global.__MONGO_DB_NAME__
-    const table = 'test'
-    const privKey = '0xdf57089febbacf7ba0bc227dafbffa9fc08a93fdc68e1e42411a14efcf23656e'
-
-    beforeAll(async () => {
-      collection = await db.getCollection(uri, dbName, table)
-    })
-
     beforeEach(async () => {
       await collection.insertMany(reports)
     })
@@ -35,10 +43,6 @@ describe('Tests for queued requests detection and dismissal', () => {
         Promise.all(_ids.map(db.deleteReport(collection)))
       )
       jest.restoreAllMocks()
-    })
-
-    afterAll(async () => {
-      await db.closeConnection(uri)
     })
 
     it('Should put invalid transactions to be dismissed into state', async () => {
@@ -119,6 +123,81 @@ describe('Tests for queued requests detection and dismissal', () => {
       })
 
       expect(cancelledEvents).toHaveLength(1)
+    })
+  })
+
+  describe('Solve pending challenges', () => {
+    beforeEach(async () => {
+      await collection.insertMany(pendingChallenges)
+      await collection.insertMany(guardianspropagated)
+    })
+
+    afterEach(async () => {
+      await Promise.all(pendingChallenges.map(R.prop('_id'))).then(_ids =>
+        Promise.all(_ids.map(db.deleteReport(collection)))
+      )
+      jest.restoreAllMocks()
+    })
+
+    it('Should detect pending challenges and solve the pertinent ones', async () => {
+      const ethers = require('ethers')
+
+      const finalizedTxHashes = [
+        '0x3319a74fd2e369da02c230818d5196682daaf86d213ce5257766858558ee5462',
+        '0x5639789165d988f45f55bc8fcfc5bb24a6000b2669d0d2f1524f693ce3e4588f',
+      ]
+      const expectedCallResults = [
+        {
+          [constants.evm.ethers.KEY_TX_HASH]: finalizedTxHashes[0],
+        },
+        {
+          [constants.evm.ethers.KEY_TX_HASH]: finalizedTxHashes[1],
+        },
+      ]
+
+      const mockSolveChallenge = jest.fn().mockResolvedValue({
+        wait: jest
+          .fn()
+          .mockResolvedValueOnce(expectedCallResults[0])
+          .mockResolvedValueOnce(expectedCallResults[1]),
+      })
+
+      jest.spyOn(logic, 'sleepForXMilliseconds').mockImplementation(_ => Promise.resolve())
+      jest
+        .spyOn(logic, 'sleepThenReturnArg')
+        .mockImplementation(R.curry((_, _r) => Promise.resolve(_r)))
+
+      jest.spyOn(ethers, 'JsonRpcProvider').mockResolvedValue({})
+      jest.spyOn(ethers, 'Contract').mockImplementation(() => ({
+        solveChallengeGuardian: mockSolveChallenge,
+      }))
+
+      jest.spyOn(utils, 'readIdentityFileSync').mockReturnValue(privKey)
+
+      const state = {
+        [constants.state.KEY_DB]: collection,
+        [constants.state.KEY_LOOP_SLEEP_TIME]: 1,
+        [constants.state.KEY_CHALLENGE_PERIOD]: 20,
+        [constants.state.KEY_NETWORK_ID]: '0xe15503e4',
+        [constants.state.KEY_HUB_ADDRESS]: '0xC8E4270a6EF24B67eD38046318Fc8FC2d312f73C',
+        [constants.state.KEY_IDENTITY_FILE]: gpgEncryptedFile,
+      }
+
+      const {
+        maybeProcessNewRequestsAndDismiss,
+      } = require('../../lib/evm/evm-process-dismissal-txs')
+
+      const result = await maybeProcessNewRequestsAndDismiss(state)
+
+      expect(result).toHaveProperty(constants.state.KEY_DB)
+      expect(result).not.toHaveProperty(STATE_PENDING_CHALLENGES)
+      expect(result).toHaveProperty(constants.state.KEY_IDENTITY_FILE)
+
+      const solvedChallenges = await db.findReports(collection, {
+        [constants.db.KEY_STATUS]: constants.db.txStatus.SOLVED,
+      })
+
+      expect(solvedChallenges).toHaveLength(1)
     })
   })
 })

@@ -12,7 +12,7 @@ module.exports.getMerkleProof = (_collection, _myAddress) =>
     .sort({ [constants.db.KEY_WITNESSED_TS]: -1 })
     .toArray()
     .then(R.propOr({}, 0))
-    .then(R.prop(constants.db.KEY_EVENT_ARGS))
+    .then(R.propOr([], constants.db.KEY_EVENT_ARGS))
     .then(([_epoch, _guardians]) => {
       if (R.isNil(_epoch) || R.isNil(_guardians))
         return Promise.reject(
@@ -31,5 +31,5 @@ module.exports.getMerkleProof = (_collection, _myAddress) =>
       const proof = tree.getProof(myLeaf)
       logger.info('Merkle path computed successfully!')
 
-      return proof
+      return proof.map(_elem => _elem.data)
     })

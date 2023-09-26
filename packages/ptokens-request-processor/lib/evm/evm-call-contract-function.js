@@ -28,6 +28,7 @@ const callContractFunctionAndAwait = (_fxnName, _fxnArgs, _contract, _txTimeout 
         ) || _tx
     )
     .catch(_err => {
+      logger.error(_err)
       if (_err.code === constants.evm.ethers.ERROR_CODE_INSUFFICIENT_FUNDS) {
         return Promise.reject(new Error(ERROR_INSUFFICIENT_FUNDS))
       } else if (_err.message.includes(constants.evm.ethers.ERROR_ESTIMATE_GAS)) {

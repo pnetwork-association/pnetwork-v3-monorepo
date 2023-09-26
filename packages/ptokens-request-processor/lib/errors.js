@@ -11,4 +11,6 @@ module.exports = {
   ERROR_REPLACEMENT_UNDERPRICED: 'replacement transaction underpriced',
   ERROR_INVALID_PROPOSED_TIMESTAMP: 'Invalid proposed timestamp',
   ERROR_INSUFFICIENT_FUNDS: 'Insufficient funds',
+  ERROR_NO_GUARDIANS_PROPAGATED_EVENT_FOUND:
+    'No GuardiansPropagated event found, please store the event the in the DB!',
 }

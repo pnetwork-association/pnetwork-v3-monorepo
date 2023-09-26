@@ -7,6 +7,7 @@ const { logger } = require('../get-logger')
 const { addErrorToEvent } = require('../add-error-to-event')
 const { addFinalizedEventsToState } = require('../state/state-operations.js')
 const { STATE_PROPOSED_DB_REPORTS } = require('../state/constants')
+const { gasLimit, gasPrice } = require('../../config.json')
 const {
   checkEventsHaveExpectedDestinationChainId,
 } = require('../check-events-have-expected-chain-id')
@@ -58,6 +59,10 @@ const makeFinalContractCall = R.curry(
       const contractAddress = _hubAddress
       const functionName = 'protocolExecuteOperation'
       const args = getUserOperationAbiArgsFromReport(_eventReport)
+      args.push({
+        gasPrice: gasPrice,
+        gasLimit: gasLimit,
+      })
       const hub = new ethers.Contract(contractAddress, abi, _wallet)
 
       logger.info(`Executing _id: ${id}`)
