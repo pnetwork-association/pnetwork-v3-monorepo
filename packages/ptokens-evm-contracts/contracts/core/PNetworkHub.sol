@@ -232,7 +232,6 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
 
     /// @inheritdoc IPNetworkHub
     function protocolGuardianCancelOperation(Operation calldata operation, bytes32[] calldata proof) external {
-        _checkLockDownMode(false);
         address guardian = _msgSender();
         if (!_isGuardian(guardian, proof)) {
             revert InvalidGuardian(guardian);
@@ -262,7 +261,6 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
         bytes32[] calldata proof,
         bytes calldata signature
     ) external {
-        _checkLockDownMode(false);
         bytes32 operationId = operationIdOf(operation);
         address sentinel = ECDSA.recover(ECDSA.toEthSignedMessageHash(operationId), signature);
         if (!_isSentinel(sentinel, proof)) {
@@ -274,8 +272,6 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
 
     /// @inheritdoc IPNetworkHub
     function protocolExecuteOperation(Operation calldata operation) external payable nonReentrant {
-        _checkLockDownMode(false);
-
         bytes32 operationId = operationIdOf(operation);
         OperationStatus operationStatus = _operationsStatus[operationId];
         if (operationStatus != OperationStatus.Queued) {
@@ -385,7 +381,7 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
 
     /// @inheritdoc IPNetworkHub
     function protocolQueueOperation(Operation calldata operation) external payable {
-        _checkLockDownMode(true);
+        _checkLockDownMode();
 
         if (msg.value != lockedAmountChallengePeriod) {
             revert InvalidLockedAmountChallengePeriod(msg.value, lockedAmountChallengePeriod);
@@ -657,7 +653,7 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
         return (startTimestamp, endTimestamp + uint64(5 days * operationTotalCancelActions));
     }
 
-    function _checkLockDownMode(bool addMaxChallengePeriodDuration) internal view {
+    function _checkLockDownMode() internal view {
         uint16 currentEpoch = IEpochsManager(epochsManager).currentEpoch();
         if (
             _epochsSentinelsMerkleRoot[currentEpoch] == bytes32(0) ||
@@ -679,7 +675,7 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
         // To mitigate this risk, operations should not be queued if the max challenge period makes
         // the operation challenge period finish after 1 hour before the end of an epoch.
         if (
-            block.timestamp + (addMaxChallengePeriodDuration ? maxChallengePeriodDuration : 0) >=
+            block.timestamp + maxChallengePeriodDuration >=
             currentEpochEndTimestamp - 1 hours
         ) {
             revert LockDown();
