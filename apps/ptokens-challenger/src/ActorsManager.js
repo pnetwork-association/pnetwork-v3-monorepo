@@ -39,6 +39,7 @@ class ActorsManager {
     this.logger = logger
 
     this.actors = db.collection('actors')
+    this.lastMessageTimestamps = db.collection('lastMessageTimestamps')
     this.mutex = new Mutex()
 
     this.init()
@@ -86,6 +87,11 @@ class ActorsManager {
     return false
   }
 
+  async getActorsInCurrentEpoch() {
+    const currentEpoch = await this.epochsManager.read.currentEpoch()
+    return this.actors.find({ epoch: currentEpoch }).toArray()
+  }
+
   async getActorsMerkleProofForCurrentEpoch({ actor, actorType }) {
     const tree = await this.getActorsMerkleTreeForCurrentEpoch({ actorType })
     return tree.getHexProof(keccak256(encodePacked(['address'], [actor])))
@@ -117,6 +123,18 @@ class ActorsManager {
     const leaves = actors.map(_address => keccak256(encodePacked(['address'], [_address])))
     const tree = new MerkleTree(leaves, keccak256, { sortPairs: true })
     return tree
+  }
+
+  getLastMessageTimestampByActorAndNetwork({ actor, network }) {
+    return this.lastMessageTimestamps.findOne({ actor, network })
+  }
+
+  async setActorLastMessageTimestamp({ actor, network, timestamp }) {
+    await this.lastMessageTimestamps.insertOne({
+      actor,
+      timestamp,
+      network,
+    })
   }
 
   async storeActorsForEpoch({ actorType, epoch }) {

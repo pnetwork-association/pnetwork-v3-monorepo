@@ -4,25 +4,36 @@ import { encodeFunctionData, decodeAbiParameters } from 'viem'
 import { Mutex } from 'async-mutex'
 
 import PNetworkHubABI from './abi/PNetworkHub.json' assert { type: 'json' }
+import { getNetworkIdByChain } from './utils/network.js'
 
 class ChallengesManager {
   constructor({
     actorsManager,
+    chains,
     challengeDuration,
     clientsManager,
     db,
     lockAmountsStartChallenge,
     logger,
+    monitorInactiveActorsInterval,
+    monitorInactiveActorsTimeout,
     pNetworkHubAddresses,
+    processPendingChallengesInterval,
     startChallengeThresholdBlocks,
+    startChallengeThresholdSeconds,
   }) {
     this.actorsManager = actorsManager
     this.pNetworkHubAddresses = pNetworkHubAddresses
     this.startChallengeThresholdBlocks = startChallengeThresholdBlocks
+    this.startChallengeThresholdSeconds = startChallengeThresholdSeconds
+    this.chains = chains
     this.clientsManager = clientsManager
     this.challengeDuration = challengeDuration
     this.lockAmountsStartChallenge = lockAmountsStartChallenge
     this.logger = logger
+    this.monitorInactiveActorsInterval = monitorInactiveActorsInterval
+    this.monitorInactiveActorsTimeout = monitorInactiveActorsTimeout
+    this.processPendingChallengesInterval = processPendingChallengesInterval
 
     this.mutex = new Mutex()
     this.challenges = db.collection('challenges')
@@ -30,7 +41,56 @@ class ChallengesManager {
     this.processPendingChallenges()
     setInterval(() => {
       this.processPendingChallenges()
-    }, 40000)
+    }, this.processPendingChallengesInterval)
+
+    setTimeout(() => {
+      this.monitorInactiveActors()
+      setInterval(() => {
+        this.monitorInactiveActors()
+      }, this.monitorInactiveActorsInterval)
+    }, this.monitorInactiveActorsTimeout)
+  }
+
+  async monitorInactiveActors() {
+    const release = await this.mutex.acquire()
+    try {
+      this.logger.info('✓ Checking inactive actors ...')
+      const actors = await this.actorsManager.getActorsInCurrentEpoch()
+      const networks = this.chains.map(_chain => getNetworkIdByChain(_chain))
+
+      const inactiveActorsNetworks = {}
+      for (const actor of actors) {
+        inactiveActorsNetworks[actor.address] = []
+        for (const network of networks) {
+          const obj = await this.actorsManager.getLastMessageTimestampByActorAndNetwork({
+            actor: actor.address,
+            network,
+          })
+          if (
+            !obj ||
+            obj?.timestamp < moment().unix() - this.startChallengeThresholdSeconds[network]
+          ) {
+            this.logger.info(
+              `✓ Detected ${actor.address} to be inactive on ${network}! Challenging ...`
+            )
+            inactiveActorsNetworks[actor.address].push(network)
+          }
+        }
+      }
+
+      for (const actor of Object.keys(inactiveActorsNetworks)) {
+        const { actorType } = actors.find(({ address }) => address === actor)
+        await this.startChallengesByNetworks({
+          actor,
+          actorType,
+          networks: inactiveActorsNetworks[actor],
+        })
+      }
+    } catch (_err) {
+      this.logger.error(_err)
+    } finally {
+      release()
+    }
   }
 
   async processPendingChallenges() {
@@ -67,7 +127,7 @@ class ChallengesManager {
           pendingChallenges.map(
             _challenge =>
               new Promise(_resolve => {
-                const { nonce, actor, challenger, timestamp, networkId } = _challenge
+                const { actor, challenger, networkId, nonce, timestamp } = _challenge
                 clients[networkId]
                   .prepareTransactionRequest({
                     to: this.pNetworkHubAddresses[networkId],
@@ -263,7 +323,7 @@ class ChallengesManager {
         timestamp: challenge[3],
         networkId: challenge[4],
       })
-      this.logger.info(`✓ Successfully challenged ${actor} on ${networkId} ...`)
+      this.logger.info(`✓ Successfully challenged ${actor}: ${challenge}`)
     }
   }
 }

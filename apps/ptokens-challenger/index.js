@@ -1,6 +1,7 @@
 import { configDotenv } from 'dotenv'
 import { polygon } from 'viem/chains'
 import { MongoClient } from 'mongodb'
+import moment from 'moment'
 // eslint-disable-next-line node/no-extraneous-import
 import utils from 'ptokens-utils'
 
@@ -41,15 +42,27 @@ const onMessage = async _message => {
       latestBlockTimestamp: 1695305760,
     }*/
 
+    logger.info('✓ Setting last message timestamp  ...')
+    await Promise.all(
+      Object.keys(message.syncState).map(_network =>
+        actorsManager.setActorLastMessageTimestamp({
+          actor,
+          actorType,
+          network: _network,
+          timestamp: moment().unix(),
+        })
+      )
+    )
+
     const networksNotSynced = await challengesManager.getNetworksNotSyncedBySyncState({
       syncState: message.syncState,
     })
     if (networksNotSynced.length === 0) {
-      logger.info(`✗ ${actor} seems to be in sync! Skipping ...`)
+      logger.info(`✓ ${actor} seems to be in sync! Skipping ...`)
       return
     }
 
-    logger.info(`✓ ${actor} seems to be not in sync on ${networksNotSynced}! Checking entity ...`)
+    logger.info(`✗ ${actor} seems to be not in sync on ${networksNotSynced}! Checking entity ...`)
     if (
       !(await actorsManager.isActor({
         actor,
@@ -95,18 +108,23 @@ const onMessage = async _message => {
 
   challengesManager = new ChallengesManager({
     actorsManager,
+    chains: settings.chains,
     challengeDuration: settings.challengeDuration,
     clientsManager,
     db,
     lockAmountsStartChallenge: settings.lockAmountsStartChallenge,
     logger,
+    monitorInactiveActorsInterval: settings.monitorInactiveActorsInterval,
+    monitorInactiveActorsTimeout: settings.monitorInactiveActorsTimeout,
     pNetworkHubAddresses: Object.values(settings.addresses)
       .map(({ pNetworkHub }) => pNetworkHub)
       .reduce((_acc, _address, _index) => {
         _acc[Object.keys(settings.addresses)[_index]] = _address
         return _acc
       }, {}),
+    processPendingChallengesInterval: settings.processPendingChallengesInterval,
     startChallengeThresholdBlocks: settings.startChallengeThresholdBlocks,
+    startChallengeThresholdSeconds: settings.startChallengeThresholdSeconds,
   })
 
   const subscriber = await ipfs.pubsub.sub(settings.ipfsPubSubTopic)
