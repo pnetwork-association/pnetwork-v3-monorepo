@@ -1,12 +1,6 @@
 const { types } = require('hardhat/config')
 const R = require('ramda')
-const {
-  KEY_ADDRESS,
-  KEY_PTOKEN_LIST,
-  TASK_PARAM_GASPRICE,
-  TASK_PARAM_GASLIMIT,
-  KEY_PTOKEN_UNDERLYING_ASSET_ADDRESS,
-} = require('../constants')
+const TASK_CONSTANTS = require('../constants')
 const {
   getPRouterAddress,
   getNetworkId,
@@ -16,18 +10,12 @@ const {
 
 const TASK_NAME = 'router:mint'
 const TASK_DESC = 'Mint new pTokens given an asset address.'
-const TASK_PARAM_ASSET_ADDRESS = 'assetAddress'
-const TASK_PARAM_DESC_ASSET_ADDRESS = 'Underlying asset address'
-const TASK_PARAM_DEST_CHAIN = 'destinationChainName'
-const TASK_PARAM_DEST_CHAIN_DESC = 'Hardhat configured chain name (i.e. mainnet, mumbai ...)'
-const TASK_PARAM_DEST_ADDRESS = 'destinationAddress'
-const TASK_PARAM_DEST_ADDRESS_DESC = 'Where the pToken is destined to.'
 
 const getPTokenFromAsset = (hre, _assetAddress) =>
   getDeploymentFromHRE(hre)
-    .then(R.prop(KEY_PTOKEN_LIST))
-    .then(R.find(R.propEq(_assetAddress, KEY_PTOKEN_UNDERLYING_ASSET_ADDRESS)))
-    .then(R.prop(KEY_ADDRESS))
+    .then(R.prop(TASK_CONSTANTS.KEY_PTOKEN_LIST))
+    .then(R.find(R.propEq(_assetAddress, TASK_CONSTANTS.KEY_PTOKEN_UNDERLYING_ASSET_ADDRESS)))
+    .then(R.prop(TASK_CONSTANTS.KEY_ADDRESS))
 
 const mint = async (taskArgs, hre) => {
   const signer = await hre.ethers.getSigner()
@@ -70,8 +58,8 @@ const mint = async (taskArgs, hre) => {
     userData,
     optionsMask,
     {
-      gasPrice: taskArgs[TASK_PARAM_GASPRICE],
-      gasLimit: taskArgs[TASK_PARAM_GASLIMIT],
+      gasPrice: taskArgs[TASK_CONSTANTS.PARAM_NAME_GASPRICE],
+      gasLimit: taskArgs[TASK_CONSTANTS.PARAM_NAME_GAS],
     }
   )
   const receipt = await tx.wait(1)
@@ -81,19 +69,29 @@ const mint = async (taskArgs, hre) => {
 
 task(TASK_NAME, TASK_DESC)
   .addPositionalParam(
-    TASK_PARAM_ASSET_ADDRESS,
-    TASK_PARAM_DESC_ASSET_ADDRESS,
+    TASK_CONSTANTS.PARAM_NAME_ASSET_ADDRESS,
+    TASK_CONSTANTS.PARAM_DESC_ASSET_ADDRESS,
     undefined,
     types.string
   )
-  .addPositionalParam(TASK_PARAM_DEST_CHAIN, TASK_PARAM_DEST_CHAIN_DESC, undefined, types.string)
   .addPositionalParam(
-    TASK_PARAM_DEST_ADDRESS,
-    TASK_PARAM_DEST_ADDRESS_DESC,
+    TASK_CONSTANTS.PARAM_NAME_DEST_CHAIN,
+    TASK_CONSTANTS.PARAM_DESC_DEST_CHAIN,
     undefined,
     types.string
   )
-  .addPositionalParam('amount', 'Amount of underlying asset to be used', undefined, types.string)
+  .addPositionalParam(
+    TASK_CONSTANTS.PARAM_NAME_DEST_ADDRESS,
+    TASK_CONSTANTS.PARAM_DESC_DEST_ADDRESS,
+    undefined,
+    types.string
+  )
+  .addPositionalParam(
+    TASK_CONSTANTS.PARAM_NAME_AMOUNT,
+    TASK_CONSTANTS.PARAM_DESC_AMOUNT,
+    undefined,
+    types.string
+  )
   .setAction(mint)
 
 module.exports = {

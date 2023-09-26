@@ -7,6 +7,11 @@ const {
   KEY_ASSET_SYMBOL,
   KEY_ASSET_DECIMALS,
   KEY_ASSET_TOTAL_SUPPLY,
+  KEY_PREGISTRY,
+  KEY_SLASHER,
+  KEY_GOVERNANCE_MESSAGE_EMITTER,
+  KEY_GOVERNANCE_MESSAGE_VERIFIER,
+  KEY_EPOCHS_MANAGER,
 } = require('../constants')
 const { utils } = require('ptokens-utils')
 const { types } = require('hardhat/config')
@@ -30,6 +35,21 @@ const configEntryLookup = {
     [KEY_ADDRESS]: _contractAddress,
   }),
   [KEY_PNETWORKHUB]: (_taskArgs, _contractAddress) => ({
+    [KEY_ADDRESS]: _contractAddress,
+  }),
+  [KEY_PREGISTRY]: (_taskArgs, _contractAddress) => ({
+    [KEY_ADDRESS]: _contractAddress,
+  }),
+  [KEY_SLASHER]: (_taskArgs, _contractAddress) => ({
+    [KEY_ADDRESS]: _contractAddress,
+  }),
+  [KEY_GOVERNANCE_MESSAGE_EMITTER]: (_taskArgs, _contractAddress) => ({
+    [KEY_ADDRESS]: _contractAddress,
+  }),
+  [KEY_GOVERNANCE_MESSAGE_VERIFIER]: (_taskArgs, _contractAddress) => ({
+    [KEY_ADDRESS]: _contractAddress,
+  }),
+  [KEY_EPOCHS_MANAGER]: (_taskArgs, _contractAddress) => ({
     [KEY_ADDRESS]: _contractAddress,
   }),
 }

@@ -104,6 +104,8 @@ module.exports = {
       mumbai: getEnvironmentVariable('POLYGONSCAN_API_KEY'),
       arbitrum: getEnvironmentVariable('ARBISCAN_API_KEY'),
       gnosis: getEnvironmentVariable('GNOSISSCAN_API_KEY'),
+      goerli: getEnvironmentVariable('GOERLI_API_KEY'),
+      bsc: getEnvironmentVariable('BSCSCAN_API_KEY'),
     },
     customChains: [
       {
@@ -123,6 +125,14 @@ module.exports = {
         },
       },
       {
+        network: 'goerli',
+        chainId: 5,
+        urls: {
+          apiURL: 'https://api-goerli.etherscan.io/api',
+          browserURL: 'https://goerli.etherscan.io',
+        },
+      },
+      {
         network: 'mumbai',
         chainId: 80001,
         urls: {
@@ -134,8 +144,8 @@ module.exports = {
         network: 'bsc',
         chainId: 56,
         urls: {
-          apiURL: 'https://api.mumbai.polygonscan.com/api',
-          browserURL: 'https://mumbai.polygonscan.com/',
+          apiURL: 'https://api.bscscan.com/api',
+          browserURL: 'https://bscscan.com/',
         },
       },
       {

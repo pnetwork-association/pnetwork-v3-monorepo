@@ -86,6 +86,7 @@ describe('EVM listen for events', () => {
             [constants.db.KEY_WITNESSED_TS]: expect.stringMatching(ISO_FORMAT_REGEX),
             [constants.db.KEY_FINAL_TX_HASH]: null,
             [constants.db.KEY_FINAL_TX_TS]: null,
+            [constants.db.KEY_IS_FOR_PROTOCOL]: null,
             [constants.db.KEY_FORWARD_DESTINATION_NETWORK_ID]: null,
             [constants.db.KEY_FORWARD_NETWORK_FEE_ASSET_AMOUNT]: null,
             [constants.db.KEY_NETWORK_FEE_ASSET_AMOUNT]: null,

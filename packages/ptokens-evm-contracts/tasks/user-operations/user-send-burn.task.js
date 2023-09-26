@@ -1,27 +1,18 @@
 const { types } = require('hardhat/config')
 const { getConfiguration } = require('../lib/configuration-manager')
 const R = require('ramda')
-const {
-  KEY_ADDRESS,
-  KEY_PTOKEN_LIST,
-  TASK_PARAM_GASPRICE,
-  TASK_PARAM_GASLIMIT,
-  KEY_PTOKEN_UNDERLYING_ASSET_ADDRESS,
-  KEY_PTOKEN_UNDERLYING_ASSET_NETWORKID,
-  PARAM_NAME_PTOKEN_ADDRESS,
-  PARAM_DESC_PTOKEN_ADDRESS,
-} = require('../constants')
+const TASK_CONSTANTS = require('../constants')
 
 const TASK_NAME = 'router:burn'
 const TASK_DESC = 'Redeem pTokens.'
 
 const getAssetFromPToken = (pTokenAddress, config, hre) => {
-  const findPToken = R.find(R.propEq(pTokenAddress, KEY_ADDRESS))
-  const pTokens = R.path([hre.network.name, KEY_PTOKEN_LIST], config.get())
+  const findPToken = R.find(R.propEq(pTokenAddress, TASK_CONSTANTS.KEY_ADDRESS))
+  const pTokens = R.path([hre.network.name, TASK_CONSTANTS.KEY_PTOKEN_LIST], config.get())
   const ptoken = findPToken(pTokens)
   return [
-    ptoken[KEY_PTOKEN_UNDERLYING_ASSET_ADDRESS],
-    ptoken[KEY_PTOKEN_UNDERLYING_ASSET_NETWORKID],
+    ptoken[TASK_CONSTANTS.KEY_PTOKEN_UNDERLYING_ASSET_ADDRESS],
+    ptoken[TASK_CONSTANTS.KEY_PTOKEN_UNDERLYING_ASSET_NETWORKID],
   ]
 }
 
@@ -47,8 +38,8 @@ const burn = async (taskArgs, hre) => {
   await asset.approve(signer.address, parsedAmount)
   console.info(`Redeeming ${taskArgs.amount} ${ptokenSymbol} to address ${signer.address}`)
   const tx = await ptoken.burn(parsedAmount, {
-    gasPrice: taskArgs[TASK_PARAM_GASPRICE],
-    gasLimit: taskArgs[TASK_PARAM_GASLIMIT],
+    gasPrice: taskArgs[TASK_CONSTANTS.PARAM_NAME_GASPRICE],
+    gasLimit: taskArgs[TASK_CONSTANTS.PARAM_NAME_GAS],
   })
 
   const receipt = await tx.wait(1)
@@ -57,7 +48,12 @@ const burn = async (taskArgs, hre) => {
 }
 
 task(TASK_NAME, TASK_DESC)
-  .addPositionalParam(PARAM_NAME_PTOKEN_ADDRESS, PARAM_DESC_PTOKEN_ADDRESS, undefined, types.string)
+  .addPositionalParam(
+    TASK_CONSTANTS.PARAM_NAME_PTOKEN_ADDRESS,
+    TASK_CONSTANTS.PARAM_DESC_PTOKEN_ADDRESS,
+    undefined,
+    types.string
+  )
   .addPositionalParam('amount', 'Amount of underlying asset to be used', undefined, types.string)
   .setAction(burn)
 

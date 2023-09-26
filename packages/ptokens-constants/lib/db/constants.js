@@ -16,6 +16,7 @@ module.exports = {
   KEY_NETWORK_FEE_ASSET_AMOUNT: 'networkFeeAssetAmount',
   KEY_FORWARD_NETWORK_FEE_ASSET_AMOUNT: 'forwardNetworkFeeAssetAmount',
   KEY_USER_DATA: 'userData',
+  KEY_IS_FOR_PROTOCOL: 'isForProtocol',
   KEY_OPTIONS_MASK: 'optionsMask',
   KEY_EVENT_NAME: 'eventName',
   KEY_STATUS: 'status',

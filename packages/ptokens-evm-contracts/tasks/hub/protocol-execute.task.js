@@ -3,7 +3,7 @@ const { getHubAddress } = require('../lib/configuration-manager')
 const {
   getUserOperationAbiArgsFromReport,
 } = require('ptokens-request-processor/lib/evm/evm-abi-manager')
-const { TASK_PARAM_GASPRICE, TASK_PARAM_GASLIMIT } = require('../constants')
+const TASK_CONSTANTS = require('../constants')
 
 const TASK_NAME = 'pnetworkhub:execute'
 const TASK_DESC = 'Perform an execute operation on the deployed PNetworkHub contract'
@@ -55,8 +55,8 @@ const protocolExecuteOperation = async (taskArgs, hre) => {
   const args = await getUserOperationAbiArgsFromReport(json)
   args.push({
     value: lockedAmountChallengePeriod,
-    gasLimit: taskArgs[TASK_PARAM_GASLIMIT],
-    gasPrice: taskArgs[TASK_PARAM_GASPRICE],
+    gasLimit: taskArgs[TASK_CONSTANTS.PARAM_NAME_GAS],
+    gasPrice: taskArgs[TASK_CONSTANTS.PARAM_NAME_GASPRICE],
   })
   console.log(args)
   const tx = await hub.protocolExecuteOperation(...args)

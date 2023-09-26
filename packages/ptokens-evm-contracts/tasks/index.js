@@ -4,7 +4,7 @@ const deploy = require('./deploy')
 const getNetworkId = require('./get-network-id')
 const governanceMessageRelayer = require('./governance-message-relayer')
 const userOperations = require('./user-operations')
-const hub = require('./state-manager')
+const hub = require('./hub')
 
 module.exports = {
   apps,

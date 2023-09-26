@@ -7,6 +7,7 @@ const getEventIdEvm = ({
   originatingBlockHash,
   originatingTransactionHash,
   originatingNetworkId,
+  originatingAddress,
   blockHash,
   transactionHash,
   networkId,
@@ -25,6 +26,7 @@ const getEventIdEvm = ({
   forwardNetworkFeeAssetAmount,
   userData,
   optionsMask,
+  isForProtocol,
 }) => {
   /*
     struct Operation {
@@ -42,10 +44,12 @@ const getEventIdEvm = ({
         bytes4 destinationNetworkId;
         bytes4 forwardDestinationNetworkId;
         bytes4 underlyingAssetNetworkId;
+        string originAccount;
         string destinationAccount;
         string underlyingAssetName;
         string underlyingAssetSymbol;
         bytes userData;
+        bool isForProtocol;
     }
     function operationIdOf(Operation calldata operation) public pure returns (bytes32) {
     return
@@ -55,6 +59,7 @@ const getEventIdEvm = ({
             operation.originTransactionHash,
             operation.originNetworkId,
             operation.nonce,
+            operation.originAccount,
             operation.destinationAccount,
             operation.destinationNetworkId,
             operation.forwardDestinationNetworkId,
@@ -68,7 +73,8 @@ const getEventIdEvm = ({
             operation.networkFeeAssetAmount,
             operation.forwardNetworkFeeAssetAmount,
             operation.userData,
-            operation.optionsMask
+            operation.optionsMask,
+            operation.isForProtocol
         )
       );
     }
@@ -79,6 +85,7 @@ const getEventIdEvm = ({
     'bytes32', // operation.originTransactionHash,
     'bytes4', // operation.originNetworkId,
     'uint256', // operation.nonce,
+    'string', // operation.originAccount,
     'string', // operation.destinationAccount,
     'bytes4', // operation.destinationNetworkId,
     'bytes4', // operation.forwardDestinationNetworkId,
@@ -92,7 +99,8 @@ const getEventIdEvm = ({
     'uint256', // operation.networkFeeAssetAmount,
     'uint256', // operation.forwardNetworkFeeAssetAmount,
     'bytes', // operation.userData,
-    'bytes32', // operation.optionsMask
+    'bytes32', // operation.optionsMask,
+    'bool', // operation.isForProtocol
   ]
   const coder = new ethers.AbiCoder()
   return ethers.sha256(
@@ -101,6 +109,7 @@ const getEventIdEvm = ({
       originatingTransactionHash || transactionHash,
       originatingNetworkId || networkId,
       nonce,
+      originatingAddress,
       destinationAccount,
       destinationNetworkId,
       forwardDestinationNetworkId,
@@ -115,6 +124,7 @@ const getEventIdEvm = ({
       forwardNetworkFeeAssetAmount,
       userData,
       optionsMask,
+      isForProtocol,
     ])
   )
 }
@@ -126,6 +136,7 @@ const getEventId = ({
   originatingBlockHash,
   originatingTransactionHash,
   originatingNetworkId,
+  originatingAddress,
   blockHash,
   transactionHash,
   networkId,
@@ -144,6 +155,7 @@ const getEventId = ({
   forwardNetworkFeeAssetAmount,
   userData,
   optionsMask,
+  isForProtocol,
 }) =>
   getBlockchainTypeFromChainId(destinationNetworkId)
     .then(_type => {
@@ -153,6 +165,7 @@ const getEventId = ({
             originatingBlockHash,
             originatingTransactionHash,
             originatingNetworkId,
+            originatingAddress,
             blockHash,
             transactionHash,
             networkId,
@@ -171,6 +184,7 @@ const getEventId = ({
             forwardNetworkFeeAssetAmount,
             userData,
             optionsMask,
+            isForProtocol,
           })
         default:
           return fallbackEventId(networkId, blockHash, transactionHash)

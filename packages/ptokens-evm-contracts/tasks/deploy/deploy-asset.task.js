@@ -66,13 +66,13 @@ const deployUnderlyingAsset = (taskArgs, hre, _config) =>
     .then(addNewUnderlyingAssetToConfig(taskArgs, hre, _config))
     .then(_contract => console.info(`New underlying asset deployed @ ${_contract.address}`))
 
-const attachToUnderlyingAsset = R.curry((taskArgs, hre, _asset) =>
+const attachToUnderlyingAsset = R.curry((taskArgs, hre, _assetAddress) =>
   hre.ethers
     .getContractFactory(CONTRACT_NAME_STANDARD_TOKEN)
-    .then(_contractFactory => _contractFactory.attach(_asset[KEY_ADDRESS]))
+    .then(_contractFactory => _contractFactory.attach(_assetAddress))
     .then(
       _contract =>
-        console.info(`Successfully attached to underlying asset @ ${_asset.address}`) || _contract
+        console.info(`Successfully attached to underlying asset @ ${_assetAddress}`) || _contract
     )
 )
 
@@ -82,7 +82,7 @@ const maybeGetAssetFromConfigOrDeploy = R.curry((taskArgs, hre, _config) =>
     .then(_asset =>
       R.isNil(_asset)
         ? deployUnderlyingAsset(taskArgs, hre, _config)
-        : attachToUnderlyingAsset(taskArgs, hre, _asset)
+        : attachToUnderlyingAsset(taskArgs, hre, _asset[KEY_ADDRESS])
     )
 )
 
