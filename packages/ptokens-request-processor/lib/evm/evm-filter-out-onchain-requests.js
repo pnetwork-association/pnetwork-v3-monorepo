@@ -73,10 +73,7 @@ const getOperationStatus = R.curry(
     new Promise(resolve => {
       const abi = getOperationStatusOfAbi()
       const args = getUserOperationAbiArgsFromReport(_report)
-      logger.info(_hubAddress)
-      logger.info(_provider)
       const hub = new ethers.Contract(_hubAddress, abi, _provider)
-      logger.info(abi)
       logger.info(`Getting operation status of ${_report[constants.db.KEY_ID]}...`)
       logUserOperationFromAbiArgs('', args)
 

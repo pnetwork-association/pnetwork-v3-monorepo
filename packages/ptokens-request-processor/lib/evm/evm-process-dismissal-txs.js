@@ -5,10 +5,13 @@ const {
   getQueuedEventsFromDbAndPutInState,
   getValidMatchingEventsAndPutInState,
 } = require('../get-events-from-db')
+const { maybeSolveChallengesAndPutInState } = require('./evm-solve-challenge')
 const { maybeBuildDismissalTxsAndPutInState } = require('./evm-build-dismissal-txs')
 const { filterOutInvalidQueuedRequestsAndPutInState } = require('./evm-validate-queued-requests')
+const { maybeGetPendingChallengesAndPutInState } = require('../get-pending-challenges')
 const { maybeUpdateDismissedEventsInDb } = require('../update-events-in-db')
 const {
+  removePendingChallengesFromState,
   removeOnChainRequestsFromState,
   removeDismissedEventsFromState,
   removeDetectedEventsFromState,
@@ -30,9 +33,12 @@ const maybeProcessNewRequestsAndDismiss = _state =>
     .then(removeOnChainRequestsFromState)
     .then(removeDetectedEventsFromState)
     .then(maybeBuildDismissalTxsAndPutInState)
+    .then(maybeGetPendingChallengesAndPutInState)
+    .then(maybeSolveChallengesAndPutInState)
     .then(maybeUpdateDismissedEventsInDb)
     .then(removeToBeDismissedEventsFromState)
     .then(removeDismissedEventsFromState)
+    .then(removePendingChallengesFromState)
     .then(logic.sleepThenReturnArg(_state[constants.state.KEY_LOOP_SLEEP_TIME]))
 
 const INFINITE_LOOP = {

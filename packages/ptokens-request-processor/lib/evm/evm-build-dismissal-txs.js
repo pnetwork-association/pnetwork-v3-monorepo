@@ -14,6 +14,7 @@ const {
   getProtocolGuardianCancelOperationAbi,
 } = require('./evm-abi-manager')
 const { addErrorToEvent } = require('../add-error-to-event')
+const { gasPrice, gasLimit } = require('../../config.json')
 
 // TODO: factor out (check evm-build-proposals-txs)
 const addCancelledTxHashToEvent = R.curry((_event, _finalizedTxHash) => {
@@ -52,6 +53,11 @@ const makeDismissalContractCall = R.curry(
       const functionName = 'protocolGuardianCancelOperation'
       const args = getUserOperationAbiArgsFromReport(_eventReport)
       args.push(_proof)
+      args.push({
+        gasLimit,
+        gasPrice,
+      })
+
       const contract = new ethers.Contract(contractAddress, abi, _wallet)
 
       logger.info(`Executing _id: ${id}`)
@@ -99,9 +105,8 @@ const buildDismissalTxsAndPutInState = _state =>
 
     return utils
       .readIdentityFile(identityGpgFile)
-      .then(_privateKey =>
-        Promise.all([new ethers.Wallet(_privateKey, provider), getMerkleProof(db)])
-      )
+      .then(_privateKey => new ethers.Wallet(_privateKey, provider))
+      .then(_wallet => Promise.all([_wallet, getMerkleProof(db, _wallet.address)]))
       .then(([_wallet, _proof]) =>
         sendDismissalTransactions(invalidRequests, _proof, hub, txTimeout, _wallet)
       )

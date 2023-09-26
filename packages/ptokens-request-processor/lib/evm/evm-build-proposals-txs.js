@@ -16,6 +16,8 @@ const {
   getUserOperationAbiArgsFromReport,
   getLockedAmountChallengePeriodAbi,
 } = require('./evm-abi-manager')
+// TODO fixme
+const { gasLimit, gasPrice } = require('../../config.json')
 const { addErrorToEvent } = require('../add-error-to-event')
 
 // TODO: factor out (check evm-build-final-txs)
@@ -54,7 +56,11 @@ const makeProposalContractCall = R.curry(
       const abi = getProtocolQueueOperationAbi()
       const args = getUserOperationAbiArgsFromReport(_eventReport)
 
-      args.push({ value: _amountToLock })
+      args.push({
+        value: _amountToLock,
+        gasPrice: gasPrice,
+        gasLimit: gasLimit,
+      })
       const functionName = 'protocolQueueOperation'
       const contract = new ethers.Contract(_hubAddress, abi, _wallet)
 
