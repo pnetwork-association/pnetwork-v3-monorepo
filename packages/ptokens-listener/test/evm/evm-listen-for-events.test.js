@@ -16,7 +16,7 @@ describe('EVM listen for events', () => {
 
     it('Should call callback with the standardized event', async () => {
       const state = {
-        [constants.state.KEY_NETWORK_ID]: '0xe15503e4',
+        [constants.state.KEY_NETWORK_ID]: '0xf9b459a1',
         [constants.state.KEY_PROVIDER_URL]: 'provider-url',
         [STATE_KEY_EVENTS]: [
           {
@@ -25,9 +25,8 @@ describe('EVM listen for events', () => {
             [constants.config.KEY_CONTRACTS]: ['0xdac17f958d2ee523a2206206994597c13d831ec7'],
           },
           {
-            [constants.config.KEY_NAME]:
-              'UserOperation(uint256 nonce, string destinationAccount, bytes4 destinationNetworkId, string underlyingAssetName, string underlyingAssetSymbol, uint256 underlyingAssetDecimals, address underlyingAssetTokenAddress, bytes4 underlyingAssetNetworkId, address assetTokenAddress, uint256 assetAmount, address protocolFeeAssetTokenAddress, uint256 protocolFeeAssetAmount, uint256 networkFeeAssetAmount, uint256 forwardNetworkFeeAssetAmount, bytes4 forwardDestinationNetworkId, bytes userData, bytes32 optionsMask)',
-            [constants.config.KEY_CONTRACTS]: ['0xEFcD9f9eE77A79A6E2536cb3759Ed3c00107a398'],
+            [constants.config.KEY_NAME]: constants.evm.events.USER_OPERATION_SIGNATURE,
+            [constants.config.KEY_CONTRACTS]: ['0xd2bac275fffdbdd23ecea72f4b161b3af90300a3'],
           },
         ],
       }
@@ -66,15 +65,15 @@ describe('EVM listen for events', () => {
           expect(onListenerSpy).toHaveBeenNthCalledWith(
             2,
             {
-              address: '0xEFcD9f9eE77A79A6E2536cb3759Ed3c00107a398',
-              topics: ['0xe6103259cb95fed90d732a1dd515bed3d2ed0a57a37bb8c3a0708d9059a5e8c2'],
+              address: '0xd2bac275fffdbdd23ecea72f4b161b3af90300a3',
+              topics: ['0xf4faec7e493ced73194f78a54c931da9a2d6c6b9552b223cc9ad2965322789b7'],
             },
             expect.anything()
           )
           expect(callback).toHaveBeenCalledTimes(2)
           expect(callback).toHaveBeenNthCalledWith(1, {
             [constants.db.KEY_ID]:
-              'transfer_0x36f48a80848eeb2b49d59aac077aedf775f75463ed7d34b531750329dceaa8b5',
+              'transfer_0xc43c1614b094019835a81f1f889a679e109dd5efe2542c1050888f77985feeb1',
             [constants.db.KEY_STATUS]: constants.db.txStatus.DETECTED,
             [constants.db.KEY_ASSET_AMOUNT]: '200000000',
             [constants.db.KEY_USER_DATA]: null,
@@ -103,7 +102,7 @@ describe('EVM listen for events', () => {
             [constants.db.KEY_ORIGINATING_NETWORK_ID]: null,
             [constants.db.KEY_ORIGINATING_TX_HASH]: null,
             [constants.db.KEY_ORIGINATING_BLOCK_HASH]: null,
-            [constants.db.KEY_NETWORK_ID]: '0xe15503e4',
+            [constants.db.KEY_NETWORK_ID]: '0xf9b459a1',
             [constants.db.KEY_BLOCK_HASH]:
               '0x460635ecc1efa7230644fe6c2c01635f873663e81afc8c727947da5560ed12e5',
             [constants.db.KEY_TX_HASH]:
@@ -111,41 +110,42 @@ describe('EVM listen for events', () => {
           })
           expect(callback).toHaveBeenNthCalledWith(2, {
             [constants.db.KEY_ID]:
-              'useroperation_0xefffc246ca86e59a1a37fffd723c79044a461f028a8f6d4b21d70a8df3215396',
+              'useroperation_0x1b5cce11167a6e2801ca4031aab7d815217747730f0790f83e0c43d9766cf48e',
             [constants.db.KEY_STATUS]: constants.db.txStatus.DETECTED,
             [constants.db.KEY_EVENT_NAME]: constants.db.eventNames.USER_OPERATION,
 
-            [constants.db.KEY_NONCE]: '20992',
-            [constants.db.KEY_ASSET_AMOUNT]: '1452090000000000',
+            [constants.db.KEY_NONCE]: '629648',
+            [constants.db.KEY_ASSET_AMOUNT]: '198600',
             [constants.db.KEY_DESTINATION_ACCOUNT]: '0xdDb5f4535123DAa5aE343c24006F4075aBAF5F7B',
-            [constants.db.KEY_DESTINATION_NETWORK_ID]: '0xfc8ebb2b',
+            [constants.db.KEY_DESTINATION_NETWORK_ID]: '0xb9286154',
 
             [constants.db.KEY_FINAL_TX_HASH]: null,
             [constants.db.KEY_FINAL_TX_TS]: null,
             [constants.db.KEY_FORWARD_DESTINATION_NETWORK_ID]: '0x00000000',
             [constants.db.KEY_FORWARD_NETWORK_FEE_ASSET_AMOUNT]: '0',
-            [constants.db.KEY_NETWORK_FEE_ASSET_AMOUNT]: '0',
-            [constants.db.KEY_UNDERLYING_ASSET_NAME]: 'USD//C on xDai',
-            [constants.db.KEY_UNDERLYING_ASSET_SYMBOL]: 'USDC',
-            [constants.db.KEY_UNDERLYING_ASSET_DECIMALS]: 6,
-            [constants.db.KEY_UNDERLYING_ASSET_NETWORK_ID]: '0xd41b1c5b',
+            [constants.db.KEY_NETWORK_FEE_ASSET_AMOUNT]: '2000',
+            [constants.db.KEY_IS_FOR_PROTOCOL]: false,
+            [constants.db.KEY_UNDERLYING_ASSET_NAME]: 'pNetwork Token',
+            [constants.db.KEY_UNDERLYING_ASSET_SYMBOL]: 'PNT',
+            [constants.db.KEY_UNDERLYING_ASSET_DECIMALS]: 18,
+            [constants.db.KEY_UNDERLYING_ASSET_NETWORK_ID]: '0x5aca268b',
             [constants.db.KEY_UNDERLYING_ASSET_TOKEN_ADDRESS]:
-              '0xDDAfbb505ad214D7b80b1f830fcCc89B60fb7A83',
+              '0xdaacB0Ab6Fb34d24E8a67BfA14BF4D95D4C7aF92',
             [constants.db.KEY_OPTIONS_MASK]:
               '0x0000000000000000000000000000000000000000000000000000000000000000',
             [constants.db.KEY_ORIGINATING_NETWORK_ID]: null,
-            [constants.db.KEY_ORIGINATING_ADDRESS]: null,
+            [constants.db.KEY_ORIGINATING_ADDRESS]: '0xddb5f4535123daa5ae343c24006f4075abaf5f7b',
             [constants.db.KEY_ORIGINATING_BLOCK_HASH]: null,
             [constants.db.KEY_ORIGINATING_TX_HASH]: null,
-            [constants.db.KEY_NETWORK_ID]: '0xe15503e4',
+            [constants.db.KEY_NETWORK_ID]: '0xf9b459a1',
             [constants.db.KEY_BLOCK_HASH]:
-              '0xf402531eeaafe0e208e76b14dc0f6dc0f8bb6db78da57e523e4caac768c8cbe9',
+              '0x0fc3588f727dde10ccd937b04f5666fb04e39553b4c73719555acd7a6a430764',
             [constants.db.KEY_TX_HASH]:
-              '0x260d51e9aac08601fb948b137b41a672244efbf72b8c107949937dcec8bd3175',
+              '0xa5c5838123aa37d2efd69285f7b6bd8c2e93d4cf243d45926169502c13b23a49',
             [constants.db.KEY_PROPOSAL_TX_HASH]: null,
             [constants.db.KEY_PROPOSAL_TS]: null,
             [constants.db.KEY_PROTOCOL_FEE_ASSET_AMOUNT]: '0',
-            [constants.db.KEY_ASSET_TOKEN_ADDRESS]: '0x7e4aCefE856B1d326d28c5ca3c796510BcD1A492',
+            [constants.db.KEY_ASSET_TOKEN_ADDRESS]: '0xa7dbA6b864476FcE03659622d4E22253FE048096',
             [constants.db.KEY_USER_DATA]: '0x',
             [constants.db.KEY_WITNESSED_TS]: expect.stringMatching(ISO_FORMAT_REGEX),
           })

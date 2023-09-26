@@ -1,5 +1,6 @@
 const ethers = require('ethers')
 const constants = require('ptokens-constants')
+const utils = require('ptokens-utils')
 const { receipts } = require('../mock/evm-receipts')
 
 describe('Get EVM event reports', () => {
@@ -26,8 +27,8 @@ describe('Get EVM event reports', () => {
         getEvmEventReportsFromTransaction,
       } = require('../../lib/evm/evm-get-event-reports-from-transaction')
       const provider = 'polygon-provider-url-1'
-      const networkId = 'polygon-network-id'
-      const txHash = '0x260d51e9aac08601fb948b137b41a672244efbf72b8c107949937dcec8bd3175'
+      const networkId = utils.constants.networkIds.POLYGON_MAINNET
+      const txHash = '0xa5c5838123aa37d2efd69285f7b6bd8c2e93d4cf243d45926169502c13b23a49'
       const ret = await getEvmEventReportsFromTransaction(
         provider,
         networkId,
@@ -38,28 +39,28 @@ describe('Get EVM event reports', () => {
       expect(getTransactionReceiptSpy).toHaveBeenNthCalledWith(1, txHash)
       expect(ret).toStrictEqual([
         {
-          _id: 'operationexecuted_0x0e629afc57c3f95207c44fee302cedb89c7051b99df35847586b569073e8f425',
+          _id: 'operationexecuted_0xd9feb6e60cd73c396cbaeb3e5fa55c774c03a274c54f5bc53a62a59855ec7cc4',
           status: 'detected',
           eventName: 'OperationExecuted',
-          nonce: '85671',
+          nonce: '98322',
           destinationAccount: '0xdDb5f4535123DAa5aE343c24006F4075aBAF5F7B',
           destinationNetworkId: '0xf9b459a1',
-          underlyingAssetName: 'USD//C on xDai',
-          underlyingAssetSymbol: 'USDC',
-          underlyingAssetDecimals: 6,
-          underlyingAssetTokenAddress: '0xDDAfbb505ad214D7b80b1f830fcCc89B60fb7A83',
-          underlyingAssetNetworkId: '0xd41b1c5b',
+          underlyingAssetName: 'pNetwork Token',
+          underlyingAssetSymbol: 'PNT',
+          underlyingAssetDecimals: 18,
+          underlyingAssetTokenAddress: '0xdaacB0Ab6Fb34d24E8a67BfA14BF4D95D4C7aF92',
+          underlyingAssetNetworkId: '0x5aca268b',
           assetTokenAddress: null,
-          assetAmount: '1455000000000000',
+          assetAmount: '200000',
           userData: '0x',
           optionsMask: '0x0000000000000000000000000000000000000000000000000000000000000000',
           originatingBlockHash:
-            '0x2c3f80c427a454df34e9f7b4684cd0767ebe7672db167151369af3f49b9326c4',
-          originatingAddress: null,
-          originatingNetworkId: '0xd41b1c5b',
+            '0x05cf0e83408207704ee0ea2a4a6ea87905fc0d2038dbb610a0ca64f2cf47b134',
+          originatingAddress: '0xddb5f4535123daa5ae343c24006f4075abaf5f7b',
+          originatingNetworkId: '0x5aca268b',
           originatingTransactionHash:
-            '0x2d300f8aeed6cee69f50dde84d0a6e991d0836b2a1a3b3a6737b3ae3493f710f',
-          blockHash: '0xf402531eeaafe0e208e76b14dc0f6dc0f8bb6db78da57e523e4caac768c8cbe9',
+            '0xb1bb8b6502edc17fdd0cc83505289a6d429a6381ffe5dbf4fe31a88dd236d643',
+          blockHash: '0x0fc3588f727dde10ccd937b04f5666fb04e39553b4c73719555acd7a6a430764',
           networkId,
           transactionHash: txHash,
           proposedTransactionTimestamp: null,
@@ -67,10 +68,11 @@ describe('Get EVM event reports', () => {
           witnessedTimestamp: '2023-05-18T07:35:54.575Z',
           finalTransactionHash: null,
           finalTransactionTimestamp: null,
-          forwardDestinationNetworkId: '0xfc8ebb2b',
-          forwardNetworkFeeAssetAmount: '0',
-          networkFeeAssetAmount: '0',
+          forwardDestinationNetworkId: '0xb9286154',
+          forwardNetworkFeeAssetAmount: '2000',
+          networkFeeAssetAmount: '1000',
           protocolFeeAssetAmount: '0',
+          isForProtocol: false,
         },
       ])
     })
