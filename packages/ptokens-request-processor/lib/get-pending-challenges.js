@@ -6,7 +6,10 @@ module.exports.maybeGetPendingChallengesAndPutInState = _state =>
   new Promise((resolve, reject) => {
     const collection = _state[constants.state.KEY_DB]
     return collection
-      .find({ _id: /challengepending/, status: constants.db.txStatus.DETECTED })
+      .find({
+        _id: new RegExp(constants.db.eventNames.CHALLENGE_PENDING.toLowerCase()),
+        status: constants.db.txStatus.DETECTED,
+      })
       .sort({ [constants.db.KEY_WITNESSED_TS]: 1 })
       .toArray()
       .then(_pendingChallenges => R.assoc(STATE_PENDING_CHALLENGES, _pendingChallenges, _state))

@@ -3,4 +3,5 @@ module.exports = {
   QUEUED_OPERATION: 'OperationQueued',
   EXECUTED_OPERATION: 'OperationExecuted',
   GUARDIANS_PROPAGATED: 'GuardiansPropagated',
+  CHALLENGE_PENDING: 'ChallengePending',
 }
