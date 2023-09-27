@@ -1,8 +1,8 @@
 const { types } = require('hardhat/config')
 const { getHubAddress } = require('../lib/configuration-manager')
 const {
-  getUserOperationAbiArgsFromReport,
-} = require('ptokens-request-processor/lib/evm/evm-abi-manager')
+  parseUserOperationFromReport,
+} = require('ptokens-request-processor/lib/evm/evm-parse-user-operation')
 const TASK_CONSTANTS = require('../constants')
 
 const TASK_NAME = 'pnetworkhub:queue'
@@ -52,7 +52,7 @@ const protocolExecuteOperation = async (taskArgs, hre) => {
 
   const json = JSON.parse(taskArgs[TASK_PARAM_JSON])
 
-  const args = await getUserOperationAbiArgsFromReport(json)
+  const args = await parseUserOperationFromReport(json)
   args.push({
     value: lockedAmountChallengePeriod,
     gasLimit: taskArgs[TASK_CONSTANTS.PARAM_NAME_GAS],
