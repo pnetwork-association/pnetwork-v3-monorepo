@@ -1,14 +1,5 @@
 const { logger } = require('../get-logger')
 const constants = require('ptokens-constants')
-const PNetworkHubAbi = require('./abi/PNetworkHub').abi
-
-const getProtocolOperationAbi = () => PNetworkHubAbi
-
-const getProtocolGuardianCancelOperationAbi = () => PNetworkHubAbi
-
-const getOperationStatusOfAbi = () => PNetworkHubAbi
-
-const getChallengePeriodOfAbi = () => PNetworkHubAbi
 
 const logUserOperationFromAbiArgs = (_operationName, _args) => {
   logger.info(`function ${_operationName}([`)
@@ -35,12 +26,7 @@ const logUserOperationFromAbiArgs = (_operationName, _args) => {
   logger.info('])')
 }
 
-const getLockedAmountChallengePeriodAbi = () => PNetworkHubAbi
-
-const getProtocolQueueOperationAbi = () => getProtocolOperationAbi('protocolQueueOperation')
-const getProtocolExecuteOperationAbi = () => getProtocolOperationAbi('protocolExecuteOperation')
-
-const getUserOperationAbiArgsFromReport = _eventReport => [
+const parseUserOperationFromReport = _eventReport => [
   [
     _eventReport[constants.db.KEY_ORIGINATING_BLOCK_HASH] ||
       _eventReport[constants.db.KEY_BLOCK_HASH],
@@ -67,16 +53,7 @@ const getUserOperationAbiArgsFromReport = _eventReport => [
   ],
 ]
 
-const getSolveChallengeGuardianAbi = () => PNetworkHubAbi
-
 module.exports = {
-  getOperationStatusOfAbi,
-  getChallengePeriodOfAbi,
   logUserOperationFromAbiArgs,
-  getProtocolQueueOperationAbi,
-  getSolveChallengeGuardianAbi,
-  getProtocolExecuteOperationAbi,
-  getUserOperationAbiArgsFromReport,
-  getLockedAmountChallengePeriodAbi,
-  getProtocolGuardianCancelOperationAbi,
+  parseUserOperationFromReport,
 }

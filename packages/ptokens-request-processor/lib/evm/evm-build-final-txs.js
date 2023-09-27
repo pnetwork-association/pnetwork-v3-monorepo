@@ -14,9 +14,9 @@ const {
 const { callContractFunctionAndAwait } = require('./evm-call-contract-function')
 const {
   logUserOperationFromAbiArgs,
-  getProtocolExecuteOperationAbi,
-  getUserOperationAbiArgsFromReport,
-} = require('./evm-abi-manager')
+  parseUserOperationFromReport,
+} = require('./evm-parse-user-operation')
+const abi = require('./abi/PNetworkHub').abi
 
 // TODO: factor out (check evm-build-proposals-txs)
 const addFinalizedTxHashToEvent = R.curry((_event, _finalizedTxHash) => {
@@ -55,10 +55,9 @@ const makeFinalContractCall = R.curry(
         return reject(new Error(`${errors.ERROR_INVALID_EVENT_NAME}: ${eventName}`))
       }
 
-      const abi = getProtocolExecuteOperationAbi()
       const contractAddress = _hubAddress
       const functionName = 'protocolExecuteOperation'
-      const args = getUserOperationAbiArgsFromReport(_eventReport)
+      const args = parseUserOperationFromReport(_eventReport)
       args.push({
         gasPrice: gasPrice,
         gasLimit: gasLimit,

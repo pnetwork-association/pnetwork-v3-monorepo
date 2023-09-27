@@ -6,14 +6,13 @@ const { STATE_DETECTED_DB_REPORTS, STATE_QUEUED_DB_REPORTS } = require('../state
 const { updateEventInDb } = require('../update-events-in-db')
 const {
   logUserOperationFromAbiArgs,
-  getOperationStatusOfAbi,
-  getUserOperationAbiArgsFromReport,
-} = require('./evm-abi-manager')
+  parseUserOperationFromReport,
+} = require('./evm-parse-user-operation')
 const {
   getDetectedEventsFromDbAndPutInState,
   getQueuedEventsFromDbAndPutInState,
 } = require('../get-events-from-db')
-
+const abi = require('./abi/PNetworkHub').abi
 // See ptokens-evm-contracts/contracts/libraries/Constants.sol
 const OPERATION_NULL = 0x00
 const OPERATION_QUEUED = 0x01
@@ -71,8 +70,7 @@ const setRequestsStatusAccordinglyIntoDb = R.curry(
 const getOperationStatus = R.curry(
   (_provider, _hubAddress, _report) =>
     new Promise(resolve => {
-      const abi = getOperationStatusOfAbi()
-      const args = getUserOperationAbiArgsFromReport(_report)
+      const args = parseUserOperationFromReport(_report)
       const hub = new ethers.Contract(_hubAddress, abi, _provider)
       logger.info(`Getting operation status of ${_report[constants.db.KEY_ID]}...`)
       logUserOperationFromAbiArgs('', args)

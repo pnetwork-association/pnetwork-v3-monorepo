@@ -10,9 +10,9 @@ const { STATE_TO_BE_DISMISSED_REQUESTS } = require('../state/constants')
 const { callContractFunctionAndAwait } = require('./evm-call-contract-function')
 const {
   logUserOperationFromAbiArgs,
-  getUserOperationAbiArgsFromReport,
-  getProtocolGuardianCancelOperationAbi,
-} = require('./evm-abi-manager')
+  parseUserOperationFromReport,
+} = require('./evm-parse-user-operation')
+const abi = require('./abi/PNetworkHub').abi
 const { addErrorToEvent } = require('../add-error-to-event')
 const { gasPrice, gasLimit } = require('../../config.json')
 
@@ -49,9 +49,8 @@ const makeDismissalContractCall = R.curry(
       }
 
       const contractAddress = _hubAddress
-      const abi = getProtocolGuardianCancelOperationAbi()
       const functionName = 'protocolGuardianCancelOperation'
-      const args = getUserOperationAbiArgsFromReport(_eventReport)
+      const args = parseUserOperationFromReport(_eventReport)
       args.push(_proof)
       args.push({
         gasLimit,

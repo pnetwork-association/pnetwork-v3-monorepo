@@ -12,10 +12,9 @@ const {
 const { callContractFunctionAndAwait } = require('./evm-call-contract-function')
 const {
   logUserOperationFromAbiArgs,
-  getProtocolQueueOperationAbi,
-  getUserOperationAbiArgsFromReport,
-  getLockedAmountChallengePeriodAbi,
-} = require('./evm-abi-manager')
+  parseUserOperationFromReport,
+} = require('./evm-parse-user-operation')
+const abi = require('./abi/PNetworkHub').abi
 // TODO fixme
 const { gasLimit, gasPrice } = require('../../config.json')
 const { addErrorToEvent } = require('../add-error-to-event')
@@ -53,8 +52,7 @@ const makeProposalContractCall = R.curry(
         return reject(new Error(`${errors.ERROR_INVALID_EVENT_NAME}: ${eventName}`))
       }
 
-      const abi = getProtocolQueueOperationAbi()
-      const args = getUserOperationAbiArgsFromReport(_eventReport)
+      const args = parseUserOperationFromReport(_eventReport)
 
       args.push({
         value: _amountToLock,
@@ -97,7 +95,6 @@ const sendProposalTransactions = R.curry(
 
 const getLockedAmountChallengePeriod = (_hubAddress, _provider) =>
   new Promise(resolve => {
-    const abi = getLockedAmountChallengePeriodAbi()
     const hubContract = new ethers.Contract(_hubAddress, abi, _provider)
 
     return resolve(hubContract.lockedAmountChallengePeriod())
