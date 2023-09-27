@@ -198,6 +198,10 @@ describe('Tests for queued requests detection and dismissal', () => {
       })
 
       expect(solvedChallenges).toHaveLength(1)
+
+      await maybeProcessNewRequestsAndDismiss(state)
+
+      expect(mockSolveChallenge.mock.calls).toHaveLength(1)
     })
   })
 })
