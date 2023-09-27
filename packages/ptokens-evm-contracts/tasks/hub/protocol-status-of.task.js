@@ -1,8 +1,8 @@
 const { types } = require('hardhat/config')
 const { getHubAddress } = require('../lib/configuration-manager')
 const {
-  getUserOperationAbiArgsFromReport,
-} = require('ptokens-request-processor/lib/evm/evm-abi-manager')
+  parseUserOperationFromReport,
+} = require('ptokens-request-processor/lib/evm/evm-parse-user-operation')
 const TASK_NAME = 'pnetworkhub:status'
 const TASK_DESC = 'Check the status of a given operation'
 const TASK_PARAM_JSON = 'json'
@@ -17,7 +17,7 @@ const protocolStatusOfTask = async (taskArgs, hre) => {
   console.info('Calling operationStatusOf...')
 
   const json = JSON.parse(taskArgs[TASK_PARAM_JSON])
-  const args = await getUserOperationAbiArgsFromReport(json)
+  const args = await parseUserOperationFromReport(json)
   const result = await hub.operationStatusOf(...args)
 
   console.info(result)
