@@ -1,10 +1,11 @@
 const R = require('ramda')
 const ethers = require('ethers')
+const abi = require('./abi/PNetworkHub').abi
 const constants = require('ptokens-constants')
 const { utils } = require('ptokens-utils')
 const { logger } = require('../get-logger')
-const { getChallengePeriodOfAbi, getUserOperationAbiArgsFromReport } = require('./evm-abi-manager')
 const { STATE_PROPOSED_DB_REPORTS } = require('../state/constants')
+const { parseUserOperationFromReport } = require('./evm-parse-user-operation')
 
 const ERROR_OPERATION_NOT_EXPIRED = 'Not over basic challenge period'
 
@@ -37,7 +38,7 @@ const maybeGetExpirationDate = (_hubContract, _basicChallengePeriodMinutes, _pro
         return Promise.reject(new Error(ERROR_OPERATION_NOT_EXPIRED))
       }
 
-      return Promise.resolve(getUserOperationAbiArgsFromReport(_proposedEvent))
+      return Promise.resolve(parseUserOperationFromReport(_proposedEvent))
         .then(_args => _hubContract.challengePeriodOf(..._args))
         .then(([_, _endTs]) => parseInt(_endTs))
         .then(R.multiply(1000)) // We need the ts in ms
@@ -55,7 +56,6 @@ const isOperationExpired = (_hubContract, _basicChallengePeriod, _proposedEvent)
 
 const filterForExpiredProposalsAndPutThemInState = _state =>
   new Promise(resolve => {
-    const abi = getChallengePeriodOfAbi()
     const providerUrl = _state[constants.state.KEY_PROVIDER_URL]
     const provider = new ethers.JsonRpcProvider(providerUrl)
     const proposedEvents = _state[STATE_PROPOSED_DB_REPORTS] || []
