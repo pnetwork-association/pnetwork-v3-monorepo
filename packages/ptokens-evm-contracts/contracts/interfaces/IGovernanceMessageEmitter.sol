@@ -20,45 +20,21 @@ interface IGovernanceMessageEmitter {
     event GovernanceMessage(bytes data);
 
     /**
-     * @dev Emitted when guardians are emitted.
+     * @dev Emitted when actors are emitted.
      *
      * @param epoch The epoch
-     * @param guardians The guardians
+     * @param actors The actors
      */
-    event GuardiansPropagated(uint16 indexed epoch, address[] guardians);
-
-    /**
-     * @dev Emitted when sentinels are emitted.
-     *
-     * @param epoch The epoch
-     * @param sentinels The sentinels
-     */
-    event SentinelsPropagated(uint16 indexed epoch, address[] sentinels);
+    event ActorsPropagated(uint16 indexed epoch, address[] actors);
 
     /*
-     * @notice Just call propagateGuardians and propagateSentinels
+     * @notice Emit a GovernanceMessage event containing the total number of actors (sentinels and guardians) and
+     *         the actors merkle root for the current epoch. This message will be verified by GovernanceMessageVerifier.
      *
      * @param sentinels
      * @param guardians
      */
     function propagateActors(address[] calldata sentinels, address[] calldata guardians) external;
-
-    /*
-     * @notice Emit a GovernanceMessage event containing the total number of guardians and
-     *         the guardians merkle root for the current epoch. This message will be verified by GovernanceMessageVerifier.
-     *
-     * @param guardians
-     */
-    function propagateGuardians(address[] calldata guardians) external;
-
-    /*
-     * @notice Emit a GovernanceMessage event containing the total number of sentinels, the sentinels merkle root
-     *      for the current epoch. This message will be verified by GovernanceMessageVerifier.
-     *
-     * @param sentinels
-     * @param guardians
-     */
-    function propagateSentinels(address[] calldata sentinels) external;
 
     /*
      * @notice Emit a GovernanceMessage to cancel an operation on a given network
@@ -73,26 +49,12 @@ interface IGovernanceMessageEmitter {
      *
      * @param guardian
      */
-    function resumeGuardian(address guardian) external;
-
-    /*
-     * @notice Emit a GovernanceMessage event containing the address of the resumed sentinel
-     *
-     * @param guardian
-     */
-    function resumeSentinel(address sentinel) external;
+    function resumeActor(address guardian) external;
 
     /*
      * @notice Emit a GovernanceMessage event containing the address of the slashed guardian
      *
      * @param guardian
      */
-    function slashGuardian(address guardian) external;
-
-    /*
-     * @notice Emit a GovernanceMessage event containing the address of the slashed sentinel
-     *
-     * @param sentinel
-     */
-    function slashSentinel(address sentinel) external;
+    function slashActor(address guardian) external;
 }

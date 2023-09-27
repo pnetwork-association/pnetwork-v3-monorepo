@@ -6,12 +6,9 @@ import {IPNetworkHub} from "../interfaces/IPNetworkHub.sol";
 import {MerkleTree} from "../libraries/MerkleTree.sol";
 
 contract MockGovernanceMessageEmitter {
-    bytes32 public constant GOVERNANCE_MESSAGE_SENTINELS = keccak256("GOVERNANCE_MESSAGE_SENTINELS");
-    bytes32 public constant GOVERNANCE_MESSAGE_GUARDIANS = keccak256("GOVERNANCE_MESSAGE_GUARDIANS");
-    bytes32 public constant GOVERNANCE_MESSAGE_SLASH_SENTINEL = keccak256("GOVERNANCE_MESSAGE_SLASH_SENTINEL");
-    bytes32 public constant GOVERNANCE_MESSAGE_SLASH_GUARDIAN = keccak256("GOVERNANCE_MESSAGE_SLASH_GUARDIAN");
-    bytes32 public constant GOVERNANCE_MESSAGE_RESUME_SENTINEL = keccak256("GOVERNANCE_MESSAGE_RESUME_SENTINEL");
-    bytes32 public constant GOVERNANCE_MESSAGE_RESUME_GUARDIAN = keccak256("GOVERNANCE_MESSAGE_RESUME_GUARDIAN");
+    bytes32 public constant GOVERNANCE_MESSAGE_ACTORS = keccak256("GOVERNANCE_MESSAGE_ACTORS");
+    bytes32 public constant GOVERNANCE_MESSAGE_SLASH_ACTOR = keccak256("GOVERNANCE_MESSAGE_SLASH_ACTOR");
+    bytes32 public constant GOVERNANCE_MESSAGE_RESUME_ACTOR = keccak256("GOVERNANCE_MESSAGE_RESUME_ACTOR");
     bytes32 public constant GOVERNANCE_MESSAGE_PROTOCOL_GOVERNANCE_CANCEL_OPERATION =
         keccak256("GOVERNANCE_MESSAGE_PROTOCOL_GOVERNANCE_CANCEL_OPERATION");
 
@@ -23,54 +20,39 @@ contract MockGovernanceMessageEmitter {
         epochsManager = epochsManager_;
     }
 
-    function resumeGuardian(address guardian) external {
+    function resumeActor(address actor) external {
         emit GovernanceMessage(
-            abi.encode(
-                GOVERNANCE_MESSAGE_RESUME_GUARDIAN,
-                abi.encode(IEpochsManager(epochsManager).currentEpoch(), guardian)
-            )
+            abi.encode(GOVERNANCE_MESSAGE_RESUME_ACTOR, abi.encode(IEpochsManager(epochsManager).currentEpoch(), actor))
         );
     }
 
-    function resumeSentinel(address sentinel) external {
+    function slashActor(address actor) external {
         emit GovernanceMessage(
-            abi.encode(
-                GOVERNANCE_MESSAGE_RESUME_SENTINEL,
-                abi.encode(IEpochsManager(epochsManager).currentEpoch(), sentinel)
-            )
+            abi.encode(GOVERNANCE_MESSAGE_SLASH_ACTOR, abi.encode(IEpochsManager(epochsManager).currentEpoch(), actor))
         );
     }
 
-    function slashGuardian(address guardian) external {
-        emit GovernanceMessage(
-            abi.encode(
-                GOVERNANCE_MESSAGE_SLASH_GUARDIAN,
-                abi.encode(IEpochsManager(epochsManager).currentEpoch(), guardian)
-            )
-        );
-    }
+    function propagateActors(uint16 epoch, address[] calldata guardians, address[] calldata sentinels) external {
+        address[] memory actors = new address[](guardians.length + sentinels.length);
 
-    function slashSentinel(address sentinel) external {
-        emit GovernanceMessage(
-            abi.encode(
-                GOVERNANCE_MESSAGE_SLASH_SENTINEL,
-                abi.encode(IEpochsManager(epochsManager).currentEpoch(), sentinel)
-            )
-        );
-    }
+        for (uint256 i = 0; i < guardians.length; ) {
+            actors[i] = guardians[i];
+            unchecked {
+                ++i;
+            }
+        }
 
-    function propagateActors(uint16 epoch, address[] calldata sentinels, address[] calldata guardians) external {
-        emit GovernanceMessage(
-            abi.encode(
-                GOVERNANCE_MESSAGE_SENTINELS,
-                abi.encode(epoch, sentinels.length, MerkleTree.getRoot(_hashAddresses(sentinels)))
-            )
-        );
+        for (uint256 i = guardians.length; i < guardians.length + sentinels.length; ) {
+            actors[i] = sentinels[i - guardians.length];
+            unchecked {
+                ++i;
+            }
+        }
 
         emit GovernanceMessage(
             abi.encode(
-                GOVERNANCE_MESSAGE_GUARDIANS,
-                abi.encode(epoch, guardians.length, MerkleTree.getRoot(_hashAddresses(guardians)))
+                GOVERNANCE_MESSAGE_ACTORS,
+                abi.encode(epoch, actors.length, MerkleTree.getRoot(_hashAddresses(actors)))
             )
         );
     }

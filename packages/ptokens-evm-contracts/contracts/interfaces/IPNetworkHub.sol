@@ -76,6 +76,22 @@ interface IPNetworkHub is IGovernanceMessageHandler {
     }
 
     /**
+     * @dev Emitted when an actor is resumed after having being slashed
+     *
+     * @param epoch The epoch in which the actor has been resumed
+     * @param actor The resumed actor
+     */
+    event ActorResumed(uint16 indexed epoch, address indexed actor);
+
+    /**
+     * @dev Emitted when an actor has been slashed on the interim chain.
+     *
+     * @param epoch The epoch in which the actor has been slashed
+     * @param actor The slashed actor
+     */
+    event ActorSlashed(uint16 indexed epoch, address indexed actor);
+
+    /**
      * @dev Emitted when a challenge is cancelled.
      *
      * @param challenge The challenge
@@ -130,38 +146,6 @@ interface IPNetworkHub is IGovernanceMessageHandler {
      * @param operation The cancelled operation
      */
     event OperationCancelled(Operation operation);
-
-    /**
-     * @dev Emitted when a guardian is resumed after having being slashed
-     *
-     * @param epoch The epoch in which the guardian is has been resumed
-     * @param guardian The resumed guardian
-     */
-    event GuardianResumed(uint16 indexed epoch, address indexed guardian);
-
-    /**
-     * @dev Emitted when a guardian has been slashed on the interim chain.
-     *
-     * @param epoch The epoch in which the sentinel has been slashed
-     * @param guardian The slashed guardian
-     */
-    event GuardianSlashed(uint16 indexed epoch, address indexed guardian);
-
-    /**
-     * @dev Emitted when a sentinel is resumed after having being slashed
-     *
-     * @param epoch The epoch in which the sentinel has been resumed
-     * @param sentinel The resumed sentinel
-     */
-    event SentinelResumed(uint16 indexed epoch, address indexed sentinel);
-
-    /**
-     * @dev Emitted when a sentinel has been slashed on the interim chain.
-     *
-     * @param epoch The epoch in which the sentinel has been slashed
-     * @param sentinel The slashed sentinel
-     */
-    event SentinelSlashed(uint16 indexed epoch, address indexed sentinel);
 
     /**
      * @dev Emitted when an user operation is generated.
@@ -286,6 +270,15 @@ interface IPNetworkHub is IGovernanceMessageHandler {
     function getPendingChallengeIdByEpochOf(uint16 epoch, address actor) external view returns (bytes32);
 
     /*
+     * @notice Returns the total number of inactive actors in an epoch.
+     *
+     * @param epoch
+     *
+     * @return uint16 representing the total number of inactive actors in an epoch.
+     */
+    function getTotalNumberOfInactiveActorsByEpoch(uint16 epoch) external view returns (uint16);
+
+    /*
      * @notice Return the status of an operation.
      *
      * @param operation
@@ -304,15 +297,6 @@ interface IPNetworkHub is IGovernanceMessageHandler {
     function operationIdOf(Operation memory operation) external pure returns (bytes32);
 
     /*
-     * @notice A Guardian instruct a cancel action. If 2 actors agree on it the operation is cancelled.
-     *
-     * @param operation
-     * @param proof
-     *
-     */
-    function protocolGuardianCancelOperation(Operation calldata operation, bytes32[] calldata proof) external;
-
-    /*
      * @notice The Governance instruct a cancel action. If 2 actors agree on it the operation is cancelled.
      *          This function can be invoked ONLY by the DandelionVoting contract ONLY on the interim chain
      *
@@ -322,14 +306,14 @@ interface IPNetworkHub is IGovernanceMessageHandler {
     function protocolGovernanceCancelOperation(Operation calldata operation) external;
 
     /*
-     * @notice A Sentinel instruct a cancel action. If 2 actors agree on it the operation is cancelled.
+     * @notice An actor instruct a cancel action. If 2 actors agree on it the operation is cancelled.
      *
      * @param operation
      * @param proof
      * @param signature
      *
      */
-    function protocolSentinelCancelOperation(
+    function protocolCancelOperation(
         Operation calldata operation,
         bytes32[] calldata proof,
         bytes calldata signature
@@ -360,45 +344,23 @@ interface IPNetworkHub is IGovernanceMessageHandler {
     function slashByChallenge(Challenge calldata challenge) external;
 
     /*
-     * @notice Solve a challenge of a guardian and sends the bond (lockedAmountStartChallenge) to the DAO.
-     *
-     * @param challenge
-     * @param proof
-     *
-     */
-    function solveChallengeGuardian(Challenge calldata challenge, bytes32[] calldata proof) external;
-
-    /*
-     * @notice Solve a challenge of a sentinel and sends the bond (lockedAmountStartChallenge) to the DAO.
+     * @notice Solve a challenge of an actor and sends the bond (lockedAmountStartChallenge) to the DAO.
      *
      * @param challenge
      * @param proof
      * @param signature
      *
      */
-    function solveChallengeSentinel(
-        Challenge calldata challenge,
-        bytes32[] calldata proof,
-        bytes calldata signature
-    ) external;
+    function solveChallenge(Challenge calldata challenge, bytes32[] calldata proof, bytes calldata signature) external;
 
     /*
-     * @notice Start a challenge for a guardian.
+     * @notice Start a challenge for an actor.
      *
-     * @param guardian
+     * @param actor
      * @param proof
      *
      */
-    function startChallengeGuardian(address guardian, bytes32[] memory proof) external payable;
-
-    /*
-     * @notice Start a challenge for a sentinel.
-     *
-     * @param sentinel
-     * @param proof
-     *
-     */
-    function startChallengeSentinel(address sentinel, bytes32[] memory proof) external payable;
+    function startChallenge(address actor, bytes32[] memory proof) external payable;
 
     /*
      * @notice Generate an user operation which will be used by the relayers to be able

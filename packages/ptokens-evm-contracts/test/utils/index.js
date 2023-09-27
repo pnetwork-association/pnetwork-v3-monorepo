@@ -21,7 +21,7 @@ module.exports.deployPToken = async (
   _underlyingAssetChainId,
   { pFactory }
 ) => {
-  const PToken = await ethers.getContractFactory('PToken')
+  const PToken = await ethers.getContractFactory('MockPToken')
   const transaction = await pFactory.deploy(
     _underlyingAssetName,
     _underlyingAssetSymbol,

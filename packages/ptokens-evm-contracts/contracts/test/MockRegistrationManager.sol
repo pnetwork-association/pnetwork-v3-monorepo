@@ -79,7 +79,7 @@ contract MockRegistrationManager {
     }
 
     function slash(address actor, uint256 amount, address challenger) external {
-        IGovernanceMessageEmitter(governanceMessageEmitter).slashSentinel(actor);
+        IGovernanceMessageEmitter(governanceMessageEmitter).slashActor(actor);
         emit StakingSentinelSlashed(actor, amount);
     }
 }

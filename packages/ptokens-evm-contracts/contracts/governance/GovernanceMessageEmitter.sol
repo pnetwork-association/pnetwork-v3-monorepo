@@ -18,12 +18,9 @@ error InvalidNumberOfGuardians(uint16 numberOfGuardians, uint16 expectedNumberOf
 error NetworkNotSupported(bytes4 networkId);
 
 contract GovernanceMessageEmitter is IGovernanceMessageEmitter {
-    bytes32 public constant GOVERNANCE_MESSAGE_SENTINELS = keccak256("GOVERNANCE_MESSAGE_SENTINELS");
-    bytes32 public constant GOVERNANCE_MESSAGE_GUARDIANS = keccak256("GOVERNANCE_MESSAGE_GUARDIANS");
-    bytes32 public constant GOVERNANCE_MESSAGE_SLASH_SENTINEL = keccak256("GOVERNANCE_MESSAGE_SLASH_SENTINEL");
-    bytes32 public constant GOVERNANCE_MESSAGE_SLASH_GUARDIAN = keccak256("GOVERNANCE_MESSAGE_SLASH_GUARDIAN");
-    bytes32 public constant GOVERNANCE_MESSAGE_RESUME_SENTINEL = keccak256("GOVERNANCE_MESSAGE_RESUME_SENTINEL");
-    bytes32 public constant GOVERNANCE_MESSAGE_RESUME_GUARDIAN = keccak256("GOVERNANCE_MESSAGE_RESUME_GUARDIAN");
+    bytes32 public constant GOVERNANCE_MESSAGE_ACTORS = keccak256("GOVERNANCE_MESSAGE_ACTORS");
+    bytes32 public constant GOVERNANCE_MESSAGE_SLASH_ACTOR = keccak256("GOVERNANCE_MESSAGE_SLASH_ACTOR");
+    bytes32 public constant GOVERNANCE_MESSAGE_RESUME_ACTOR = keccak256("GOVERNANCE_MESSAGE_RESUME_ACTOR");
     bytes32 public constant GOVERNANCE_MESSAGE_PROTOCOL_GOVERNANCE_CANCEL_OPERATION =
         keccak256("GOVERNANCE_MESSAGE_PROTOCOL_GOVERNANCE_CANCEL_OPERATION");
 
@@ -66,64 +63,35 @@ contract GovernanceMessageEmitter is IGovernanceMessageEmitter {
     }
 
     /// @inheritdoc IGovernanceMessageEmitter
-    function propagateActors(address[] calldata sentinels, address[] calldata guardians) external {
-        propagateSentinels(sentinels);
-        propagateGuardians(guardians);
-    }
-
-    /// @inheritdoc IGovernanceMessageEmitter
-    function propagateGuardians(address[] calldata guardians) public {
+    function propagateActors(address[] calldata guardians, address[] calldata sentinels) external {
         uint16 currentEpoch = IEpochsManager(epochsManager).currentEpoch();
-        // uint16 totalNumberOfGuardians = IRegistrationManager(registrationManager).totalNumberOfGuardiansByEpoch(
-        //     currentEpoch
-        // );
 
-        // uint16 numberOfValidGuardians;
-        // for (uint16 index = 0; index < guardians; ) {
-        //     IRegistrationManager.Registration memory registration = IRegistrationManager(registrationManager)
-        //         .guardianRegistration(guardians[index]);
+        address[] memory effectiveGuardians = _filterGuardians(guardians);
+        address[] memory effectiveSentinels = _filterSentinels(sentinels);
+        address[] memory actors = new address[](effectiveGuardians.length + effectiveSentinels.length);
 
-        //     if (registration.kind == 0x03 && currentEpoch >= registration.startEpoch && currentEpoch <= registration.endEpoch) {
-        //         unchecked {
-        //             ++numberOfValidGuardians;
-        //         }
-        //     }
-        //     unchecked {
-        //         ++index;
-        //     }
-        // }
+        for (uint256 i = 0; i < effectiveGuardians.length; ) {
+            actors[i] = effectiveGuardians[i];
+            unchecked {
+                ++i;
+            }
+        }
 
-        // if (totalNumberOfGuardians != numberOfValidGuardians) {
-        //     revert InvalidNumberOfGuardians(numberOfValidGuardians, totalNumberOfGuardians);
-        // }
+        for (uint256 i = effectiveGuardians.length; i < effectiveGuardians.length + effectiveSentinels.length; ) {
+            actors[i] = effectiveSentinels[i - effectiveGuardians.length];
+            unchecked {
+                ++i;
+            }
+        }
+
+        emit ActorsPropagated(currentEpoch, actors);
 
         _sendMessage(
             abi.encode(
-                GOVERNANCE_MESSAGE_GUARDIANS,
-                abi.encode(currentEpoch, guardians.length, MerkleTree.getRoot(_hashAddresses(guardians)))
+                GOVERNANCE_MESSAGE_ACTORS,
+                abi.encode(currentEpoch, actors.length, MerkleTree.getRoot(_hashAddresses(actors)))
             )
         );
-
-        emit GuardiansPropagated(currentEpoch, guardians);
-    }
-
-    /// @inheritdoc IGovernanceMessageEmitter
-    function propagateSentinels(address[] calldata sentinels) public {
-        uint16 currentEpoch = IEpochsManager(epochsManager).currentEpoch();
-        address[] memory effectiveSentinels = _filterSentinels(sentinels, currentEpoch);
-
-        _sendMessage(
-            abi.encode(
-                GOVERNANCE_MESSAGE_SENTINELS,
-                abi.encode(
-                    currentEpoch,
-                    effectiveSentinels.length,
-                    MerkleTree.getRoot(_hashAddresses(effectiveSentinels))
-                )
-            )
-        );
-
-        emit SentinelsPropagated(currentEpoch, effectiveSentinels);
     }
 
     /// @inheritdoc IGovernanceMessageEmitter
@@ -158,60 +126,49 @@ contract GovernanceMessageEmitter is IGovernanceMessageEmitter {
     }
 
     /// @inheritdoc IGovernanceMessageEmitter
-    function resumeGuardian(address guardian) external onlyRegistrationManager {
+    function resumeActor(address actor) external onlyRegistrationManager {
         _sendMessage(
-            abi.encode(
-                GOVERNANCE_MESSAGE_RESUME_GUARDIAN,
-                abi.encode(IEpochsManager(epochsManager).currentEpoch(), guardian)
-            )
+            abi.encode(GOVERNANCE_MESSAGE_RESUME_ACTOR, abi.encode(IEpochsManager(epochsManager).currentEpoch(), actor))
         );
     }
 
     /// @inheritdoc IGovernanceMessageEmitter
-    function resumeSentinel(address sentinel) external onlyRegistrationManager {
+    function slashActor(address actor) external onlyRegistrationManager {
         _sendMessage(
-            abi.encode(
-                GOVERNANCE_MESSAGE_RESUME_SENTINEL,
-                abi.encode(IEpochsManager(epochsManager).currentEpoch(), sentinel)
-            )
+            abi.encode(GOVERNANCE_MESSAGE_SLASH_ACTOR, abi.encode(IEpochsManager(epochsManager).currentEpoch(), actor))
         );
     }
 
-    /// @inheritdoc IGovernanceMessageEmitter
-    function slashGuardian(address guardian) external onlyRegistrationManager {
-        _sendMessage(
-            abi.encode(
-                GOVERNANCE_MESSAGE_SLASH_GUARDIAN,
-                abi.encode(IEpochsManager(epochsManager).currentEpoch(), guardian)
-            )
-        );
+    function _filterGuardians(address[] calldata guardians) internal view returns (address[] memory) {
+        uint16 currentEpoch = IEpochsManager(epochsManager).currentEpoch();
+        // uint16 totalNumberOfGuardians = IRegistrationManager(registrationManager).totalNumberOfGuardiansByEpoch(
+        //     currentEpoch
+        // );
+
+        // uint16 numberOfValidGuardians;
+        // for (uint16 index = 0; index < guardians; ) {
+        //     IRegistrationManager.Registration memory registration = IRegistrationManager(registrationManager)
+        //         .guardianRegistration(guardians[index]);
+
+        //     if (registration.kind == 0x03 && currentEpoch >= registration.startEpoch && currentEpoch <= registration.endEpoch) {
+        //         unchecked {
+        //             ++numberOfValidGuardians;
+        //         }
+        //     }
+        //     unchecked {
+        //         ++index;
+        //     }
+        // }
+
+        // if (totalNumberOfGuardians != numberOfValidGuardians) {
+        //     revert InvalidNumberOfGuardians(numberOfValidGuardians, totalNumberOfGuardians);
+        // }
+
+        return guardians;
     }
 
-    /// @inheritdoc IGovernanceMessageEmitter
-    function slashSentinel(address sentinel) external onlyRegistrationManager {
-        _sendMessage(
-            abi.encode(
-                GOVERNANCE_MESSAGE_SLASH_SENTINEL,
-                abi.encode(IEpochsManager(epochsManager).currentEpoch(), sentinel)
-            )
-        );
-    }
-
-    function _sendMessage(bytes memory message) internal {
-        address[] memory hubs = IPRegistry(registry).getSupportedHubs();
-        uint32[] memory chainIds = IPRegistry(registry).getSupportedChainIds();
-
-        emit GovernanceMessage(abi.encode(totalNumberOfMessages, chainIds, hubs, message));
-
-        unchecked {
-            ++totalNumberOfMessages;
-        }
-    }
-
-    function _filterSentinels(
-        address[] memory sentinels,
-        uint16 currentEpoch
-    ) internal view returns (address[] memory) {
+    function _filterSentinels(address[] memory sentinels) internal view returns (address[] memory) {
+        uint16 currentEpoch = IEpochsManager(epochsManager).currentEpoch();
         uint32 totalBorrowedAmount = ILendingManager(lendingManager).totalBorrowedAmountByEpoch(currentEpoch);
         uint256 totalSentinelStakedAmount = IRegistrationManager(registrationManager).totalSentinelStakedAmountByEpoch(
             currentEpoch
@@ -292,5 +249,16 @@ contract GovernanceMessageEmitter is IGovernanceMessageEmitter {
             data[i] = keccak256(abi.encodePacked(addresses[i]));
         }
         return data;
+    }
+
+    function _sendMessage(bytes memory message) internal {
+        address[] memory hubs = IPRegistry(registry).getSupportedHubs();
+        uint32[] memory chainIds = IPRegistry(registry).getSupportedChainIds();
+
+        emit GovernanceMessage(abi.encode(totalNumberOfMessages, chainIds, hubs, message));
+
+        unchecked {
+            ++totalNumberOfMessages;
+        }
     }
 }

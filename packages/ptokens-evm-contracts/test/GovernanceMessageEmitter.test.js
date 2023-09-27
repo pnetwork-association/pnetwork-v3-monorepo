@@ -71,8 +71,9 @@ describe('GovernanceMessageEmitter', () => {
   })
 
   it('should be able to succesfully propagate all sentinels when slashing does not happen', async () => {
-    const stakingSentinels = signers.slice(0, 10).map(({ address }) => address)
-    const borrowingSentinels = signers.slice(10, 20).map(({ address }) => address)
+    const stakingSentinels = signers.slice(0, 5).map(({ address }) => address)
+    const borrowingSentinels = signers.slice(5, 10).map(({ address }) => address)
+    const guardians = signers.slice(10, 20).map(({ address }) => address)
 
     for (let i = 0; i < stakingSentinels.length; i++) {
       await registrationManager.addStakingSentinel(
@@ -92,8 +93,8 @@ describe('GovernanceMessageEmitter', () => {
       )
     }
 
-    const sentinels = [...stakingSentinels, ...borrowingSentinels]
-    const merkleRootWithoutSlashedSentinel = getMerkleRoot(sentinels)
+    const actors = [...guardians, ...stakingSentinels, ...borrowingSentinels]
+    const merkleRootWithoutSlashedSentinel = getMerkleRoot(actors)
     const abiCoder = new ethers.utils.AbiCoder()
 
     const message = abiCoder.encode(
@@ -105,17 +106,22 @@ describe('GovernanceMessageEmitter', () => {
         abiCoder.encode(
           ['bytes32', 'bytes'],
           [
-            ethers.utils.keccak256(ethers.utils.toUtf8Bytes('GOVERNANCE_MESSAGE_SENTINELS')),
+            ethers.utils.keccak256(ethers.utils.toUtf8Bytes('GOVERNANCE_MESSAGE_ACTORS')),
             abiCoder.encode(
               ['uint16', 'uint16', 'bytes32'],
-              [currentEpoch, sentinels.length, merkleRootWithoutSlashedSentinel]
+              [currentEpoch, actors.length, merkleRootWithoutSlashedSentinel]
             ),
           ]
         ),
       ]
     )
 
-    await expect(governanceMessageEmitter.propagateSentinels(sentinels))
+    await expect(
+      governanceMessageEmitter.propagateActors(guardians, [
+        ...stakingSentinels,
+        ...borrowingSentinels,
+      ])
+    )
       .to.emit(governanceMessageEmitter, 'GovernanceMessage')
       .withArgs(message)
   })
@@ -124,7 +130,8 @@ describe('GovernanceMessageEmitter', () => {
     const stakingSentinels = signers.slice(0, 8).map(({ address }) => address)
     const slashedStakingSentinel1 = signers[8].address
     const slashedStakingSentinel2 = signers[9].address
-    const borrowingSentinels = signers.slice(10, 20).map(({ address }) => address)
+    const borrowingSentinels = signers.slice(10, 15).map(({ address }) => address)
+    const guardians = signers.slice(15, 20).map(({ address }) => address)
 
     for (let i = 0; i < stakingSentinels.length; i++) {
       await registrationManager.addStakingSentinel(
@@ -161,8 +168,8 @@ describe('GovernanceMessageEmitter', () => {
       )
     }
 
-    const sentinels = [...stakingSentinels, ...borrowingSentinels] // slashedStakingSentinel1 and slashedStakingSentinel2 are filtered
-    const merkleRootWithoutSlashedSentinel = getMerkleRoot(sentinels)
+    const actors = [...guardians, ...stakingSentinels, ...borrowingSentinels] // slashedStakingSentinel1 and slashedStakingSentinel2 are filtered
+    const merkleRootWithoutSlashedSentinel = getMerkleRoot(actors)
 
     const abiCoder = new ethers.utils.AbiCoder()
     const message = abiCoder.encode(
@@ -174,10 +181,10 @@ describe('GovernanceMessageEmitter', () => {
         abiCoder.encode(
           ['bytes32', 'bytes'],
           [
-            ethers.utils.keccak256(ethers.utils.toUtf8Bytes('GOVERNANCE_MESSAGE_SENTINELS')),
+            ethers.utils.keccak256(ethers.utils.toUtf8Bytes('GOVERNANCE_MESSAGE_ACTORS')),
             abiCoder.encode(
               ['uint16', 'uint16', 'bytes32'],
-              [currentEpoch, sentinels.length, merkleRootWithoutSlashedSentinel]
+              [currentEpoch, actors.length, merkleRootWithoutSlashedSentinel]
             ),
           ]
         ),
@@ -186,7 +193,7 @@ describe('GovernanceMessageEmitter', () => {
 
     // NOTE: slashedStakingSentinel1 and slashedStakingSentinel2 are needed in order to calculate the staked amount but they will be filtered in the merkle tree
     await expect(
-      governanceMessageEmitter.propagateSentinels([
+      governanceMessageEmitter.propagateActors(guardians, [
         ...stakingSentinels,
         slashedStakingSentinel1,
         slashedStakingSentinel2,
@@ -236,7 +243,7 @@ describe('GovernanceMessageEmitter', () => {
         abiCoder.encode(
           ['bytes32', 'bytes'],
           [
-            ethers.utils.keccak256(ethers.utils.toUtf8Bytes('GOVERNANCE_MESSAGE_SLASH_SENTINEL')),
+            ethers.utils.keccak256(ethers.utils.toUtf8Bytes('GOVERNANCE_MESSAGE_SLASH_ACTOR')),
             abiCoder.encode(['uint16', 'address'], [currentEpoch, slashedSentinel]),
           ]
         ),
