@@ -1,4 +1,5 @@
 const ethers = require('ethers')
+const { evm } = require('ptokens-constants')
 const { logger } = require('../logger')
 const { blockchainType } = require('../constants')
 const { getBlockchainTypeFromChainId } = require('./utils-network-id')
@@ -51,80 +52,38 @@ const getEventIdEvm = ({
         bytes userData;
         bool isForProtocol;
     }
+
     function operationIdOf(Operation calldata operation) public pure returns (bytes32) {
-    return
-      sha256(
-        abi.encode(
-            operation.originBlockHash,
-            operation.originTransactionHash,
-            operation.originNetworkId,
-            operation.nonce,
-            operation.originAccount,
-            operation.destinationAccount,
-            operation.destinationNetworkId,
-            operation.forwardDestinationNetworkId,
-            operation.underlyingAssetName,
-            operation.underlyingAssetSymbol,
-            operation.underlyingAssetDecimals,
-            operation.underlyingAssetTokenAddress,
-            operation.underlyingAssetNetworkId,
-            operation.assetAmount,
-            operation.protocolFeeAssetAmount,
-            operation.networkFeeAssetAmount,
-            operation.forwardNetworkFeeAssetAmount,
-            operation.userData,
-            operation.optionsMask,
-            operation.isForProtocol
-        )
-      );
+        return sha256(abi.encode(operation));
     }
   */
 
-  const types = [
-    'bytes32', // operation.originBlockHash,
-    'bytes32', // operation.originTransactionHash,
-    'bytes4', // operation.originNetworkId,
-    'uint256', // operation.nonce,
-    'string', // operation.originAccount,
-    'string', // operation.destinationAccount,
-    'bytes4', // operation.destinationNetworkId,
-    'bytes4', // operation.forwardDestinationNetworkId,
-    'string', // operation.underlyingAssetName,
-    'string', // operation.underlyingAssetSymbol,
-    'uint256', // operation.underlyingAssetDecimals,
-    'address', // operation.underlyingAssetTokenAddress,
-    'bytes4', // operation.underlyingAssetNetworkId,
-    'uint256', // operation.assetAmount,
-    'uint256', // operation.protocolFeeAssetAmount,
-    'uint256', // operation.networkFeeAssetAmount,
-    'uint256', // operation.forwardNetworkFeeAssetAmount,
-    'bytes', // operation.userData,
-    'bytes32', // operation.optionsMask,
-    'bool', // operation.isForProtocol
-  ]
+  const types = [evm.events.OPERATION_TUPLE]
   const coder = new ethers.AbiCoder()
   return ethers.sha256(
     coder.encode(types, [
-      originatingBlockHash || blockHash,
-      originatingTransactionHash || transactionHash,
-      originatingNetworkId || networkId,
-      nonce,
-      originatingAddress,
-      destinationAccount,
-      destinationNetworkId,
-      forwardDestinationNetworkId,
-      underlyingAssetName,
-      underlyingAssetSymbol,
-      underlyingAssetDecimals,
-      underlyingAssetTokenAddress,
-      underlyingAssetNetworkId,
-      assetAmount,
-      protocolFeeAssetAmount,
-      networkFeeAssetAmount,
-      forwardNetworkFeeAssetAmount,
-      userData,
-      optionsMask,
-      isForProtocol,
+      [
+        originatingBlockHash || blockHash,
+        originatingTransactionHash || transactionHash,
+        optionsMask,
+        nonce,
+        underlyingAssetDecimals,
+        assetAmount,
+        protocolFeeAssetAmount,
+        networkFeeAssetAmount,
+        forwardNetworkFeeAssetAmount,
+        underlyingAssetTokenAddress,
+        originatingNetworkId || networkId,
+        destinationNetworkId,
+        forwardDestinationNetworkId,
+        underlyingAssetNetworkId,
+        originatingAddress,
+        destinationAccount,
+        underlyingAssetName,
+        underlyingAssetSymbol,
+        userData,
+        isForProtocol,
+      ],
     ])
   )
 }

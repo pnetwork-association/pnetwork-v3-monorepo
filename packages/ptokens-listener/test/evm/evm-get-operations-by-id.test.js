@@ -1,4 +1,5 @@
 const ethers = require('ethers')
+const utils = require('ptokens-utils')
 const { logs } = require('../mock/evm-logs')
 
 describe('Get EVM operations by Operation ID', () => {
@@ -20,9 +21,9 @@ describe('Get EVM operations by Operation ID', () => {
 
       const { getEvmOperationsById } = require('../../lib/evm/evm-get-operations-by-id')
       const provider = 'polygon-provider-url-1'
-      const networkId = 'polygon-network-id'
-      const operationId = '0x0e629afc57c3f95207c44fee302cedb89c7051b99df35847586b569073e8f425'
-      const hubAddress = '0xc2d9C83d98ba36f295Cf61B7496332075d16dc8e'
+      const networkId = utils.constants.networkIds.POLYGON_MAINNET
+      const operationId = '0xd9feb6e60cd73c396cbaeb3e5fa55c774c03a274c54f5bc53a62a59855ec7cc4'
+      const hubAddress = '0xd2bac275fffdbdd23ecea72f4b161b3af90300a3'
       const fromBlock = 45583400
       const ret = await getEvmOperationsById(
         provider,
@@ -37,16 +38,16 @@ describe('Get EVM operations by Operation ID', () => {
         fromBlock: 45583400,
         topics: [
           [
-            '0x029f1f67ab657b4c5a9616439b2bf263a1f4858077c10dd4e9bc4fea817fca37',
-            '0x3be31efdb29ca9b3c04d3eb94096006add1f157e835694c28ca864eb6dce3504',
-            '0xcdfe48ba923cd8bcac4fe88fe6c0b5a8e443f4b91e0751bc2b2b8917c03ae066',
+            '0x2c4c3f1ebc7e7a6c814ed2315a9e1ef863749841a858f5c27437ecf53ca8b39f',
+            '0x0dd9442ca0ceb76d843508ae85c58c2ef3742491a1cc480e4c0d1c96ab9965a6',
+            '0xe7bf22971bde3dd8a6a3bf8434e8b7a7c7554dad8328f741da1484d67b445c19',
           ],
         ],
       })
       expect(ret).toStrictEqual([
         {
           eventName: 'OperationExecuted',
-          txHash: '0x260d51e9aac08601fb948b137b41a672244efbf72b8c107949937dcec8bd3175',
+          txHash: '0xa5c5838123aa37d2efd69285f7b6bd8c2e93d4cf243d45926169502c13b23a49',
         },
       ])
     })
@@ -63,10 +64,10 @@ describe('Get EVM operations by Operation ID', () => {
         .mockImplementation(_url => fakeProvider)
 
       const { getEvmOperationsById } = require('../../lib/evm/evm-get-operations-by-id')
-      const provider = 'mumbai-provider-url-2'
-      const networkId = 'network-id'
+      const provider = 'polygon-provider-url-2'
+      const networkId = utils.constants.networkIds.POLYGON_MAINNET
       const operationId = '0x2eff067a18db079a26a9f26e22c404dd6f68c5f377935db0afd913a59a1ede02'
-      const hubAddress = '0x565033350582f4Ad298fDD8d59b7c36D0cAC1712'
+      const hubAddress = '0xd2bac275fffdbdd23ecea72f4b161b3af90300a3'
       const fromBlock = 34923840
       const ret = await getEvmOperationsById(
         provider,
@@ -81,9 +82,9 @@ describe('Get EVM operations by Operation ID', () => {
         fromBlock: 34923840,
         topics: [
           [
-            '0x029f1f67ab657b4c5a9616439b2bf263a1f4858077c10dd4e9bc4fea817fca37',
-            '0x3be31efdb29ca9b3c04d3eb94096006add1f157e835694c28ca864eb6dce3504',
-            '0xcdfe48ba923cd8bcac4fe88fe6c0b5a8e443f4b91e0751bc2b2b8917c03ae066',
+            '0x2c4c3f1ebc7e7a6c814ed2315a9e1ef863749841a858f5c27437ecf53ca8b39f',
+            '0x0dd9442ca0ceb76d843508ae85c58c2ef3742491a1cc480e4c0d1c96ab9965a6',
+            '0xe7bf22971bde3dd8a6a3bf8434e8b7a7c7554dad8328f741da1484d67b445c19',
           ],
         ],
       })
