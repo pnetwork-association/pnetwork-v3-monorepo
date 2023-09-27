@@ -15,7 +15,8 @@ const {
 } = require('../../lib/state/constants')
 const queuedReports = require('../samples/queued-report-set.json')
 const requestsReports = require('../samples/detected-report-set.json')
-const reports = [...queuedReports, ...requestsReports]
+const guardiansPropagatedReportSet = require('../samples/guardians-propagated-report-set')
+const reports = [...queuedReports, ...requestsReports, ...guardiansPropagatedReportSet]
 
 describe('Tests for queued requests detection and dismissal', () => {
   let collection = null
@@ -65,7 +66,6 @@ describe('Tests for queued requests detection and dismissal', () => {
       jest
         .spyOn(logic, 'sleepThenReturnArg')
         .mockImplementation(R.curry((_, _r) => Promise.resolve(_r)))
-
       const mockOperationStatusOf = jest.fn().mockResolvedValue('0x01')
       const mockCancelOperation = jest.fn().mockResolvedValue({
         wait: jest
@@ -80,6 +80,7 @@ describe('Tests for queued requests detection and dismissal', () => {
         operationStatusOf: mockOperationStatusOf,
       }))
 
+      jest.spyOn(utils, 'readIdentityFileSync').mockReturnValue(privKey)
       jest.spyOn(utils, 'readIdentityFile').mockResolvedValue(privKey)
 
       const {
