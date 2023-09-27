@@ -27,26 +27,12 @@ describe('Get Merkle path general tests', () => {
 
     it('Should get the expected Merkle path', async () => {
       const proof = await getMerkleProof(collection, guardianAddress)
-
-      const toHex = _proof =>
-        _proof.map(x => ({
-          position: x.position,
-          data: x.data.toString('hex'),
-        }))
+      const toHex = _proof => _proof.map(x => x.toString('hex'))
 
       expect(toHex(proof)).toStrictEqual([
-        {
-          position: 'right',
-          data: 'f36d7cc927c68348ec892652d199830e344f5838802b0a6534e356fcc91dbccd',
-        },
-        {
-          position: 'right',
-          data: 'd36e34fc1e061ffbf4b9ea3dfd1c24d7424c528ca17d38dbf4f805cd260eec8e',
-        },
-        {
-          position: 'right',
-          data: 'ac7454cfdeed18cba78849037645918d2ff0351021e18a290cad2213790ee165',
-        },
+        'f36d7cc927c68348ec892652d199830e344f5838802b0a6534e356fcc91dbccd',
+        'd36e34fc1e061ffbf4b9ea3dfd1c24d7424c528ca17d38dbf4f805cd260eec8e',
+        'ac7454cfdeed18cba78849037645918d2ff0351021e18a290cad2213790ee165',
       ])
     })
 
