@@ -375,6 +375,32 @@ describe('PNetworkHub', () => {
       .withArgs(OPERATION_STATUS.Queued, OPERATION_STATUS.NotQueued)
   })
 
+  it('should not be able to cancel an operation twice with the same actor', async () => {
+    const operation = await generateOperation()
+    await hub
+      .connect(relayer)
+      .protocolQueueOperation(operation, { value: LOCKED_AMOUNT_CHALLENGE_PERIOD })
+    await time.increase((await hub.getCurrentChallengePeriodDuration()).div(2))
+    await hub
+      .connect(broadcaster)
+      .protocolCancelOperation(
+        operation,
+        getActorsMerkleProof(actors, guardian),
+        await guardian.signMessage(ethers.utils.arrayify(operation.id))
+      )
+    await expect(
+      hub
+        .connect(broadcaster)
+        .protocolCancelOperation(
+          operation,
+          getActorsMerkleProof(actors, guardian),
+          await guardian.signMessage(ethers.utils.arrayify(operation.id))
+        )
+    )
+      .to.be.revertedWithCustomError(hub, 'ActorAlreadyCancelledOperation')
+      .withArgs(operation.serialize())
+  })
+
   it('a guardian should be able to cancel an operation within the challenge period', async () => {
     const operation = await generateOperation()
     await hub
@@ -390,7 +416,7 @@ describe('PNetworkHub', () => {
       )
     await expect(
       hub
-        .connect(guardian)
+        .connect(broadcaster)
         .protocolCancelOperation(
           operation,
           getActorsMerkleProof(actors, guardian),
@@ -409,7 +435,7 @@ describe('PNetworkHub', () => {
     await time.increase(await hub.getCurrentChallengePeriodDuration())
     await expect(
       hub
-        .connect(guardian)
+        .connect(broadcaster)
         .protocolCancelOperation(
           operation,
           getActorsMerkleProof(actors, guardian),
@@ -422,7 +448,7 @@ describe('PNetworkHub', () => {
     const fakeOperation = new Operation()
     await expect(
       hub
-        .connect(guardian)
+        .connect(broadcaster)
         .protocolCancelOperation(
           fakeOperation,
           getActorsMerkleProof(actors, guardian),
@@ -446,7 +472,7 @@ describe('PNetworkHub', () => {
       .connect(relayer)
       .protocolQueueOperation(operation, { value: LOCKED_AMOUNT_CHALLENGE_PERIOD })
     await hubInterim
-      .connect(guardian)
+      .connect(broadcaster)
       .protocolCancelOperation(
         operation,
         getActorsMerkleProof(actors, guardian),
@@ -485,7 +511,7 @@ describe('PNetworkHub', () => {
       .protocolQueueOperation(operation, { value: LOCKED_AMOUNT_CHALLENGE_PERIOD })
 
     await hub
-      .connect(guardian)
+      .connect(broadcaster)
       .protocolCancelOperation(
         operation,
         getActorsMerkleProof(actors, guardian),
@@ -846,7 +872,7 @@ describe('PNetworkHub', () => {
       expect(expectedCurrentChallengePeriodDuration).to.be.eq(endTimestamp.sub(startTimestamp))
 
       await hubInterim
-        .connect(guardian)
+        .connect(broadcaster)
         .protocolCancelOperation(
           operation,
           getActorsMerkleProof(actors, guardian),
