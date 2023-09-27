@@ -8,7 +8,7 @@ const { keccak256, encodePacked } = require('viem')
 module.exports.getMerkleProof = (_collection, _myAddress) =>
   logger.info('Getting proof...') ||
   _collection
-    .find({ _id: /guardianspropagated/ })
+    .find({ _id: new RegExp(constants.db.eventNames.GUARDIANS_PROPAGATED.toLowerCase()) })
     .sort({ [constants.db.KEY_WITNESSED_TS]: -1 })
     .toArray()
     .then(R.propOr({}, 0))
