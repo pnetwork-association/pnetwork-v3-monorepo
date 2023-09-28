@@ -309,12 +309,14 @@ interface IPNetworkHub is IGovernanceMessageHandler {
      * @notice An actor instruct a cancel action. If 2 actors agree on it the operation is cancelled.
      *
      * @param operation
+     * @param actorType
      * @param proof
      * @param signature
      *
      */
     function protocolCancelOperation(
         Operation calldata operation,
+        ActorTypes actorType,
         bytes32[] calldata proof,
         bytes calldata signature
     ) external;
@@ -347,20 +349,27 @@ interface IPNetworkHub is IGovernanceMessageHandler {
      * @notice Solve a challenge of an actor and sends the bond (lockedAmountStartChallenge) to the DAO.
      *
      * @param challenge
+     * @param actorType
      * @param proof
      * @param signature
      *
      */
-    function solveChallenge(Challenge calldata challenge, bytes32[] calldata proof, bytes calldata signature) external;
+    function solveChallenge(
+        Challenge calldata challenge,
+        ActorTypes actorType,
+        bytes32[] calldata proof,
+        bytes calldata signature
+    ) external;
 
     /*
      * @notice Start a challenge for an actor.
      *
      * @param actor
+     * @param actorType
      * @param proof
      *
      */
-    function startChallenge(address actor, bytes32[] memory proof) external payable;
+    function startChallenge(address actor, ActorTypes actorType, bytes32[] memory proof) external payable;
 
     /*
      * @notice Generate an user operation which will be used by the relayers to be able

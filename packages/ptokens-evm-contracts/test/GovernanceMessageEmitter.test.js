@@ -1,6 +1,6 @@
 const { expect } = require('chai')
 const { ethers } = require('hardhat')
-const { SLASHING_QUANTITY } = require('./constants')
+const { ACTORS, SLASHING_QUANTITY } = require('./constants')
 const { MerkleTree } = require('merkletreejs')
 
 let governanceMessageEmitter,
@@ -16,28 +16,44 @@ let governanceMessageEmitter,
   fakeDandelionVoting
 
 describe('GovernanceMessageEmitter', () => {
-  const getMerkleRoot = _addresses => {
-    const merkleTree = new MerkleTree(_addresses, ethers.utils.keccak256, {
+  const getMerkleRoot = (_addresses, _types) => {
+    const leaves = _addresses.map((_address, _index) =>
+      ethers.utils.solidityKeccak256(['address', 'uint8'], [_address, _types[_index]])
+    )
+
+    const merkleTree = new MerkleTree(leaves, ethers.utils.keccak256, {
       sortPairs: true,
-      hashLeaves: true,
     })
     return merkleTree.getHexRoot()
   }
 
-  const verifyMerkleProof = (_addresses, _proof, _address, _root) => {
-    const merkleTree = new MerkleTree(_addresses, ethers.utils.keccak256, {
+  const verifyMerkleProof = (_addresses, _types, _proof, _address, _type, _root) => {
+    const leaves = _addresses.map((_address, _index) =>
+      ethers.utils.solidityKeccak256(['address', 'uint8'], [_address, _types[_index]])
+    )
+
+    const merkleTree = new MerkleTree(leaves, ethers.utils.keccak256, {
       sortPairs: true,
-      hashLeaves: true,
     })
-    return merkleTree.verify(_proof, ethers.utils.solidityKeccak256(['address'], [_address]), _root)
+    return merkleTree.verify(
+      _proof,
+      ethers.utils.solidityKeccak256(['address', 'uint8'], [_address, _type]),
+      _root
+    )
   }
 
-  const getMerkleProof = (_addresses, _address, _index) => {
-    const merkleTree = new MerkleTree(_addresses, ethers.utils.keccak256, {
+  const getMerkleProof = (_addresses, _types, _address, _type, _index) => {
+    const leaves = _addresses.map((_address, _index) =>
+      ethers.utils.solidityKeccak256(['address', 'uint8'], [_address, _types[_index]])
+    )
+
+    const merkleTree = new MerkleTree(leaves, ethers.utils.keccak256, {
       sortPairs: true,
-      hashLeaves: true,
     })
-    return merkleTree.getHexProof(ethers.utils.solidityKeccak256(['address'], [_address]), _index)
+    return merkleTree.getHexProof(
+      ethers.utils.solidityKeccak256(['address', 'uint8'], [_address, _type]),
+      _index
+    )
   }
 
   beforeEach(async () => {
@@ -94,7 +110,11 @@ describe('GovernanceMessageEmitter', () => {
     }
 
     const actors = [...guardians, ...stakingSentinels, ...borrowingSentinels]
-    const merkleRootWithoutSlashedSentinel = getMerkleRoot(actors)
+    const types = [
+      ...guardians.map(() => ACTORS.Guardian),
+      ...[...stakingSentinels, ...borrowingSentinels].map(() => ACTORS.Sentinel),
+    ]
+    const merkleRootWithoutSlashedSentinel = getMerkleRoot(actors, types)
     const abiCoder = new ethers.utils.AbiCoder()
 
     const message = abiCoder.encode(
@@ -169,7 +189,11 @@ describe('GovernanceMessageEmitter', () => {
     }
 
     const actors = [...guardians, ...stakingSentinels, ...borrowingSentinels] // slashedStakingSentinel1 and slashedStakingSentinel2 are filtered
-    const merkleRootWithoutSlashedSentinel = getMerkleRoot(actors)
+    const types = [
+      ...guardians.map(() => ACTORS.Guardian),
+      ...[...stakingSentinels, ...borrowingSentinels].map(() => ACTORS.Sentinel),
+    ]
+    const merkleRootWithoutSlashedSentinel = getMerkleRoot(actors, types)
 
     const abiCoder = new ethers.utils.AbiCoder()
     const message = abiCoder.encode(
@@ -231,7 +255,9 @@ describe('GovernanceMessageEmitter', () => {
     const sentinelsWithoutSlashedOne = sentinels.map(_address =>
       _address === slashedSentinel ? '0x0000000000000000000000000000000000000000' : _address
     )
-    const merkleRootWithoutSlashedSentinel = getMerkleRoot(sentinelsWithoutSlashedOne)
+    const types = sentinels.map(() => ACTORS.Sentinel)
+
+    const merkleRootWithoutSlashedSentinel = getMerkleRoot(sentinelsWithoutSlashedOne, types)
 
     const abiCoder = new ethers.utils.AbiCoder()
     const message = abiCoder.encode(
@@ -259,7 +285,7 @@ describe('GovernanceMessageEmitter', () => {
       expect(
         verifyMerkleProof(
           sentinelsWithoutSlashedOne,
-          getMerkleProof(sentinelsWithoutSlashedOne, sentinels[i]),
+          getMerkleProof(sentinelsWithoutSlashedOne, types, sentinels[i], ACTORS.Sentinel),
           sentinels[i],
           merkleRootWithoutSlashedSentinel
         )

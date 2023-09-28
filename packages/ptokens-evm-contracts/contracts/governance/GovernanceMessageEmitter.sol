@@ -68,17 +68,22 @@ contract GovernanceMessageEmitter is IGovernanceMessageEmitter {
 
         address[] memory effectiveGuardians = _filterGuardians(guardians);
         address[] memory effectiveSentinels = _filterSentinels(sentinels);
-        address[] memory actors = new address[](effectiveGuardians.length + effectiveSentinels.length);
+
+        uint256 length = effectiveGuardians.length + effectiveSentinels.length;
+        address[] memory actors = new address[](length);
+        IPNetworkHub.ActorTypes[] memory actorsType = new IPNetworkHub.ActorTypes[](length);
 
         for (uint256 i = 0; i < effectiveGuardians.length; ) {
             actors[i] = effectiveGuardians[i];
+            actorsType[i] = IPNetworkHub.ActorTypes.Guardian;
             unchecked {
                 ++i;
             }
         }
 
-        for (uint256 i = effectiveGuardians.length; i < effectiveGuardians.length + effectiveSentinels.length; ) {
+        for (uint256 i = effectiveGuardians.length; i < length; ) {
             actors[i] = effectiveSentinels[i - effectiveGuardians.length];
+            actorsType[i] = IPNetworkHub.ActorTypes.Sentinel;
             unchecked {
                 ++i;
             }
@@ -89,7 +94,11 @@ contract GovernanceMessageEmitter is IGovernanceMessageEmitter {
         _sendMessage(
             abi.encode(
                 GOVERNANCE_MESSAGE_ACTORS,
-                abi.encode(currentEpoch, actors.length, MerkleTree.getRoot(_hashAddresses(actors)))
+                abi.encode(
+                    currentEpoch,
+                    actors.length,
+                    MerkleTree.getRoot(_hashActorAddressesWithType(actors, actorsType))
+                )
             )
         );
     }
@@ -243,10 +252,13 @@ contract GovernanceMessageEmitter is IGovernanceMessageEmitter {
         return effectiveSentinels;
     }
 
-    function _hashAddresses(address[] memory addresses) internal pure returns (bytes32[] memory) {
-        bytes32[] memory data = new bytes32[](addresses.length);
-        for (uint256 i = 0; i < addresses.length; i++) {
-            data[i] = keccak256(abi.encodePacked(addresses[i]));
+    function _hashActorAddressesWithType(
+        address[] memory actors,
+        IPNetworkHub.ActorTypes[] memory actorTypes
+    ) internal pure returns (bytes32[] memory) {
+        bytes32[] memory data = new bytes32[](actors.length);
+        for (uint256 i = 0; i < actors.length; i++) {
+            data[i] = keccak256(abi.encodePacked(actors[i], actorTypes[i]));
         }
         return data;
     }

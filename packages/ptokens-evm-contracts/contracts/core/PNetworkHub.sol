@@ -32,7 +32,7 @@ error InvalidLockedAmountChallengePeriod(
 );
 error QueueFull();
 error InvalidNetworkFeeAssetAmount();
-error InvalidActor(address actor);
+error InvalidActor(address actor, IPNetworkHub.ActorTypes actorType);
 error InvalidLockedAmountStartChallenge(uint256 lockedAmountStartChallenge, uint256 expectedLockedAmountStartChallenge);
 error InvalidActorStatus(IPNetworkHub.ActorStatus status, IPNetworkHub.ActorStatus expectedStatus);
 error InvalidChallengeStatus(IPNetworkHub.ChallengeStatus status, IPNetworkHub.ChallengeStatus expectedStatus);
@@ -244,6 +244,7 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
     /// @inheritdoc IPNetworkHub
     function protocolCancelOperation(
         Operation calldata operation,
+        ActorTypes actorType,
         bytes32[] calldata proof,
         bytes calldata signature
     ) external {
@@ -251,8 +252,8 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
 
         bytes32 operationId = operationIdOf(operation);
         address actor = ECDSA.recover(ECDSA.toEthSignedMessageHash(operationId), signature);
-        if (!_isActor(actor, proof)) {
-            revert InvalidActor(actor);
+        if (!_isActor(actor, actorType, proof)) {
+            revert InvalidActor(actor, actorType);
         }
 
         uint16 currentEpoch = IEpochsManager(epochsManager).currentEpoch();
@@ -465,21 +466,26 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
     }
 
     /// @inheritdoc IPNetworkHub
-    function solveChallenge(Challenge calldata challenge, bytes32[] calldata proof, bytes calldata signature) external {
+    function solveChallenge(
+        Challenge calldata challenge,
+        ActorTypes actorType,
+        bytes32[] calldata proof,
+        bytes calldata signature
+    ) external {
         bytes32 challengeId = challengeIdOf(challenge);
         address actor = ECDSA.recover(ECDSA.toEthSignedMessageHash(challengeId), signature);
-        if (actor != challenge.actor || !_isActor(actor, proof)) {
-            revert InvalidActor(actor);
+        if (actor != challenge.actor || !_isActor(actor, actorType, proof)) {
+            revert InvalidActor(actor, actorType);
         }
 
         _solveChallenge(challenge, challengeId);
     }
 
     /// @inheritdoc IPNetworkHub
-    function startChallenge(address actor, bytes32[] calldata proof) external payable {
+    function startChallenge(address actor, ActorTypes actorType, bytes32[] calldata proof) external payable {
         _checkNearEndOfEpochStartChallenge();
-        if (!_isActor(actor, proof)) {
-            revert InvalidActor(actor);
+        if (!_isActor(actor, actorType, proof)) {
+            revert InvalidActor(actor, actorType);
         }
 
         _startChallenge(actor);
@@ -671,12 +677,12 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
         }
     }
 
-    function _isActor(address actor, bytes32[] calldata proof) internal view returns (bool) {
+    function _isActor(address actor, ActorTypes actorType, bytes32[] calldata proof) internal view returns (bool) {
         return
             MerkleProof.verify(
                 proof,
                 _epochsActorsMerkleRoot[IEpochsManager(epochsManager).currentEpoch()],
-                keccak256(abi.encodePacked(actor))
+                keccak256(abi.encodePacked(actor, actorType))
             );
     }
 
@@ -763,6 +769,8 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
         if (uint64(block.timestamp) >= endTimestamp) {
             revert ChallengePeriodTerminated(startTimestamp, endTimestamp);
         }
+
+        // TODO: same type of actor cannot cancel the same operation
 
         Action[] storage operationCancelActions = _operationsCancelActions[operationId];
         uint256 operationCancelActionsLength = operationCancelActions.length;

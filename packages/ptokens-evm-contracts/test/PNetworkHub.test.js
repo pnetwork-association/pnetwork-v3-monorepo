@@ -5,18 +5,19 @@ const { anyValue } = require('@nomicfoundation/hardhat-chai-matchers/withArgs')
 const { MerkleTree } = require('merkletreejs')
 
 const {
+  ACTORS,
   BASE_CHALLENGE_PERIOD_DURATION,
+  CHALLENGE_DURATION,
   CHALLENGE_STATUS,
-  SLASHING_QUANTITY,
   K_CHALLENGE_PERIOD,
   LOCKED_AMOUNT_CHALLENGE_PERIOD,
   LOCKED_AMOUNT_START_CHALLENGE,
-  CHALLENGE_DURATION,
   MAX_OPERATIONS_IN_QUEUE,
+  OPERATION_STATUS,
   PNETWORK_NETWORK_IDS,
+  SLASHING_QUANTITY,
   TELEPATHY_ROUTER_ADDRESS,
   ZERO_ADDRESS,
-  OPERATION_STATUS,
 } = require('./constants')
 const { deployPToken, getOptionMaskWithOptionEnabledForBit } = require('./utils')
 const Operation = require('./utils/Operation')
@@ -56,16 +57,24 @@ let token,
   abiCoder,
   broadcaster,
   fakeDandelionVoting,
-  actors,
+  defaultActors,
+  defaultActorsType,
   pDAI
 
 describe('PNetworkHub', () => {
-  const getActorsMerkleProof = (_actors, _actor) => {
-    const leaves = _actors.map(({ address }) =>
-      ethers.utils.solidityKeccak256(['address'], [address])
+  const getActorsMerkleProof = ({
+    actors = defaultActors,
+    actor,
+    types = defaultActorsType,
+    type,
+  }) => {
+    const leaves = actors.map(({ address }, _index) =>
+      ethers.utils.solidityKeccak256(['address', 'uint8'], [address, types[_index]])
     )
     const merkleTree = new MerkleTree(leaves, ethers.utils.keccak256, { sortPairs: true })
-    return merkleTree.getHexProof(ethers.utils.solidityKeccak256(['address'], [_actor.address]))
+    return merkleTree.getHexProof(
+      ethers.utils.solidityKeccak256(['address', 'uint8'], [actor.address, type])
+    )
   }
 
   const propagateActors = async ({ guardians, sentinels }) => {
@@ -313,8 +322,11 @@ describe('PNetworkHub', () => {
 
     await pFactory.setHub(hub.address)
 
-    // NOTE: propagate actors for epoch 1
-    actors = [...guardians, ...sentinels]
+    defaultActors = [...guardians, ...sentinels]
+    defaultActorsType = [
+      ...guardians.map(() => ACTORS.Guardian),
+      ...sentinels.map(() => ACTORS.Sentinel),
+    ]
     const tx = await governanceMessageEmitter.propagateActors(
       currentEpoch,
       guardians.map(({ address }) => address),
@@ -385,7 +397,8 @@ describe('PNetworkHub', () => {
       .connect(broadcaster)
       .protocolCancelOperation(
         operation,
-        getActorsMerkleProof(actors, guardian),
+        ACTORS.Guardian,
+        getActorsMerkleProof({ actor: guardian, type: ACTORS.Guardian }),
         await guardian.signMessage(ethers.utils.arrayify(operation.id))
       )
     await expect(
@@ -393,7 +406,8 @@ describe('PNetworkHub', () => {
         .connect(broadcaster)
         .protocolCancelOperation(
           operation,
-          getActorsMerkleProof(actors, guardian),
+          ACTORS.Guardian,
+          getActorsMerkleProof({ actor: guardian, type: ACTORS.Guardian }),
           await guardian.signMessage(ethers.utils.arrayify(operation.id))
         )
     )
@@ -411,7 +425,8 @@ describe('PNetworkHub', () => {
       .connect(broadcaster)
       .protocolCancelOperation(
         operation,
-        getActorsMerkleProof(actors, sentinel),
+        ACTORS.Sentinel,
+        getActorsMerkleProof({ actor: sentinel, type: ACTORS.Sentinel }),
         await sentinel.signMessage(ethers.utils.arrayify(operation.id))
       )
     await expect(
@@ -419,7 +434,8 @@ describe('PNetworkHub', () => {
         .connect(broadcaster)
         .protocolCancelOperation(
           operation,
-          getActorsMerkleProof(actors, guardian),
+          ACTORS.Guardian,
+          getActorsMerkleProof({ actor: guardian, type: ACTORS.Guardian }),
           await guardian.signMessage(ethers.utils.arrayify(operation.id))
         )
     )
@@ -438,7 +454,8 @@ describe('PNetworkHub', () => {
         .connect(broadcaster)
         .protocolCancelOperation(
           operation,
-          getActorsMerkleProof(actors, guardian),
+          ACTORS.Guardian,
+          getActorsMerkleProof({ actor: guardian, type: ACTORS.Guardian }),
           await guardian.signMessage(ethers.utils.arrayify(operation.id))
         )
     ).to.be.revertedWithCustomError(hub, 'ChallengePeriodTerminated')
@@ -451,7 +468,8 @@ describe('PNetworkHub', () => {
         .connect(broadcaster)
         .protocolCancelOperation(
           fakeOperation,
-          getActorsMerkleProof(actors, guardian),
+          ACTORS.Guardian,
+          getActorsMerkleProof({ actor: guardian, type: ACTORS.Guardian }),
           await guardian.signMessage(ethers.utils.arrayify(fakeOperation.id))
         )
     )
@@ -475,7 +493,8 @@ describe('PNetworkHub', () => {
       .connect(broadcaster)
       .protocolCancelOperation(
         operation,
-        getActorsMerkleProof(actors, guardian),
+        ACTORS.Guardian,
+        getActorsMerkleProof({ actor: guardian, type: ACTORS.Guardian }),
         await guardian.signMessage(ethers.utils.arrayify(operation.id))
       )
     await hubInterim.connect(fakeDandelionVoting).protocolGovernanceCancelOperation(operation)
@@ -514,7 +533,8 @@ describe('PNetworkHub', () => {
       .connect(broadcaster)
       .protocolCancelOperation(
         operation,
-        getActorsMerkleProof(actors, guardian),
+        ACTORS.Guardian,
+        getActorsMerkleProof({ actor: guardian, type: ACTORS.Guardian }),
         await guardian.signMessage(ethers.utils.arrayify(operation.id))
       )
 
@@ -781,7 +801,7 @@ describe('PNetworkHub', () => {
     ).to.be.revertedWithCustomError(hub, 'NotContract')
   })
 
-  it('should not be able to queue an operation because the actors merkle root for the current epoch has not been received yet', async () => {
+  it('should not be able to queue an operation because the defaultActors merkle root for the current epoch has not been received yet', async () => {
     await time.increase(epochDuration)
     const operation = await generateOperation()
     await expect(
@@ -875,7 +895,8 @@ describe('PNetworkHub', () => {
         .connect(broadcaster)
         .protocolCancelOperation(
           operation,
-          getActorsMerkleProof(actors, guardian),
+          ACTORS.Guardian,
+          getActorsMerkleProof({ actor: guardian, type: ACTORS.Guardian }),
           await guardian.signMessage(ethers.utils.arrayify(operation.id))
         )
       await hubInterim.connect(fakeDandelionVoting).protocolGovernanceCancelOperation(operation)
@@ -1255,7 +1276,8 @@ describe('PNetworkHub', () => {
         .connect(challenger)
         .startChallenge(
           challengedSentinel.address,
-          getActorsMerkleProof(actors, challengedSentinel),
+          ACTORS.Sentinel,
+          getActorsMerkleProof({ actor: challengedSentinel, type: ACTORS.Sentinel }),
           {
             value: LOCKED_AMOUNT_START_CHALLENGE,
           }
@@ -1265,12 +1287,14 @@ describe('PNetworkHub', () => {
 
   it('should not be able to open a challenge for the same sentinel twice', async () => {
     const challengedSentinel = sentinels[2]
-    const proof = getActorsMerkleProof(actors, challengedSentinel)
-    await hub.connect(challenger).startChallenge(challengedSentinel.address, proof, {
-      value: LOCKED_AMOUNT_START_CHALLENGE,
-    })
+    const proof = getActorsMerkleProof({ actor: challengedSentinel, type: ACTORS.Sentinel })
+    await hub
+      .connect(challenger)
+      .startChallenge(challengedSentinel.address, ACTORS.Sentinel, proof, {
+        value: LOCKED_AMOUNT_START_CHALLENGE,
+      })
     await expect(
-      hub.connect(challenger).startChallenge(challengedSentinel.address, proof, {
+      hub.connect(challenger).startChallenge(challengedSentinel.address, ACTORS.Sentinel, proof, {
         value: LOCKED_AMOUNT_START_CHALLENGE,
       })
     ).to.be.revertedWithCustomError(hub, 'InvalidActorStatus')
@@ -1278,9 +1302,9 @@ describe('PNetworkHub', () => {
 
   it('should not be able to open a challenge with a wrong locked amount for the same sentinel', async () => {
     const challengedSentinel = sentinels[2]
-    const proof = getActorsMerkleProof(actors, challengedSentinel)
+    const proof = getActorsMerkleProof({ actor: challengedSentinel, type: ACTORS.Sentinel })
     await expect(
-      hub.connect(challenger).startChallenge(challengedSentinel.address, proof, {
+      hub.connect(challenger).startChallenge(challengedSentinel.address, ACTORS.Sentinel, proof, {
         value: 0,
       })
     ).to.be.revertedWithCustomError(hub, 'InvalidLockedAmountStartChallenge')
@@ -1293,7 +1317,8 @@ describe('PNetworkHub', () => {
         .connect(challenger)
         .startChallenge(
           challengedGuardian.address,
-          getActorsMerkleProof(actors, challengedGuardian),
+          ACTORS.Guardian,
+          getActorsMerkleProof({ actor: challengedGuardian, type: ACTORS.Guardian }),
           {
             value: LOCKED_AMOUNT_START_CHALLENGE,
           }
@@ -1303,12 +1328,14 @@ describe('PNetworkHub', () => {
 
   it('should not be able to open a challenge for the same guardian twice', async () => {
     const challengedGuardian = guardians[2]
-    const proof = getActorsMerkleProof(actors, challengedGuardian)
-    await hub.connect(challenger).startChallenge(challengedGuardian.address, proof, {
-      value: LOCKED_AMOUNT_START_CHALLENGE,
-    })
+    const proof = getActorsMerkleProof({ actor: challengedGuardian, type: ACTORS.Guardian })
+    await hub
+      .connect(challenger)
+      .startChallenge(challengedGuardian.address, ACTORS.Guardian, proof, {
+        value: LOCKED_AMOUNT_START_CHALLENGE,
+      })
     await expect(
-      hub.connect(challenger).startChallenge(challengedGuardian.address, proof, {
+      hub.connect(challenger).startChallenge(challengedGuardian.address, ACTORS.Guardian, proof, {
         value: LOCKED_AMOUNT_START_CHALLENGE,
       })
     ).to.be.revertedWithCustomError(hub, 'InvalidActorStatus')
@@ -1316,9 +1343,9 @@ describe('PNetworkHub', () => {
 
   it('should not be able to open a challenge with a wrong locked amount for the same guardian', async () => {
     const challengedGuardian = guardians[2]
-    const proof = getActorsMerkleProof(actors, challengedGuardian)
+    const proof = getActorsMerkleProof({ actor: challengedGuardian, type: ACTORS.Guardian })
     await expect(
-      hub.connect(challenger).startChallenge(challengedGuardian.address, proof, {
+      hub.connect(challenger).startChallenge(challengedGuardian.address, ACTORS.Guardian, proof, {
         value: 0,
       })
     ).to.be.revertedWithCustomError(hub, 'InvalidLockedAmountStartChallenge')
@@ -1326,11 +1353,13 @@ describe('PNetworkHub', () => {
 
   it('should be able to solve a challenge of a sentinel', async () => {
     const challengedSentinel = sentinels[2]
-    const proof = getActorsMerkleProof(actors, challengedSentinel)
+    const proof = getActorsMerkleProof({ actor: challengedSentinel, type: ACTORS.Sentinel })
 
-    const tx = await hub.connect(challenger).startChallenge(challengedSentinel.address, proof, {
-      value: LOCKED_AMOUNT_START_CHALLENGE,
-    })
+    const tx = await hub
+      .connect(challenger)
+      .startChallenge(challengedSentinel.address, ACTORS.Sentinel, proof, {
+        value: LOCKED_AMOUNT_START_CHALLENGE,
+      })
     const challenge = Challenge.fromReceipt(await tx.wait(1))
 
     await expect(
@@ -1338,6 +1367,7 @@ describe('PNetworkHub', () => {
         .connect(broadcaster)
         .solveChallenge(
           challenge,
+          ACTORS.Sentinel,
           proof,
           await challengedSentinel.signMessage(ethers.utils.arrayify(challenge.id))
         )
@@ -1349,10 +1379,12 @@ describe('PNetworkHub', () => {
 
   it('should not be able to solve a challenge of a sentinel because max challenge duration is passed', async () => {
     const challengedSentinel = sentinels[2]
-    const proof = getActorsMerkleProof(actors, challengedSentinel)
-    const tx = await hub.connect(challenger).startChallenge(challengedSentinel.address, proof, {
-      value: LOCKED_AMOUNT_START_CHALLENGE,
-    })
+    const proof = getActorsMerkleProof({ actor: challengedSentinel, type: ACTORS.Sentinel })
+    const tx = await hub
+      .connect(challenger)
+      .startChallenge(challengedSentinel.address, ACTORS.Sentinel, proof, {
+        value: LOCKED_AMOUNT_START_CHALLENGE,
+      })
     const challenge = Challenge.fromReceipt(await tx.wait(1))
     await time.increase(CHALLENGE_DURATION)
 
@@ -1361,6 +1393,7 @@ describe('PNetworkHub', () => {
         .connect(broadcaster)
         .solveChallenge(
           challenge,
+          ACTORS.Sentinel,
           proof,
           await challengedSentinel.signMessage(ethers.utils.arrayify(challenge.id))
         )
@@ -1370,30 +1403,35 @@ describe('PNetworkHub', () => {
   it('should not be able to solve a challenge of a sentinel by using another sentinel', async () => {
     const challengedSentinel = sentinels[2]
     const wrongSentinel = sentinels[3]
-    const proof = getActorsMerkleProof(actors, challengedSentinel)
-    const tx = await hub.connect(challenger).startChallenge(challengedSentinel.address, proof, {
-      value: LOCKED_AMOUNT_START_CHALLENGE,
-    })
+    const proof = getActorsMerkleProof({ actor: challengedSentinel, type: ACTORS.Sentinel })
+    const tx = await hub
+      .connect(challenger)
+      .startChallenge(challengedSentinel.address, ACTORS.Sentinel, proof, {
+        value: LOCKED_AMOUNT_START_CHALLENGE,
+      })
     const challenge = Challenge.fromReceipt(await tx.wait(1))
     await expect(
       hub
         .connect(broadcaster)
         .solveChallenge(
           challenge,
+          ACTORS.Sentinel,
           proof,
           await wrongSentinel.signMessage(ethers.utils.arrayify(challenge.id))
         )
     )
       .to.be.revertedWithCustomError(hub, 'InvalidActor')
-      .withArgs(wrongSentinel.address)
+      .withArgs(wrongSentinel.address, ACTORS.Sentinel)
   })
 
   it('should be able to slash a sentinel', async () => {
     const challengedSentinel = sentinels[2]
-    const proof = getActorsMerkleProof(actors, challengedSentinel)
-    let tx = await hub.connect(challenger).startChallenge(challengedSentinel.address, proof, {
-      value: LOCKED_AMOUNT_START_CHALLENGE,
-    })
+    const proof = getActorsMerkleProof({ actor: challengedSentinel, type: ACTORS.Sentinel })
+    let tx = await hub
+      .connect(challenger)
+      .startChallenge(challengedSentinel.address, ACTORS.Sentinel, proof, {
+        value: LOCKED_AMOUNT_START_CHALLENGE,
+      })
     const challenge = Challenge.fromReceipt(await tx.wait(1))
     await time.increase(CHALLENGE_DURATION)
 
@@ -1417,10 +1455,12 @@ describe('PNetworkHub', () => {
 
   it('should not be able to slash a sentinel if max challenge duration is not passed', async () => {
     const challengedSentinel = sentinels[2]
-    const proof = getActorsMerkleProof(actors, challengedSentinel)
-    const tx = await hub.connect(challenger).startChallenge(challengedSentinel.address, proof, {
-      value: LOCKED_AMOUNT_START_CHALLENGE,
-    })
+    const proof = getActorsMerkleProof({ actor: challengedSentinel, type: ACTORS.Sentinel })
+    const tx = await hub
+      .connect(challenger)
+      .startChallenge(challengedSentinel.address, ACTORS.Sentinel, proof, {
+        value: LOCKED_AMOUNT_START_CHALLENGE,
+      })
     const challenge = Challenge.fromReceipt(await tx.wait(1))
     await expect(hub.connect(challenger).slashByChallenge(challenge)).to.be.revertedWithCustomError(
       hub,
@@ -1430,10 +1470,12 @@ describe('PNetworkHub', () => {
 
   it('should be able to resume a sentinel after slashing', async () => {
     const challengedSentinel = sentinels[2]
-    const proof = getActorsMerkleProof(actors, challengedSentinel)
-    let tx = await hub.connect(challenger).startChallenge(challengedSentinel.address, proof, {
-      value: LOCKED_AMOUNT_START_CHALLENGE,
-    })
+    const proof = getActorsMerkleProof({ actor: challengedSentinel, type: ACTORS.Sentinel })
+    let tx = await hub
+      .connect(challenger)
+      .startChallenge(challengedSentinel.address, ACTORS.Sentinel, proof, {
+        value: LOCKED_AMOUNT_START_CHALLENGE,
+      })
     const challenge = Challenge.fromReceipt(await tx.wait(1))
     await time.increase(CHALLENGE_DURATION)
 
@@ -1468,10 +1510,12 @@ describe('PNetworkHub', () => {
 
   it('should not be able to slash a sentinel twice for the same challenge', async () => {
     const challengedSentinel = sentinels[2]
-    const proof = getActorsMerkleProof(actors, challengedSentinel)
-    const tx = await hub.connect(challenger).startChallenge(challengedSentinel.address, proof, {
-      value: LOCKED_AMOUNT_START_CHALLENGE,
-    })
+    const proof = getActorsMerkleProof({ actor: challengedSentinel, type: ACTORS.Sentinel })
+    const tx = await hub
+      .connect(challenger)
+      .startChallenge(challengedSentinel.address, ACTORS.Sentinel, proof, {
+        value: LOCKED_AMOUNT_START_CHALLENGE,
+      })
     const challenge = Challenge.fromReceipt(await tx.wait(1))
     await time.increase(CHALLENGE_DURATION)
     await hub.connect(challenger).slashByChallenge(challenge)
@@ -1482,11 +1526,13 @@ describe('PNetworkHub', () => {
 
   it('should be able to solve a challenge of a guardian', async () => {
     const challengedGuardian = guardians[2]
-    const proof = getActorsMerkleProof(actors, challengedGuardian)
+    const proof = getActorsMerkleProof({ actor: challengedGuardian, type: ACTORS.Guardian })
 
-    const tx = await hub.connect(challenger).startChallenge(challengedGuardian.address, proof, {
-      value: LOCKED_AMOUNT_START_CHALLENGE,
-    })
+    const tx = await hub
+      .connect(challenger)
+      .startChallenge(challengedGuardian.address, ACTORS.Guardian, proof, {
+        value: LOCKED_AMOUNT_START_CHALLENGE,
+      })
     const challenge = Challenge.fromReceipt(await tx.wait(1))
 
     await expect(
@@ -1494,6 +1540,7 @@ describe('PNetworkHub', () => {
         .connect(broadcaster)
         .solveChallenge(
           challenge,
+          ACTORS.Guardian,
           proof,
           await challengedGuardian.signMessage(ethers.utils.arrayify(challenge.id))
         )
@@ -1505,10 +1552,12 @@ describe('PNetworkHub', () => {
 
   it('should not be able to solve a challenge of a sentinel because max challenge duration is passed', async () => {
     const challengedGuardian = guardians[2]
-    const proof = getActorsMerkleProof(actors, challengedGuardian)
-    const tx = await hub.connect(challenger).startChallenge(challengedGuardian.address, proof, {
-      value: LOCKED_AMOUNT_START_CHALLENGE,
-    })
+    const proof = getActorsMerkleProof({ actor: challengedGuardian, type: ACTORS.Guardian })
+    const tx = await hub
+      .connect(challenger)
+      .startChallenge(challengedGuardian.address, ACTORS.Guardian, proof, {
+        value: LOCKED_AMOUNT_START_CHALLENGE,
+      })
     const challenge = Challenge.fromReceipt(await tx.wait(1))
     await time.increase(CHALLENGE_DURATION)
 
@@ -1517,6 +1566,7 @@ describe('PNetworkHub', () => {
         .connect(broadcaster)
         .solveChallenge(
           challenge,
+          ACTORS.Guardian,
           proof,
           await challengedGuardian.signMessage(ethers.utils.arrayify(challenge.id))
         )
@@ -1526,30 +1576,35 @@ describe('PNetworkHub', () => {
   it('should not be able to solve a challenge of a sentinel by using another sentinel', async () => {
     const challengedGuardian = guardians[2]
     const wrongGuardian = guardians[1]
-    const proof = getActorsMerkleProof(actors, challengedGuardian)
-    const tx = await hub.connect(challenger).startChallenge(challengedGuardian.address, proof, {
-      value: LOCKED_AMOUNT_START_CHALLENGE,
-    })
+    const proof = getActorsMerkleProof({ actor: challengedGuardian, type: ACTORS.Guardian })
+    const tx = await hub
+      .connect(challenger)
+      .startChallenge(challengedGuardian.address, ACTORS.Guardian, proof, {
+        value: LOCKED_AMOUNT_START_CHALLENGE,
+      })
     const challenge = Challenge.fromReceipt(await tx.wait(1))
     await expect(
       hub
         .connect(wrongGuardian)
         .solveChallenge(
           challenge,
+          ACTORS.Guardian,
           proof,
           await wrongGuardian.signMessage(ethers.utils.arrayify(challenge.id))
         )
     )
       .to.be.revertedWithCustomError(hub, 'InvalidActor')
-      .withArgs(wrongGuardian.address)
+      .withArgs(wrongGuardian.address, ACTORS.Guardian)
   })
 
   it('should be able to slash a sentinel', async () => {
     const challengedGuardian = guardians[2]
-    const proof = getActorsMerkleProof(actors, challengedGuardian)
-    let tx = await hub.connect(challenger).startChallenge(challengedGuardian.address, proof, {
-      value: LOCKED_AMOUNT_START_CHALLENGE,
-    })
+    const proof = getActorsMerkleProof({ actor: challengedGuardian, type: ACTORS.Guardian })
+    let tx = await hub
+      .connect(challenger)
+      .startChallenge(challengedGuardian.address, ACTORS.Guardian, proof, {
+        value: LOCKED_AMOUNT_START_CHALLENGE,
+      })
     const challenge = Challenge.fromReceipt(await tx.wait(1))
     await time.increase(CHALLENGE_DURATION)
 
@@ -1572,10 +1627,12 @@ describe('PNetworkHub', () => {
 
   it('should not be able to slash a sentinel if max challenge duration is not passed', async () => {
     const challengedGuardian = guardians[2]
-    const proof = getActorsMerkleProof(actors, challengedGuardian)
-    const tx = await hub.connect(challenger).startChallenge(challengedGuardian.address, proof, {
-      value: LOCKED_AMOUNT_START_CHALLENGE,
-    })
+    const proof = getActorsMerkleProof({ actor: challengedGuardian, type: ACTORS.Guardian })
+    const tx = await hub
+      .connect(challenger)
+      .startChallenge(challengedGuardian.address, ACTORS.Guardian, proof, {
+        value: LOCKED_AMOUNT_START_CHALLENGE,
+      })
     const challenge = Challenge.fromReceipt(await tx.wait(1))
     await expect(hub.connect(challenger).slashByChallenge(challenge)).to.be.revertedWithCustomError(
       hub,
@@ -1585,10 +1642,12 @@ describe('PNetworkHub', () => {
 
   it('should be able to resume a sentinel after slashing', async () => {
     const challengedGuardian = guardians[2]
-    const proof = getActorsMerkleProof(actors, challengedGuardian)
-    let tx = await hub.connect(challenger).startChallenge(challengedGuardian.address, proof, {
-      value: LOCKED_AMOUNT_START_CHALLENGE,
-    })
+    const proof = getActorsMerkleProof({ actor: challengedGuardian, type: ACTORS.Guardian })
+    let tx = await hub
+      .connect(challenger)
+      .startChallenge(challengedGuardian.address, ACTORS.Guardian, proof, {
+        value: LOCKED_AMOUNT_START_CHALLENGE,
+      })
     const challenge = Challenge.fromReceipt(await tx.wait(1))
     await time.increase(CHALLENGE_DURATION)
 
@@ -1623,10 +1682,12 @@ describe('PNetworkHub', () => {
 
   it('should be able to slash a sentinel twice for the same challenge', async () => {
     const challengedGuardian = guardians[2]
-    const proof = getActorsMerkleProof(actors, challengedGuardian)
-    const tx = await hub.connect(challenger).startChallenge(challengedGuardian.address, proof, {
-      value: LOCKED_AMOUNT_START_CHALLENGE,
-    })
+    const proof = getActorsMerkleProof({ actor: challengedGuardian, type: ACTORS.Guardian })
+    const tx = await hub
+      .connect(challenger)
+      .startChallenge(challengedGuardian.address, ACTORS.Guardian, proof, {
+        value: LOCKED_AMOUNT_START_CHALLENGE,
+      })
     const challenge = Challenge.fromReceipt(await tx.wait(1))
     await time.increase(CHALLENGE_DURATION)
     await hub.connect(challenger).slashByChallenge(challenge)
@@ -1638,18 +1699,22 @@ describe('PNetworkHub', () => {
   it('should not be able to queue an operation if lock down mode is triggered because both sentinels and guardians are inactive', async () => {
     const challenges = []
     for (const challengedGuardian of guardians) {
-      const proof = getActorsMerkleProof(actors, challengedGuardian)
-      const tx = await hub.connect(challenger).startChallenge(challengedGuardian.address, proof, {
-        value: LOCKED_AMOUNT_START_CHALLENGE,
-      })
+      const proof = getActorsMerkleProof({ actor: challengedGuardian, type: ACTORS.Guardian })
+      const tx = await hub
+        .connect(challenger)
+        .startChallenge(challengedGuardian.address, ACTORS.Guardian, proof, {
+          value: LOCKED_AMOUNT_START_CHALLENGE,
+        })
       challenges.push(Challenge.fromReceipt(await tx.wait(1)))
     }
 
     for (const challengedSentinel of sentinels) {
-      const proof = getActorsMerkleProof(actors, challengedSentinel)
-      const tx = await hub.connect(challenger).startChallenge(challengedSentinel.address, proof, {
-        value: LOCKED_AMOUNT_START_CHALLENGE,
-      })
+      const proof = getActorsMerkleProof({ actor: challengedSentinel, type: ACTORS.Sentinel })
+      const tx = await hub
+        .connect(challenger)
+        .startChallenge(challengedSentinel.address, ACTORS.Sentinel, proof, {
+          value: LOCKED_AMOUNT_START_CHALLENGE,
+        })
       challenges.push(Challenge.fromReceipt(await tx.wait(1)))
     }
 
@@ -1671,12 +1736,12 @@ describe('PNetworkHub', () => {
     // 0                                         1
 
     const challengedGuardian = guardians[2]
-    const proof = getActorsMerkleProof(actors, challengedGuardian)
+    const proof = getActorsMerkleProof({ actor: challengedGuardian, type: ACTORS.Guardian })
     const startFirstEpochTimestamp = (await epochsManager.startFirstEpochTimestamp()).toNumber()
     const currentEpochEndTimestamp = startFirstEpochTimestamp + (currentEpoch + 1) * epochDuration
     await time.increaseTo(currentEpochEndTimestamp - CHALLENGE_DURATION - 3600 + 1)
     await expect(
-      hub.connect(challenger).startChallenge(challengedGuardian.address, proof, {
+      hub.connect(challenger).startChallenge(challengedGuardian.address, ACTORS.Guardian, proof, {
         value: LOCKED_AMOUNT_START_CHALLENGE,
       })
     ).to.be.revertedWithCustomError(hub, 'NearToEpochEnd')
@@ -1689,7 +1754,7 @@ describe('PNetworkHub', () => {
     // actor challenghable between OE and T
 
     const challengedGuardian = guardians[2]
-    const proof = getActorsMerkleProof(actors, challengedGuardian)
+    const proof = getActorsMerkleProof({ actor: challengedGuardian, type: ACTORS.Guardian })
     const startFirstEpochTimestamp = (await epochsManager.startFirstEpochTimestamp()).toNumber()
     const currentEpochEndTimestamp = startFirstEpochTimestamp + (currentEpoch + 1) * epochDuration
     const maxChallengePeriodDuration =
@@ -1705,7 +1770,7 @@ describe('PNetworkHub', () => {
     ).to.be.revertedWithCustomError(hub, 'LockDown')
 
     await expect(
-      hub.connect(challenger).startChallenge(challengedGuardian.address, proof, {
+      hub.connect(challenger).startChallenge(challengedGuardian.address, ACTORS.Guardian, proof, {
         value: LOCKED_AMOUNT_START_CHALLENGE,
       })
     ).to.not.be.revertedWithCustomError(hub, 'NearToEpochEnd')
@@ -1716,23 +1781,25 @@ describe('PNetworkHub', () => {
     // 0                                         1
 
     const challengedGuardian = guardians[2]
-    const proof = getActorsMerkleProof(actors, challengedGuardian)
+    const proof = getActorsMerkleProof({ actor: challengedGuardian, type: ACTORS.Guardian })
     const startFirstEpochTimestamp = (await epochsManager.startFirstEpochTimestamp()).toNumber()
     const currentEpochEndTimestamp = startFirstEpochTimestamp + (currentEpoch + 1) * epochDuration
     await time.increaseTo(currentEpochEndTimestamp - CHALLENGE_DURATION - 3600 - 1)
-    const tx = await hub.connect(challenger).startChallenge(challengedGuardian.address, proof, {
-      value: LOCKED_AMOUNT_START_CHALLENGE,
-    })
+    const tx = await hub
+      .connect(challenger)
+      .startChallenge(challengedGuardian.address, ACTORS.Guardian, proof, {
+        value: LOCKED_AMOUNT_START_CHALLENGE,
+      })
     const challenge = Challenge.fromReceipt(await tx.wait(1))
 
     await expect(
-      hub
-        .connect(broadcaster)
-        .solveChallenge(
-          challenge,
-          proof,
-          await challengedGuardian.signMessage(ethers.utils.arrayify(challenge.id))
-        )
+      hub.connect(broadcaster).solveChallenge(
+        challenge,
+        ACTORS.Guardian,
+
+        proof,
+        await challengedGuardian.signMessage(ethers.utils.arrayify(challenge.id))
+      )
     )
       .to.emit(hub, 'ChallengeSolved')
       .withArgs(challenge.serialize())
@@ -1743,25 +1810,27 @@ describe('PNetworkHub', () => {
     // 0                                          1
 
     const challengedGuardian = guardians[2]
-    const proof = getActorsMerkleProof(actors, challengedGuardian)
+    const proof = getActorsMerkleProof({ actor: challengedGuardian, type: ACTORS.Guardian })
     const startFirstEpochTimestamp = (await epochsManager.startFirstEpochTimestamp()).toNumber()
     const currentEpochEndTimestamp = startFirstEpochTimestamp + (currentEpoch + 1) * epochDuration
     await time.increaseTo(currentEpochEndTimestamp - CHALLENGE_DURATION - 3600 - 1)
-    const tx = await hub.connect(challenger).startChallenge(challengedGuardian.address, proof, {
-      value: LOCKED_AMOUNT_START_CHALLENGE,
-    })
+    const tx = await hub
+      .connect(challenger)
+      .startChallenge(challengedGuardian.address, ACTORS.Guardian, proof, {
+        value: LOCKED_AMOUNT_START_CHALLENGE,
+      })
     const challenge = Challenge.fromReceipt(await tx.wait(1))
 
     await time.setNextBlockTimestamp(currentEpochEndTimestamp - 10)
 
     await expect(
-      hub
-        .connect(broadcaster)
-        .solveChallenge(
-          challenge,
-          proof,
-          await challengedGuardian.signMessage(ethers.utils.arrayify(challenge.id))
-        )
+      hub.connect(broadcaster).solveChallenge(
+        challenge,
+        ACTORS.Guardian,
+
+        proof,
+        await challengedGuardian.signMessage(ethers.utils.arrayify(challenge.id))
+      )
     ).to.be.revertedWithCustomError(hub, 'ChallengeDurationPassed')
 
     await time.setNextBlockTimestamp(currentEpochEndTimestamp - 1)
@@ -1777,26 +1846,28 @@ describe('PNetworkHub', () => {
     // 0                                         1                                      2
 
     const challengedGuardian = guardians[2]
-    const proof = getActorsMerkleProof(actors, challengedGuardian)
+    const proof = getActorsMerkleProof({ actor: challengedGuardian, type: ACTORS.Guardian })
     const startFirstEpochTimestamp = (await epochsManager.startFirstEpochTimestamp()).toNumber()
     const currentEpochEndTimestamp = startFirstEpochTimestamp + (currentEpoch + 1) * epochDuration
     await time.increaseTo(currentEpochEndTimestamp - CHALLENGE_DURATION - 3600 - 1)
-    const tx = await hub.connect(challenger).startChallenge(challengedGuardian.address, proof, {
-      value: LOCKED_AMOUNT_START_CHALLENGE,
-    })
+    const tx = await hub
+      .connect(challenger)
+      .startChallenge(challengedGuardian.address, ACTORS.Guardian, proof, {
+        value: LOCKED_AMOUNT_START_CHALLENGE,
+      })
     const challenge = Challenge.fromReceipt(await tx.wait(1))
 
     await time.increaseTo(currentEpochEndTimestamp + 1)
     await propagateActors({ guardians, sentinels })
 
     await expect(
-      hub
-        .connect(broadcaster)
-        .solveChallenge(
-          challenge,
-          proof,
-          await challengedGuardian.signMessage(ethers.utils.arrayify(challenge.id))
-        )
+      hub.connect(broadcaster).solveChallenge(
+        challenge,
+        ACTORS.Guardian,
+
+        proof,
+        await challengedGuardian.signMessage(ethers.utils.arrayify(challenge.id))
+      )
     ).to.be.revertedWithCustomError(hub, 'ChallengeNotFound')
 
     await expect(hub.connect(challenger).slashByChallenge(challenge)).to.be.revertedWithCustomError(
@@ -1805,22 +1876,26 @@ describe('PNetworkHub', () => {
     )
   })
 
-  it('should be able enter and exit from lock down mode because of actors inactivity', async () => {
+  it('should be able enter and exit from lock down mode because of defaultActors inactivity', async () => {
     const challenges = []
     let tx
     for (const challengedGuardian of guardians) {
-      const proof = getActorsMerkleProof(actors, challengedGuardian)
-      tx = await hub.connect(challenger).startChallenge(challengedGuardian.address, proof, {
-        value: LOCKED_AMOUNT_START_CHALLENGE,
-      })
+      const proof = getActorsMerkleProof({ actor: challengedGuardian, type: ACTORS.Guardian })
+      tx = await hub
+        .connect(challenger)
+        .startChallenge(challengedGuardian.address, ACTORS.Guardian, proof, {
+          value: LOCKED_AMOUNT_START_CHALLENGE,
+        })
       challenges.push(Challenge.fromReceipt(await tx.wait(1)))
     }
 
     for (const challengedSentinel of sentinels) {
-      const proof = getActorsMerkleProof(actors, challengedSentinel)
-      tx = await hub.connect(challenger).startChallenge(challengedSentinel.address, proof, {
-        value: LOCKED_AMOUNT_START_CHALLENGE,
-      })
+      const proof = getActorsMerkleProof({ actor: challengedSentinel, type: ACTORS.Sentinel })
+      tx = await hub
+        .connect(challenger)
+        .startChallenge(challengedSentinel.address, ACTORS.Sentinel, proof, {
+          value: LOCKED_AMOUNT_START_CHALLENGE,
+        })
       challenges.push(Challenge.fromReceipt(await tx.wait(1)))
     }
 
@@ -1887,28 +1962,34 @@ describe('PNetworkHub', () => {
     const sentinelNotRegistered = sentinels[0]
     await propagateActors({ sentinels: sentinels.slice(1), guardians: guardians.slice(1) })
 
-    let proof = getActorsMerkleProof(actors, guardianNotRegistered)
+    let proof = getActorsMerkleProof({ actor: guardianNotRegistered, type: ACTORS.Guardian })
     await expect(
-      hub.connect(challenger).startChallenge(guardianNotRegistered.address, proof, {
-        value: LOCKED_AMOUNT_START_CHALLENGE,
-      })
+      hub
+        .connect(challenger)
+        .startChallenge(guardianNotRegistered.address, ACTORS.Guardian, proof, {
+          value: LOCKED_AMOUNT_START_CHALLENGE,
+        })
     ).to.be.revertedWithCustomError(hub, 'InvalidActor')
 
-    proof = getActorsMerkleProof(actors, sentinelNotRegistered)
+    proof = getActorsMerkleProof({ actor: sentinelNotRegistered, type: ACTORS.Sentinel })
     await expect(
-      hub.connect(challenger).startChallenge(sentinelNotRegistered.address, proof, {
-        value: LOCKED_AMOUNT_START_CHALLENGE,
-      })
+      hub
+        .connect(challenger)
+        .startChallenge(sentinelNotRegistered.address, ACTORS.Sentinel, proof, {
+          value: LOCKED_AMOUNT_START_CHALLENGE,
+        })
     ).to.be.revertedWithCustomError(hub, 'InvalidActor')
   })
 
   it('should be able to claim lockedAmountStartChallenge in the next epoch', async () => {
     const challengedGuardian = guardians[2]
-    const proof = getActorsMerkleProof(actors, challengedGuardian)
+    const proof = getActorsMerkleProof({ actor: challengedGuardian, type: ACTORS.Guardian })
 
-    let tx = await hub.connect(challenger).startChallenge(challengedGuardian.address, proof, {
-      value: LOCKED_AMOUNT_START_CHALLENGE,
-    })
+    let tx = await hub
+      .connect(challenger)
+      .startChallenge(challengedGuardian.address, ACTORS.Guardian, proof, {
+        value: LOCKED_AMOUNT_START_CHALLENGE,
+      })
     const challenge = Challenge.fromReceipt(await tx.wait(1))
 
     const startFirstEpochTimestamp = (await epochsManager.startFirstEpochTimestamp()).toNumber()
@@ -1931,11 +2012,13 @@ describe('PNetworkHub', () => {
 
   it('should not be able to claim lockedAmountStartChallenge in the next epoch twice', async () => {
     const challengedGuardian = guardians[2]
-    const proof = getActorsMerkleProof(actors, challengedGuardian)
+    const proof = getActorsMerkleProof({ actor: challengedGuardian, type: ACTORS.Guardian })
 
-    const tx = await hub.connect(challenger).startChallenge(challengedGuardian.address, proof, {
-      value: LOCKED_AMOUNT_START_CHALLENGE,
-    })
+    const tx = await hub
+      .connect(challenger)
+      .startChallenge(challengedGuardian.address, ACTORS.Guardian, proof, {
+        value: LOCKED_AMOUNT_START_CHALLENGE,
+      })
     const challenge = Challenge.fromReceipt(await tx.wait(1))
     const startFirstEpochTimestamp = (await epochsManager.startFirstEpochTimestamp()).toNumber()
     const currentEpochEndTimestamp = startFirstEpochTimestamp + (currentEpoch + 1) * epochDuration
@@ -1950,11 +2033,13 @@ describe('PNetworkHub', () => {
 
   it('should not be able to claim lockedAmountStartChallenge in the epoch in which the challenge was opened', async () => {
     const challengedGuardian = guardians[2]
-    const proof = getActorsMerkleProof(actors, challengedGuardian)
+    const proof = getActorsMerkleProof({ actor: challengedGuardian, type: ACTORS.Guardian })
 
-    const tx = await hub.connect(challenger).startChallenge(challengedGuardian.address, proof, {
-      value: LOCKED_AMOUNT_START_CHALLENGE,
-    })
+    const tx = await hub
+      .connect(challenger)
+      .startChallenge(challengedGuardian.address, ACTORS.Guardian, proof, {
+        value: LOCKED_AMOUNT_START_CHALLENGE,
+      })
     const challenge = Challenge.fromReceipt(await tx.wait(1))
     await expect(
       hub.connect(challenger).claimLockedAmountStartChallenge(challenge)
@@ -1963,14 +2048,16 @@ describe('PNetworkHub', () => {
 
   it('should not be able to claim lockedAmountStartChallenge for a challenge that does not exist', async () => {
     const challengedGuardian = guardians[2]
-    const proof = getActorsMerkleProof(actors, challengedGuardian)
+    const proof = getActorsMerkleProof({ actor: challengedGuardian, type: ACTORS.Guardian })
 
     const startFirstEpochTimestamp = (await epochsManager.startFirstEpochTimestamp()).toNumber()
     const currentEpochEndTimestamp = startFirstEpochTimestamp + (currentEpoch + 1) * epochDuration
 
-    const tx = await hub.connect(challenger).startChallenge(challengedGuardian.address, proof, {
-      value: LOCKED_AMOUNT_START_CHALLENGE,
-    })
+    const tx = await hub
+      .connect(challenger)
+      .startChallenge(challengedGuardian.address, ACTORS.Guardian, proof, {
+        value: LOCKED_AMOUNT_START_CHALLENGE,
+      })
     const challenge = Challenge.fromReceipt(await tx.wait(1))
 
     await time.increaseTo(currentEpochEndTimestamp + 1)
@@ -1991,18 +2078,22 @@ describe('PNetworkHub', () => {
     const challenges = []
     let tx
     for (const challengedGuardian of guardians) {
-      const proof = getActorsMerkleProof(actors, challengedGuardian)
-      tx = await hub.connect(challenger).startChallenge(challengedGuardian.address, proof, {
-        value: LOCKED_AMOUNT_START_CHALLENGE,
-      })
+      const proof = getActorsMerkleProof({ actor: challengedGuardian, type: ACTORS.Guardian })
+      tx = await hub
+        .connect(challenger)
+        .startChallenge(challengedGuardian.address, ACTORS.Guardian, proof, {
+          value: LOCKED_AMOUNT_START_CHALLENGE,
+        })
       challenges.push(Challenge.fromReceipt(await tx.wait(1)))
     }
 
     for (const challengedSentinel of sentinels) {
-      const proof = getActorsMerkleProof(actors, challengedSentinel)
-      tx = await hub.connect(challenger).startChallenge(challengedSentinel.address, proof, {
-        value: LOCKED_AMOUNT_START_CHALLENGE,
-      })
+      const proof = getActorsMerkleProof({ actor: challengedSentinel, type: ACTORS.Sentinel })
+      tx = await hub
+        .connect(challenger)
+        .startChallenge(challengedSentinel.address, ACTORS.Sentinel, proof, {
+          value: LOCKED_AMOUNT_START_CHALLENGE,
+        })
       challenges.push(Challenge.fromReceipt(await tx.wait(1)))
     }
 
@@ -2080,7 +2171,8 @@ describe('PNetworkHub', () => {
       .connect(broadcaster)
       .protocolCancelOperation(
         operation,
-        getActorsMerkleProof(actors, guardian),
+        ACTORS.Guardian,
+        getActorsMerkleProof({ actor: guardian, type: ACTORS.Guardian }),
         await guardian.signMessage(ethers.utils.arrayify(operation.id))
       )
     await expect(
@@ -2088,7 +2180,8 @@ describe('PNetworkHub', () => {
         .connect(broadcaster)
         .protocolCancelOperation(
           operation,
-          getActorsMerkleProof(actors, slashedSentinel),
+          ACTORS.Sentinel,
+          getActorsMerkleProof({ actor: slashedSentinel, type: ACTORS.Sentinel }),
           await slashedSentinel.signMessage(ethers.utils.arrayify(operation.id))
         )
     )
@@ -2100,10 +2193,12 @@ describe('PNetworkHub', () => {
     const challenges = []
     let tx
     for (const challengedGuardian of guardians) {
-      const proof = getActorsMerkleProof(actors, challengedGuardian)
-      tx = await hub.connect(challenger).startChallenge(challengedGuardian.address, proof, {
-        value: LOCKED_AMOUNT_START_CHALLENGE,
-      })
+      const proof = getActorsMerkleProof({ actor: challengedGuardian, type: ACTORS.Guardian })
+      tx = await hub
+        .connect(challenger)
+        .startChallenge(challengedGuardian.address, ACTORS.Guardian, proof, {
+          value: LOCKED_AMOUNT_START_CHALLENGE,
+        })
       challenges.push(Challenge.fromReceipt(await tx.wait(1)))
     }
 
@@ -2145,10 +2240,12 @@ describe('PNetworkHub', () => {
 
   it('should be able to correctly handling the pending challenge for an actor', async () => {
     const challengedGuardian = guardians[0]
-    const proof = getActorsMerkleProof(actors, challengedGuardian)
-    let tx = await hub.connect(challenger).startChallenge(challengedGuardian.address, proof, {
-      value: LOCKED_AMOUNT_START_CHALLENGE,
-    })
+    const proof = getActorsMerkleProof({ actor: challengedGuardian, type: ACTORS.Guardian })
+    let tx = await hub
+      .connect(challenger)
+      .startChallenge(challengedGuardian.address, ACTORS.Guardian, proof, {
+        value: LOCKED_AMOUNT_START_CHALLENGE,
+      })
     let challenge = Challenge.fromReceipt(await tx.wait(1))
 
     let expectedChallengeId = await hub.challengeIdOf(challenge)
@@ -2173,9 +2270,11 @@ describe('PNetworkHub', () => {
         abiCoder.decode(['bytes'], message.data)[0]
       )
 
-    tx = await hub.connect(challenger).startChallenge(challengedGuardian.address, proof, {
-      value: LOCKED_AMOUNT_START_CHALLENGE,
-    })
+    tx = await hub
+      .connect(challenger)
+      .startChallenge(challengedGuardian.address, ACTORS.Guardian, proof, {
+        value: LOCKED_AMOUNT_START_CHALLENGE,
+      })
     challenge = Challenge.fromReceipt(await tx.wait(1))
 
     expectedChallengeId = await hub.challengeIdOf(challenge)
@@ -2183,13 +2282,13 @@ describe('PNetworkHub', () => {
       await hub.getPendingChallengeIdByEpochOf(currentEpoch, challengedGuardian.address)
     ).to.be.eq(expectedChallengeId)
 
-    await hub
-      .connect(broadcaster)
-      .solveChallenge(
-        challenge,
-        proof,
-        await challengedGuardian.signMessage(ethers.utils.arrayify(challenge.id))
-      )
+    await hub.connect(broadcaster).solveChallenge(
+      challenge,
+      ACTORS.Guardian,
+
+      proof,
+      await challengedGuardian.signMessage(ethers.utils.arrayify(challenge.id))
+    )
     expect(
       await hub.getPendingChallengeIdByEpochOf(currentEpoch, challengedGuardian.address)
     ).to.be.eq('0x'.padEnd(66, '0'))
@@ -2199,19 +2298,23 @@ describe('PNetworkHub', () => {
     const challenges = []
     let tx
     for (const challengedGuardian of guardians) {
-      const proof = getActorsMerkleProof(actors, challengedGuardian)
-      tx = await hub.connect(challenger).startChallenge(challengedGuardian.address, proof, {
-        value: LOCKED_AMOUNT_START_CHALLENGE,
-      })
+      const proof = getActorsMerkleProof({ actor: challengedGuardian, type: ACTORS.Guardian })
+      tx = await hub
+        .connect(challenger)
+        .startChallenge(challengedGuardian.address, ACTORS.Guardian, proof, {
+          value: LOCKED_AMOUNT_START_CHALLENGE,
+        })
       challenges.push(Challenge.fromReceipt(await tx.wait(1)))
     }
 
     const effectiveSentinels = sentinels.slice(1)
     for (const challengedSentinel of effectiveSentinels) {
-      const proof = getActorsMerkleProof(actors, challengedSentinel)
-      tx = await hub.connect(challenger).startChallenge(challengedSentinel.address, proof, {
-        value: LOCKED_AMOUNT_START_CHALLENGE,
-      })
+      const proof = getActorsMerkleProof({ actor: challengedSentinel, type: ACTORS.Sentinel })
+      tx = await hub
+        .connect(challenger)
+        .startChallenge(challengedSentinel.address, ACTORS.Sentinel, proof, {
+          value: LOCKED_AMOUNT_START_CHALLENGE,
+        })
       challenges.push(Challenge.fromReceipt(await tx.wait(1)))
     }
 
@@ -2225,10 +2328,12 @@ describe('PNetworkHub', () => {
     )
 
     const slashedSentinel = sentinels[0]
-    const proof = getActorsMerkleProof(actors, slashedSentinel)
-    tx = await hub.connect(challenger).startChallenge(slashedSentinel.address, proof, {
-      value: LOCKED_AMOUNT_START_CHALLENGE,
-    })
+    const proof = getActorsMerkleProof({ actor: slashedSentinel, type: ACTORS.Sentinel })
+    tx = await hub
+      .connect(challenger)
+      .startChallenge(slashedSentinel.address, ACTORS.Sentinel, proof, {
+        value: LOCKED_AMOUNT_START_CHALLENGE,
+      })
 
     const challengerBalancePre = await ethers.provider.getBalance(challenger.address)
 
@@ -2274,10 +2379,12 @@ describe('PNetworkHub', () => {
 
   it('should not be able to solve or slash a cancelled challenge', async () => {
     const slashedSentinel = sentinels[0]
-    const proof = getActorsMerkleProof(actors, slashedSentinel)
-    let tx = await hub.connect(challenger).startChallenge(slashedSentinel.address, proof, {
-      value: LOCKED_AMOUNT_START_CHALLENGE,
-    })
+    const proof = getActorsMerkleProof({ actor: slashedSentinel, type: ACTORS.Sentinel })
+    let tx = await hub
+      .connect(challenger)
+      .startChallenge(slashedSentinel.address, ACTORS.Sentinel, proof, {
+        value: LOCKED_AMOUNT_START_CHALLENGE,
+      })
     const challenge = Challenge.fromReceipt(await tx.wait(1))
 
     tx = await governanceMessageEmitter.slashActor(slashedSentinel.address)
@@ -2301,6 +2408,7 @@ describe('PNetworkHub', () => {
         .connect(broadcaster)
         .solveChallenge(
           challenge,
+          ACTORS.Sentinel,
           proof,
           await slashedSentinel.signMessage(ethers.utils.arrayify(challenge.id))
         )
@@ -2309,7 +2417,7 @@ describe('PNetworkHub', () => {
       .withArgs(CHALLENGE_STATUS.Cancelled, CHALLENGE_STATUS.Pending)
   })
 
-  it('should adjust the challenge period based on the number of current active actors', async () => {
+  it('should adjust the challenge period based on the number of current active defaultActors', async () => {
     const operation = await generateOperation()
     await hub
       .connect(relayer)
@@ -2318,18 +2426,22 @@ describe('PNetworkHub', () => {
     const challenges = []
     let tx
     for (const challengedGuardian of guardians) {
-      const proof = getActorsMerkleProof(actors, challengedGuardian)
-      tx = await hub.connect(challenger).startChallenge(challengedGuardian.address, proof, {
-        value: LOCKED_AMOUNT_START_CHALLENGE,
-      })
+      const proof = getActorsMerkleProof({ actor: challengedGuardian, type: ACTORS.Guardian })
+      tx = await hub
+        .connect(challenger)
+        .startChallenge(challengedGuardian.address, ACTORS.Guardian, proof, {
+          value: LOCKED_AMOUNT_START_CHALLENGE,
+        })
       challenges.push(Challenge.fromReceipt(await tx.wait(1)))
     }
 
     for (const challengedSentinel of sentinels) {
-      const proof = getActorsMerkleProof(actors, challengedSentinel)
-      tx = await hub.connect(challenger).startChallenge(challengedSentinel.address, proof, {
-        value: LOCKED_AMOUNT_START_CHALLENGE,
-      })
+      const proof = getActorsMerkleProof({ actor: challengedSentinel, type: ACTORS.Sentinel })
+      tx = await hub
+        .connect(challenger)
+        .startChallenge(challengedSentinel.address, ACTORS.Sentinel, proof, {
+          value: LOCKED_AMOUNT_START_CHALLENGE,
+        })
       challenges.push(Challenge.fromReceipt(await tx.wait(1)))
     }
 
@@ -2397,10 +2509,12 @@ describe('PNetworkHub', () => {
       BigInt(200000)
     )
 
-    const proof = getActorsMerkleProof(actors, slashedSentinel)
-    let tx = await hub.connect(challenger).startChallenge(slashedSentinel.address, proof, {
-      value: LOCKED_AMOUNT_START_CHALLENGE,
-    })
+    const proof = getActorsMerkleProof({ actor: slashedSentinel, type: ACTORS.Sentinel })
+    let tx = await hub
+      .connect(challenger)
+      .startChallenge(slashedSentinel.address, ACTORS.Sentinel, proof, {
+        value: LOCKED_AMOUNT_START_CHALLENGE,
+      })
 
     const challenge = Challenge.fromReceipt(await tx.wait(1))
 
@@ -2562,7 +2676,8 @@ describe('PNetworkHub', () => {
         .connect(broadcaster)
         .protocolCancelOperation(
           operation,
-          getActorsMerkleProof(actors, slashedSentinel),
+          ACTORS.Sentinel,
+          getActorsMerkleProof({ actor: slashedSentinel, type: ACTORS.Sentinel }),
           await slashedSentinel.signMessage(ethers.utils.arrayify(operation.id))
         )
     ).to.be.revertedWithCustomError(hub, 'Inactive')
@@ -2572,7 +2687,8 @@ describe('PNetworkHub', () => {
         .connect(broadcaster)
         .protocolCancelOperation(
           operation,
-          getActorsMerkleProof(actors, slashedGuardian),
+          ACTORS.Guardian,
+          getActorsMerkleProof({ actor: slashedGuardian, type: ACTORS.Guardian }),
           await slashedGuardian.signMessage(ethers.utils.arrayify(operation.id))
         )
     ).to.be.revertedWithCustomError(hub, 'Inactive')
