@@ -16,7 +16,11 @@ import {Utils} from "../libraries/Utils.sol";
 import {Network} from "../libraries/Network.sol";
 
 error InvalidOperationStatus(IPNetworkHub.OperationStatus status, IPNetworkHub.OperationStatus expectedStatus);
-error ActorAlreadyCancelledOperation(IPNetworkHub.Operation operation);
+error ActorAlreadyCancelledOperation(
+    IPNetworkHub.Operation operation,
+    address actor,
+    IPNetworkHub.ActorTypes actorType
+);
 error ChallengePeriodNotTerminated(uint64 startTimestamp, uint64 endTimestamp);
 error ChallengePeriodTerminated(uint64 startTimestamp, uint64 endTimestamp);
 error InvalidAssetParameters(uint256 assetAmount, address assetTokenAddress);
@@ -64,7 +68,9 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
     string public constant UNDERLYING_ASSET_SYMBOL_USER_DATA_PROTOCOL_FEE = "DAI";
 
     mapping(bytes32 => Action) private _operationsRelayerQueueAction;
-    mapping(bytes32 => Action[]) private _operationsCancelActions;
+    mapping(bytes32 => Action) private _operationsGovernanceCancelAction;
+    mapping(bytes32 => Action) private _operationsGuardianCancelAction;
+    mapping(bytes32 => Action) private _operationsSentinelCancelAction;
     mapping(bytes32 => uint8) private _operationsTotalCancelActions;
     mapping(bytes32 => OperationStatus) private _operationsStatus;
     mapping(uint16 => bytes32) private _epochsActorsMerkleRoot;
@@ -238,7 +244,7 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
             revert NotDandelionVoting(msgSender, dandelionVoting);
         }
 
-        _protocolCancelOperation(operation, operationIdOf(operation), msgSender);
+        _protocolCancelOperation(operation, operationIdOf(operation), msgSender, ActorTypes.Governance);
     }
 
     /// @inheritdoc IPNetworkHub
@@ -261,7 +267,7 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
             revert Inactive();
         }
 
-        _protocolCancelOperation(operation, operationId, actor);
+        _protocolCancelOperation(operation, operationId, actor, actorType);
     }
 
     /// @inheritdoc IPNetworkHub
@@ -624,9 +630,19 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
         Action storage queueAction = _operationsRelayerQueueAction[operationId];
         uint64 startTimestamp = queueAction.timestamp;
         uint64 endTimestamp = startTimestamp + getCurrentChallengePeriodDuration();
+        if (_operationsTotalCancelActions[operationId] == 0) {
+            return (startTimestamp, endTimestamp);
+        }
 
-        uint256 operationTotalCancelActions = _operationsTotalCancelActions[operationId];
-        return (startTimestamp, endTimestamp + uint64(5 days * operationTotalCancelActions));
+        if (_operationsGuardianCancelAction[operationId].actor != address(0)) {
+            endTimestamp += 5 days;
+        }
+
+        if (_operationsSentinelCancelAction[operationId].actor != address(0)) {
+            endTimestamp += 5 days;
+        }
+
+        return (startTimestamp, endTimestamp);
     }
 
     function _checkLockDownMode() internal view {
@@ -752,14 +768,19 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
         if (messageType == GOVERNANCE_MESSAGE_PROTOCOL_GOVERNANCE_CANCEL_OPERATION) {
             Operation memory operation = abi.decode(messageData, (Operation));
             // TODO; What should i use ad actor address? address(this) ???
-            _protocolCancelOperation(operation, operationIdOf(operation), address(this));
+            _protocolCancelOperation(operation, operationIdOf(operation), address(this), ActorTypes.Governance);
             return;
         }
 
         revert InvalidGovernanceMessage(message);
     }
 
-    function _protocolCancelOperation(Operation memory operation, bytes32 operationId, address actor) internal {
+    function _protocolCancelOperation(
+        Operation memory operation,
+        bytes32 operationId,
+        address actor,
+        ActorTypes actorType
+    ) internal {
         OperationStatus operationStatus = _operationsStatus[operationId];
         if (operationStatus != OperationStatus.Queued) {
             revert InvalidOperationStatus(operationStatus, OperationStatus.Queued);
@@ -770,21 +791,32 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
             revert ChallengePeriodTerminated(startTimestamp, endTimestamp);
         }
 
-        // TODO: same type of actor cannot cancel the same operation
-
-        Action[] storage operationCancelActions = _operationsCancelActions[operationId];
-        uint256 operationCancelActionsLength = operationCancelActions.length;
-        for (uint256 index = 0; index < operationCancelActionsLength; ) {
-            if (operationCancelActions[index].actor == actor) {
-                revert ActorAlreadyCancelledOperation(operation);
+        Action memory action = Action({actor: actor, timestamp: uint64(block.timestamp)});
+        if (actorType == ActorTypes.Governance) {
+            address governance = _operationsGovernanceCancelAction[operationId].actor;
+            if (governance != address(0)) {
+                revert ActorAlreadyCancelledOperation(operation, governance, actorType);
             }
 
-            unchecked {
-                ++index;
-            }
+            _operationsGovernanceCancelAction[operationId] = action;
         }
+        if (actorType == ActorTypes.Guardian) {
+            address guardian = _operationsGuardianCancelAction[operationId].actor;
+            if (guardian != address(0)) {
+                revert ActorAlreadyCancelledOperation(operation, guardian, actorType);
+            }
 
-        _operationsCancelActions[operationId].push(Action({actor: actor, timestamp: uint64(block.timestamp)}));
+            _operationsGuardianCancelAction[operationId] = action;
+        }
+        if (actorType == ActorTypes.Sentinel) {
+            address sentinel = _operationsSentinelCancelAction[operationId].actor;
+            if (sentinel != address(0)) {
+                revert ActorAlreadyCancelledOperation(operation, sentinel, actorType);
+            }
+
+            _operationsSentinelCancelAction[operationId] = action;
+        }
+        emit OperationCancelled(operation, actor, actorType);
 
         unchecked {
             ++_operationsTotalCancelActions[operationId];
@@ -798,7 +830,7 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
             // TODO: send the lockedAmountChallengePeriod to the DAO
             Utils.sendEther(address(0), lockedAmountChallengePeriod);
 
-            emit OperationCancelled(operation);
+            emit OperationCancelFinalized(operation);
         }
     }
 

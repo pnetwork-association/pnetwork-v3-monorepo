@@ -412,7 +412,7 @@ describe('PNetworkHub', () => {
         )
     )
       .to.be.revertedWithCustomError(hub, 'ActorAlreadyCancelledOperation')
-      .withArgs(operation.serialize())
+      .withArgs(operation.serialize(), guardian.address, ACTORS.Guardian)
   })
 
   it('a guardian should be able to cancel an operation within the challenge period', async () => {
@@ -439,8 +439,76 @@ describe('PNetworkHub', () => {
           await guardian.signMessage(ethers.utils.arrayify(operation.id))
         )
     )
-      .to.emit(hub, 'OperationCancelled')
+      .to.emit(hub, 'OperationCancelFinalized')
       .withArgs(operation.serialize())
+  })
+
+  it('should not be able to cancel an operation twice with 2 guardians', async () => {
+    const operation = await generateOperation()
+    await hub
+      .connect(relayer)
+      .protocolQueueOperation(operation, { value: LOCKED_AMOUNT_CHALLENGE_PERIOD })
+
+    await expect(
+      hub
+        .connect(broadcaster)
+        .protocolCancelOperation(
+          operation,
+          ACTORS.Guardian,
+          getActorsMerkleProof({ actor: guardian, type: ACTORS.Guardian }),
+          await guardian.signMessage(ethers.utils.arrayify(operation.id))
+        )
+    )
+      .to.emit(hub, 'OperationCancelled')
+      .withArgs(operation.serialize(), guardian.address, ACTORS.Guardian)
+
+    const secondGuardian = guardians[1]
+    await expect(
+      hub
+        .connect(broadcaster)
+        .protocolCancelOperation(
+          operation,
+          ACTORS.Guardian,
+          getActorsMerkleProof({ actor: secondGuardian, type: ACTORS.Guardian }),
+          await secondGuardian.signMessage(ethers.utils.arrayify(operation.id))
+        )
+    )
+      .to.be.revertedWithCustomError(hub, 'ActorAlreadyCancelledOperation')
+      .withArgs(operation.serialize(), guardian.address, ACTORS.Guardian)
+  })
+
+  it('should not be able to cancel an operation twice with 2 sentinels', async () => {
+    const operation = await generateOperation()
+    await hub
+      .connect(relayer)
+      .protocolQueueOperation(operation, { value: LOCKED_AMOUNT_CHALLENGE_PERIOD })
+
+    await expect(
+      hub
+        .connect(broadcaster)
+        .protocolCancelOperation(
+          operation,
+          ACTORS.Sentinel,
+          getActorsMerkleProof({ actor: sentinel, type: ACTORS.Sentinel }),
+          await sentinel.signMessage(ethers.utils.arrayify(operation.id))
+        )
+    )
+      .to.emit(hub, 'OperationCancelled')
+      .withArgs(operation.serialize(), sentinel.address, ACTORS.Sentinel)
+
+    const secondSentinel = sentinels[1]
+    await expect(
+      hub
+        .connect(broadcaster)
+        .protocolCancelOperation(
+          operation,
+          ACTORS.Sentinel,
+          getActorsMerkleProof({ actor: secondSentinel, type: ACTORS.Sentinel }),
+          await secondSentinel.signMessage(ethers.utils.arrayify(operation.id))
+        )
+    )
+      .to.be.revertedWithCustomError(hub, 'ActorAlreadyCancelledOperation')
+      .withArgs(operation.serialize(), sentinel.address, ACTORS.Sentinel)
   })
 
   it('a guardian should not be able to cancel an operation after the challenge period', async () => {
@@ -551,7 +619,7 @@ describe('PNetworkHub', () => {
           abiCoder.decode(['bytes'], message.data)[0]
         )
     )
-      .to.emit(hub, 'OperationCancelled')
+      .to.emit(hub, 'OperationCancelFinalized')
       .withArgs(operation.serialize())
   })
 
@@ -2185,7 +2253,7 @@ describe('PNetworkHub', () => {
           await slashedSentinel.signMessage(ethers.utils.arrayify(operation.id))
         )
     )
-      .to.emit(hub, 'OperationCancelled')
+      .to.emit(hub, 'OperationCancelFinalized')
       .withArgs(operation.serialize())
   })
 

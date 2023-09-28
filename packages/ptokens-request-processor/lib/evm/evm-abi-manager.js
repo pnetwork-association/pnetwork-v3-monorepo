@@ -28,7 +28,7 @@ const hubErrors = [
   `error OperationAlreadyQueued(${userOperationTuple} operation)`,
   `error OperationAlreadyExecuted(${userOperationTuple} operation)`,
   `error OperationAlreadyCancelled(${userOperationTuple} operation)`,
-  `error OperationCancelled(${userOperationTuple} operation)`,
+  `error OperationCancelFinalized(${userOperationTuple} operation)`,
   `error OperationNotQueued(${userOperationTuple} operation)`,
   `error GovernanceOperationAlreadyCancelled(${userOperationTuple} operation)`,
   `error GuardianOperationAlreadyCancelled(${userOperationTuple} operation)`,

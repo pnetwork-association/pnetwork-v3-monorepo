@@ -145,7 +145,16 @@ interface IPNetworkHub is IGovernanceMessageHandler {
      *
      * @param operation The cancelled operation
      */
-    event OperationCancelled(Operation operation);
+    event OperationCancelFinalized(Operation operation);
+
+    /**
+     * @dev Emitted when an actor instruct a cancel operation.
+     *
+     * @param operation The cancelled operation
+     * @param actor the actor
+     * @param actorType the actor type
+     */
+    event OperationCancelled(Operation operation, address indexed actor, ActorTypes indexed actorType);
 
     /**
      * @dev Emitted when an user operation is generated.
