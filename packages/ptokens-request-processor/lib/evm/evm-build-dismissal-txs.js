@@ -8,12 +8,9 @@ const { constants: ptokensUtilsConstants, logic, utils } = require('ptokens-util
 const { addDismissedReportsToState } = require('../state/state-operations.js')
 const { STATE_TO_BE_DISMISSED_REQUESTS } = require('../state/constants')
 const { callContractFunctionAndAwait } = require('./evm-call-contract-function')
-const {
-  logUserOperationFromAbiArgs,
-  parseUserOperationFromReport,
-} = require('./evm-parse-user-operation')
+const { parseUserOperationFromReport } = require('./evm-parse-user-operation')
 const abi = require('./abi/PNetworkHub').abi
-const { addErrorToEvent } = require('../add-error-to-event')
+const { addErrorToReport } = require('../add-error-to-event')
 const { gasPrice, gasLimit } = require('../../config.json')
 
 // TODO: factor out (check evm-build-proposals-txs)
@@ -35,7 +32,7 @@ const cancelOperationErrorHandler = R.curry((resolve, reject, _eventReport, _err
   _err.message.includes(errors.ERROR_OPERATION_NOT_QUEUED) ||
   _err.message.includes(errors.ERROR_CHALLENGE_PERIOD_TERMINATED)
     ? resolve(addCancelledTxHashToEvent(_eventReport, '0x'))
-    : logger.error(_err) || resolve(addErrorToEvent(_eventReport, _err))
+    : logger.error(_err) || resolve(addErrorToReport(_eventReport, _err))
 )
 
 const makeDismissalContractCall = R.curry(
@@ -60,7 +57,6 @@ const makeDismissalContractCall = R.curry(
       const contract = new ethers.Contract(contractAddress, abi, _wallet)
 
       logger.info(`Executing _id: ${id}`)
-      logUserOperationFromAbiArgs(functionName, args)
 
       return callContractFunctionAndAwait(functionName, args, contract, _txTimeout)
         .then(R.prop(constants.evm.ethers.KEY_TX_HASH))

@@ -1,18 +1,16 @@
 const R = require('ramda')
 const ethers = require('ethers')
+const abi = require('./abi/PNetworkHub').abi
 const constants = require('ptokens-constants')
 const { logger } = require('../get-logger')
+const { utils } = require('ptokens-utils')
 const { STATE_DETECTED_DB_REPORTS, STATE_QUEUED_DB_REPORTS } = require('../state/constants')
 const { updateEventInDb } = require('../update-events-in-db')
-const {
-  logUserOperationFromAbiArgs,
-  parseUserOperationFromReport,
-} = require('./evm-parse-user-operation')
+const { parseUserOperationFromReport } = require('./evm-parse-user-operation')
 const {
   getDetectedEventsFromDbAndPutInState,
   getQueuedEventsFromDbAndPutInState,
 } = require('../get-events-from-db')
-const abi = require('./abi/PNetworkHub').abi
 // See ptokens-evm-contracts/contracts/libraries/Constants.sol
 const OPERATION_NULL = 0x00
 const OPERATION_QUEUED = 0x01
@@ -52,19 +50,22 @@ const setCorrectRequestStatusInDb = (_db, _request, _onChainStatus) =>
     return resolve()
   })
 
-const setRequestsStatusAccordinglyIntoDb = R.curry(
-  (_db, _actualRequests, _onChainStatuses) =>
-    new Promise((resolve, reject) => {
-      logger.info('Maybe reflect on chain status on stored requests...')
-      if (_actualRequests.length !== _onChainStatuses.length)
-        return reject(new Error('Length does not match when checking on chain operation status!'))
-
-      return Promise.all(
-        _actualRequests.map((_request, _index) =>
-          setCorrectRequestStatusInDb(_db, _request, _onChainStatuses[_index])
+const setRequestsStatusAccordinglyIntoDb = R.curry((_db, _actualRequests, _onChainStatuses) =>
+  utils
+    .rejectIfNotEqual(
+      `Lengths do not match! (${_actualRequests.length} != ${_onChainStatuses.length})`,
+      _actualRequests.length,
+      _onChainStatuses.length
+    )
+    .then(
+      _ =>
+        logger.info('Maybe reflect on chain status on stored requests...') ||
+        Promise.all(
+          _actualRequests.map((_request, _index) =>
+            setCorrectRequestStatusInDb(_db, _request, _onChainStatuses[_index])
+          )
         )
-      ).then(_ => resolve())
-    })
+    )
 )
 
 const getOperationStatus = R.curry(
@@ -72,8 +73,7 @@ const getOperationStatus = R.curry(
     new Promise(resolve => {
       const args = parseUserOperationFromReport(_report)
       const hub = new ethers.Contract(_hubAddress, abi, _provider)
-      logger.info(`Getting operation status of ${_report[constants.db.KEY_ID]}...`)
-      logUserOperationFromAbiArgs('', args)
+      logger.info(`Getting operation status of ${_report[constants.db.KEY_ID].slice(0, 20)}...`)
 
       return hub
         .operationStatusOf(...args)
@@ -84,29 +84,29 @@ const getOperationStatus = R.curry(
 
 const filterOutDetectedEventsWithWrongStatusAndPutInState = _state =>
   new Promise(resolve => {
-    const pendingRequests = _state[STATE_DETECTED_DB_REPORTS]
+    const queuedOperations = _state[STATE_DETECTED_DB_REPORTS]
     const providerUrl = _state[constants.state.KEY_PROVIDER_URL]
     const hubAddress = _state[constants.state.KEY_HUB_ADDRESS]
     const provider = new ethers.JsonRpcProvider(providerUrl)
     const db = _state[constants.state.KEY_DB]
     logger.info('Checking EVM requests on chain status...')
-    return Promise.all(pendingRequests.map(getOperationStatus(provider, hubAddress)))
-      .then(setRequestsStatusAccordinglyIntoDb(db, pendingRequests))
+    return Promise.all(queuedOperations.map(getOperationStatus(provider, hubAddress)))
+      .then(setRequestsStatusAccordinglyIntoDb(db, queuedOperations))
       .then(_ => getDetectedEventsFromDbAndPutInState(_state))
       .then(resolve)
   })
 
 const filterOutQueuedOperationsWithWrongStatusAndPutInState = _state =>
   new Promise(resolve => {
-    const pendingRequests = _state[STATE_QUEUED_DB_REPORTS]
+    const queuedOperations = _state[STATE_QUEUED_DB_REPORTS]
     const providerUrl = _state[constants.state.KEY_PROVIDER_URL]
     const hubAddress = _state[constants.state.KEY_HUB_ADDRESS]
     const provider = new ethers.JsonRpcProvider(providerUrl)
     const db = _state[constants.state.KEY_DB]
 
     logger.info('Checking EVM requests on chain status...')
-    return Promise.all(pendingRequests.map(getOperationStatus(provider, hubAddress)))
-      .then(setRequestsStatusAccordinglyIntoDb(db, pendingRequests))
+    return Promise.all(queuedOperations.map(getOperationStatus(provider, hubAddress)))
+      .then(setRequestsStatusAccordinglyIntoDb(db, queuedOperations))
       .then(_ => getQueuedEventsFromDbAndPutInState(_state))
       .then(resolve)
   })

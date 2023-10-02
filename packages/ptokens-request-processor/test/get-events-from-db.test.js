@@ -24,7 +24,7 @@ describe('General get events from db tests', () => {
       await db.closeConnection(uri)
     })
 
-    it('Should get the detected events with the chain id 0x00e4b170', async () => {
+    it('Should get the detected events with the chain id 0xf9b459a1', async () => {
       const networkId = '0xf9b459a1'
       const state = {
         [constants.state.KEY_DB]: collection,
@@ -32,8 +32,7 @@ describe('General get events from db tests', () => {
       }
 
       const result = await getDetectedEventsFromDbAndPutInState(state)
-      const expectedReports = [detectedEvents[0]]
-
+      const expectedReports = [detectedEvents[0], detectedEvents[1]]
       expect(result).toHaveProperty(constants.state.KEY_DB)
       expect(result).toHaveProperty(constants.state.KEY_NETWORK_ID)
       expect(result).toEqual(
