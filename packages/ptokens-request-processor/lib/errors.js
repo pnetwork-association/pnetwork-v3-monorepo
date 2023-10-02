@@ -4,6 +4,7 @@ module.exports = {
   ERROR_INVALID_EVENT_NAME: 'Invalid event name',
   ERROR_OPERATION_NOT_QUEUED: 'OperationNotQueued',
   ERROR_OPERATION_ALREADY_QUEUED: 'OperationAlreadyQueued',
+  ERROR_OPERATION_ALREADY_CANCELED: 'OperationAlreadyCancelled',
   ERROR_OPERATION_ALREADY_EXECUTED: 'OperationAlreadyExecuted',
   ERROR_UNABLE_TO_GET_GUARDIANS: 'Unable to get the guardians',
   ERROR_CHALLENGE_PERIOD_TERMINATED: 'ChallengePeriodTerminated',

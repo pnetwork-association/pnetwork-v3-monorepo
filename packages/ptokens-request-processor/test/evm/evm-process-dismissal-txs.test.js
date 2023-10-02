@@ -81,7 +81,7 @@ describe('Tests for queued requests detection and dismissal', () => {
       }))
 
       jest.spyOn(utils, 'readIdentityFileSync').mockReturnValue(privKey)
-      jest.spyOn(utils, 'readIdentityFile').mockResolvedValue(privKey)
+      jest.spyOn(utils, 'readIdentityFileSync').mockReturnValue(privKey)
 
       const {
         maybeProcessNewRequestsAndDismiss,
@@ -168,7 +168,7 @@ describe('Tests for queued requests detection and dismissal', () => {
         .spyOn(logic, 'sleepThenReturnArg')
         .mockImplementation(R.curry((_, _r) => Promise.resolve(_r)))
 
-      jest.spyOn(ethers, 'JsonRpcProvider').mockResolvedValue({})
+      jest.spyOn(ethers, 'JsonRpcProvider').mockReturnValue({})
       jest.spyOn(ethers, 'Contract').mockImplementation(() => ({
         solveChallengeGuardian: mockSolveChallenge,
       }))

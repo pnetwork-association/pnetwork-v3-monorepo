@@ -5,7 +5,7 @@ const {
   STATE_FINALIZED_DB_REPORTS,
 } = require('../../lib/state/constants')
 const R = require('ramda')
-const { db, utils, logic } = require('ptokens-utils')
+const { db, logic } = require('ptokens-utils')
 const constants = require('ptokens-constants')
 
 const proposedEvents = require('../samples/proposed-report-set').slice(0, 2)
@@ -41,6 +41,7 @@ describe('Main EVM flow for transaction proposal tests', () => {
 
     it('Should finalize proposed events which challenge period has expired', async () => {
       const ethers = require('ethers')
+      const { utils } = require('ptokens-utils')
 
       const finalizedTxHashes = [
         '0x3319a74fd2e369da02c230818d5196682daaf86d213ce5257766858558ee5462',
@@ -80,7 +81,7 @@ describe('Main EVM flow for transaction proposal tests', () => {
         challengePeriodOf: mockChallengePeriodOf,
       }))
 
-      jest.spyOn(utils, 'readIdentityFile').mockResolvedValue(privKey)
+      jest.spyOn(utils, 'readIdentityFileSync').mockReturnValue(privKey)
 
       const state = {
         [constants.state.KEY_DB]: collection,

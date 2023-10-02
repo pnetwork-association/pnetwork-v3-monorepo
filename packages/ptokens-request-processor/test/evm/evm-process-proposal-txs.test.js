@@ -68,7 +68,7 @@ describe('Main EVM flow for transaction proposal tests', () => {
         lockedAmountChallengePeriod: mockLockedAmountChallengePeriod,
       }))
 
-      jest.spyOn(utils, 'readIdentityFile').mockResolvedValue(privKey)
+      jest.spyOn(utils, 'readIdentityFileSync').mockReturnValue(privKey)
 
       const state = {
         [constants.state.KEY_DB]: collection,
@@ -92,7 +92,7 @@ describe('Main EVM flow for transaction proposal tests', () => {
         [constants.db.KEY_STATUS]: constants.db.txStatus.PROPOSED,
       })
 
-      expect(proposedEvents).toHaveLength(1)
+      expect(proposedEvents).toHaveLength(2)
     })
   })
 })

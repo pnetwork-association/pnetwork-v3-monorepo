@@ -1,24 +1,19 @@
 const R = require('ramda')
 const ethers = require('ethers')
 const errors = require('../errors')
+const abi = require('./abi/PNetworkHub').abi
 const constants = require('ptokens-constants')
 const { logger } = require('../get-logger')
+const { HubError } = require('./evm-hub-error')
 const { getMerkleProof } = require('./get-merkle-proof')
+const { checkEventName } = require('../check-event-name')
+const { addErrorToReport } = require('../add-error-to-event')
 const { constants: ptokensUtilsConstants, logic, utils } = require('ptokens-utils')
 const { addDismissedReportsToState } = require('../state/state-operations.js')
 const { STATE_TO_BE_DISMISSED_REQUESTS } = require('../state/constants')
-const { callContractFunctionAndAwait } = require('./evm-call-contract-function')
-const {
-  logUserOperationFromAbiArgs,
-  parseUserOperationFromReport,
-} = require('./evm-parse-user-operation')
-const abi = require('./abi/PNetworkHub').abi
-const { addErrorToEvent } = require('../add-error-to-event')
-const { gasPrice, gasLimit } = require('../../config.json')
+const { parseUserOperationFromReport } = require('./evm-parse-user-operation')
 
-// TODO: factor out (check evm-build-proposals-txs)
 const addCancelledTxHashToEvent = R.curry((_event, _finalizedTxHash) => {
-  // TODO: replace _id field
   const id = _event[constants.db.KEY_ID]
   logger.debug(`Adding ${_finalizedTxHash} to ${id.slice(0, 20)}...`)
   const cancelledTimestamp = new Date().toISOString()
@@ -31,62 +26,63 @@ const addCancelledTxHashToEvent = R.curry((_event, _finalizedTxHash) => {
   return Promise.resolve(updatedEvent)
 })
 
-const cancelOperationErrorHandler = R.curry((resolve, reject, _eventReport, _err) =>
-  _err.message.includes(errors.ERROR_OPERATION_NOT_QUEUED) ||
-  _err.message.includes(errors.ERROR_CHALLENGE_PERIOD_TERMINATED)
-    ? resolve(addCancelledTxHashToEvent(_eventReport, '0x'))
-    : logger.error(_err) || resolve(addErrorToEvent(_eventReport, _err))
-)
+const estimateGasErrorHandler = (_resolve, _reject, _report, _err) => {
+  if (
+    _err.message.includes(errors.ERROR_OPERATION_ALREADY_CANCELED) ||
+    _err.message.includes(errors.ERROR_OPERATION_NOT_QUEUED) ||
+    _err.message.includes(errors.ERROR_CHALLENGE_PERIOD_TERMINATED)
+  ) {
+    return _resolve(addCancelledTxHashToEvent(_report, '0x'))
+  } else {
+    logger.error(_err)
+    return _resolve(addErrorToReport(_report, _err))
+  }
+}
+
+const errorHandler = (_resolve, _reject, _contract, _report, _err) => {
+  if (_err.message.includes(constants.evm.ethers.ERROR_ESTIMATE_GAS)) {
+    const hubError = new HubError(_contract.interface.parseError(_err.data))
+    return estimateGasErrorHandler(_resolve, _reject, _report, hubError)
+  } else {
+    logger.error(_err)
+    return _resolve(addErrorToReport(_report, _err))
+  }
+}
 
 const makeDismissalContractCall = R.curry(
-  (_wallet, _hubAddress, _proof, _txTimeout, _eventReport) =>
+  (_wallet, _hubAddress, _proof, _txTimeout, _report) =>
     new Promise((resolve, reject) => {
-      const id = _eventReport[constants.db.KEY_ID]
-      const eventName = _eventReport[constants.db.KEY_EVENT_NAME]
-
-      if (!R.includes(eventName, R.values(constants.db.eventNames))) {
-        return reject(new Error(`${errors.ERROR_INVALID_EVENT_NAME}: ${eventName}`))
-      }
-
-      const contractAddress = _hubAddress
-      const functionName = 'protocolGuardianCancelOperation'
-      const args = parseUserOperationFromReport(_eventReport)
-      args.push(_proof)
-      args.push({
-        gasLimit,
-        gasPrice,
-      })
-
-      const contract = new ethers.Contract(contractAddress, abi, _wallet)
+      const id = _report[constants.db.KEY_ID]
+      const eventName = _report[constants.db.KEY_EVENT_NAME]
+      const args = parseUserOperationFromReport(_report)
+      const contract = new ethers.Contract(_hubAddress, abi, _wallet)
 
       logger.info(`Executing _id: ${id}`)
-      logUserOperationFromAbiArgs(functionName, args)
-
-      return callContractFunctionAndAwait(functionName, args, contract, _txTimeout)
+      return checkEventName(eventName)
+        .then(_ => contract.protocolGuardianCancelOperation(...args, _proof))
+        .then(
+          _tx => logger.debug('protocolGuardianCancelOperation called, awaiting...') || _tx.wait()
+        )
+        .then(_receipt => logger.info('Tx mined successfully!') || _receipt)
         .then(R.prop(constants.evm.ethers.KEY_TX_HASH))
-        .then(addCancelledTxHashToEvent(_eventReport))
+        .then(addCancelledTxHashToEvent(_report))
         .then(resolve)
-        .catch(cancelOperationErrorHandler(resolve, reject, _eventReport))
+        .catch(_err => errorHandler(resolve, reject, contract, _report, _err))
     })
 )
 
 const sendDismissalTransactions = R.curry(
-  async (_eventReports, _proof, _hubAddress, _timeOut, _wallet) => {
+  async (_reports, _hubAddress, _timeOut, _wallet, _proof) => {
     logger.info(`Sending final txs w/ address ${_wallet.address} w/ proof ${_proof}`)
-    const newReports = []
-    for (const report of _eventReports) {
-      const newReport = await makeDismissalContractCall(
-        _wallet,
-        _hubAddress,
-        _proof,
-        _timeOut,
-        report
+    const updatedReports = []
+    for (const report of _reports) {
+      updatedReports.push(
+        await makeDismissalContractCall(_wallet, _hubAddress, _proof, _timeOut, report)
       )
-      newReports.push(newReport)
       await logic.sleepForXMilliseconds(1000) // TODO: make configurable
     }
 
-    return newReports
+    return updatedReports
   }
 )
 
@@ -101,14 +97,12 @@ const buildDismissalTxsAndPutInState = _state =>
     const txTimeout = _state[constants.state.KEY_TX_TIMEOUT]
     const hub = _state[constants.state.KEY_HUB_ADDRESS]
     const db = _state[constants.state.KEY_DB]
+    const privateKey = utils.readIdentityFileSync(identityGpgFile)
+    const wallet = new ethers.Wallet(privateKey, provider)
 
-    return utils
-      .readIdentityFile(identityGpgFile)
-      .then(_privateKey => new ethers.Wallet(_privateKey, provider))
-      .then(_wallet => Promise.all([_wallet, getMerkleProof(db, _wallet.address)]))
-      .then(([_wallet, _proof]) =>
-        sendDismissalTransactions(invalidRequests, _proof, hub, txTimeout, _wallet)
-      )
+    logger.info(wallet)
+    return getMerkleProof(db, wallet.address)
+      .then(sendDismissalTransactions(invalidRequests, hub, txTimeout, wallet))
       .then(addDismissedReportsToState(_state))
       .then(resolve)
       .catch(reject)
@@ -116,6 +110,7 @@ const buildDismissalTxsAndPutInState = _state =>
 
 const maybeBuildDismissalTxsAndPutInState = _state =>
   new Promise(resolve => {
+    logger.info('Maybe building cancel transactions...')
     const networkId = _state[constants.state.KEY_NETWORK_ID]
     const blockChainName = utils.flipObjectPropertiesSync(ptokensUtilsConstants.networkIds)[
       networkId
