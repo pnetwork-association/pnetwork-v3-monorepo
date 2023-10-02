@@ -110,10 +110,8 @@ describe('GovernanceMessageEmitter', () => {
     }
 
     const actors = [...guardians, ...stakingSentinels, ...borrowingSentinels]
-    const types = [
-      ...guardians.map(() => ACTORS.Guardian),
-      ...[...stakingSentinels, ...borrowingSentinels].map(() => ACTORS.Sentinel),
-    ]
+    const sentinels = [...stakingSentinels, ...borrowingSentinels]
+    const types = [...guardians.map(() => ACTORS.Guardian), ...sentinels.map(() => ACTORS.Sentinel)]
     const merkleRootWithoutSlashedSentinel = getMerkleRoot(actors, types)
     const abiCoder = new ethers.utils.AbiCoder()
 
@@ -128,8 +126,8 @@ describe('GovernanceMessageEmitter', () => {
           [
             ethers.utils.keccak256(ethers.utils.toUtf8Bytes('GOVERNANCE_MESSAGE_ACTORS')),
             abiCoder.encode(
-              ['uint16', 'uint16', 'bytes32'],
-              [currentEpoch, actors.length, merkleRootWithoutSlashedSentinel]
+              ['uint16', 'uint16', 'uint16', 'bytes32'],
+              [currentEpoch, guardians.length, sentinels.length, merkleRootWithoutSlashedSentinel]
             ),
           ]
         ),
@@ -189,10 +187,8 @@ describe('GovernanceMessageEmitter', () => {
     }
 
     const actors = [...guardians, ...stakingSentinels, ...borrowingSentinels] // slashedStakingSentinel1 and slashedStakingSentinel2 are filtered
-    const types = [
-      ...guardians.map(() => ACTORS.Guardian),
-      ...[...stakingSentinels, ...borrowingSentinels].map(() => ACTORS.Sentinel),
-    ]
+    const sentinels = [...stakingSentinels, ...borrowingSentinels]
+    const types = [...guardians.map(() => ACTORS.Guardian), ...sentinels.map(() => ACTORS.Sentinel)]
     const merkleRootWithoutSlashedSentinel = getMerkleRoot(actors, types)
 
     const abiCoder = new ethers.utils.AbiCoder()
@@ -207,8 +203,8 @@ describe('GovernanceMessageEmitter', () => {
           [
             ethers.utils.keccak256(ethers.utils.toUtf8Bytes('GOVERNANCE_MESSAGE_ACTORS')),
             abiCoder.encode(
-              ['uint16', 'uint16', 'bytes32'],
-              [currentEpoch, actors.length, merkleRootWithoutSlashedSentinel]
+              ['uint16', 'uint16', 'uint16', 'bytes32'],
+              [currentEpoch, guardians.length, sentinels.length, merkleRootWithoutSlashedSentinel]
             ),
           ]
         ),
@@ -270,7 +266,10 @@ describe('GovernanceMessageEmitter', () => {
           ['bytes32', 'bytes'],
           [
             ethers.utils.keccak256(ethers.utils.toUtf8Bytes('GOVERNANCE_MESSAGE_SLASH_ACTOR')),
-            abiCoder.encode(['uint16', 'address'], [currentEpoch, slashedSentinel]),
+            abiCoder.encode(
+              ['uint16', 'address', 'uint8'],
+              [currentEpoch, slashedSentinel, ACTORS.Sentinel]
+            ),
           ]
         ),
       ]

@@ -5,6 +5,8 @@ import {IEpochsManager} from "@pnetwork-association/dao-v2-contracts/contracts/i
 import {IPNetworkHub} from "../interfaces/IPNetworkHub.sol";
 import {MerkleTree} from "../libraries/MerkleTree.sol";
 
+error InvalidRegistrationKind(bytes1 kind);
+
 contract MockGovernanceMessageEmitter {
     bytes32 public constant GOVERNANCE_MESSAGE_ACTORS = keccak256("GOVERNANCE_MESSAGE_ACTORS");
     bytes32 public constant GOVERNANCE_MESSAGE_SLASH_ACTOR = keccak256("GOVERNANCE_MESSAGE_SLASH_ACTOR");
@@ -20,15 +22,29 @@ contract MockGovernanceMessageEmitter {
         epochsManager = epochsManager_;
     }
 
-    function resumeActor(address actor) external {
+    function resumeActor(address actor, bytes1 registrationKind) external {
         emit GovernanceMessage(
-            abi.encode(GOVERNANCE_MESSAGE_RESUME_ACTOR, abi.encode(IEpochsManager(epochsManager).currentEpoch(), actor))
+            abi.encode(
+                GOVERNANCE_MESSAGE_RESUME_ACTOR,
+                abi.encode(
+                    IEpochsManager(epochsManager).currentEpoch(),
+                    actor,
+                    _getActorTypeByRegistrationKind(registrationKind)
+                )
+            )
         );
     }
 
-    function slashActor(address actor) external {
+    function slashActor(address actor, bytes1 registrationKind) external {
         emit GovernanceMessage(
-            abi.encode(GOVERNANCE_MESSAGE_SLASH_ACTOR, abi.encode(IEpochsManager(epochsManager).currentEpoch(), actor))
+            abi.encode(
+                GOVERNANCE_MESSAGE_SLASH_ACTOR,
+                abi.encode(
+                    IEpochsManager(epochsManager).currentEpoch(),
+                    actor,
+                    _getActorTypeByRegistrationKind(registrationKind)
+                )
+            )
         );
     }
 
@@ -56,7 +72,12 @@ contract MockGovernanceMessageEmitter {
         emit GovernanceMessage(
             abi.encode(
                 GOVERNANCE_MESSAGE_ACTORS,
-                abi.encode(epoch, actors.length, MerkleTree.getRoot(_hashActorAddressesWithType(actors, actorsType)))
+                abi.encode(
+                    epoch,
+                    guardians.length,
+                    sentinels.length,
+                    MerkleTree.getRoot(_hashActorAddressesWithType(actors, actorsType))
+                )
             )
         );
     }
@@ -65,6 +86,13 @@ contract MockGovernanceMessageEmitter {
         emit GovernanceMessage(
             abi.encode(GOVERNANCE_MESSAGE_PROTOCOL_GOVERNANCE_CANCEL_OPERATION, abi.encode(operation))
         );
+    }
+
+    function _getActorTypeByRegistrationKind(bytes1 registrationKind) internal pure returns (IPNetworkHub.ActorTypes) {
+        if (registrationKind == 0x01) return IPNetworkHub.ActorTypes.Sentinel;
+        if (registrationKind == 0x02) return IPNetworkHub.ActorTypes.Sentinel;
+        if (registrationKind == 0x03) return IPNetworkHub.ActorTypes.Guardian;
+        revert InvalidRegistrationKind(registrationKind);
     }
 
     function _hashActorAddressesWithType(

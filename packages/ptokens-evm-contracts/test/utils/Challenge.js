@@ -1,9 +1,17 @@
 const { PNETWORK_NETWORK_IDS } = require('../constants')
 
 module.exports = class Challenge {
-  constructor({ actor, challenger, networkId = PNETWORK_NETWORK_IDS.hardhat, nonce, timestamp }) {
+  constructor({
+    actor,
+    actorType,
+    challenger,
+    networkId = PNETWORK_NETWORK_IDS.hardhat,
+    nonce,
+    timestamp,
+  }) {
     this.nonce = nonce
     this.actor = actor
+    this.actorType = actorType
     this.challenger = challenger
     this.timestamp = timestamp
     this.networkId = networkId
@@ -18,7 +26,7 @@ module.exports = class Challenge {
   }
 
   serialize() {
-    return [this.nonce, this.actor, this.challenger, this.timestamp, this.networkId]
+    return [this.nonce, this.actor, this.challenger, this.actorType, this.timestamp, this.networkId]
   }
 
   get() {
@@ -29,8 +37,8 @@ module.exports = class Challenge {
     const abiCoder = new ethers.utils.AbiCoder()
     return ethers.utils.sha256(
       abiCoder.encode(
-        ['tuple(uint256,address,address,uint64,bytes4)'],
-        [[this.nonce, this.actor, this.challenger, this.timestamp, this.networkId]]
+        ['tuple(uint256,address,address,uint8, uint64,bytes4)'],
+        [[this.nonce, this.actor, this.challenger, this.actorType, this.timestamp, this.networkId]]
       )
     )
   }

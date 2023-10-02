@@ -48,6 +48,7 @@ interface IPNetworkHub is IGovernanceMessageHandler {
         uint256 nonce;
         address actor;
         address challenger;
+        ActorTypes actorType;
         uint64 timestamp;
         bytes4 networkId;
     }
@@ -252,7 +253,7 @@ interface IPNetworkHub is IGovernanceMessageHandler {
      *
      * @return uint64 representing the current active actors duration.
      */
-    function getCurrentActiveActorsAdjustmentDuration() external view returns (uint64);
+    //function getCurrentActiveActorsAdjustmentDuration() external view returns (uint64);
 
     /*
      * @notice Calculates the current challenge period duration considering the number of operations in queue and the total number of active actors.
@@ -282,10 +283,14 @@ interface IPNetworkHub is IGovernanceMessageHandler {
      * @notice Returns the total number of inactive actors in an epoch.
      *
      * @param epoch
+     * @param actorType
      *
      * @return uint16 representing the total number of inactive actors in an epoch.
      */
-    function getTotalNumberOfInactiveActorsByEpoch(uint16 epoch) external view returns (uint16);
+    function getTotalNumberOfInactiveActorsByEpochAndType(
+        uint16 epoch,
+        ActorTypes actorType
+    ) external view returns (uint16);
 
     /*
      * @notice Return the status of an operation.

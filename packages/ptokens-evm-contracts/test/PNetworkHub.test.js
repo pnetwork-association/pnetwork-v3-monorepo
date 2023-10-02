@@ -18,6 +18,7 @@ const {
   SLASHING_QUANTITY,
   TELEPATHY_ROUTER_ADDRESS,
   ZERO_ADDRESS,
+  REGISTRATION_KINDS,
 } = require('./constants')
 const { deployPToken, getOptionMaskWithOptionEnabledForBit } = require('./utils')
 const Operation = require('./utils/Operation')
@@ -95,6 +96,10 @@ describe('PNetworkHub', () => {
       )
     )
   }
+
+  const getTotalNumberOfInactiveActorsByEpoch = async _epoch =>
+    (await hub.getTotalNumberOfInactiveActorsByEpochAndType(_epoch, ACTORS.Sentinel)) +
+    (await hub.getTotalNumberOfInactiveActorsByEpochAndType(_epoch, ACTORS.Guardian))
 
   const maxChallengePeriod =
     BASE_CHALLENGE_PERIOD_DURATION +
@@ -924,11 +929,10 @@ describe('PNetworkHub', () => {
 
       const [startTimestamp, endTimestamp] = await hubInterim.challengePeriodOf(operation)
 
-      const currentActiveActorsAdjustment =
-        await hubInterim.getCurrentActiveActorsAdjustmentDuration()
+      const currentActiveActorsAdjustment = 0 // TODO await hubInterim.getCurrentActiveActorsAdjustmentDuration()
       const expectedCurrentChallengePeriodDuration =
         BASE_CHALLENGE_PERIOD_DURATION +
-        currentActiveActorsAdjustment.toNumber() +
+        currentActiveActorsAdjustment +
         numberOfOperations * numberOfOperations * K_CHALLENGE_PERIOD -
         K_CHALLENGE_PERIOD
       expect(expectedCurrentChallengePeriodDuration).to.be.eq(endTimestamp.sub(startTimestamp))
@@ -950,11 +954,10 @@ describe('PNetworkHub', () => {
       const operation = operations[index]
       const [startTimestamp, endTimestamp] = await hubInterim.challengePeriodOf(operation)
 
-      const currentActiveActorsAdjustment =
-        await hubInterim.getCurrentActiveActorsAdjustmentDuration()
+      const currentActiveActorsAdjustment = 0 // TODO await hubInterim.getCurrentActiveActorsAdjustmentDuration()
       const expectedCurrentChallengePeriodDuration =
         BASE_CHALLENGE_PERIOD_DURATION +
-        currentActiveActorsAdjustment.toNumber() +
+        currentActiveActorsAdjustment +
         numberOfOperations * numberOfOperations * K_CHALLENGE_PERIOD -
         K_CHALLENGE_PERIOD
       expect(expectedCurrentChallengePeriodDuration).to.be.eq(endTimestamp.sub(startTimestamp))
@@ -994,10 +997,10 @@ describe('PNetworkHub', () => {
       const operation = operations[index]
       const [startTimestamp, endTimestamp] = await hub.challengePeriodOf(operation)
 
-      const currentActiveActorsAdjustment = await hub.getCurrentActiveActorsAdjustmentDuration()
+      const currentActiveActorsAdjustment = 0 // TODO await hub.getCurrentActiveActorsAdjustmentDuration()
       const expectedCurrentChallengePeriodDuration =
         BASE_CHALLENGE_PERIOD_DURATION +
-        currentActiveActorsAdjustment.toNumber() +
+        currentActiveActorsAdjustment +
         numberOfOperations * numberOfOperations * K_CHALLENGE_PERIOD -
         K_CHALLENGE_PERIOD
       expect(expectedCurrentChallengePeriodDuration).to.be.eq(endTimestamp.sub(startTimestamp))
@@ -1547,15 +1550,17 @@ describe('PNetworkHub', () => {
     const challenge = Challenge.fromReceipt(await tx.wait(1))
     await time.increase(CHALLENGE_DURATION)
 
-    const initialTotalNumberOfInactiveActors = await hub.getTotalNumberOfInactiveActorsByEpoch(
-      currentEpoch
-    )
+    const preTotalNumberOfInactiveActors = await getTotalNumberOfInactiveActorsByEpoch(currentEpoch)
     await hub.connect(challenger).slashByChallenge(challenge)
-    expect(await hub.getTotalNumberOfInactiveActorsByEpoch(currentEpoch)).to.be.eq(
-      initialTotalNumberOfInactiveActors + 1
+
+    expect(await getTotalNumberOfInactiveActorsByEpoch(currentEpoch)).to.be.eq(
+      preTotalNumberOfInactiveActors + 1
     )
 
-    tx = await governanceMessageEmitter.resumeActor(challengedSentinel.address)
+    tx = await governanceMessageEmitter.resumeActor(
+      challengedSentinel.address,
+      REGISTRATION_KINDS.StakingSentinel
+    )
     const receipt = await tx.wait(1)
     const message = receipt.events.find(({ event }) => event === 'GovernanceMessage')
 
@@ -1571,8 +1576,8 @@ describe('PNetworkHub', () => {
       .to.emit(hub, 'ActorResumed')
       .withArgs(currentEpoch, challengedSentinel.address)
 
-    expect(await hub.getTotalNumberOfInactiveActorsByEpoch(currentEpoch)).to.be.eq(
-      initialTotalNumberOfInactiveActors
+    expect(await getTotalNumberOfInactiveActorsByEpoch(currentEpoch)).to.be.eq(
+      preTotalNumberOfInactiveActors
     )
   })
 
@@ -1719,15 +1724,16 @@ describe('PNetworkHub', () => {
     const challenge = Challenge.fromReceipt(await tx.wait(1))
     await time.increase(CHALLENGE_DURATION)
 
-    const initialTotalNumberOfInactiveActors = await hub.getTotalNumberOfInactiveActorsByEpoch(
-      currentEpoch
-    )
+    const preTotalNumberOfInactiveActors = await getTotalNumberOfInactiveActorsByEpoch(currentEpoch)
     await hub.connect(challenger).slashByChallenge(challenge)
-    expect(await hub.getTotalNumberOfInactiveActorsByEpoch(currentEpoch)).to.be.eq(
-      initialTotalNumberOfInactiveActors + 1
+    expect(await getTotalNumberOfInactiveActorsByEpoch(currentEpoch)).to.be.eq(
+      preTotalNumberOfInactiveActors + 1
     )
 
-    tx = await governanceMessageEmitter.resumeActor(challengedGuardian.address)
+    tx = await governanceMessageEmitter.resumeActor(
+      challengedGuardian.address,
+      REGISTRATION_KINDS.Guardian
+    )
     const receipt = await tx.wait(1)
     const message = receipt.events.find(({ event }) => event === 'GovernanceMessage')
 
@@ -1743,8 +1749,8 @@ describe('PNetworkHub', () => {
       .to.emit(hub, 'ActorResumed')
       .withArgs(currentEpoch, challengedGuardian.address)
 
-    expect(await hub.getTotalNumberOfInactiveActorsByEpoch(currentEpoch)).to.be.eq(
-      initialTotalNumberOfInactiveActors
+    expect(await getTotalNumberOfInactiveActorsByEpoch(currentEpoch)).to.be.eq(
+      preTotalNumberOfInactiveActors
     )
   })
 
@@ -1764,23 +1770,38 @@ describe('PNetworkHub', () => {
       .withArgs(CHALLENGE_STATUS.Unsolved, CHALLENGE_STATUS.Pending)
   })
 
-  it('should not be able to queue an operation if lock down mode is triggered because both sentinels and guardians are inactive', async () => {
+  it('should not be able to queue an operation if lock down mode is triggered because there are no sentinels active', async () => {
     const challenges = []
-    for (const challengedGuardian of guardians) {
-      const proof = getActorsMerkleProof({ actor: challengedGuardian, type: ACTORS.Guardian })
-      const tx = await hub
-        .connect(challenger)
-        .startChallenge(challengedGuardian.address, ACTORS.Guardian, proof, {
-          value: LOCKED_AMOUNT_START_CHALLENGE,
-        })
-      challenges.push(Challenge.fromReceipt(await tx.wait(1)))
-    }
-
     for (const challengedSentinel of sentinels) {
       const proof = getActorsMerkleProof({ actor: challengedSentinel, type: ACTORS.Sentinel })
       const tx = await hub
         .connect(challenger)
         .startChallenge(challengedSentinel.address, ACTORS.Sentinel, proof, {
+          value: LOCKED_AMOUNT_START_CHALLENGE,
+        })
+      challenges.push(Challenge.fromReceipt(await tx.wait(1)))
+    }
+
+    await time.increase(CHALLENGE_DURATION)
+
+    for (const challenge of challenges) {
+      await hub.connect(challenger).slashByChallenge(challenge)
+    }
+
+    await expect(
+      hub.connect(relayer).protocolQueueOperation(await generateOperation(), {
+        value: LOCKED_AMOUNT_CHALLENGE_PERIOD,
+      })
+    ).to.be.revertedWithCustomError(hub, 'LockDown')
+  })
+
+  it('should not be able to queue an operation if lock down mode is triggered because there are no active guardians', async () => {
+    const challenges = []
+    for (const challengeGuardin of guardians) {
+      const proof = getActorsMerkleProof({ actor: challengeGuardin, type: ACTORS.Guardian })
+      const tx = await hub
+        .connect(challenger)
+        .startChallenge(challengeGuardin.address, ACTORS.Guardian, proof, {
           value: LOCKED_AMOUNT_START_CHALLENGE,
         })
       challenges.push(Challenge.fromReceipt(await tx.wait(1)))
@@ -1815,7 +1836,7 @@ describe('PNetworkHub', () => {
     ).to.be.revertedWithCustomError(hub, 'NearToEpochEnd')
   })
 
-  it('should be able to start a challenge when the system is in lockdown mode but the end of the epoch is not near to trigger the stopping of starting challenges', async () => {
+  it('should be able to start a challenge when the system is in lock down mode but the end of the epoch is not near to trigger the stopping of starting challenges', async () => {
     // |---------------------------LD----SC----T-----|
     // 0                                             1
     //
@@ -1979,9 +2000,12 @@ describe('PNetworkHub', () => {
       })
     ).to.be.revertedWithCustomError(hub, 'LockDown')
 
-    tx = await governanceMessageEmitter.resumeActor(guardians[0].address)
-    const receipt = await tx.wait(1)
-    const message = receipt.events.find(({ event }) => event === 'GovernanceMessage')
+    tx = await governanceMessageEmitter.resumeActor(
+      guardians[0].address,
+      REGISTRATION_KINDS.Guardian
+    )
+    let receipt = await tx.wait(1)
+    let message = receipt.events.find(({ event }) => event === 'GovernanceMessage')
 
     await expect(
       hub
@@ -1994,6 +2018,25 @@ describe('PNetworkHub', () => {
     )
       .to.emit(hub, 'ActorResumed')
       .withArgs(currentEpoch, guardians[0].address)
+
+    tx = await governanceMessageEmitter.resumeActor(
+      sentinels[0].address,
+      REGISTRATION_KINDS.StakingSentinel
+    )
+    receipt = await tx.wait(1)
+    message = receipt.events.find(({ event }) => event === 'GovernanceMessage')
+
+    await expect(
+      hub
+        .connect(telepathyRouter)
+        .handleTelepathy(
+          chainId,
+          fakeGovernanceMessageVerifier.address,
+          abiCoder.decode(['bytes'], message.data)[0]
+        )
+    )
+      .to.emit(hub, 'ActorResumed')
+      .withArgs(currentEpoch, sentinels[0].address)
 
     const operation = await generateOperation()
     tx = hub
@@ -2131,9 +2174,10 @@ describe('PNetworkHub', () => {
     await time.increaseTo(currentEpochEndTimestamp + 1)
 
     const fakeChallenge = new Challenge({
-      nonce: challenge.nonce + 1,
-      challenger: challenge.challenger,
       actor: challenge.actor,
+      actorType: challenge.actorType,
+      challenger: challenge.challenger,
+      nonce: challenge.nonce + 1,
       timestamp: challenge.timestamp,
     })
 
@@ -2179,7 +2223,10 @@ describe('PNetworkHub', () => {
 
     // sentinel1 is slashed and a GOVERNANCE_MESSAGE_SLASH_ACTOR message is emitted
     const slashedSentinel = sentinels[1]
-    tx = await governanceMessageEmitter.slashActor(slashedSentinel.address)
+    tx = await governanceMessageEmitter.slashActor(
+      slashedSentinel.address,
+      REGISTRATION_KINDS.StakingSentinel
+    )
     let receipt = await tx.wait(1)
     let message = receipt.events.find(({ event }) => event === 'GovernanceMessage')
 
@@ -2192,7 +2239,10 @@ describe('PNetworkHub', () => {
       )
 
     // At this point sentinel1 should resume itself
-    tx = await governanceMessageEmitter.resumeActor(slashedSentinel.address)
+    tx = await governanceMessageEmitter.resumeActor(
+      slashedSentinel.address,
+      REGISTRATION_KINDS.BorrowingSentinel
+    )
     receipt = await tx.wait(1)
     message = receipt.events.find(({ event }) => event === 'GovernanceMessage')
 
@@ -2208,7 +2258,7 @@ describe('PNetworkHub', () => {
       .to.emit(hub, 'ActorResumed')
       .withArgs(currentEpoch, slashedSentinel.address)
 
-    tx = await governanceMessageEmitter.resumeActor(guardian.address)
+    tx = await governanceMessageEmitter.resumeActor(guardian.address, REGISTRATION_KINDS.Guardian)
     receipt = await tx.wait(1)
     message = receipt.events.find(({ event }) => event === 'GovernanceMessage')
 
@@ -2232,7 +2282,7 @@ describe('PNetworkHub', () => {
       })
     ).not.to.be.revertedWithCustomError(hub, 'LockDown')
 
-    expect(await hub.getTotalNumberOfInactiveActorsByEpoch(currentEpoch)).to.be.eq(
+    expect(await getTotalNumberOfInactiveActorsByEpoch(currentEpoch)).to.be.eq(
       sentinels.length + guardians.length - 2
     )
     await hub
@@ -2278,7 +2328,10 @@ describe('PNetworkHub', () => {
 
     const messages = []
     for (const slashedSentinel of sentinels) {
-      tx = await governanceMessageEmitter.slashActor(slashedSentinel.address)
+      tx = await governanceMessageEmitter.slashActor(
+        slashedSentinel.address,
+        REGISTRATION_KINDS.StakingSentinel
+      )
       const receipt = await tx.wait(1)
       messages.push(receipt.events.find(({ event }) => event === 'GovernanceMessage'))
     }
@@ -2327,7 +2380,10 @@ describe('PNetworkHub', () => {
       await hub.getPendingChallengeIdByEpochOf(currentEpoch, challengedGuardian.address)
     ).to.be.eq('0x'.padEnd(66, '0'))
 
-    tx = await governanceMessageEmitter.resumeActor(challengedGuardian.address)
+    tx = await governanceMessageEmitter.resumeActor(
+      challengedGuardian.address,
+      REGISTRATION_KINDS.Guardian
+    )
     const receipt = await tx.wait(1)
     const message = receipt.events.find(({ event }) => event === 'GovernanceMessage')
     await hub
@@ -2391,7 +2447,7 @@ describe('PNetworkHub', () => {
       await hub.connect(challenger).slashByChallenge(challenge)
     }
 
-    expect(await hub.getTotalNumberOfInactiveActorsByEpoch(currentEpoch)).to.be.eq(
+    expect(await getTotalNumberOfInactiveActorsByEpoch(currentEpoch)).to.be.eq(
       sentinels.length + guardians.length - 1
     )
 
@@ -2411,7 +2467,10 @@ describe('PNetworkHub', () => {
       await hub.getPendingChallengeIdByEpochOf(currentEpoch, slashedSentinel.address)
     ).to.be.eq(expectedChallengeId)
 
-    tx = await governanceMessageEmitter.slashActor(slashedSentinel.address)
+    tx = await governanceMessageEmitter.slashActor(
+      slashedSentinel.address,
+      REGISTRATION_KINDS.StakingSentinel
+    )
     const receipt = await tx.wait(1)
     const message = receipt.events.find(({ event }) => event === 'GovernanceMessage')
     // NOTE: At this point the sentinel should be slashed and the pending challenge should be cancelled
@@ -2455,7 +2514,10 @@ describe('PNetworkHub', () => {
       })
     const challenge = Challenge.fromReceipt(await tx.wait(1))
 
-    tx = await governanceMessageEmitter.slashActor(slashedSentinel.address)
+    tx = await governanceMessageEmitter.slashActor(
+      slashedSentinel.address,
+      REGISTRATION_KINDS.StakingSentinel
+    )
     const receipt = await tx.wait(1)
     const message = receipt.events.find(({ event }) => event === 'GovernanceMessage')
     // cancel challenge
@@ -2485,87 +2547,87 @@ describe('PNetworkHub', () => {
       .withArgs(CHALLENGE_STATUS.Cancelled, CHALLENGE_STATUS.Pending)
   })
 
-  it('should adjust the challenge period based on the number of current active defaultActors', async () => {
-    const operation = await generateOperation()
-    await hub
-      .connect(relayer)
-      .protocolQueueOperation(operation, { value: LOCKED_AMOUNT_CHALLENGE_PERIOD })
+  // it('should adjust the challenge period based on the number of current active defaultActors', async () => {
+  //   const operation = await generateOperation()
+  //   await hub
+  //     .connect(relayer)
+  //     .protocolQueueOperation(operation, { value: LOCKED_AMOUNT_CHALLENGE_PERIOD })
 
-    const challenges = []
-    let tx
-    for (const challengedGuardian of guardians) {
-      const proof = getActorsMerkleProof({ actor: challengedGuardian, type: ACTORS.Guardian })
-      tx = await hub
-        .connect(challenger)
-        .startChallenge(challengedGuardian.address, ACTORS.Guardian, proof, {
-          value: LOCKED_AMOUNT_START_CHALLENGE,
-        })
-      challenges.push(Challenge.fromReceipt(await tx.wait(1)))
-    }
+  //   const challenges = []
+  //   let tx
+  //   for (const challengedGuardian of guardians) {
+  //     const proof = getActorsMerkleProof({ actor: challengedGuardian, type: ACTORS.Guardian })
+  //     tx = await hub
+  //       .connect(challenger)
+  //       .startChallenge(challengedGuardian.address, ACTORS.Guardian, proof, {
+  //         value: LOCKED_AMOUNT_START_CHALLENGE,
+  //       })
+  //     challenges.push(Challenge.fromReceipt(await tx.wait(1)))
+  //   }
 
-    for (const challengedSentinel of sentinels) {
-      const proof = getActorsMerkleProof({ actor: challengedSentinel, type: ACTORS.Sentinel })
-      tx = await hub
-        .connect(challenger)
-        .startChallenge(challengedSentinel.address, ACTORS.Sentinel, proof, {
-          value: LOCKED_AMOUNT_START_CHALLENGE,
-        })
-      challenges.push(Challenge.fromReceipt(await tx.wait(1)))
-    }
+  //   for (const challengedSentinel of sentinels) {
+  //     const proof = getActorsMerkleProof({ actor: challengedSentinel, type: ACTORS.Sentinel })
+  //     tx = await hub
+  //       .connect(challenger)
+  //       .startChallenge(challengedSentinel.address, ACTORS.Sentinel, proof, {
+  //         value: LOCKED_AMOUNT_START_CHALLENGE,
+  //       })
+  //     challenges.push(Challenge.fromReceipt(await tx.wait(1)))
+  //   }
 
-    await time.increase(CHALLENGE_DURATION)
-    for (const challenge of challenges) {
-      await hub.connect(challenger).slashByChallenge(challenge)
-    }
+  //   await time.increase(CHALLENGE_DURATION)
+  //   for (const challenge of challenges) {
+  //     await hub.connect(challenger).slashByChallenge(challenge)
+  //   }
 
-    let activeActors = 0
-    for (const sentinel of sentinels) {
-      const [startTimestamp, endTimestamp] = await hub.challengePeriodOf(operation)
-      const currentQueuedOperationsAdjustmentDuration =
-        await hub.getCurrentQueuedOperationsAdjustmentDuration()
-      const expectedCurrentChallengePeriodDuration =
-        Math.trunc(2.592e6 / (activeActors ** 5 + 1)) +
-        currentQueuedOperationsAdjustmentDuration.toNumber()
-      expect(expectedCurrentChallengePeriodDuration).to.be.eq(endTimestamp.sub(startTimestamp))
+  //   let activeActors = 0
+  //   for (const sentinel of sentinels) {
+  //     const [startTimestamp, endTimestamp] = await hub.challengePeriodOf(operation)
+  //     const currentQueuedOperationsAdjustmentDuration =
+  //       await hub.getCurrentQueuedOperationsAdjustmentDuration()
+  //     const expectedCurrentChallengePeriodDuration =
+  //       Math.trunc(2.592e6 / (activeActors ** 5 + 1)) +
+  //       currentQueuedOperationsAdjustmentDuration.toNumber()
+  //     expect(expectedCurrentChallengePeriodDuration).to.be.eq(endTimestamp.sub(startTimestamp))
 
-      tx = await governanceMessageEmitter.resumeActor(sentinel.address)
-      const receipt = await tx.wait(1)
-      const message = receipt.events.find(({ event }) => event === 'GovernanceMessage')
-      await hub
-        .connect(telepathyRouter)
-        .handleTelepathy(
-          chainId,
-          fakeGovernanceMessageVerifier.address,
-          abiCoder.decode(['bytes'], message.data)[0]
-        )
+  //     tx = await governanceMessageEmitter.resumeActor(sentinel.address, REGISTRATION_KINDS.Sentinel)
+  //     const receipt = await tx.wait(1)
+  //     const message = receipt.events.find(({ event }) => event === 'GovernanceMessage')
+  //     await hub
+  //       .connect(telepathyRouter)
+  //       .handleTelepathy(
+  //         chainId,
+  //         fakeGovernanceMessageVerifier.address,
+  //         abiCoder.decode(['bytes'], message.data)[0]
+  //       )
 
-      activeActors++
-    }
+  //     activeActors++
+  //   }
 
-    for (const guardian of guardians) {
-      const [startTimestamp, endTimestamp] = await hub.challengePeriodOf(operation)
+  //   for (const guardian of guardians) {
+  //     const [startTimestamp, endTimestamp] = await hub.challengePeriodOf(operation)
 
-      const currentQueuedOperationsAdjustmentDuration =
-        await hub.getCurrentQueuedOperationsAdjustmentDuration()
-      const expectedCurrentChallengePeriodDuration =
-        Math.trunc(2.592e6 / (activeActors ** 5 + 1)) +
-        currentQueuedOperationsAdjustmentDuration.toNumber()
-      expect(expectedCurrentChallengePeriodDuration).to.be.eq(endTimestamp.sub(startTimestamp))
+  //     const currentQueuedOperationsAdjustmentDuration =
+  //       await hub.getCurrentQueuedOperationsAdjustmentDuration()
+  //     const expectedCurrentChallengePeriodDuration =
+  //       Math.trunc(2.592e6 / (activeActors ** 5 + 1)) +
+  //       currentQueuedOperationsAdjustmentDuration.toNumber()
+  //     expect(expectedCurrentChallengePeriodDuration).to.be.eq(endTimestamp.sub(startTimestamp))
 
-      tx = await governanceMessageEmitter.resumeActor(guardian.address)
-      const receipt = await tx.wait(1)
-      const message = receipt.events.find(({ event }) => event === 'GovernanceMessage')
-      await hub
-        .connect(telepathyRouter)
-        .handleTelepathy(
-          chainId,
-          fakeGovernanceMessageVerifier.address,
-          abiCoder.decode(['bytes'], message.data)[0]
-        )
+  //     tx = await governanceMessageEmitter.resumeActor(guardian.address, REGISTRATION_KINDS.Guardian)
+  //     const receipt = await tx.wait(1)
+  //     const message = receipt.events.find(({ event }) => event === 'GovernanceMessage')
+  //     await hub
+  //       .connect(telepathyRouter)
+  //       .handleTelepathy(
+  //         chainId,
+  //         fakeGovernanceMessageVerifier.address,
+  //         abiCoder.decode(['bytes'], message.data)[0]
+  //       )
 
-      activeActors++
-    }
-  })
+  //     activeActors++
+  //   }
+  // })
 
   it('should slash an actor(sentinel) successfully on the interim chain', async () => {
     const slashedSentinel = sentinels[0]
@@ -2693,8 +2755,8 @@ describe('PNetworkHub', () => {
       [
         tag,
         ethers.utils.defaultAbiCoder.encode(
-          ['uint16', 'address'],
-          [currentEpoch, sentinel.address]
+          ['uint16', 'address', 'uint8'],
+          [currentEpoch, sentinel.address, ACTORS.Sentinel]
         ),
       ]
     )
@@ -2717,7 +2779,10 @@ describe('PNetworkHub', () => {
     const slashedSentinel = sentinels[0]
     const slashedGuardian = guardians[0]
 
-    let tx = await governanceMessageEmitter.slashActor(slashedSentinel.address)
+    let tx = await governanceMessageEmitter.slashActor(
+      slashedSentinel.address,
+      REGISTRATION_KINDS.StakingSentinel
+    )
     let receipt = await tx.wait(1)
     let message = receipt.events.find(({ event }) => event === 'GovernanceMessage')
     await hub
@@ -2728,7 +2793,10 @@ describe('PNetworkHub', () => {
         abiCoder.decode(['bytes'], message.data)[0]
       )
 
-    tx = await governanceMessageEmitter.slashActor(slashedGuardian.address)
+    tx = await governanceMessageEmitter.slashActor(
+      slashedGuardian.address,
+      REGISTRATION_KINDS.Guardian
+    )
     receipt = await tx.wait(1)
     message = receipt.events.find(({ event }) => event === 'GovernanceMessage')
     await hub

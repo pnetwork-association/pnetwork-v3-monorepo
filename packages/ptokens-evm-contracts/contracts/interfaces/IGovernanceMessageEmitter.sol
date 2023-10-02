@@ -45,16 +45,18 @@ interface IGovernanceMessageEmitter {
     function protocolGovernanceCancelOperation(IPNetworkHub.Operation calldata operation, bytes4 networkId) external;
 
     /*
-     * @notice Emit a GovernanceMessage event containing the address of the resumed guardian
+     * @notice Emit a GovernanceMessage event containing the address and the type of the resumed actor
      *
-     * @param guardian
+     * @param actor
+     * @param registrationKind
      */
-    function resumeActor(address guardian) external;
+    function resumeActor(address actor, bytes1 registrationKind) external;
 
     /*
-     * @notice Emit a GovernanceMessage event containing the address of the slashed guardian
+     * @notice Emit a GovernanceMessage event containing the address and the type of the slashed actor
      *
-     * @param guardian
+     * @param actor
+     * @param registrationKind
      */
-    function slashActor(address guardian) external;
+    function slashActor(address actor, bytes1 registrationKind) external;
 }

@@ -32,6 +32,11 @@ const constants = {
     polygonMainnet: '0x0075dd4c',
     sepolia: '0x953835d9',
   },
+  REGISTRATION_KINDS: {
+    StakingSentinel: 0x01,
+    BorrowingSentinel: 0x02,
+    Guardian: 0x03,
+  },
   SLASHING_QUANTITY: BigInt(2000 * 1e18), // PNT
   TELEPATHY_ROUTER_ADDRESS: '0x41EA857C32c8Cb42EEFa00AF67862eCFf4eB795a',
   ZERO_ADDRESS: '0x0000000000000000000000000000000000000000',

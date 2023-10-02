@@ -74,11 +74,11 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
     mapping(bytes32 => uint8) private _operationsTotalCancelActions;
     mapping(bytes32 => OperationStatus) private _operationsStatus;
     mapping(uint16 => bytes32) private _epochsActorsMerkleRoot;
-    mapping(uint16 => uint16) private _epochsTotalNumberOfActors;
+    mapping(uint16 => mapping(ActorTypes => uint16)) private _epochsTotalNumberOfActors;
     mapping(uint16 => mapping(bytes32 => Challenge)) private _epochsChallenges;
     mapping(uint16 => mapping(bytes32 => ChallengeStatus)) private _epochsChallengesStatus;
     mapping(uint16 => mapping(address => ActorStatus)) private _epochsActorsStatus;
-    mapping(uint16 => uint16) private _epochsTotalNumberOfInactiveActors;
+    mapping(uint16 => mapping(ActorTypes => uint16)) private _epochsTotalNumberOfInactiveActors;
     mapping(uint16 => mapping(address => bytes32)) private _epochsActorsPendingChallengeId;
 
     address public immutable factory;
@@ -190,17 +190,18 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
         return _epochsChallengesStatus[getChallengeEpoch(challenge)][challengeIdOf(challenge)];
     }
 
-    /// @inheritdoc IPNetworkHub
-    function getCurrentActiveActorsAdjustmentDuration() public view returns (uint64) {
+    /*function getCurrentActiveActorsAdjustmentDuration() public view returns (uint64) {
         uint16 currentEpoch = IEpochsManager(epochsManager).currentEpoch();
-        uint16 activeActors = _epochsTotalNumberOfActors[currentEpoch] -
-            _epochsTotalNumberOfInactiveActors[currentEpoch];
+        uint16 activeActors = (_epochsTotalNumberOfActors[currentEpoch][ActorTypes.Guardian] +
+            _epochsTotalNumberOfActors[currentEpoch][ActorTypes.Sentinel]) -
+            (_epochsTotalNumberOfInactiveActors[currentEpoch][ActorTypes.Guardian] +
+                _epochsTotalNumberOfInactiveActors[currentEpoch][ActorTypes.Sentinel]);
         return 30 days / ((activeActors ** 5) + 1);
-    }
+    }*/
 
     /// @inheritdoc IPNetworkHub
     function getCurrentChallengePeriodDuration() public view returns (uint64) {
-        return getCurrentActiveActorsAdjustmentDuration() + getCurrentQueuedOperationsAdjustmentDuration();
+        return /*getCurrentActiveActorsAdjustmentDuration() +*/ getCurrentQueuedOperationsAdjustmentDuration();
     }
 
     /// @inheritdoc IPNetworkHub
@@ -218,8 +219,11 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
     }
 
     /// @inheritdoc IPNetworkHub
-    function getTotalNumberOfInactiveActorsByEpoch(uint16 epoch) external view returns (uint16) {
-        return _epochsTotalNumberOfInactiveActors[epoch];
+    function getTotalNumberOfInactiveActorsByEpochAndType(
+        uint16 epoch,
+        ActorTypes actorType
+    ) external view returns (uint16) {
+        return _epochsTotalNumberOfInactiveActors[epoch][actorType];
     }
 
     /// @inheritdoc IPNetworkHub
@@ -254,7 +258,7 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
         bytes32[] calldata proof,
         bytes calldata signature
     ) external {
-        _checkMerkleRoot();
+        _checkActorsStatus();
 
         bytes32 operationId = operationIdOf(operation);
         address actor = ECDSA.recover(ECDSA.toEthSignedMessageHash(operationId), signature);
@@ -432,8 +436,9 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
         delete _epochsActorsPendingChallengeId[currentEpoch][challenge.actor];
 
         Utils.sendEther(challenge.challenger, lockedAmountStartChallenge);
+
         unchecked {
-            ++_epochsTotalNumberOfInactiveActors[currentEpoch];
+            ++_epochsTotalNumberOfInactiveActors[currentEpoch][challenge.actorType];
         }
 
         bytes4 currentNetworkId = Network.getCurrentNetworkId();
@@ -494,7 +499,7 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
             revert InvalidActor(actor, actorType);
         }
 
-        _startChallenge(actor);
+        _startChallenge(actor, actorType);
     }
 
     /// @inheritdoc IPNetworkHub
@@ -645,8 +650,21 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
         return (startTimestamp, endTimestamp);
     }
 
+    function _checkActorsStatus() internal view {
+        uint16 currentEpoch = IEpochsManager(epochsManager).currentEpoch();
+        if (
+            _epochsActorsMerkleRoot[currentEpoch] == bytes32(0) ||
+            _epochsTotalNumberOfInactiveActors[currentEpoch][ActorTypes.Guardian] ==
+            _epochsTotalNumberOfActors[currentEpoch][ActorTypes.Guardian] ||
+            _epochsTotalNumberOfInactiveActors[currentEpoch][ActorTypes.Sentinel] ==
+            _epochsTotalNumberOfActors[currentEpoch][ActorTypes.Sentinel]
+        ) {
+            revert LockDown();
+        }
+    }
+
     function _checkLockDownMode() internal view {
-        _checkMerkleRoot();
+        _checkActorsStatus();
 
         uint16 currentEpoch = IEpochsManager(epochsManager).currentEpoch();
         uint256 epochDuration = IEpochsManager(epochsManager).epochDuration();
@@ -660,16 +678,6 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
         // To mitigate this risk, operations should not be queued if the max challenge period makes
         // the operation challenge period finish after 1 hour before the end of an epoch.
         if (block.timestamp + maxChallengePeriodDuration >= currentEpochEndTimestamp - 1 hours) {
-            revert LockDown();
-        }
-    }
-
-    function _checkMerkleRoot() internal view {
-        uint16 currentEpoch = IEpochsManager(epochsManager).currentEpoch();
-        if (
-            _epochsActorsMerkleRoot[currentEpoch] == bytes32(0) ||
-            _epochsTotalNumberOfInactiveActors[currentEpoch] == _epochsTotalNumberOfActors[currentEpoch]
-        ) {
             revert LockDown();
         }
     }
@@ -719,19 +727,20 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
         (bytes32 messageType, bytes memory messageData) = abi.decode(message, (bytes32, bytes));
 
         if (messageType == GOVERNANCE_MESSAGE_ACTORS) {
-            (uint16 epoch, uint16 totalNumberOfActors, bytes32 actorsMerkleRoot) = abi.decode(
-                messageData,
-                (uint16, uint16, bytes32)
-            );
+            (uint16 epoch, uint16 totalNumberOfGuardians, uint16 totalNumberOfSentinels, bytes32 actorsMerkleRoot) = abi
+                .decode(messageData, (uint16, uint16, uint16, bytes32));
 
             _epochsActorsMerkleRoot[epoch] = actorsMerkleRoot;
-            _epochsTotalNumberOfActors[epoch] = totalNumberOfActors;
-
+            _epochsTotalNumberOfActors[epoch][ActorTypes.Guardian] = totalNumberOfGuardians;
+            _epochsTotalNumberOfActors[epoch][ActorTypes.Sentinel] = totalNumberOfSentinels;
             return;
         }
 
         if (messageType == GOVERNANCE_MESSAGE_SLASH_ACTOR) {
-            (uint16 epoch, address actor) = abi.decode(messageData, (uint16, address));
+            (uint16 epoch, address actor, ActorTypes actorType) = abi.decode(
+                messageData,
+                (uint16, address, ActorTypes)
+            );
             // NOTE: Consider the scenario where a actor's status is 'Challenged', and a GOVERNANCE_MESSAGE_SLASH_ACTOR is received
             // for the same actor before the challenge is resolved or the actor is slashed.
             // If a actor is already 'Challenged', we should:
@@ -743,7 +752,7 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
 
             if (_epochsActorsStatus[epoch][actor] == ActorStatus.Active) {
                 unchecked {
-                    ++_epochsTotalNumberOfInactiveActors[epoch];
+                    ++_epochsTotalNumberOfInactiveActors[epoch][actorType];
                 }
                 _epochsActorsStatus[epoch][actor] = ActorStatus.Inactive;
                 emit ActorSlashed(epoch, actor);
@@ -752,10 +761,13 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
         }
 
         if (messageType == GOVERNANCE_MESSAGE_RESUME_ACTOR) {
-            (uint16 epoch, address actor) = abi.decode(messageData, (uint16, address));
+            (uint16 epoch, address actor, ActorTypes actorType) = abi.decode(
+                messageData,
+                (uint16, address, ActorTypes)
+            );
             if (_epochsActorsStatus[epoch][actor] == ActorStatus.Inactive) {
                 unchecked {
-                    --_epochsTotalNumberOfInactiveActors[epoch];
+                    --_epochsTotalNumberOfInactiveActors[epoch][actorType];
                 }
 
                 _epochsActorsStatus[epoch][actor] = ActorStatus.Active;
@@ -869,7 +881,7 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
         emit ChallengeSolved(challenge);
     }
 
-    function _startChallenge(address actor) internal {
+    function _startChallenge(address actor, ActorTypes actorType) internal {
         address challenger = _msgSender();
         uint16 currentEpoch = IEpochsManager(epochsManager).currentEpoch();
 
@@ -886,6 +898,7 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
             nonce: challengesNonce,
             actor: actor,
             challenger: challenger,
+            actorType: actorType,
             timestamp: uint64(block.timestamp),
             networkId: Network.getCurrentNetworkId()
         });

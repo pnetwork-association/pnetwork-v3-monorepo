@@ -17,18 +17,19 @@ contract MockRegistrationManager {
     }
 
     event StakingSentinelSlashed(address indexed sentinel, uint256 amount);
+    event BorrowingSentinelSlashed(address indexed sentinel);
+    event GuardianSlashed(address indexed guardian);
 
     address public immutable lendingManager;
-
     address public governanceMessageEmitter;
+    mapping(address => Registration) private _sentinelRegistrations;
+    mapping(address => Registration) private _guardianRegistrations;
+    mapping(uint16 => uint24) private _sentinelsEpochsTotalStakedAmount;
+    mapping(address => mapping(uint16 => uint24)) private _sentinelsEpochsStakedAmount;
 
     constructor(address lendingManager_) {
         lendingManager = lendingManager_;
     }
-
-    mapping(address => Registration) private _sentinelRegistrations;
-    mapping(uint16 => uint24) private _sentinelsEpochsTotalStakedAmount;
-    mapping(address => mapping(uint16 => uint24)) private _sentinelsEpochsStakedAmount;
 
     function sentinelRegistration(address sentinel) external view returns (Registration memory) {
         return _sentinelRegistrations[sentinel];
@@ -40,6 +41,15 @@ contract MockRegistrationManager {
 
     function totalSentinelStakedAmountByEpoch(uint16 epoch) external view returns (uint24) {
         return _sentinelsEpochsTotalStakedAmount[epoch];
+    }
+
+    function addGuardian(address guardian, address owner, uint16 startEpoch, uint16 endEpoch) external {
+        _guardianRegistrations[guardian] = Registration({
+            owner: owner,
+            startEpoch: startEpoch,
+            endEpoch: endEpoch,
+            kind: 0x03
+        });
     }
 
     function addStakingSentinel(
@@ -79,7 +89,21 @@ contract MockRegistrationManager {
     }
 
     function slash(address actor, uint256 amount, address challenger) external {
-        IGovernanceMessageEmitter(governanceMessageEmitter).slashActor(actor);
-        emit StakingSentinelSlashed(actor, amount);
+        Registration memory regitration = _sentinelRegistrations[actor];
+
+        if (regitration.kind == 0x01) {
+            IGovernanceMessageEmitter(governanceMessageEmitter).slashActor(actor, 0x01);
+            emit StakingSentinelSlashed(actor, amount);
+        }
+
+        if (regitration.kind == 0x02) {
+            IGovernanceMessageEmitter(governanceMessageEmitter).slashActor(actor, 0x02);
+            emit BorrowingSentinelSlashed(actor);
+        }
+
+        if (regitration.kind == 0x03) {
+            IGovernanceMessageEmitter(governanceMessageEmitter).slashActor(actor, 0x03);
+            emit GuardianSlashed(actor);
+        }
     }
 }

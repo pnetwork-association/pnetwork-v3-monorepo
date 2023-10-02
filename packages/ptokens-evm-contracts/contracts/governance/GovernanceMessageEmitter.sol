@@ -16,6 +16,7 @@ error NotRegistrationManager(address registrationManager, address expectedRegist
 error NotDandelionVoting(address dandelionVoting, address expectedDandelionVoting);
 error InvalidNumberOfGuardians(uint16 numberOfGuardians, uint16 expectedNumberOfGuardians);
 error NetworkNotSupported(bytes4 networkId);
+error InvalidRegistrationKind(bytes1 kind);
 
 contract GovernanceMessageEmitter is IGovernanceMessageEmitter {
     bytes32 public constant GOVERNANCE_MESSAGE_ACTORS = keccak256("GOVERNANCE_MESSAGE_ACTORS");
@@ -96,7 +97,8 @@ contract GovernanceMessageEmitter is IGovernanceMessageEmitter {
                 GOVERNANCE_MESSAGE_ACTORS,
                 abi.encode(
                     currentEpoch,
-                    actors.length,
+                    effectiveGuardians.length,
+                    effectiveSentinels.length,
                     MerkleTree.getRoot(_hashActorAddressesWithType(actors, actorsType))
                 )
             )
@@ -135,16 +137,30 @@ contract GovernanceMessageEmitter is IGovernanceMessageEmitter {
     }
 
     /// @inheritdoc IGovernanceMessageEmitter
-    function resumeActor(address actor) external onlyRegistrationManager {
+    function resumeActor(address actor, bytes1 registrationKind) external onlyRegistrationManager {
         _sendMessage(
-            abi.encode(GOVERNANCE_MESSAGE_RESUME_ACTOR, abi.encode(IEpochsManager(epochsManager).currentEpoch(), actor))
+            abi.encode(
+                GOVERNANCE_MESSAGE_RESUME_ACTOR,
+                abi.encode(
+                    IEpochsManager(epochsManager).currentEpoch(),
+                    actor,
+                    _getActorTypeByRegistrationKind(registrationKind)
+                )
+            )
         );
     }
 
     /// @inheritdoc IGovernanceMessageEmitter
-    function slashActor(address actor) external onlyRegistrationManager {
+    function slashActor(address actor, bytes1 registrationKind) external onlyRegistrationManager {
         _sendMessage(
-            abi.encode(GOVERNANCE_MESSAGE_SLASH_ACTOR, abi.encode(IEpochsManager(epochsManager).currentEpoch(), actor))
+            abi.encode(
+                GOVERNANCE_MESSAGE_SLASH_ACTOR,
+                abi.encode(
+                    IEpochsManager(epochsManager).currentEpoch(),
+                    actor,
+                    _getActorTypeByRegistrationKind(registrationKind)
+                )
+            )
         );
     }
 
@@ -250,6 +266,13 @@ contract GovernanceMessageEmitter is IGovernanceMessageEmitter {
         }
 
         return effectiveSentinels;
+    }
+
+    function _getActorTypeByRegistrationKind(bytes1 registrationKind) internal pure returns (IPNetworkHub.ActorTypes) {
+        if (registrationKind == 0x01) return IPNetworkHub.ActorTypes.Sentinel;
+        if (registrationKind == 0x02) return IPNetworkHub.ActorTypes.Sentinel;
+        if (registrationKind == 0x03) return IPNetworkHub.ActorTypes.Guardian;
+        revert InvalidRegistrationKind(registrationKind);
     }
 
     function _hashActorAddressesWithType(
