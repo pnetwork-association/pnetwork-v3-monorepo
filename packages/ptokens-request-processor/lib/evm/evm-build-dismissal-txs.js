@@ -100,7 +100,6 @@ const buildDismissalTxsAndPutInState = _state =>
     const privateKey = utils.readIdentityFileSync(identityGpgFile)
     const wallet = new ethers.Wallet(privateKey, provider)
 
-    logger.info(wallet)
     return getMerkleProof(db, wallet.address)
       .then(sendDismissalTransactions(invalidRequests, hub, txTimeout, wallet))
       .then(addDismissedReportsToState(_state))
