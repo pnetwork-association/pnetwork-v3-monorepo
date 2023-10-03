@@ -28,7 +28,7 @@
     "forwardDestinationNetworkId": null,
     "forwardNetworkFeeAssetAmount": null,
     "networkFeeAssetAmount": null,
-    "protocolFeeAssetAmount": null,
+    "userDataProtocolFeeAssetAmount": null,
     "eventArgs": [ "6", [ "0x0Ef13B2668dbE1b3eDfe9fFb7CbC398363b50f79" ] ],
     "_id": "actorspropagated_0x96c945933a34d58c432b3046f8bc0e74d46865a016a38360daca5b2139ea844e"
   }, {
@@ -61,7 +61,7 @@
     "forwardDestinationNetworkId": null,
     "forwardNetworkFeeAssetAmount": null,
     "networkFeeAssetAmount": null,
-    "protocolFeeAssetAmount": null,
+    "userDataProtocolFeeAssetAmount": null,
     "eventArgs": [ "7", [ 
       "0x0Ef13B2668dbE1b3eDfe9fFb7CbC398363b50f79", 
       "0x936BD5cDA593DF24Cc13bEB228E982D8feFC3F60", 

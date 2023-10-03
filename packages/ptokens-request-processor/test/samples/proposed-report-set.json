@@ -28,7 +28,7 @@
     "userData": "0x",
     "witnessedTimestamp": "2023-03-14T16:00:00.000Z",
     "forwardDestinationNetworkId": "0xfc8ebb2b",
-    "protocolFeeAssetAmount": "0",
+    "userDataProtocolFeeAssetAmount": "0",
     "networkFeeAssetAmount": "0",
     "forwardNetworkFeeAssetAmount": "0",
     "eventArgs": []
@@ -62,7 +62,7 @@
     "userData": "0x",
     "witnessedTimestamp": "2023-03-14T16:00:00.000Z",
     "forwardDestinationNetworkId": "0xfc8ebb2b",
-    "protocolFeeAssetAmount": "0",
+    "userDataProtocolFeeAssetAmount": "0",
     "networkFeeAssetAmount": "0",
     "forwardNetworkFeeAssetAmount": "0",
     "eventArgs": []
@@ -96,7 +96,7 @@
     "userData": "0x",
     "witnessedTimestamp": "2023-03-14T16:00:00.000Z",
     "forwardDestinationNetworkId": "0xfc8ebb2b",
-    "protocolFeeAssetAmount": "0",
+    "userDataProtocolFeeAssetAmount": "0",
     "networkFeeAssetAmount": "0",
     "forwardNetworkFeeAssetAmount": "0",
     "eventArgs": []
@@ -130,7 +130,7 @@
     "userData": "0x",
     "witnessedTimestamp": "2023-03-14T16:00:00.000Z",
     "forwardDestinationNetworkId": "0xfc8ebb2b",
-    "protocolFeeAssetAmount": "0",
+    "userDataProtocolFeeAssetAmount": "0",
     "networkFeeAssetAmount": "0",
     "forwardNetworkFeeAssetAmount": "0",
     "eventArgs": []
@@ -164,7 +164,7 @@
     "userData": "0x",
     "witnessedTimestamp": "2023-03-14T16:00:00.000Z",
     "forwardDestinationNetworkId": "0xfc8ebb2b",
-    "protocolFeeAssetAmount": "0",
+    "userDataProtocolFeeAssetAmount": "0",
     "networkFeeAssetAmount": "0",
     "forwardNetworkFeeAssetAmount": "0",
     "eventArgs": []

@@ -12,7 +12,7 @@ module.exports = {
   KEY_UNDERLYING_ASSET_NETWORK_ID: 'underlyingAssetNetworkId',
   KEY_ASSET_TOKEN_ADDRESS: 'assetTokenAddress',
   KEY_ASSET_AMOUNT: 'assetAmount',
-  KEY_PROTOCOL_FEE_ASSET_AMOUNT: 'protocolFeeAssetAmount',
+  KEY_PROTOCOL_FEE_ASSET_AMOUNT: 'userDataProtocolFeeAssetAmount',
   KEY_NETWORK_FEE_ASSET_AMOUNT: 'networkFeeAssetAmount',
   KEY_FORWARD_NETWORK_FEE_ASSET_AMOUNT: 'forwardNetworkFeeAssetAmount',
   KEY_USER_DATA: 'userData',

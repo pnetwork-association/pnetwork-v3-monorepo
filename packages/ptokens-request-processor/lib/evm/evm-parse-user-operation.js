@@ -9,7 +9,7 @@ const logUserOperationFromAbiArgs = (_operationName, _args) => {
   logger.info(`  uint256 nonce' ${_args[0][3]}`)
   logger.info(`  uint256 underlyingAssetDecimals' ${_args[0][4]}`)
   logger.info(`  uint256 assetAmount' ${_args[0][5]}`)
-  logger.info(`  uint256 protocolFeeAssetAmount' ${_args[0][6]}`)
+  logger.info(`  uint256 userDataProtocolFeeAssetAmount' ${_args[0][6]}`)
   logger.info(`  uint256 networkFeeAssetAmount' ${_args[0][7]}`)
   logger.info(`  uint256 forwardNetworkFeeAssetAmount' ${_args[0][8]}`)
   logger.info(`  address underlyingAssetTokenAddress' ${_args[0][9]}`)

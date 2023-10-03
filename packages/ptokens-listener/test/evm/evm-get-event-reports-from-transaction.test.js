@@ -72,7 +72,7 @@ describe('Get EVM event reports', () => {
           forwardDestinationNetworkId: '0xb9286154',
           forwardNetworkFeeAssetAmount: '2000',
           networkFeeAssetAmount: '1000',
-          protocolFeeAssetAmount: '0',
+          userDataProtocolFeeAssetAmount: '0',
           isForProtocol: false,
         },
       ])

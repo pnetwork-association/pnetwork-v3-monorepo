@@ -30,7 +30,7 @@
     "forwardDestinationNetworkId": "0xb9286154",
     "forwardNetworkFeeAssetAmount": "3000",
     "networkFeeAssetAmount": "1500",
-    "protocolFeeAssetAmount": "0",
+    "userDataProtocolFeeAssetAmount": "0",
     "isForProtocol": false,
     "eventArgs": [
       89772,
@@ -85,7 +85,7 @@
     "forwardDestinationNetworkId": "0xb9286154",
     "forwardNetworkFeeAssetAmount": "2000",
     "networkFeeAssetAmount": "1000",
-    "protocolFeeAssetAmount": "0",
+    "userDataProtocolFeeAssetAmount": "0",
     "isForProtocol": false,
     "eventArgs": [
       98322,

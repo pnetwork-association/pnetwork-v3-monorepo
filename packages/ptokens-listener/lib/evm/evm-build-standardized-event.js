@@ -165,7 +165,7 @@ const addInfoFromParsedLog = (_parsedLog, _obj) =>
     .then(
       maybeAddFieldFromEventArgs(
         _parsedLog.args,
-        ['protocolFeeAssetAmount'],
+        ['userDataProtocolFeeAssetAmount'],
         constants.db.KEY_PROTOCOL_FEE_ASSET_AMOUNT,
         bitIntToString
       )
