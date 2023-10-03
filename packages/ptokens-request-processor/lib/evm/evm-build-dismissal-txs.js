@@ -28,11 +28,14 @@ const addCancelledTxHashToEvent = R.curry((_event, _finalizedTxHash) => {
 
 const estimateGasErrorHandler = (_resolve, _reject, _report, _err) => {
   if (
-    _err.message.includes(errors.ERROR_OPERATION_ALREADY_CANCELED) ||
     _err.message.includes(errors.ERROR_OPERATION_NOT_QUEUED) ||
+    _err.message.includes(errors.ERROR_OPERATION_ALREADY_CANCELED) ||
     _err.message.includes(errors.ERROR_CHALLENGE_PERIOD_TERMINATED)
   ) {
     return _resolve(addCancelledTxHashToEvent(_report, '0x'))
+  } else if (_err.message.includes(errors.ERROR_LOCKDOWN_MODE)) {
+    logger.error(`'${_err.message}' detected, retrying shortly...`)
+    return _resolve(null)
   } else {
     logger.error(_err)
     return _resolve(addErrorToReport(_report, _err))
@@ -76,9 +79,14 @@ const sendDismissalTransactions = R.curry(
     logger.info(`Sending final txs w/ address ${_wallet.address} w/ proof ${_proof}`)
     const updatedReports = []
     for (const report of _reports) {
-      updatedReports.push(
-        await makeDismissalContractCall(_wallet, _hubAddress, _proof, _timeOut, report)
+      const newReport = await makeDismissalContractCall(
+        _wallet,
+        _hubAddress,
+        _proof,
+        _timeOut,
+        report
       )
+      if (utils.isNotNil(newReport)) updatedReports.push(newReport)
       await logic.sleepForXMilliseconds(1000) // TODO: make configurable
     }
 

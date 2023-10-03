@@ -32,10 +32,17 @@ const addProposedTxHashToEvent = R.curry(
     })
 )
 
-const estimateGasErrorHandler = (_resolve, _reject, _report, _err) =>
-  _err.message.includes(errors.ERROR_OPERATION_ALREADY_QUEUED)
-    ? _resolve(addProposedTxHashToEvent(_report, '0x'))
-    : logger.error(_err) || _resolve(addErrorToReport(_report, _err))
+const estimateGasErrorHandler = (_resolve, _reject, _report, _err) => {
+  if (_err.message.includes(errors.ERROR_OPERATION_ALREADY_QUEUED)) {
+    return _resolve(addProposedTxHashToEvent(_report, '0x'))
+  } else if (_err.message.includes(errors.ERROR_LOCKDOWN_MODE)) {
+    logger.error(`'${_err.message}' detected, retrying shortly...`)
+    return _resolve(null)
+  } else {
+    logger.error(_err)
+    return _resolve(addErrorToReport(_report, _err))
+  }
+}
 
 const errorHandler = (_resolve, _reject, _contract, _report, _err) => {
   if (_err.message.includes(constants.evm.ethers.ERROR_ESTIMATE_GAS)) {
@@ -73,9 +80,15 @@ const sendProposalTransactions = R.curry(
     const updatedReports = []
     const sleepTime = 1000
     for (const report of _eventReports) {
-      updatedReports.push(
-        await makeProposalContractCall(_wallet, _hubAddress, _timeOut, _amountToLock, report)
+      const newReport = await makeProposalContractCall(
+        _wallet,
+        _hubAddress,
+        _timeOut,
+        _amountToLock,
+        report
       )
+      if (utils.isNotNil(newReport)) updatedReports.push(newReport)
+
       await logic.sleepForXMilliseconds(sleepTime)
     }
 

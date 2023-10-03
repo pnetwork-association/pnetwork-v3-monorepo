@@ -31,8 +31,11 @@ const addFinalizedTxHashToEvent = R.curry((_event, _finalizedTxHash) => {
 const estimateGasErrorHandler = (_resolve, _reject, _report, _err) => {
   if (_err.message.includes(errors.ERROR_OPERATION_ALREADY_EXECUTED)) {
     return _resolve(addFinalizedTxHashToEvent(_report, '0x'))
-  } else if (_err.message.includes(errors.ERROR_CHALLENGE_PERIOD_NOT_TERMINATED)) {
-    logger.error(_err.message)
+  } else if (
+    _err.message.includes(errors.ERROR_LOCKDOWN_MODE) ||
+    _err.message.includes(errors.ERROR_CHALLENGE_PERIOD_NOT_TERMINATED)
+  ) {
+    logger.error(`'${_err.message}' detected, retrying shortly...`)
     return _resolve(null)
   } else {
     logger.error(_err)
@@ -75,7 +78,7 @@ const sendFinalTransactions = R.curry(async (_eventReports, _hubAddress, _timeOu
   for (const report of _eventReports) {
     const newReport = await makeFinalContractCall(_wallet, _hubAddress, _timeOut, report)
     // If null, means there was an handled error which we need to retry later
-    if (newReport !== null) newReports.push(newReport)
+    if (utils.isNotNil(newReport)) newReports.push(newReport)
     await logic.sleepForXMilliseconds(1000) // TODO: make configurable
   }
 
