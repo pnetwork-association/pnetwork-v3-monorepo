@@ -25,7 +25,7 @@ const GET_USER_OPERATION_CMD = 'getUserOperation'
 const GET_OPERATION_QUEUED_CMD = 'getOperationQueued'
 const GET_CHALLENGE_PENDING_CMD = 'getChallengePending'
 const GET_OPERATION_EXECUTED_CMD = 'getOperationExecuted'
-const GET_GUARDIANS_PROPAGATED_CMD = 'getGuardiansPropagated'
+const GET_GUARDIANS_PROPAGATED_CMD = 'getActorsPropagated'
 const GET_EVENT_LOGS_FROM_TRANSACTION_CMD = 'getEventsLogsFromTransaction'
 const GET_EVENT_REPORTS_FROM_TRANSACTION_CMD = 'getEventReportsFromTransaction'
 
@@ -181,7 +181,7 @@ const addGetChallengePendingCommand = _program =>
         )
     ) && _program
 
-const addGetGuardiansPropagatedCommand = _program =>
+const addGetActorsPropagatedCommand = _program =>
   _program
     .command(GET_GUARDIANS_PROPAGATED_CMD)
     .description('Get OperationExecuted event reports in a specific transaction')
@@ -221,7 +221,7 @@ const main = () =>
     .then(addGetUserOperationCommand)
     .then(addGetOperationQueuedCommand)
     .then(addGetOperationExecutedCommand)
-    .then(addGetGuardiansPropagatedCommand)
+    .then(addGetActorsPropagatedCommand)
     .then(addGetOperationsCommand)
     .then(addGetChallengePendingCommand)
     .then(_program => _program.parseAsync(process.argv))
