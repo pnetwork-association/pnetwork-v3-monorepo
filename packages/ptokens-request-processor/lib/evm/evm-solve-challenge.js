@@ -60,7 +60,7 @@ const addSolvedChallengesToDismissedReportsInState = R.curry((_state, _solvedCha
 
 module.exports.maybeSolveChallengesAndPutInState = _state =>
   new Promise((resolve, reject) => {
-    const pendingChallenges = _state[STATE_PENDING_CHALLENGES]
+    const pendingChallenges = _state[STATE_PENDING_CHALLENGES] || []
     const providerUrl = _state[constants.state.KEY_PROVIDER_URL]
     const identityGpgFile = _state[constants.state.KEY_IDENTITY_FILE]
     const provider = new ethers.JsonRpcProvider(providerUrl)
@@ -79,10 +79,13 @@ module.exports.maybeSolveChallengesAndPutInState = _state =>
 
     const wallet = new ethers.Wallet(privateKey, provider)
 
-    logger.info(`Solving all challenges pertaining: ${wallet.address}`)
-    return getMerkleProof(db, wallet.address)
-      .then(sendSolveChallengeTransactions(pendingChallenges, hub, wallet, txTimeout))
-      .then(addSolvedChallengesToDismissedReportsInState(_state))
-      .then(resolve)
-      .then(reject)
+    logger.info(`Solving all pending challenges pertaining '${wallet.address}'`)
+    return pendingChallenges.length === 0
+      ? logger.info('No challenges found ∴ continuing...') || resolve(_state)
+      : logger.info('Challenges found!') ||
+          getMerkleProof(db, wallet.address)
+            .then(sendSolveChallengeTransactions(pendingChallenges, hub, wallet, txTimeout))
+            .then(addSolvedChallengesToDismissedReportsInState(_state))
+            .then(resolve)
+            .then(reject)
   })
