@@ -40,10 +40,10 @@ const maybeSaveConfiguration = R.curry((taskArgs, _what, _path, _configuration) 
 const getMongoUrlFromTaskArgs = taskArgs =>
   taskArgs[TASK_FLAG_MONGO_LOCALHOST] ? 'mongodb://localhost:27017' : 'mongodb://mongodb:27017'
 
-const addGuardiansPropagatedEvent = R.curry((_config, _governanceMessageEmitterAddress) => {
+const addActorsPropagatedEvent = R.curry((_config, _governanceMessageEmitterAddress) => {
   const obj = {
     [constants.config.KEY_CONTRACTS]: [_governanceMessageEmitterAddress],
-    [constants.config.KEY_NAME]: constants.evm.events.GUADIANS_PROPAGATED_SIGNATURE,
+    [constants.config.KEY_NAME]: constants.evm.events.ACTORS_PROPAGATED_SIGNATURE,
   }
 
   const events = _config[constants.config.KEY_EVENTS]
@@ -53,7 +53,7 @@ const addGuardiansPropagatedEvent = R.curry((_config, _governanceMessageEmitterA
 })
 
 const addGovernanceMessageEmitterEvent = R.curry((taskArgs, hre, _networkId, _config) =>
-  getGovernanceMessageEmitterAddress(hre).then(addGuardiansPropagatedEvent(_config))
+  getGovernanceMessageEmitterAddress(hre).then(addActorsPropagatedEvent(_config))
 )
 
 const maybeAddGovernanceMessageEmitterEvents = R.curry((taskArgs, hre, _networkId, _config) =>

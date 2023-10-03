@@ -194,7 +194,7 @@ const addGetGuardiansPropagatedCommand = _program =>
         getEventReportsFromTransactionCommand(
           config,
           _hash,
-          constants.evm.events.GUADIANS_PROPAGATED_SIGNATURE,
+          constants.evm.events.ACTORS_PROPAGATED_SIGNATURE,
           _options.save
         )
     ) && _program
