@@ -1,6 +1,6 @@
 [{
     "status": "detected",
-    "eventName": "GuardiansPropagated",
+    "eventName": "ActorsPropagated",
     "nonce": null,
     "destinationAccount": null,
     "destinationNetworkId": null,
@@ -30,10 +30,10 @@
     "networkFeeAssetAmount": null,
     "protocolFeeAssetAmount": null,
     "eventArgs": [ "6", [ "0x0Ef13B2668dbE1b3eDfe9fFb7CbC398363b50f79" ] ],
-    "_id": "guardianspropagated_0x96c945933a34d58c432b3046f8bc0e74d46865a016a38360daca5b2139ea844e"
+    "_id": "actorspropagated_0x96c945933a34d58c432b3046f8bc0e74d46865a016a38360daca5b2139ea844e"
   }, {
     "status": "detected",
-    "eventName": "GuardiansPropagated",
+    "eventName": "ActorsPropagated",
     "nonce": null,
     "destinationAccount": null,
     "destinationNetworkId": null,
@@ -70,5 +70,5 @@
       "0xF3f036EBC0d989301c220c9DBa74a4A60e143526", 
       "0x27Fa5D2E0C0Ca7e3Cdbd199EF1113AE4f2844dc6" 
     ]],
-    "_id": "guardianspropagated_0xa2aadd562ea7ebd79287458a1f506f71335f7374776b36b6ddf7693d63e69089"
+    "_id": "actorspropagated_0xa2aadd562ea7ebd79287458a1f506f71335f7374776b36b6ddf7693d63e69089"
   }]

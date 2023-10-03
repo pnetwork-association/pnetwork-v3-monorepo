@@ -1,6 +1,6 @@
 const R = require('ramda')
 const pendingChallenges = require('../samples/pending-challenges-report-set')
-const guardianspropagated = require('../samples/guardians-propagated-report-set')
+const actorspropagated = require('../samples/guardians-propagated-report-set')
 const constants = require('ptokens-constants')
 const { db, utils, logic } = require('ptokens-utils')
 
@@ -130,7 +130,7 @@ describe('Tests for queued requests detection and dismissal', () => {
   describe('Solve pending challenges', () => {
     beforeEach(async () => {
       await collection.insertMany(pendingChallenges)
-      await collection.insertMany(guardianspropagated)
+      await collection.insertMany(actorspropagated)
     })
 
     afterEach(async () => {

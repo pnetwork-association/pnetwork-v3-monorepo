@@ -40,7 +40,7 @@ describe('Get Merkle path general tests', () => {
       const sampleWithEmptyArgs = {
         ...guardiansPropagatedSamples[0],
         [constants.db.KEY_EVENT_ARGS]: [],
-        [constants.db.KEY_ID]: 'guardianspropagated_0x1234',
+        [constants.db.KEY_ID]: 'actorspropagated_0x1234',
         [constants.db.KEY_WITNESSED_TS]: new Date().toISOString(),
       }
 
