@@ -18,10 +18,12 @@ const sendSolveChallengeTransactions = R.curry(
     const broadcasted = []
     for (let i = 0; i < _pendingChallenges.length; i++) {
       const report = _pendingChallenges[i]
+      // TODO: return the Challenge struct as done in ptokens-evm-contracts
       const challenge = parseChallengeEventArgs(report)
+      const actorAddress = challenge[1]
 
       // Check challenge address is equal to mine
-      if (challenge[1] === _wallet.address) {
+      if (actorAddress === _wallet.address) {
         const tx = await contract.solveChallengeGuardian(challenge, _proof)
         let receipt = null
         try {
