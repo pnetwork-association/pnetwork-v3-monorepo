@@ -1,5 +1,6 @@
 const { logs } = require('../mock/evm-logs')
 const constants = require('ptokens-constants')
+const { validation } = require('ptokens-utils')
 const { getInterfaceFromEvent } = require('../../lib/evm/evm-utils')
 
 describe('Event building for EVM', () => {
@@ -70,6 +71,7 @@ describe('Event building for EVM', () => {
         [constants.db.KEY_IS_FOR_PROTOCOL]: false,
       }
 
+      await validation.validateJson(constants.db.schemas.eventReport, expected)
       expect(result).toStrictEqual(expected)
     })
 
