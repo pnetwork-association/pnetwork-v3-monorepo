@@ -84,14 +84,14 @@ const getOperationStatus = R.curry(
 
 const filterOutDetectedEventsWithWrongStatusAndPutInState = _state =>
   new Promise(resolve => {
-    const queuedOperations = _state[STATE_DETECTED_DB_REPORTS]
+    const detectedOperations = _state[STATE_DETECTED_DB_REPORTS]
     const providerUrl = _state[constants.state.KEY_PROVIDER_URL]
     const hubAddress = _state[constants.state.KEY_HUB_ADDRESS]
     const provider = new ethers.JsonRpcProvider(providerUrl)
     const db = _state[constants.state.KEY_DB]
     logger.info('Checking EVM requests on chain status...')
-    return Promise.all(queuedOperations.map(getOperationStatus(provider, hubAddress)))
-      .then(setRequestsStatusAccordinglyIntoDb(db, queuedOperations))
+    return Promise.all(detectedOperations.map(getOperationStatus(provider, hubAddress)))
+      .then(setRequestsStatusAccordinglyIntoDb(db, detectedOperations))
       .then(_ => getDetectedEventsFromDbAndPutInState(_state))
       .then(resolve)
   })
