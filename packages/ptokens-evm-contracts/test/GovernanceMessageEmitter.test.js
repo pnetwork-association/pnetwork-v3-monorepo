@@ -1,6 +1,7 @@
 const { expect } = require('chai')
 const { ethers } = require('hardhat')
-const { ACTORS, SLASHING_QUANTITY } = require('./constants')
+const constants = require('ptokens-constants')
+const { SLASHING_QUANTITY } = require('./constants')
 const { MerkleTree } = require('merkletreejs')
 
 let governanceMessageEmitter,
@@ -111,7 +112,10 @@ describe('GovernanceMessageEmitter', () => {
 
     const actors = [...guardians, ...stakingSentinels, ...borrowingSentinels]
     const sentinels = [...stakingSentinels, ...borrowingSentinels]
-    const types = [...guardians.map(() => ACTORS.Guardian), ...sentinels.map(() => ACTORS.Sentinel)]
+    const types = [
+      ...guardians.map(() => constants.hub.actors.Guardian),
+      ...sentinels.map(() => constants.hub.actors.Sentinel),
+    ]
     const merkleRootWithoutSlashedSentinel = getMerkleRoot(actors, types)
     const abiCoder = new ethers.utils.AbiCoder()
 
@@ -188,7 +192,10 @@ describe('GovernanceMessageEmitter', () => {
 
     const actors = [...guardians, ...stakingSentinels, ...borrowingSentinels] // slashedStakingSentinel1 and slashedStakingSentinel2 are filtered
     const sentinels = [...stakingSentinels, ...borrowingSentinels]
-    const types = [...guardians.map(() => ACTORS.Guardian), ...sentinels.map(() => ACTORS.Sentinel)]
+    const types = [
+      ...guardians.map(() => constants.hub.actors.Guardian),
+      ...sentinels.map(() => constants.hub.actors.Sentinel),
+    ]
     const merkleRootWithoutSlashedSentinel = getMerkleRoot(actors, types)
 
     const abiCoder = new ethers.utils.AbiCoder()
@@ -251,7 +258,7 @@ describe('GovernanceMessageEmitter', () => {
     const sentinelsWithoutSlashedOne = sentinels.map(_address =>
       _address === slashedSentinel ? '0x0000000000000000000000000000000000000000' : _address
     )
-    const types = sentinels.map(() => ACTORS.Sentinel)
+    const types = sentinels.map(() => constants.hub.actors.Sentinel)
 
     const merkleRootWithoutSlashedSentinel = getMerkleRoot(sentinelsWithoutSlashedOne, types)
 
@@ -268,7 +275,7 @@ describe('GovernanceMessageEmitter', () => {
             ethers.utils.keccak256(ethers.utils.toUtf8Bytes('GOVERNANCE_MESSAGE_SLASH_ACTOR')),
             abiCoder.encode(
               ['uint16', 'address', 'uint8'],
-              [currentEpoch, slashedSentinel, ACTORS.Sentinel]
+              [currentEpoch, slashedSentinel, constants.hub.actors.Sentinel]
             ),
           ]
         ),
@@ -284,7 +291,12 @@ describe('GovernanceMessageEmitter', () => {
       expect(
         verifyMerkleProof(
           sentinelsWithoutSlashedOne,
-          getMerkleProof(sentinelsWithoutSlashedOne, types, sentinels[i], ACTORS.Sentinel),
+          getMerkleProof(
+            sentinelsWithoutSlashedOne,
+            types,
+            sentinels[i],
+            constants.hub.actors.Sentinel
+          ),
           sentinels[i],
           merkleRootWithoutSlashedSentinel
         )
