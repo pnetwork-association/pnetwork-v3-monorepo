@@ -44,7 +44,7 @@ const estimateGasErrorHandler = (_resolve, _reject, _report, _err) => {
 
 const errorHandler = (_resolve, _reject, _contract, _report, _err) => {
   if (_err.message.includes(constants.evm.ethers.ERROR_ESTIMATE_GAS)) {
-    const hubError = new HubError(_contract.interface.parseError(_err.data))
+    const hubError = new HubError(_contract, _err)
     return estimateGasErrorHandler(_resolve, _reject, _report, hubError)
   } else {
     logger.error(_err)
@@ -62,10 +62,8 @@ const makeDismissalContractCall = R.curry(
 
       logger.info(`Executing _id: ${id}`)
       return checkEventName(eventName)
-        .then(_ => contract.protocolGuardianCancelOperation(...args, _proof))
-        .then(
-          _tx => logger.debug('protocolGuardianCancelOperation called, awaiting...') || _tx.wait()
-        )
+        .then(_ => contract.protocolCancelOperation(...args, _proof))
+        .then(_tx => logger.debug('protocolCancelOperation called, awaiting...') || _tx.wait())
         .then(_receipt => logger.info('Tx mined successfully!') || _receipt)
         .then(R.prop(constants.evm.ethers.KEY_TX_HASH))
         .then(addCancelledTxHashToEvent(_report))

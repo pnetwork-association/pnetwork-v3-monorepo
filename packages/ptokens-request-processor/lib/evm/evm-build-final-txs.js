@@ -45,7 +45,7 @@ const estimateGasErrorHandler = (_resolve, _reject, _report, _err) => {
 
 const errorHandler = (_resolve, _reject, _contract, _report, _err) => {
   if (_err.message.includes(constants.evm.ethers.ERROR_ESTIMATE_GAS)) {
-    const hubError = new HubError(_contract.interface.parseError(_err.data))
+    const hubError = new HubError(_contract, _err)
     return estimateGasErrorHandler(_resolve, _reject, _report, hubError)
   } else {
     logger.error(_err)
