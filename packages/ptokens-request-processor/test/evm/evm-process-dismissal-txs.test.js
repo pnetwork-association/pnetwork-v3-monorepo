@@ -76,7 +76,7 @@ describe('Tests for queued requests detection and dismissal', () => {
       })
 
       jest.spyOn(ethers, 'Contract').mockImplementation(() => ({
-        protocolGuardianCancelOperation: mockCancelOperation,
+        protocolCancelOperation: mockCancelOperation,
         operationStatusOf: mockOperationStatusOf,
       }))
 

@@ -4,6 +4,7 @@ const {
   STATE_FINALIZED_DB_REPORTS,
 } = require('../../lib/state/constants')
 const detectedReportSet = require('../samples/detected-report-set')
+const errors = require('../../lib/errors')
 const proposedTxHashes = [
   '0x581fc809a1d55b8aa4205a282c2387a7092f93749167bc2c7600f9742de71347',
   '0x50ba7f00fd190a90bb90e2b9f8af1f4ad61d54e5f24585389021c82f21a3789c',
@@ -205,21 +206,25 @@ describe('General final txs testing', () => {
       jest.spyOn(ethers, 'JsonRpcProvider').mockReturnValue({})
       jest.spyOn(ethers, 'Wallet').mockImplementation(_ => jest.fn())
 
+      const error = new Error(constants.evm.ethers.ERROR_ESTIMATE_GAS)
+      error.data = '0x'
       const mockExecuteOperation = jest
         .fn()
-        .mockRejectedValueOnce(new Error(constants.evm.ethers.ERROR_ESTIMATE_GAS))
+        .mockRejectedValueOnce(error)
         .mockResolvedValueOnce({
           wait: jest
             .fn()
             .mockResolvedValue({ [constants.evm.ethers.KEY_TX_HASH]: executeTxHashes[0] }),
         })
 
+      const fragment = {
+        name: errors.ERROR_OPERATION_ALREADY_EXECUTED,
+        format: () => '0x',
+      }
+
       jest.spyOn(ethers, 'Contract').mockImplementation(() => ({
         interface: {
-          parseError: jest.fn().mockReturnValue({
-            name: 'OperationAlreadyExecuted',
-            args: [],
-          }),
+          parseError: jest.fn().mockReturnValue(new ethers.ErrorDescription(fragment, '', [])),
         },
         protocolExecuteOperation: mockExecuteOperation,
       }))

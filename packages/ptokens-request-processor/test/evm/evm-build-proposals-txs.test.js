@@ -5,6 +5,7 @@ const {
 const { validation } = require('ptokens-utils')
 const constants = require('ptokens-constants')
 const detectedEvents = require('../samples/detected-report-set')
+const errors = require('../../lib/errors')
 
 describe('Build proposals test for EVM', () => {
   const expectedMockQueueCallArgs = [
@@ -172,17 +173,19 @@ describe('Build proposals test for EVM', () => {
       jest.spyOn(ethers, 'Wallet').mockImplementation(_ => jest.fn())
       jest.spyOn(utils, 'readIdentityFileSync').mockReturnValue(privKey)
 
-      const mockQueueOperation = jest
-        .fn()
-        .mockRejectedValue(new Error(constants.evm.ethers.ERROR_ESTIMATE_GAS))
+      const error = new Error(constants.evm.ethers.ERROR_ESTIMATE_GAS)
+      error.data = '0x'
+      const mockQueueOperation = jest.fn().mockRejectedValue(error)
       const mockLockedAmountChallengePeriod = jest.fn().mockResolvedValue(1)
+
+      const fragment = {
+        name: errors.ERROR_OPERATION_ALREADY_QUEUED,
+        format: () => '0x',
+      }
 
       jest.spyOn(ethers, 'Contract').mockImplementation(() => ({
         interface: {
-          parseError: jest.fn().mockReturnValue({
-            name: 'OperationAlreadyQueued',
-            args: [],
-          }),
+          parseError: jest.fn().mockReturnValue(new ethers.ErrorDescription(fragment, '', [])),
         },
         protocolQueueOperation: mockQueueOperation,
         lockedAmountChallengePeriod: mockLockedAmountChallengePeriod,

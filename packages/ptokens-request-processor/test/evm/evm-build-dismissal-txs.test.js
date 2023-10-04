@@ -37,7 +37,9 @@ describe('Build dismissal test for EVM', () => {
       '0x',
       false,
     ],
+    constants.hub.actors.Guardian,
     emptyProof,
+    expect.any(String),
   ]
 
   const expectedArgs2 = [
@@ -63,7 +65,9 @@ describe('Build dismissal test for EVM', () => {
       '0x',
       false,
     ],
+    constants.hub.actors.Guardian,
     emptyProof,
+    expect.any(String),
   ]
 
   describe('maybeBuildDismissalTxsAndPutInState', () => {
@@ -89,7 +93,7 @@ describe('Build dismissal test for EVM', () => {
       jest.spyOn(utils, 'readIdentityFileSync').mockReturnValue(privKey)
       jest.spyOn(ethers, 'JsonRpcProvider').mockReturnValue({})
       jest.spyOn(ethers, 'Contract').mockImplementation(() => ({
-        protocolGuardianCancelOperation: mockProtocolCancel,
+        protocolCancelOperation: mockProtocolCancel,
       }))
 
       const mockDb = {
@@ -115,6 +119,7 @@ describe('Build dismissal test for EVM', () => {
       } = require('../../lib/evm/evm-build-dismissal-txs')
 
       const result = await maybeBuildDismissalTxsAndPutInState(state)
+
       expect(mockProtocolCancel).toHaveBeenNthCalledWith(1, ...expectedArgs1)
       expect(result).toHaveProperty(STATE_TO_BE_DISMISSED_REQUESTS)
       expect(result).toHaveProperty(STATE_DISMISSED_DB_REPORTS)
@@ -140,6 +145,7 @@ describe('Build dismissal test for EVM', () => {
       const { utils } = require('ptokens-utils')
 
       jest.spyOn(ethers, 'JsonRpcProvider').mockReturnValue({})
+
       jest.spyOn(utils, 'readIdentityFileSync').mockReturnValue(privKey)
 
       const mockDb = {
@@ -150,17 +156,18 @@ describe('Build dismissal test for EVM', () => {
         }),
       }
 
-      const mockProtocolCancel = jest
-        .fn()
-        .mockRejectedValue(new Error(constants.evm.ethers.ERROR_ESTIMATE_GAS))
+      const error = new Error(constants.evm.ethers.ERROR_ESTIMATE_GAS)
+      error.data = '0x'
+      const mockProtocolCancel = jest.fn().mockRejectedValue(error)
+      const fragment = {
+        name: errors.ERROR_OPERATION_ALREADY_CANCELED,
+        format: () => '0x',
+      }
 
       jest.spyOn(ethers, 'Contract').mockImplementation(() => ({
-        protocolGuardianCancelOperation: mockProtocolCancel,
+        protocolCancelOperation: mockProtocolCancel,
         interface: {
-          parseError: jest.fn().mockReturnValue({
-            name: errors.ERROR_OPERATION_ALREADY_CANCELED,
-            args: [],
-          }),
+          parseError: jest.fn().mockReturnValue(new ethers.ErrorDescription(fragment, '', [])),
         },
       }))
 
@@ -221,7 +228,7 @@ describe('Build dismissal test for EVM', () => {
         .mockRejectedValueOnce(new Error('Generic Error'))
 
       jest.spyOn(ethers, 'Contract').mockImplementation(() => ({
-        protocolGuardianCancelOperation: mockProtocolCancel,
+        protocolCancelOperation: mockProtocolCancel,
         interface: {
           parseError: jest.fn().mockResolvedValue({
             name: errors.ERROR_OPERATION_ALREADY_CANCELED,

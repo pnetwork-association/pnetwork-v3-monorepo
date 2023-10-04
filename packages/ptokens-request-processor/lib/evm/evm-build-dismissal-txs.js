@@ -61,8 +61,19 @@ const makeDismissalContractCall = R.curry(
       const contract = new ethers.Contract(_hubAddress, abi, _wallet)
 
       logger.info(`Executing _id: ${id}`)
+      const arrayify = _hexString => Uint8Array.from(Buffer.from(_hexString.slice(2), 'hex'))
+
       return checkEventName(eventName)
-        .then(_ => contract.protocolCancelOperation(...args, _proof))
+        .then(_ => utils.getEventId(_report))
+        .then(_idHex => _wallet.signMessage(arrayify(_idHex)))
+        .then(_signature =>
+          contract.protocolCancelOperation(
+            ...args,
+            constants.hub.actors.Guardian,
+            _proof,
+            _signature
+          )
+        )
         .then(_tx => logger.debug('protocolCancelOperation called, awaiting...') || _tx.wait())
         .then(_receipt => logger.info('Tx mined successfully!') || _receipt)
         .then(R.prop(constants.evm.ethers.KEY_TX_HASH))
