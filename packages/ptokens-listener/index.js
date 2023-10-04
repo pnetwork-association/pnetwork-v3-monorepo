@@ -25,7 +25,7 @@ const GET_USER_OPERATION_CMD = 'getUserOperation'
 const GET_OPERATION_QUEUED_CMD = 'getOperationQueued'
 const GET_CHALLENGE_PENDING_CMD = 'getChallengePending'
 const GET_OPERATION_EXECUTED_CMD = 'getOperationExecuted'
-const GET_GUARDIANS_PROPAGATED_CMD = 'getActorsPropagated'
+const GET_ACTORS_PROPAGATED_CMD = 'getActorsPropagated'
 const GET_EVENT_LOGS_FROM_TRANSACTION_CMD = 'getEventsLogsFromTransaction'
 const GET_EVENT_REPORTS_FROM_TRANSACTION_CMD = 'getEventReportsFromTransaction'
 
@@ -46,9 +46,9 @@ const GET_EVENT_LOGS_FROM_TRANSACTION_HELP_MESSAGE =
 $ node index.js ${GET_EVENT_LOGS_FROM_TRANSACTION_CMD} 0x2d300f8aeed6cee69f50dde84d0a6e991d0836b2a1a3b3a6737b3ae3493f710f 'UserOperation(uint256 nonce, string destinationAccount, bytes4 destinationNetworkId, string underlyingAssetName, string underlyingAssetSymbol, uint256 underlyingAssetDecimals, address underlyingAssetTokenAddress, bytes4 underlyingAssetNetworkId, address assetTokenAddress, uint256 assetAmount, address protocolFeeAssetTokenAddress, uint256 userDataProtocolFeeAssetAmount, uint256 networkFeeAssetAmount, uint256 forwardNetworkFeeAssetAmount, bytes4 forwardDestinationNetworkId, bytes userData, bytes32 optionsMask)'
 `
 
-const GET_GUARDIANS_PROPAGATED_HELP_MESSAGE =
+const GET_ACTORS_PROPAGATED_HELP_MESSAGE =
   EXAMPLE_CALLS +
-  `$ node index.js ${GET_GUARDIANS_PROPAGATED_CMD} 0xFf310f8aeed6cee69f50dde84d0a6e991d0836b2a1a3b3a6737b3ae3493f710f
+  `$ node index.js ${GET_ACTORS_PROPAGATED_CMD} 0xFf310f8aeed6cee69f50dde84d0a6e991d0836b2a1a3b3a6737b3ae3493f710f
 `
 
 const GET_CHALLENGE_PENDING_HELP_MESSAGE =
@@ -183,11 +183,11 @@ const addGetChallengePendingCommand = _program =>
 
 const addGetActorsPropagatedCommand = _program =>
   _program
-    .command(GET_GUARDIANS_PROPAGATED_CMD)
-    .description('Get OperationExecuted event reports in a specific transaction')
+    .command(GET_ACTORS_PROPAGATED_CMD)
+    .description('Get the ActorsPropagated event reports in a specific transaction')
     .argument('<tx–hash>', 'transaction hash')
     .option('-s, --save', 'save report into database')
-    .addHelpText('after', GET_GUARDIANS_PROPAGATED_HELP_MESSAGE)
+    .addHelpText('after', GET_ACTORS_PROPAGATED_HELP_MESSAGE)
     .action(
       (_hash, _options) =>
         disableLoggingForCLICommand() ||
