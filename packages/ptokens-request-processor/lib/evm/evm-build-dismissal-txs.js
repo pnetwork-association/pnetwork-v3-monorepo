@@ -29,8 +29,7 @@ const addCancelledTxHashToEvent = R.curry((_event, _finalizedTxHash) => {
 const estimateGasErrorHandler = (_resolve, _reject, _report, _err) => {
   if (
     _err.message.includes(errors.ERROR_OPERATION_NOT_QUEUED) ||
-    _err.message.includes(errors.ERROR_OPERATION_ALREADY_CANCELED) ||
-    _err.message.includes(errors.ERROR_CHALLENGE_PERIOD_TERMINATED)
+    _err.message.includes(errors.ERROR_OPERATION_ALREADY_CANCELED)
   ) {
     return _resolve(addCancelledTxHashToEvent(_report, '0x'))
   } else if (_err.message.includes(errors.ERROR_LOCKDOWN_MODE)) {
