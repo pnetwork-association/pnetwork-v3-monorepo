@@ -131,13 +131,14 @@ describe('Build proposals test for EVM', () => {
       const providerUrl = 'http://localhost:8545'
       const hubAddress = '0xc2d9c83d98ba36f295cf61b7496332075d16dc8e'
 
+      const reportWithInsufficientNetworkFee = detectedEvents[2]
       const state = {
         [constants.state.KEY_TX_TIMEOUT]: txTimeout,
         [constants.state.KEY_PROVIDER_URL]: providerUrl,
         [constants.state.KEY_NETWORK_ID]: networkId,
         [constants.state.KEY_IDENTITY_FILE]: gpgEncryptedFile,
         [constants.state.KEY_HUB_ADDRESS]: hubAddress,
-        [STATE_DETECTED_DB_REPORTS]: [detectedEvents[0]],
+        [STATE_DETECTED_DB_REPORTS]: [detectedEvents[0], reportWithInsufficientNetworkFee],
       }
 
       const { buildProposalsTxsAndPutInState } = require('../../lib/evm/evm-build-proposals-txs')
@@ -153,7 +154,7 @@ describe('Build proposals test for EVM', () => {
       expect(result).toHaveProperty(constants.state.KEY_IDENTITY_FILE)
       expect(result).toHaveProperty(constants.state.KEY_HUB_ADDRESS)
       expect(result).toHaveProperty(constants.state.KEY_TX_TIMEOUT)
-      expect(result[STATE_PROPOSED_DB_REPORTS]).toHaveLength(1)
+      expect(result[STATE_PROPOSED_DB_REPORTS]).toHaveLength(2)
 
       expect(result[STATE_PROPOSED_DB_REPORTS][0]).toEqual(
         expect.objectContaining({
@@ -161,6 +162,16 @@ describe('Build proposals test for EVM', () => {
           [constants.db.KEY_STATUS]: constants.db.txStatus.PROPOSED,
           [constants.db.KEY_PROPOSAL_TX_HASH]: proposedTxHashes[0],
           [constants.db.KEY_PROPOSAL_TS]: expect.any(String),
+        })
+      )
+
+      expect(result[STATE_PROPOSED_DB_REPORTS][1]).toEqual(
+        expect.objectContaining({
+          [constants.db.KEY_ID]: reportWithInsufficientNetworkFee[constants.db.KEY_ID],
+          [constants.db.KEY_STATUS]: constants.db.txStatus.SKIPPED,
+          [constants.db.KEY_PROPOSAL_TX_HASH]: '0x',
+          [constants.db.KEY_PROPOSAL_TS]: expect.any(String),
+          [constants.db.KEY_ERROR]: expect.stringContaining(errors.ERROR_NETWORK_FEE_NOT_ACCEPTED),
         })
       )
     })

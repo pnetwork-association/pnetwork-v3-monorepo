@@ -13,4 +13,5 @@ module.exports = {
   ERROR_REPLACEMENT_UNDERPRICED: 'replacement transaction underpriced',
   ERROR_INVALID_PROPOSED_TIMESTAMP: 'Invalid proposed timestamp',
   ERROR_INSUFFICIENT_FUNDS: 'Insufficient funds',
+  ERROR_NETWORK_FEE_NOT_ACCEPTED: 'Insufficient network fee',
 }

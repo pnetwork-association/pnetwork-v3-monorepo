@@ -25,7 +25,7 @@ describe('Reports filtering tests', () => {
     it('Should get an array with only valid reports', async () => {
       const result = await filterForValidReports(reportsSet)
 
-      const expected = [reportsSet[0], reportsSet[1]]
+      const expected = reportsSet
       expect(result).toStrictEqual(expected)
     })
   })
