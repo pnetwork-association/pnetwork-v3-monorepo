@@ -2,7 +2,7 @@ const { db } = require('ptokens-utils')
 const errors = require('../../lib/errors')
 const constants = require('ptokens-constants')
 const { getMerkleProof } = require('../../lib/evm/get-merkle-proof')
-const guardiansPropagatedSamples = require('../samples/guardians-propagated-report-set')
+const actorsPropagatedSamples = require('../samples/actors-propagated-report-set')
 
 describe('Get Merkle path general tests', () => {
   const dbName = global.__MONGO_DB_NAME__
@@ -22,7 +22,7 @@ describe('Get Merkle path general tests', () => {
   describe('getMerkleProof', () => {
     beforeAll(async () => {
       await collection.deleteMany({})
-      await db.insertReports(collection, guardiansPropagatedSamples)
+      await db.insertReports(collection, actorsPropagatedSamples)
     })
 
     it('Should get the expected Merkle path', async () => {
@@ -38,7 +38,7 @@ describe('Get Merkle path general tests', () => {
 
     it('Should fail when no epoch is defined', () => {
       const sampleWithEmptyArgs = {
-        ...guardiansPropagatedSamples[0],
+        ...actorsPropagatedSamples[0],
         [constants.db.KEY_EVENT_ARGS]: [],
         [constants.db.KEY_ID]: 'actorspropagated_0x1234',
         [constants.db.KEY_WITNESSED_TS]: new Date().toISOString(),

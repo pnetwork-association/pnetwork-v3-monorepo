@@ -1,6 +1,6 @@
 const R = require('ramda')
 const pendingChallenges = require('../samples/pending-challenges-report-set')
-const actorspropagated = require('../samples/guardians-propagated-report-set')
+const actorspropagated = require('../samples/actors-propagated-report-set')
 const constants = require('ptokens-constants')
 const { db, utils, logic } = require('ptokens-utils')
 
@@ -15,8 +15,8 @@ const {
 } = require('../../lib/state/constants')
 const queuedReports = require('../samples/queued-report-set.json')
 const requestsReports = require('../samples/detected-report-set.json')
-const guardiansPropagatedReportSet = require('../samples/guardians-propagated-report-set')
-const reports = [...queuedReports, ...requestsReports, ...guardiansPropagatedReportSet]
+const actorsPropagatedReportSet = require('../samples/actors-propagated-report-set')
+const reports = [...queuedReports, ...requestsReports, ...actorsPropagatedReportSet]
 
 describe('Tests for queued requests detection and dismissal', () => {
   let collection = null
@@ -170,7 +170,7 @@ describe('Tests for queued requests detection and dismissal', () => {
 
       jest.spyOn(ethers, 'JsonRpcProvider').mockReturnValue({})
       jest.spyOn(ethers, 'Contract').mockImplementation(() => ({
-        solveChallengeGuardian: mockSolveChallenge,
+        solveChallenge: mockSolveChallenge,
       }))
 
       jest.spyOn(utils, 'readIdentityFileSync').mockReturnValue(privKey)

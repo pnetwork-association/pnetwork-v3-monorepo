@@ -24,7 +24,17 @@ const sendSolveChallengeTransactions = R.curry(
 
       // Check challenge address is equal to mine
       if (actorAddress === _wallet.address) {
-        const tx = await contract.solveChallengeGuardian(challenge, _proof)
+        const abiCoder = new ethers.AbiCoder()
+        const id = ethers.sha256(
+          abiCoder.encode(['tuple(uint256,address,address,uint8, uint64,bytes4)'], [challenge])
+        )
+        const signature = _wallet.signMessage(ethers.getBytes(id))
+        const tx = await contract.solveChallenge(
+          challenge,
+          constants.hub.actors.Guardian,
+          _proof,
+          signature
+        )
         let receipt = null
         try {
           receipt = await tx.wait()

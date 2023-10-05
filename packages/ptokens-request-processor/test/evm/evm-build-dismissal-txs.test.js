@@ -5,7 +5,7 @@ const {
 const errors = require('../../lib/errors')
 const constants = require('ptokens-constants')
 const queuedReports = require('../samples/queued-report-set')
-const guardiansPropagatedReportSet = require('../samples/guardians-propagated-report-set')
+const actorsPropagatedReportSet = require('../samples/actors-propagated-report-set')
 
 describe('Build dismissal test for EVM', () => {
   const emptyProof = []
@@ -99,7 +99,7 @@ describe('Build dismissal test for EVM', () => {
       const mockDb = {
         find: jest.fn().mockReturnValue({
           sort: jest.fn().mockReturnValue({
-            toArray: jest.fn().mockResolvedValue(guardiansPropagatedReportSet),
+            toArray: jest.fn().mockResolvedValue(actorsPropagatedReportSet),
           }),
         }),
       }
@@ -151,7 +151,7 @@ describe('Build dismissal test for EVM', () => {
       const mockDb = {
         find: jest.fn().mockReturnValue({
           sort: jest.fn().mockReturnValue({
-            toArray: jest.fn().mockResolvedValue(guardiansPropagatedReportSet),
+            toArray: jest.fn().mockResolvedValue(actorsPropagatedReportSet),
           }),
         }),
       }
@@ -217,7 +217,7 @@ describe('Build dismissal test for EVM', () => {
       const mockDb = {
         find: jest.fn().mockReturnValue({
           sort: jest.fn().mockReturnValue({
-            toArray: jest.fn().mockResolvedValue(guardiansPropagatedReportSet),
+            toArray: jest.fn().mockResolvedValue(actorsPropagatedReportSet),
           }),
         }),
       }
