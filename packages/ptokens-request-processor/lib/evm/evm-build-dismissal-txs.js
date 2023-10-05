@@ -61,11 +61,10 @@ const makeDismissalContractCall = R.curry(
       const contract = new ethers.Contract(_hubAddress, abi, _wallet)
 
       logger.info(`Executing _id: ${id}`)
-      const arrayify = _hexString => Uint8Array.from(Buffer.from(_hexString.slice(2), 'hex'))
 
       return checkEventName(eventName)
         .then(_ => utils.getEventId(_report))
-        .then(_idHex => _wallet.signMessage(arrayify(_idHex)))
+        .then(_idHex => _wallet.signMessage(ethers.getBytes(_idHex)))
         .then(_signature =>
           contract.protocolCancelOperation(
             ...args,

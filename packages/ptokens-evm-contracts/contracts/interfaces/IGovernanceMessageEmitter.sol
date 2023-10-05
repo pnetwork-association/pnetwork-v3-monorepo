@@ -24,8 +24,9 @@ interface IGovernanceMessageEmitter {
      *
      * @param epoch The epoch
      * @param actors The actors
+     * @param actorsType The actor types
      */
-    event ActorsPropagated(uint16 indexed epoch, address[] actors);
+    event ActorsPropagated(uint16 indexed epoch, address[] actors, IPNetworkHub.ActorTypes[] actorsType);
 
     /*
      * @notice Emit a GovernanceMessage event containing the total number of actors (sentinels and guardians) and
