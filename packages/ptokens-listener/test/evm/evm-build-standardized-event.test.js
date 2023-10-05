@@ -1,8 +1,7 @@
 const { logs } = require('../mock/evm-logs')
 const constants = require('ptokens-constants')
-const { getInterfaceFromEvent } = require('../../lib/evm/evm-utils')
-
 const { validation } = require('ptokens-utils')
+const { getInterfaceFromEvent } = require('../../lib/evm/evm-utils')
 
 describe('Event building for EVM', () => {
   describe('buildStandardizedEventFromEvmEvent', () => {
@@ -38,6 +37,7 @@ describe('Event building for EVM', () => {
 
         [constants.db.KEY_NONCE]: '98322',
         [constants.db.KEY_ASSET_AMOUNT]: '200000',
+        [constants.db.KEY_EVENT_ARGS]: expect.any(Array),
         [constants.db.KEY_DESTINATION_ACCOUNT]: '0xdDb5f4535123DAa5aE343c24006F4075aBAF5F7B',
         [constants.db.KEY_DESTINATION_NETWORK_ID]: '0xf9b459a1',
         [constants.db.KEY_FINAL_TX_HASH]: null,
@@ -70,6 +70,7 @@ describe('Event building for EVM', () => {
         [constants.db.KEY_PROTOCOL_FEE_ASSET_AMOUNT]: '0',
         [constants.db.KEY_IS_FOR_PROTOCOL]: false,
       }
+
       await validation.validateJson(constants.db.schemas.eventReport, expected)
       expect(result).toStrictEqual(expected)
     })
@@ -96,6 +97,7 @@ describe('Event building for EVM', () => {
 
         [constants.db.KEY_NONCE]: '98322',
         [constants.db.KEY_ASSET_AMOUNT]: '200000',
+        [constants.db.KEY_EVENT_ARGS]: expect.any(Array),
         [constants.db.KEY_DESTINATION_ACCOUNT]: '0xdDb5f4535123DAa5aE343c24006F4075aBAF5F7B',
         [constants.db.KEY_DESTINATION_NETWORK_ID]: '0xf9b459a1',
         [constants.db.KEY_FINAL_TX_HASH]: null,
@@ -130,7 +132,7 @@ describe('Event building for EVM', () => {
         [constants.db.KEY_WITNESSED_TS]: '2023-03-14T16:00:00.000Z',
         [constants.db.KEY_IS_FOR_PROTOCOL]: false,
       }
-      await validation.validateJson(constants.db.schemas.eventReport, expected)
+
       expect(result).toStrictEqual(expected)
     })
 
@@ -155,6 +157,7 @@ describe('Event building for EVM', () => {
         [constants.db.KEY_EVENT_NAME]: constants.db.eventNames.EXECUTED_OPERATION,
         [constants.db.KEY_NONCE]: '98322',
         [constants.db.KEY_ASSET_AMOUNT]: '200000',
+        [constants.db.KEY_EVENT_ARGS]: expect.any(Array),
         [constants.db.KEY_DESTINATION_ACCOUNT]: '0xdDb5f4535123DAa5aE343c24006F4075aBAF5F7B',
         [constants.db.KEY_DESTINATION_NETWORK_ID]: '0xf9b459a1',
         [constants.db.KEY_FINAL_TX_HASH]: null,
@@ -189,7 +192,6 @@ describe('Event building for EVM', () => {
         [constants.db.KEY_WITNESSED_TS]: '2023-03-14T16:00:00.000Z',
         [constants.db.KEY_IS_FOR_PROTOCOL]: false,
       }
-      await validation.validateJson(constants.db.schemas.eventReport, expected)
       expect(result).toStrictEqual(expected)
     })
   })

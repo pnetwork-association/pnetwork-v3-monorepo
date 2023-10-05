@@ -1,6 +1,6 @@
 #
 # NOTE: Generate the relative *.config.json using
-# npx hardhat --network arbitrum apps:generate-configs --localhost
+# npx hardhat --network goerli apps:generate-configs --localhost
 #
 # NOTE: This dev docker-compose file use the mongo db instance
 # on localhost, that's why you need to specify the --localhost
@@ -8,54 +8,110 @@
 #
 version: '3'
 services:
-  gnosis-requests:
+  ipfs:
+    image: ipfs/kubo:${VERSION_IPFS}
+    volumes:
+      - ipfs:/data/ipfs
+    restart: unless-stopped
+    ports:
+      - 4001:4001
+      - 4001:4001/udp
+      - 127.0.0.1:8080:8080
+      - 127.0.0.1:5001:5001
+    network_mode: host
+    command:
+      - daemon
+      - --migrate=true
+      - --enable-pubsub-experiment
+      - --agent-version-suffix=docker
+
+  state-emitter:
+    image: ${IMAGE_STATE_EMITTER}:${VERSION_STATE_EMITTER}
+    volumes:
+      - ipfs:/home/node/.ipfs
+      - ./state-emitter.config.json:${APP_CONFIG_JSON}
+      - './private-key:${PRIVATE_KEY_FILE}'
+    restart: unless-stopped
+    depends_on:
+      - ipfs
+    network_mode: host
+  # bsc-requests:
+  #   image: ${IMAGE_EVM_LISTENER}:${VERSION_LISTENER:-latest}
+  #   volumes:
+  #     - './bsc.listener.requests.config.json:${APP_CONFIG_JSON}'
+  #     - './logs:${APP_FOLDER_LOGS}'
+  #   restart: unless-stopped
+  #   network_mode: host
+
+  # bsc-queue:
+  #   image: ${IMAGE_EVM_LISTENER}:${VERSION_LISTENER:-latest}
+  #   volumes:
+  #     - './bsc.listener.queue.config.json:${APP_CONFIG_JSON}'
+  #     - './logs:${APP_FOLDER_LOGS}'
+  #   restart: unless-stopped
+  #   network_mode: host
+
+  # bsc-processor:
+  #   image: ${IMAGE_EVM_PROCESSOR}:${VERSION_PROCESSOR:-latest}
+  #   volumes:
+  #     - './private-key:${PRIVATE_KEY_FILE}'
+  #     - './bsc.processor.config.json:${APP_CONFIG_JSON}'
+  #     - './logs:${APP_FOLDER_LOGS}'
+  #   restart: unless-stopped
+  #   command: ./index.js pollForRequestsAndDismiss
+  #   network_mode: host
+
+  # polygon-requests:
+  #   image: ${IMAGE_EVM_LISTENER}:${VERSION_LISTENER:-latest}
+  #   volumes:
+  #     - './polygon.listener.requests.config.json:${APP_CONFIG_JSON}'
+  #     - './logs:${APP_FOLDER_LOGS}'
+  #   restart: unless-stopped
+  #   network_mode: host
+
+  polygon-queue:
     image: ${IMAGE_EVM_LISTENER}:${VERSION_LISTENER:-latest}
     volumes:
-      - './gnosis.listener.requests.config.json:${APP_CONFIG_JSON}'
+      - './polygon.listener.queue.config.json:${APP_CONFIG_JSON}'
       - './logs:${APP_FOLDER_LOGS}'
     restart: unless-stopped
     network_mode: host
 
-  gnosis-queue:
-    image: ${IMAGE_EVM_LISTENER}:${VERSION_LISTENER:-latest}
-    volumes:
-      - './gnosis.listener.queue.config.json:${APP_CONFIG_JSON}'
-      - './logs:${APP_FOLDER_LOGS}'
-    restart: unless-stopped
-    network_mode: host
-
-  gnosis-processor:
+  polygon-processor:
     image: ${IMAGE_EVM_PROCESSOR}:${VERSION_PROCESSOR:-latest}
     volumes:
       - './private-key:${PRIVATE_KEY_FILE}'
-      - './gnosis.processor.config.json:${APP_CONFIG_JSON}'
+      - './polygon.processor.config.json:${APP_CONFIG_JSON}'
       - './logs:${APP_FOLDER_LOGS}'
     restart: unless-stopped
     command: ./index.js pollForRequestsAndDismiss
     network_mode: host
 
-  arbitrum-requests:
-    image: ${IMAGE_EVM_LISTENER}:${VERSION_LISTENER:-latest}
-    volumes:
-      - './arbitrum.listener.requests.config.json:${APP_CONFIG_JSON}'
-      - './logs:${APP_FOLDER_LOGS}'
-    restart: unless-stopped
-    network_mode: host
+  # goerli-requests:
+  #     image: ${IMAGE_EVM_LISTENER}:${VERSION_LISTENER:-latest}
+  #     volumes:
+  #       - './goerli.listener.requests.config.json:${APP_CONFIG_JSON}'
+  #       - './logs:${APP_FOLDER_LOGS}'
+  #     restart: unless-stopped
+  #     network_mode: host
 
-  arbitrum-queue:
-    image: ${IMAGE_EVM_LISTENER}:${VERSION_LISTENER:-latest}
-    volumes:
-      - './arbitrum.listener.queue.config.json:${APP_CONFIG_JSON}'
-      - './logs:${APP_FOLDER_LOGS}'
-    restart: unless-stopped
-    network_mode: host
+  #   goerli-queue:
+  #     image: ${IMAGE_EVM_LISTENER}:${VERSION_LISTENER:-latest}
+  #     volumes:
+  #       - './goerli.listener.queue.config.json:${APP_CONFIG_JSON}'
+  #       - './logs:${APP_FOLDER_LOGS}'
+  #     restart: unless-stopped
+  #     network_mode: host
 
-  arbitrum-processor:
-    image: ${IMAGE_EVM_PROCESSOR}:${VERSION_PROCESSOR:-latest}
-    volumes:
-      - './private-key:${PRIVATE_KEY_FILE}'
-      - './arbitrum.processor.config.json:${APP_CONFIG_JSON}'
-      - './logs:${APP_FOLDER_LOGS}'
-    restart: unless-stopped
-    command: ./index.js pollForRequestsAndDismiss
-    network_mode: host
+  #   goerli-processor:
+  #     image: ${IMAGE_EVM_PROCESSOR}:${VERSION_PROCESSOR:-latest}
+  #     volumes:
+  #       - './private-key:${PRIVATE_KEY_FILE}'
+  #       - './goerli.processor.config.json:${APP_CONFIG_JSON}'
+  #       - './logs:${APP_FOLDER_LOGS}'
+  #     restart: unless-stopped
+  #     command: ./index.js pollForRequestsAndDismiss
+  #     network_mode: host
+
+volumes:
+  ipfs:

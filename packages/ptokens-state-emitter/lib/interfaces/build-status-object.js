@@ -7,9 +7,12 @@ const pTokensConstants = require('ptokens-constants')
 
 // TODO: find a better way to handle versions
 // eslint-disable-next-line node/no-unpublished-require
-const { version: versionListener } = require('../../../ptokens-listener/package.json')
+// const { version: versionListener } = require('../../../ptokens-listener/package.json')
 // eslint-disable-next-line node/no-unpublished-require
-const { version: versionProcessor } = require('../../../ptokens-request-processor/package.json')
+// const { version: versionProcessor } = require('../../../ptokens-request-processor/package.json')
+
+const versionListener = '1.0.0'
+const versionProcessor = '1.0.0'
 
 const { ERROR_UNSUPPORTED_CHAIN } = require('../errors')
 const {

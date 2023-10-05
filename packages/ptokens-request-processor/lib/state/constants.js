@@ -6,4 +6,5 @@ module.exports = {
   STATE_PROPOSED_DB_REPORTS: 'proposedDbReports',
   STATE_FINALIZED_DB_REPORTS: 'finalizedDbReports',
   STATE_DISMISSED_DB_REPORTS: 'dismissedDbReports',
+  STATE_PENDING_CHALLENGES: 'pendingChallegesReports',
 }

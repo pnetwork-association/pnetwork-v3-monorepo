@@ -1,10 +1,9 @@
 {
   "name": "ptokens-request-processor",
-  "version": "1.6.4",
+  "version": "1.7.0",
   "description": "A component for checking & broadcasting relayer's requests",
   "engines": {
-    "npm": ">=8.0.0 <10.0.0",
-    "node": ">=16.15.0 <17.0.0"
+    "node": ">=16.0.0"
   },
   "bin": "./index.js",
   "scripts": {
@@ -12,7 +11,8 @@
     "clean": "rm -rf $(pwd)/build",
     "test": "jest --config test/jest.config.js",
     "coverage": "npm run test -- --coverage",
-    "docker-build": "PROJECT_ROOT=$(pwd) ./docker-build.sh"
+    "docker-build": "PROJECT_ROOT=$(pwd) ./docker-build.sh",
+    "update-hub": "cp -v ../ptokens-evm-contracts/artifacts/contracts/core/PNetworkHub.sol/PNetworkHub.json ./lib/evm/abi/PNetworkHub.json"
   },
   "keywords": [
     "ptokens",
@@ -23,12 +23,14 @@
   "author": "gitmp01",
   "license": "MIT",
   "dependencies": {
-    "ethers": "6.3.0",
     "commander": "10.0.1",
+    "ethers": "6.7.1",
     "log4js": "6.9.1",
+    "merkletreejs": "^0.3.10",
     "ptokens-constants": "*",
     "ptokens-utils": "*",
-    "ramda": "0.29.0"
+    "ramda": "0.29.0",
+    "viem": "^1.11.1"
   },
   "nx": {
     "implicitDependencies": [

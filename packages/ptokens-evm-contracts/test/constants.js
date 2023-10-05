@@ -1,9 +1,4 @@
 const constants = {
-  ACTORS: {
-    Governance: 0,
-    Guardian: 1,
-    Sentinel: 2,
-  },
   BASE_CHALLENGE_PERIOD_DURATION: 1200, // 0.2 just for testing
   CHALLENGE_DURATION: 1200,
   CHALLENGE_STATUS: {

@@ -1,17 +1,38 @@
-const { jestMockContractConstructor } = require('./mock/jest-utils')
 const {
   STATE_DETECTED_DB_REPORTS,
   STATE_PROPOSED_DB_REPORTS,
 } = require('../../lib/state/constants')
-const {
-  ERROR_OPERATION_ALREADY_QUEUED,
-  ERROR_REPLACEMENT_UNDERPRICED,
-} = require('../../lib/errors')
-const { errors, validation, utils } = require('ptokens-utils')
+const { validation } = require('ptokens-utils')
 const constants = require('ptokens-constants')
 const detectedEvents = require('../samples/detected-report-set')
+const errors = require('../../lib/errors')
 
 describe('Build proposals test for EVM', () => {
+  const expectedMockQueueCallArgs = [
+    [
+      '0x91b9a307ea6f003b2aea366def364f03c428e8d5d65a53862093471476d54b26',
+      '0x5767cd95c0666933c6c79f29680e595c0d44e89f23107aafffa59b2ae1484174',
+      '0x0000000000000000000000000000000000000000000000000000000000000000',
+      '89772',
+      18,
+      '100000',
+      '0',
+      '1500',
+      '3000',
+      '0xdaacB0Ab6Fb34d24E8a67BfA14BF4D95D4C7aF92',
+      '0x5aca268b',
+      '0xf9b459a1',
+      '0xb9286154',
+      '0x5aca268b',
+      '0xddb5f4535123daa5ae343c24006f4075abaf5f7b',
+      '0xdDb5f4535123DAa5aE343c24006F4075aBAF5F7B',
+      'pNetwork Token',
+      'PNT',
+      '0x',
+      false,
+    ],
+    { value: 1 },
+  ]
   describe('makeProposalContractCall', () => {
     beforeAll(() => {
       jest.resetModules()
@@ -21,22 +42,23 @@ describe('Build proposals test for EVM', () => {
       jest.resetAllMocks()
     })
 
-    it('Should create a pegOut proposal as expected', async () => {
+    it('Should enqueue a UserOperation as expected', async () => {
       const ethers = require('ethers')
-      const proposedTxHash = '0xd656ffac17b71e2ea2e24f72cd4c15c909a0ebe1696f8ead388eb268268f1cbf'
-      const expectedObject = {
-        [constants.evm.ethers.KEY_TX_HASH]: proposedTxHash,
+      const proposedTxHashes = [
+        '0xd656ffac17b71e2ea2e24f72cd4c15c909a0ebe1696f8ead388eb268268f1cbf',
+      ]
+
+      const expectedReceipt = {
+        [constants.evm.ethers.KEY_TX_HASH]: proposedTxHashes[0],
       }
 
       const mockQueueOperation = jest.fn().mockResolvedValue({
-        wait: jest.fn().mockResolvedValue(expectedObject),
+        wait: jest.fn().mockResolvedValue(expectedReceipt),
       })
 
-      jest
-        .spyOn(ethers, 'Contract')
-        .mockImplementation(
-          jestMockContractConstructor('protocolQueueOperation', mockQueueOperation)
-        )
+      jest.spyOn(ethers, 'Contract').mockImplementation(() => ({
+        protocolQueueOperation: mockQueueOperation,
+      }))
 
       const { makeProposalContractCall } = require('../../lib/evm/evm-build-proposals-txs')
 
@@ -56,33 +78,11 @@ describe('Build proposals test for EVM', () => {
       )
 
       expect(mockQueueOperation).toHaveBeenCalledTimes(1)
-      expect(mockQueueOperation).toHaveBeenCalledWith(
-        [
-          '0x05cf0e83408207704ee0ea2a4a6ea87905fc0d2038dbb610a0ca64f2cf47b134',
-          '0xb1bb8b6502edc17fdd0cc83505289a6d429a6381ffe5dbf4fe31a88dd236d643',
-          '0x0000000000000000000000000000000000000000000000000000000000000000',
-          '98322',
-          18,
-          '200000',
-          '0',
-          '1000',
-          '2000',
-          '0xdaacB0Ab6Fb34d24E8a67BfA14BF4D95D4C7aF92',
-          '0x5aca268b',
-          '0xf9b459a1',
-          '0xb9286154',
-          '0x5aca268b',
-          '0xdDb5f4535123DAa5aE343c24006F4075aBAF5F7B',
-          'pNetwork Token',
-          'PNT',
-          '0x',
-        ],
-        { value: 1 }
-      )
+      expect(mockQueueOperation).toHaveBeenCalledWith(...expectedMockQueueCallArgs)
       expect(result).toStrictEqual({
         ...detectedEvents[0],
         [constants.db.KEY_STATUS]: constants.db.txStatus.PROPOSED,
-        [constants.db.KEY_PROPOSAL_TX_HASH]: proposedTxHash,
+        [constants.db.KEY_PROPOSAL_TX_HASH]: proposedTxHashes[0],
         [constants.db.KEY_PROPOSAL_TS]: expect.any(String),
       })
     })
@@ -102,31 +102,29 @@ describe('Build proposals test for EVM', () => {
 
     it('Should build the proposals and add them to the state', async () => {
       const ethers = require('ethers')
+      const { utils } = require('ptokens-utils')
+      const proposedTxHashes = [
+        '0xd656ffac17b71e2ea2e24f72cd4c15c909a0ebe1696f8ead388eb268268f1cbf',
+      ]
 
-      jest.spyOn(utils, 'readIdentityFile').mockResolvedValue(privKey)
-      jest.spyOn(ethers, 'JsonRpcProvider').mockResolvedValue({})
+      const expectedReceipt = {
+        [constants.evm.ethers.KEY_TX_HASH]: proposedTxHashes[0],
+      }
+
+      jest.spyOn(ethers, 'JsonRpcProvider').mockReturnValue({})
       jest.spyOn(ethers, 'Wallet').mockImplementation(_ => jest.fn())
+      jest.spyOn(utils, 'readIdentityFileSync').mockReturnValue(privKey)
+
+      const mockQueueOperation = jest.fn().mockResolvedValue({
+        wait: jest.fn().mockResolvedValue(expectedReceipt),
+      })
 
       const mockLockedAmountChallengePeriod = jest.fn().mockResolvedValue(1)
+
       jest.spyOn(ethers, 'Contract').mockImplementation(() => ({
+        protocolQueueOperation: mockQueueOperation,
         lockedAmountChallengePeriod: mockLockedAmountChallengePeriod,
       }))
-
-      const proposedTxHashes = [
-        '0x630dedecd876b375250f42afbc9e7e4a26f2c9ebf50db49dca6092d16190e4c3',
-      ]
-
-      const expectedCallResult = [
-        {
-          [constants.evm.ethers.KEY_TX_HASH]: proposedTxHashes[0],
-        },
-      ]
-
-      const callContractFunctionModule = require('../../lib/evm/evm-call-contract-function')
-
-      const callContractFunctionAndAwaitSpy = jest
-        .spyOn(callContractFunctionModule, 'callContractFunctionAndAwait')
-        .mockResolvedValueOnce(expectedCallResult[0])
 
       const txTimeout = 1000
       const networkId = '0xf9b459a1'
@@ -146,37 +144,7 @@ describe('Build proposals test for EVM', () => {
 
       const result = await buildProposalsTxsAndPutInState(state)
 
-      expect(callContractFunctionAndAwaitSpy).toHaveBeenCalledTimes(1)
-      expect(callContractFunctionAndAwaitSpy).toHaveBeenNthCalledWith(
-        1,
-        'protocolQueueOperation',
-        [
-          [
-            '0x05cf0e83408207704ee0ea2a4a6ea87905fc0d2038dbb610a0ca64f2cf47b134',
-            '0xb1bb8b6502edc17fdd0cc83505289a6d429a6381ffe5dbf4fe31a88dd236d643',
-            '0x0000000000000000000000000000000000000000000000000000000000000000',
-            '98322',
-            18,
-            '200000',
-            '0',
-            '1000',
-            '2000',
-            '0xdaacB0Ab6Fb34d24E8a67BfA14BF4D95D4C7aF92',
-            '0x5aca268b',
-            '0xf9b459a1',
-            '0xb9286154',
-            '0x5aca268b',
-            '0xdDb5f4535123DAa5aE343c24006F4075aBAF5F7B',
-            'pNetwork Token',
-            'PNT',
-            '0x',
-          ],
-          { value: 1 },
-        ],
-        expect.anything(),
-        1000
-      )
-
+      expect(mockQueueOperation).toHaveBeenCalledWith(...expectedMockQueueCallArgs)
       expect(mockLockedAmountChallengePeriod).toHaveBeenCalledTimes(1)
       expect(result).toHaveProperty(STATE_PROPOSED_DB_REPORTS)
       expect(result).toHaveProperty(STATE_DETECTED_DB_REPORTS)
@@ -197,110 +165,31 @@ describe('Build proposals test for EVM', () => {
       )
     })
 
-    it('Should build the proposal and handle timeout error', async () => {
-      const ethers = require('ethers')
-
-      jest.spyOn(utils, 'readIdentityFile').mockResolvedValue(privKey)
-      jest.spyOn(ethers, 'JsonRpcProvider').mockResolvedValue({})
-      jest.spyOn(ethers, 'Wallet').mockImplementation(_ => jest.fn())
-
-      const mockLockedAmountChallengePeriod = jest.fn().mockResolvedValue(1)
-      jest.spyOn(ethers, 'Contract').mockImplementation(() => ({
-        lockedAmountChallengePeriod: mockLockedAmountChallengePeriod,
-      }))
-
-      const callContractFunctionModule = require('../../lib/evm/evm-call-contract-function')
-
-      const callContractFunctionAndAwaitSpy = jest
-        .spyOn(callContractFunctionModule, 'callContractFunctionAndAwait')
-        .mockRejectedValueOnce(new Error(errors.ERROR_TIMEOUT))
-
-      const txTimeout = 1000
-      const networkId = '0xf9b459a1'
-      const providerUrl = 'http://localhost:8545'
-      const hubAddress = '0xc2d9c83d98ba36f295cf61b7496332075d16dc8e'
-
-      const state = {
-        [constants.state.KEY_TX_TIMEOUT]: txTimeout,
-        [constants.state.KEY_PROVIDER_URL]: providerUrl,
-        [constants.state.KEY_NETWORK_ID]: networkId,
-        [constants.state.KEY_IDENTITY_FILE]: gpgEncryptedFile,
-        [constants.state.KEY_HUB_ADDRESS]: hubAddress,
-        [STATE_DETECTED_DB_REPORTS]: [detectedEvents[0]],
-      }
-
-      const { buildProposalsTxsAndPutInState } = require('../../lib/evm/evm-build-proposals-txs')
-
-      const result = await buildProposalsTxsAndPutInState(state)
-
-      expect(callContractFunctionAndAwaitSpy).toHaveBeenCalledTimes(1)
-      expect(callContractFunctionAndAwaitSpy).toHaveBeenNthCalledWith(
-        1,
-        'protocolQueueOperation',
-        [
-          [
-            '0x05cf0e83408207704ee0ea2a4a6ea87905fc0d2038dbb610a0ca64f2cf47b134',
-            '0xb1bb8b6502edc17fdd0cc83505289a6d429a6381ffe5dbf4fe31a88dd236d643',
-            '0x0000000000000000000000000000000000000000000000000000000000000000',
-            '98322',
-            18,
-            '200000',
-            '0',
-            '1000',
-            '2000',
-            '0xdaacB0Ab6Fb34d24E8a67BfA14BF4D95D4C7aF92',
-            '0x5aca268b',
-            '0xf9b459a1',
-            '0xb9286154',
-            '0x5aca268b',
-            '0xdDb5f4535123DAa5aE343c24006F4075aBAF5F7B',
-            'pNetwork Token',
-            'PNT',
-            '0x',
-          ],
-          { value: 1 },
-        ],
-        expect.anything(),
-        txTimeout
-      )
-      expect(result).toHaveProperty(STATE_PROPOSED_DB_REPORTS)
-      expect(result).toHaveProperty(STATE_DETECTED_DB_REPORTS)
-      expect(result).toHaveProperty(constants.state.KEY_NETWORK_ID)
-      expect(result).toHaveProperty(constants.state.KEY_PROVIDER_URL)
-      expect(result).toHaveProperty(constants.state.KEY_IDENTITY_FILE)
-      expect(result).toHaveProperty(constants.state.KEY_HUB_ADDRESS)
-      expect(result).toHaveProperty(constants.state.KEY_TX_TIMEOUT)
-      expect(mockLockedAmountChallengePeriod).toHaveBeenCalledTimes(1)
-      expect(result[STATE_DETECTED_DB_REPORTS]).toHaveLength(1)
-      expect(result[STATE_PROPOSED_DB_REPORTS]).toHaveLength(1)
-      expect(result[STATE_PROPOSED_DB_REPORTS][0]).toEqual(
-        expect.objectContaining({
-          [constants.db.KEY_ID]: detectedEvents[0][constants.db.KEY_ID],
-          [constants.db.KEY_STATUS]: constants.db.txStatus.FAILED,
-          [constants.db.KEY_PROPOSAL_TX_HASH]: null,
-          [constants.db.KEY_PROPOSAL_TS]: null,
-          [constants.db.KEY_ERROR]: 'Error: Timeout',
-        })
-      )
-    })
-
     it('Should build the proposal and handle already queued error', async () => {
       const ethers = require('ethers')
+      const { utils } = require('ptokens-utils')
 
-      jest.spyOn(utils, 'readIdentityFile').mockResolvedValue(privKey)
-      jest.spyOn(ethers, 'JsonRpcProvider').mockResolvedValue({})
+      jest.spyOn(ethers, 'JsonRpcProvider').mockReturnValue({})
       jest.spyOn(ethers, 'Wallet').mockImplementation(_ => jest.fn())
+      jest.spyOn(utils, 'readIdentityFileSync').mockReturnValue(privKey)
 
+      const error = new Error(constants.evm.ethers.ERROR_ESTIMATE_GAS)
+      error.data = '0x'
+      const mockQueueOperation = jest.fn().mockRejectedValue(error)
       const mockLockedAmountChallengePeriod = jest.fn().mockResolvedValue(1)
+
+      const fragment = {
+        name: errors.ERROR_OPERATION_ALREADY_QUEUED,
+        format: () => '0x',
+      }
+
       jest.spyOn(ethers, 'Contract').mockImplementation(() => ({
+        interface: {
+          parseError: jest.fn().mockReturnValue(new ethers.ErrorDescription(fragment, '', [])),
+        },
+        protocolQueueOperation: mockQueueOperation,
         lockedAmountChallengePeriod: mockLockedAmountChallengePeriod,
       }))
-
-      const callContractFunctionModule = require('../../lib/evm/evm-call-contract-function')
-
-      const callContractFunctionAndAwaitSpy = jest
-        .spyOn(callContractFunctionModule, 'callContractFunctionAndAwait')
-        .mockRejectedValueOnce(new Error(ERROR_OPERATION_ALREADY_QUEUED)) // this report will go through)
 
       const txTimeout = 1000
       const networkId = '0xf9b459a1'
@@ -320,36 +209,7 @@ describe('Build proposals test for EVM', () => {
 
       const result = await buildProposalsTxsAndPutInState(state)
 
-      expect(callContractFunctionAndAwaitSpy).toHaveBeenCalledTimes(1)
-      expect(callContractFunctionAndAwaitSpy).toHaveBeenNthCalledWith(
-        1,
-        'protocolQueueOperation',
-        [
-          [
-            '0x05cf0e83408207704ee0ea2a4a6ea87905fc0d2038dbb610a0ca64f2cf47b134',
-            '0xb1bb8b6502edc17fdd0cc83505289a6d429a6381ffe5dbf4fe31a88dd236d643',
-            '0x0000000000000000000000000000000000000000000000000000000000000000',
-            '98322',
-            18,
-            '200000',
-            '0',
-            '1000',
-            '2000',
-            '0xdaacB0Ab6Fb34d24E8a67BfA14BF4D95D4C7aF92',
-            '0x5aca268b',
-            '0xf9b459a1',
-            '0xb9286154',
-            '0x5aca268b',
-            '0xdDb5f4535123DAa5aE343c24006F4075aBAF5F7B',
-            'pNetwork Token',
-            'PNT',
-            '0x',
-          ],
-          { value: 1 },
-        ],
-        expect.anything(),
-        txTimeout
-      )
+      expect(mockQueueOperation).toHaveBeenCalledWith(...expectedMockQueueCallArgs)
       expect(result).toHaveProperty(STATE_PROPOSED_DB_REPORTS)
       expect(result).toHaveProperty(STATE_DETECTED_DB_REPORTS)
       expect(result).toHaveProperty(constants.state.KEY_NETWORK_ID)
@@ -372,21 +232,21 @@ describe('Build proposals test for EVM', () => {
 
     it('Should build the proposal and handle underpriced error', async () => {
       const ethers = require('ethers')
+      const { utils } = require('ptokens-utils')
 
-      jest.spyOn(utils, 'readIdentityFile').mockResolvedValue(privKey)
-      jest.spyOn(ethers, 'JsonRpcProvider').mockResolvedValue({})
+      jest.spyOn(ethers, 'JsonRpcProvider').mockReturnValue({})
       jest.spyOn(ethers, 'Wallet').mockImplementation(_ => jest.fn())
+      jest.spyOn(utils, 'readIdentityFileSync').mockReturnValue(privKey)
 
+      const mockQueueOperation = jest
+        .fn()
+        .mockRejectedValue(new Error(constants.evm.ethers.ERROR_REPLACEMENT_UNDERPRICED))
       const mockLockedAmountChallengePeriod = jest.fn().mockResolvedValue(1)
+
       jest.spyOn(ethers, 'Contract').mockImplementation(() => ({
+        protocolQueueOperation: mockQueueOperation,
         lockedAmountChallengePeriod: mockLockedAmountChallengePeriod,
       }))
-
-      const callContractFunctionModule = require('../../lib/evm/evm-call-contract-function')
-
-      const callContractFunctionAndAwaitSpy = jest
-        .spyOn(callContractFunctionModule, 'callContractFunctionAndAwait')
-        .mockRejectedValueOnce(new Error(ERROR_REPLACEMENT_UNDERPRICED))
 
       const txTimeout = 1000
       const networkId = '0xf9b459a1'
@@ -406,36 +266,7 @@ describe('Build proposals test for EVM', () => {
 
       const result = await buildProposalsTxsAndPutInState(state)
 
-      expect(callContractFunctionAndAwaitSpy).toHaveBeenCalledTimes(1)
-      expect(callContractFunctionAndAwaitSpy).toHaveBeenNthCalledWith(
-        1,
-        'protocolQueueOperation',
-        [
-          [
-            '0x05cf0e83408207704ee0ea2a4a6ea87905fc0d2038dbb610a0ca64f2cf47b134',
-            '0xb1bb8b6502edc17fdd0cc83505289a6d429a6381ffe5dbf4fe31a88dd236d643',
-            '0x0000000000000000000000000000000000000000000000000000000000000000',
-            '98322',
-            18,
-            '200000',
-            '0',
-            '1000',
-            '2000',
-            '0xdaacB0Ab6Fb34d24E8a67BfA14BF4D95D4C7aF92',
-            '0x5aca268b',
-            '0xf9b459a1',
-            '0xb9286154',
-            '0x5aca268b',
-            '0xdDb5f4535123DAa5aE343c24006F4075aBAF5F7B',
-            'pNetwork Token',
-            'PNT',
-            '0x',
-          ],
-          { value: 1 },
-        ],
-        expect.anything(),
-        txTimeout
-      )
+      expect(mockQueueOperation).toHaveBeenNthCalledWith(1, ...expectedMockQueueCallArgs)
       expect(result).toHaveProperty(STATE_PROPOSED_DB_REPORTS)
       expect(result).toHaveProperty(STATE_DETECTED_DB_REPORTS)
       expect(result).toHaveProperty(constants.state.KEY_NETWORK_ID)

@@ -2,8 +2,8 @@ const { types } = require('hardhat/config')
 const { getHubAddress } = require('../lib/configuration-manager')
 const TASK_CONSTANTS = require('../constants')
 const {
-  getUserOperationAbiArgsFromReport,
-} = require('ptokens-request-processor/lib/evm/evm-abi-manager')
+  parseUserOperationFromReport,
+} = require('ptokens-request-processor/lib/evm/evm-parse-user-operation')
 
 const TASK_NAME = 'pnetworkhub:cancel'
 const TASK_DESC = 'Perform a Guardian cancel operation on the deployed PNetworkHub contract'
@@ -22,7 +22,7 @@ const protocolExecuteOperation = async (taskArgs, hre) => {
   const json = JSON.parse(taskArgs[TASK_PARAM_JSON])
 
   const proof = '0x'
-  const args = await getUserOperationAbiArgsFromReport(json)
+  const args = await parseUserOperationFromReport(json)
   args.push(proof)
   console.log(args)
   const tx = await PNetworkHub.protocolGuardianCancelOperation(...args, {

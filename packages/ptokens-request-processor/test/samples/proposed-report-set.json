@@ -28,9 +28,10 @@
     "userData": "0x",
     "witnessedTimestamp": "2023-03-14T16:00:00.000Z",
     "forwardDestinationNetworkId": "0xfc8ebb2b",
-    "protocolFeeAssetAmount": "0",
+    "userDataProtocolFeeAssetAmount": "0",
     "networkFeeAssetAmount": "0",
-    "forwardNetworkFeeAssetAmount": "0"
+    "forwardNetworkFeeAssetAmount": "0",
+    "eventArgs": []
   },
   {
     "_id": "useroperation_0x62be3b1256761376f7ad4bbedd59b853a734e01b77520e6bc7d27efc10758864",
@@ -61,9 +62,10 @@
     "userData": "0x",
     "witnessedTimestamp": "2023-03-14T16:00:00.000Z",
     "forwardDestinationNetworkId": "0xfc8ebb2b",
-    "protocolFeeAssetAmount": "0",
+    "userDataProtocolFeeAssetAmount": "0",
     "networkFeeAssetAmount": "0",
-    "forwardNetworkFeeAssetAmount": "0"
+    "forwardNetworkFeeAssetAmount": "0",
+    "eventArgs": []
   },
   {
     "_id": "useroperation_0xb3b4f34d53bcc3cb942d2582b740189e4027dbb7bd5c92757f8452f448c2bbb9",
@@ -94,9 +96,10 @@
     "userData": "0x",
     "witnessedTimestamp": "2023-03-14T16:00:00.000Z",
     "forwardDestinationNetworkId": "0xfc8ebb2b",
-    "protocolFeeAssetAmount": "0",
+    "userDataProtocolFeeAssetAmount": "0",
     "networkFeeAssetAmount": "0",
-    "forwardNetworkFeeAssetAmount": "0"
+    "forwardNetworkFeeAssetAmount": "0",
+    "eventArgs": []
   },
   {
     "_id": "useroperation_0x7794b69ee042872159e5c4810addb698e4032ed6f4a3e1bdb94e38021d2f5146",
@@ -127,9 +130,10 @@
     "userData": "0x",
     "witnessedTimestamp": "2023-03-14T16:00:00.000Z",
     "forwardDestinationNetworkId": "0xfc8ebb2b",
-    "protocolFeeAssetAmount": "0",
+    "userDataProtocolFeeAssetAmount": "0",
     "networkFeeAssetAmount": "0",
-    "forwardNetworkFeeAssetAmount": "0"
+    "forwardNetworkFeeAssetAmount": "0",
+    "eventArgs": []
   },
   {
     "_id": "useroperation_0xcf021d05f8a70b96146067ba8f21cf26d00ad28fd7dc72fda247b4b87144459a",
@@ -160,8 +164,9 @@
     "userData": "0x",
     "witnessedTimestamp": "2023-03-14T16:00:00.000Z",
     "forwardDestinationNetworkId": "0xfc8ebb2b",
-    "protocolFeeAssetAmount": "0",
+    "userDataProtocolFeeAssetAmount": "0",
     "networkFeeAssetAmount": "0",
-    "forwardNetworkFeeAssetAmount": "0"
+    "forwardNetworkFeeAssetAmount": "0",
+    "eventArgs": []
   }
 ]

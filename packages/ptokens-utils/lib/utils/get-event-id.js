@@ -22,7 +22,7 @@ const getEventIdEvm = ({
   underlyingAssetTokenAddress,
   underlyingAssetNetworkId,
   assetAmount,
-  protocolFeeAssetAmount,
+  userDataProtocolFeeAssetAmount,
   networkFeeAssetAmount,
   forwardNetworkFeeAssetAmount,
   userData,
@@ -37,7 +37,7 @@ const getEventIdEvm = ({
         uint256 nonce;
         uint256 underlyingAssetDecimals;
         uint256 assetAmount;
-        uint256 protocolFeeAssetAmount;
+        uint256 userDataProtocolFeeAssetAmount;
         uint256 networkFeeAssetAmount;
         uint256 forwardNetworkFeeAssetAmount;
         address underlyingAssetTokenAddress;
@@ -69,7 +69,7 @@ const getEventIdEvm = ({
         nonce,
         underlyingAssetDecimals,
         assetAmount,
-        protocolFeeAssetAmount,
+        userDataProtocolFeeAssetAmount,
         networkFeeAssetAmount,
         forwardNetworkFeeAssetAmount,
         underlyingAssetTokenAddress,
@@ -109,7 +109,7 @@ const getEventId = ({
   underlyingAssetTokenAddress,
   underlyingAssetNetworkId,
   assetAmount,
-  protocolFeeAssetAmount,
+  userDataProtocolFeeAssetAmount,
   networkFeeAssetAmount,
   forwardNetworkFeeAssetAmount,
   userData,
@@ -138,7 +138,7 @@ const getEventId = ({
             underlyingAssetTokenAddress,
             underlyingAssetNetworkId,
             assetAmount,
-            protocolFeeAssetAmount,
+            userDataProtocolFeeAssetAmount,
             networkFeeAssetAmount,
             forwardNetworkFeeAssetAmount,
             userData,

@@ -1,11 +1,9 @@
-ARG VERSION_PTOKENS_CONSTANTS=latest
 ARG VERSION_PTOKENS_UTILS=latest
 ARG VERSION_PTOKENS_SCHEMAS=latest
 ARG VERSION_PTOKENS_DEBIAN_STAGE=latest
 
 ARG REGISTRY=ghcr.io/pnetwork-association
 
-FROM $REGISTRY/ptokens-constants:$VERSION_PTOKENS_CONSTANTS as ptokens-constants
 FROM $REGISTRY/ptokens-utils:$VERSION_PTOKENS_UTILS as ptokens-utils
 FROM $REGISTRY/ptokens-debian-stage:$VERSION_PTOKENS_DEBIAN_STAGE as ptokens-debian-stage
 FROM node:16.17.0-bullseye-slim
@@ -21,19 +19,19 @@ ENV FOLDER_LOGS $FOLDER_APP/logs
 
 RUN mkdir -p $FOLDER_APP && \
     mkdir -p $FOLDER_LOGS && \
-    usermod -u 1001 node && \
-    groupmod -g 1001 node
+    usermod -u 1000 node && \
+    groupmod -g 1000 node
 
 COPY --from=ptokens-debian-stage \
     /usr/bin/dumb-init \
     /usr/bin/dumb-init
 
-COPY --from=ptokens-constants \
-     --chown=node:node \
-        /home/node/ptokens-constants \
-        $FOLDER_SRC/ptokens-constants
-
 COPY --from=ptokens-utils \
      --chown=node:node \
         /home/node/ptokens-utils \
         $FOLDER_SRC/ptokens-utils
+
+COPY --from=ptokens-utils \
+     --chown=node:node \
+        /home/node/ptokens-constants \
+        $FOLDER_SRC/ptokens-constants

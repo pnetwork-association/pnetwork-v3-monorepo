@@ -5,8 +5,10 @@ const {
   STATE_DISMISSED_DB_REPORTS,
   STATE_PROPOSED_DB_REPORTS,
   STATE_TO_BE_DISMISSED_REQUESTS,
+  STATE_PENDING_CHALLENGES,
 } = require('./constants')
 const R = require('ramda')
+const { logger } = require('../get-logger')
 
 const addDetectedReportsToState = R.curry((_state, _detected) =>
   R.assoc(STATE_DETECTED_DB_REPORTS, _detected, _state)
@@ -30,9 +32,12 @@ const addFinalizedEventsToState = R.curry((_state, _finalTxs) =>
 )
 
 const removeKeyFromState = R.curry((_key, _state) => {
+  logger.info(`Removing ${_key} from state...`)
   delete _state[_key]
   return Promise.resolve(_state)
 })
+
+const removePendingChallengesFromState = removeKeyFromState(STATE_PENDING_CHALLENGES)
 
 const removeOnChainRequestsFromState = removeKeyFromState(STATE_ONCHAIN_REQUESTS)
 
@@ -56,5 +61,6 @@ module.exports = {
   removeFinalizedEventsFromState,
   removeDismissedEventsFromState,
   removeOnChainRequestsFromState,
+  removePendingChallengesFromState,
   removeToBeDismissedEventsFromState,
 }
