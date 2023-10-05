@@ -90,7 +90,7 @@ contract GovernanceMessageEmitter is IGovernanceMessageEmitter {
             }
         }
 
-        emit ActorsPropagated(currentEpoch, actors);
+        emit ActorsPropagated(currentEpoch, actors, actorsType);
 
         _sendMessage(
             abi.encode(
