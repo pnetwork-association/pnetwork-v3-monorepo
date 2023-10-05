@@ -1,4 +1,4 @@
-const propagateSentinels = require('./propagate-sentinels.task')
+const propagateSentinels = require('./propagate-actors.task')
 const readSentinelsRoot = require('./read-sentinels-root.task')
 const verifyMessage = require('./verify-message.task')
 
