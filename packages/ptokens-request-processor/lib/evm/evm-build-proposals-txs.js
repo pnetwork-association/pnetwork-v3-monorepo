@@ -32,6 +32,18 @@ const addProposedTxHashToEvent = R.curry(
     })
 )
 
+const skipEvent = (_event, _err) =>
+  new Promise(resolve => {
+    const updatedEvent = {
+      ..._event,
+      [constants.db.KEY_PROPOSAL_TS]: new Date().toISOString(),
+      [constants.db.KEY_PROPOSAL_TX_HASH]: '0x',
+      [constants.db.KEY_STATUS]: constants.db.txStatus.SKIPPED,
+      [constants.db.KEY_ERROR]: R.propOr(null, 'message', _err),
+    }
+    return resolve(updatedEvent)
+  })
+
 const estimateGasErrorHandler = (_resolve, _reject, _report, _err) => {
   if (_err.message.includes(errors.ERROR_OPERATION_ALREADY_QUEUED)) {
     return _resolve(addProposedTxHashToEvent(_report, '0x'))
@@ -48,11 +60,19 @@ const errorHandler = (_resolve, _reject, _contract, _report, _err) => {
   if (_err.message.includes(constants.evm.ethers.ERROR_ESTIMATE_GAS)) {
     const hubError = new HubError(_contract, _err)
     return estimateGasErrorHandler(_resolve, _reject, _report, hubError)
+  } else if (_err.message.includes(errors.ERROR_NETWORK_FEE_NOT_ACCEPTED)) {
+    logger.warn(_err.message)
+    return _resolve(skipEvent(_report, _err))
   } else {
     logger.error(_err)
     return _resolve(addErrorToReport(_report, _err))
   }
 }
+
+const checkNetworkFee = _networkFee =>
+  _networkFee > 0
+    ? Promise.resolve()
+    : Promise.reject(new Error(`${errors.ERROR_NETWORK_FEE_NOT_ACCEPTED} (${_networkFee})`))
 
 const makeProposalContractCall = R.curry(
   (_wallet, _hubAddress, _txTimeout, _amountToLock, _report) =>
@@ -61,8 +81,11 @@ const makeProposalContractCall = R.curry(
       const eventName = _report[constants.db.KEY_EVENT_NAME]
       const args = parseUserOperationFromReport(_report)
       const contract = new ethers.Contract(_hubAddress, abi, _wallet)
+      const networkFee = _report[constants.db.KEY_NETWORK_FEE_ASSET_AMOUNT]
+
       logger.info(`Queueing _id: ${id.slice(0, 30)}... w/ locked amount ${_amountToLock}`)
-      return checkEventName(eventName)
+      return checkNetworkFee(networkFee)
+        .then(_ => checkEventName(eventName))
         .then(_ => contract.protocolQueueOperation(...args, { value: _amountToLock }))
         .then(_tx => logger.debug('protocolQueue called, awaiting...') || _tx.wait())
         .then(_receipt => logger.info('Tx mined successfully!') || _receipt)
