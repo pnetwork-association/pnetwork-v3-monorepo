@@ -29,7 +29,7 @@
     "forwardNetworkFeeAssetAmount": null,
     "networkFeeAssetAmount": null,
     "userDataProtocolFeeAssetAmount": null,
-    "eventArgs": [ "6", [ "0x0Ef13B2668dbE1b3eDfe9fFb7CbC398363b50f79" ] ],
+    "eventArgs": [ 21, [ "0x0Ef13B2668dbE1b3eDfe9fFb7CbC398363b50f79", "0x8626f6940E2eb28930eFb4CeF49B2d1F2C9C1199", "0xE06C8959f4C10fcaA9a7Ff0d4c4aCdDA2610DA22" ], [ 1, 1, 2 ]],
     "_id": "actorspropagated_0x96c945933a34d58c432b3046f8bc0e74d46865a016a38360daca5b2139ea844e"
   }, {
     "status": "detected",
@@ -62,13 +62,20 @@
     "forwardNetworkFeeAssetAmount": null,
     "networkFeeAssetAmount": null,
     "userDataProtocolFeeAssetAmount": null,
-    "eventArgs": [ "7", [ 
+    "eventArgs": [ 8, [ 
       "0x0Ef13B2668dbE1b3eDfe9fFb7CbC398363b50f79", 
       "0x936BD5cDA593DF24Cc13bEB228E982D8feFC3F60", 
       "0x5EeDe0a0E799B0ac61192bc946e0B0Eba5A89265", 
       "0x55f709DcCB4075BC2DBD43E5aF093f4bCb5127f8", 
       "0xF3f036EBC0d989301c220c9DBa74a4A60e143526", 
-      "0x27Fa5D2E0C0Ca7e3Cdbd199EF1113AE4f2844dc6" 
+      "0x8626f6940E2eb28930eFb4CeF49B2d1F2C9C1199" 
+    ], [
+      1,
+      1,
+      2,
+      2,
+      2,
+      1
     ]],
     "_id": "actorspropagated_0xa2aadd562ea7ebd79287458a1f506f71335f7374776b36b6ddf7693d63e69089"
   }]

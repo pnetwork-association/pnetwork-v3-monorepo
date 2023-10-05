@@ -1,7 +1,10 @@
-const { db } = require('ptokens-utils')
+const ethers = require('ethers')
 const errors = require('../../lib/errors')
 const constants = require('ptokens-constants')
+const { db } = require('ptokens-utils')
 const { getMerkleProof } = require('../../lib/evm/get-merkle-proof')
+const { MerkleTree } = require('merkletreejs')
+const { keccak256, encodePacked } = require('viem')
 const actorsPropagatedSamples = require('../samples/actors-propagated-report-set')
 
 describe('Get Merkle path general tests', () => {
@@ -10,6 +13,7 @@ describe('Get Merkle path general tests', () => {
   let collection = null
   const uri = global.__MONGO_URI__
   const guardianAddress = '0x0Ef13B2668dbE1b3eDfe9fFb7CbC398363b50f79'
+  const guardianType = constants.hub.actors.Guardian
 
   beforeAll(async () => {
     collection = await db.getCollection(uri, dbName, tableName)
@@ -27,13 +31,29 @@ describe('Get Merkle path general tests', () => {
 
     it('Should get the expected Merkle path', async () => {
       const proof = await getMerkleProof(collection, guardianAddress)
-      const toHex = _proof => _proof.map(x => x.toString('hex'))
+      const eventArgs = actorsPropagatedSamples[1][constants.db.KEY_EVENT_ARGS]
+      const actors = eventArgs[1]
+      const actorsTypes = eventArgs[2]
 
-      expect(toHex(proof)).toStrictEqual([
-        'f36d7cc927c68348ec892652d199830e344f5838802b0a6534e356fcc91dbccd',
-        'd36e34fc1e061ffbf4b9ea3dfd1c24d7424c528ca17d38dbf4f805cd260eec8e',
-        'ac7454cfdeed18cba78849037645918d2ff0351021e18a290cad2213790ee165',
+      expect(proof).toStrictEqual([
+        '0x9b4b8693def1b0d3a79263f50433d948d5295d3e84219adb5ab3a1eb133d03b9',
+        '0x086da0408e2daaf3925bab95aa569df91aff43abdd66bb87025511ef461207f0',
+        '0x4e90f2b7b9467dc452efa5192c93ec3d85b15e6afc697a05154e689dda1e4d67',
       ])
+
+      const leaves = actors.map((_address, _index) =>
+        keccak256(encodePacked(['address', 'uint8'], [_address, actorsTypes[_index]]))
+      )
+
+      const tree = new MerkleTree(leaves, ethers.keccak256, {
+        sortPairs: true,
+      })
+
+      const myLeaf = keccak256(encodePacked(['address', 'uint8'], [guardianAddress, guardianType]))
+
+      const root = tree.getHexRoot()
+
+      expect(tree.verify(proof, myLeaf, root)).toBeTruthy()
     })
 
     it('Should fail when no epoch is defined', () => {

@@ -8,11 +8,14 @@ const queuedReports = require('../samples/queued-report-set')
 const actorsPropagatedReportSet = require('../samples/actors-propagated-report-set')
 
 describe('Build dismissal test for EVM', () => {
-  const emptyProof = []
   const txTimeout = 1000
   const destinationNetworkId = '0xf9b459a1'
   const providerUrl = 'http://localhost:8545'
   const hubAddress = '0xC8E4270a6EF24B67eD38046318Fc8FC2d312f73C'
+  const proof = [
+    '0xd2a063cb44962b73a9fb59d4eefa9be1382810cf6bb85c2769875a86c92ea4b5',
+    '0x42a6a3a18f1c558fec27b5ea2b184f0c836be9b14a6b75144e70382ee01d6428',
+  ]
 
   const expectedArgs1 = [
     [
@@ -38,7 +41,7 @@ describe('Build dismissal test for EVM', () => {
       false,
     ],
     constants.hub.actors.Guardian,
-    emptyProof,
+    proof,
     expect.any(String),
   ]
 
@@ -66,7 +69,7 @@ describe('Build dismissal test for EVM', () => {
       false,
     ],
     constants.hub.actors.Guardian,
-    emptyProof,
+    proof,
     expect.any(String),
   ]
 
