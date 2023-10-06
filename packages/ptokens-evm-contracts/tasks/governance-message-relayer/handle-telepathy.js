@@ -1,7 +1,16 @@
 const { types } = require('hardhat/config')
 
 const { getContractAddress } = require('../deploy/deploy-contract.task')
-const TASK_CONSTANTS = require('../constants')
+const {
+  KEY_GOVERNANCE_MESSAGE_EMITTER,
+  KEY_PNETWORKHUB,
+  CONTRACT_NAME_EPOCHS_MANAGER,
+  CONTRACT_NAME_GOVERNANCE_MESSAGE_EMITTER,
+  CONTRACT_NAME_PNETWORKHUB,
+  PARAM_NAME_GOVERNANCE_MESSAGE_EMITTER,
+  PARAM_DESC_GOVERNANCE_MESSAGE_EMITTER,
+  PARAM_NAME_TX_HASH,
+} = require('../constants')
 const { TASK_NAME_DECODE_GOVERNANCE_MESSAGE } = require('./decode-governance-message')
 
 const TASK_NAME_HANDLE_TELEPATHY = 'gm-relayer:handle-telepathy'
@@ -36,19 +45,19 @@ const main = async (_args, _hre) => {
   // switch to interim chain polygon
   await _hre.changeNetwork('polygon')
   const GovernanceMessageEmitter = await ethers.getContractFactory(
-    TASK_CONSTANTS.CONTRACT_NAME_GOVERNANCE_MESSAGE_EMITTER
+    CONTRACT_NAME_GOVERNANCE_MESSAGE_EMITTER
   )
 
   const governanceMessageEmitterAddress =
-    _args[TASK_CONSTANTS.PARAM_NAME_GOVERNANCE_MESSAGE_EMITTER] ||
-    (await getContractAddress(_hre, TASK_CONSTANTS.KEY_GOVERNANCE_MESSAGE_EMITTER))
+    _args[PARAM_NAME_GOVERNANCE_MESSAGE_EMITTER] ||
+    (await getContractAddress(_hre, KEY_GOVERNANCE_MESSAGE_EMITTER))
 
   const governanceMessageEmitter = await GovernanceMessageEmitter.attach(
     governanceMessageEmitterAddress
   )
 
   const epochsManagerAddress = await governanceMessageEmitter.epochsManager()
-  const EpochsManager = await ethers.getContractFactory(TASK_CONSTANTS.CONTRACT_NAME_EPOCHS_MANAGER)
+  const EpochsManager = await ethers.getContractFactory(CONTRACT_NAME_EPOCHS_MANAGER)
   const epochsManager = await EpochsManager.attach(epochsManagerAddress)
 
   const currentEpoch = await epochsManager.currentEpoch()
@@ -70,12 +79,12 @@ const main = async (_args, _hre) => {
   }
 
   const decodedMessage = await _hre.run(TASK_NAME_DECODE_GOVERNANCE_MESSAGE, {
-    txHash: propagatedEvents.at(-1).transactionHash,
+    [PARAM_NAME_TX_HASH]: propagatedEvents.at(-1).transactionHash,
   })
 
   await _hre.changeNetwork(selectedChain)
-  const PNetworkHub = await ethers.getContractFactory(TASK_CONSTANTS.CONTRACT_NAME_PNETWORKHUB)
-  const pNetworkHubAddress = await getContractAddress(_hre, TASK_CONSTANTS.KEY_PNETWORKHUB)
+  const PNetworkHub = await ethers.getContractFactory(CONTRACT_NAME_PNETWORKHUB)
+  const pNetworkHubAddress = await getContractAddress(_hre, KEY_PNETWORKHUB)
   const accounts = await _hre.ethers.getSigners()
   const pNetworkHub = PNetworkHub.attach(pNetworkHubAddress)
   const tx = await pNetworkHub.handleTelepathy(1, accounts[0].address, decodedMessage[3])
@@ -84,8 +93,8 @@ const main = async (_args, _hre) => {
 
 task(TASK_NAME_HANDLE_TELEPATHY, TASK_DESC_HANDLE_TELEPATHY, main)
   .addOptionalParam(
-    TASK_CONSTANTS.PARAM_NAME_GOVERNANCE_MESSAGE_EMITTER,
-    TASK_CONSTANTS.PARAM_DESC_GOVERNANCE_MESSAGE_EMITTER,
+    PARAM_NAME_GOVERNANCE_MESSAGE_EMITTER,
+    PARAM_DESC_GOVERNANCE_MESSAGE_EMITTER,
     undefined,
     types.string
   )
