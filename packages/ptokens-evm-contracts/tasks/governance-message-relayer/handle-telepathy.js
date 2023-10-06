@@ -11,6 +11,7 @@ const {
   PARAM_DESC_GOVERNANCE_MESSAGE_EMITTER,
   PARAM_NAME_TX_HASH,
 } = require('../constants')
+const { getLogs } = require('../lib/evm-utils')
 const { TASK_NAME_DECODE_GOVERNANCE_MESSAGE } = require('./decode-governance-message')
 
 const TASK_NAME_HANDLE_TELEPATHY = 'gm-relayer:handle-telepathy'
@@ -18,19 +19,6 @@ const TASK_DESC_HANDLE_TELEPATHY = 'Call handleTelepathy (tests only)'
 
 const INITIALIZED_TOPIC = '0x7f26b83ff96e1f2b6a682f133852f6798a09c465da95921460cefb3847402498'
 const ACTORS_PROPAGATED_TOPIC = '0x7d394dea630b3e42246f284e4e4b75cff4f959869b3d753639ba8ae6120c67c3'
-
-const getLogs = async (_address, _topics, _fromBlock) =>
-  ethers.provider
-    .getLogs({
-      address: _address,
-      topics: _topics,
-      fromBlock: _fromBlock,
-    })
-    .then(_logs =>
-      _logs.sort((_a, _b) =>
-        _a.blockNumber > _b.blockNumber ? 1 : _b.blockNumber < _a.blockNumber ? -1 : 0
-      )
-    )
 
 const getRegistrationManagerDeployBlock = async _registrationManagerAddress => {
   const log = await getLogs(_registrationManagerAddress, [INITIALIZED_TOPIC], 10000)

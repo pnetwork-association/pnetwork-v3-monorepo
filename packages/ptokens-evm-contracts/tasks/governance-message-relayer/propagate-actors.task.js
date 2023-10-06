@@ -2,6 +2,7 @@ const R = require('ramda')
 const { types } = require('hardhat/config')
 
 const { getContractAddress } = require('../deploy/deploy-contract.task')
+const { getLogs } = require('../lib/evm-utils')
 const TASK_CONSTANTS = require('../constants')
 const registrationManagerAbi = require('./abi/registration-manager.json')
 
@@ -13,13 +14,6 @@ const INITIALIZED_TOPIC = '0x7f26b83ff96e1f2b6a682f133852f6798a09c465da95921460c
 const ACTORS_PROPAGATED_TOPIC = '0x7d394dea630b3e42246f284e4e4b75cff4f959869b3d753639ba8ae6120c67c3'
 
 const decodeRegistrationLog = _log => getRegistrationManagerInterface().parseLog(_log)
-
-const getLogs = async (_address, _topics, _fromBlock) =>
-  ethers.provider.getLogs({
-    address: _address,
-    topics: _topics,
-    fromBlock: _fromBlock,
-  })
 
 const getRegistrations = R.curry((_topic, _registrationManagerAddress, _fromBlock) =>
   getLogs(_registrationManagerAddress, [_topic], _fromBlock)
