@@ -1,6 +1,7 @@
 const R = require('ramda')
 const { types } = require('hardhat/config')
 
+const { getContractAddress } = require('../deploy/deploy-contract.task')
 const TASK_CONSTANTS = require('../constants')
 const registrationManagerAbi = require('./abi/registration-manager.json')
 
@@ -50,8 +51,13 @@ const getActiveRegistrationsByEpoch = (_registations, _epoch) =>
 /* eslint-disable no-console */
 const main = async (_args, _hre) => {
   const GovernanceMessageEmitter = await ethers.getContractFactory('GovernanceMessageEmitter')
+
+  const governanceMessageEmitterAddress =
+    _args[TASK_CONSTANTS.PARAM_NAME_GOVERNANCE_MESSAGE_EMITTER] ||
+    (await getContractAddress(_hre, TASK_CONSTANTS.PARAM_NAME_GOVERNANCE_MESSAGE_EMITTER))
+
   const governanceMessageEmitter = await GovernanceMessageEmitter.attach(
-    _args[TASK_CONSTANTS.PARAM_NAME_GOVERNANCE_MESSAGE_EMITTER]
+    governanceMessageEmitterAddress
   )
 
   const epochsManagerAddress = await governanceMessageEmitter.epochsManager()
@@ -95,7 +101,7 @@ const main = async (_args, _hre) => {
 }
 
 task('governance-message-relayer:propagate-actors', 'Start the actors addresses propagation', main)
-  .addPositionalParam(
+  .addOptionalParam(
     TASK_CONSTANTS.PARAM_NAME_GOVERNANCE_MESSAGE_EMITTER,
     TASK_CONSTANTS.PARAM_DESC_GOVERNANCE_MESSAGE_EMITTER,
     undefined,

@@ -107,10 +107,11 @@ const deployContractErrorHandler = R.curry((hre, taskArgs, _err) =>
     : console.error(_err)
 )
 
+const getContractAddress = (hre, _name) =>
+  hre.run(TASK_NAME_DEPLOY_INIT).then(utils.getKeyFromObjThroughPath([_name, KEY_ADDRESS]))
+
 const deployContractTask = (taskArgs, hre) =>
-  hre
-    .run(TASK_NAME_DEPLOY_INIT)
-    .then(utils.getKeyFromObjThroughPath([taskArgs.configurableName, KEY_ADDRESS]))
+  getContractAddress(hre, taskArgs.configurableName)
     .then(attachToContract(hre, taskArgs))
     .catch(deployContractErrorHandler(hre, taskArgs))
 
@@ -131,6 +132,7 @@ subtask(TASK_NAME_DEPLOY_CONTRACT, TASK_DESC_DEPLOY_CONTRACT)
   .setAction(deployContractTask)
 
 module.exports = {
+  getContractAddress,
   createConfigEntryFromTaskArgs,
   TASK_NAME_DEPLOY_CONTRACT,
 }
