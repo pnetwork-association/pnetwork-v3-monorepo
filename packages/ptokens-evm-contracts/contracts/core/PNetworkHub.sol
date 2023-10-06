@@ -824,7 +824,7 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
         }
         emit OperationCancelled(operation, actor, actorType);
 
-        (uint64 startTimestamp, uint64 endTimestamp) = _challengePeriodOf(operationId, operationStatus);
+        (, uint64 endTimestamp) = _challengePeriodOf(operationId, operationStatus);
 
         unchecked {
             ++_operationsTotalCancelActions[operationId];
