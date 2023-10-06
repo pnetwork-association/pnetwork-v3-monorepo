@@ -519,20 +519,12 @@ describe('PNetworkHub', () => {
       .withArgs(operation.serialize(), sentinel.address, constants.hub.actors.Sentinel)
   })
 
-  it('actors should be able to cancel an operation after the challenge period', async () => {
+  it('a guardian should be able to cancel immediately an operation after the challenge period', async () => {
     const operation = await generateOperation()
     await hub
       .connect(relayer)
       .protocolQueueOperation(operation, { value: LOCKED_AMOUNT_CHALLENGE_PERIOD })
     await time.increase(await hub.getCurrentChallengePeriodDuration())
-    await hub
-      .connect(broadcaster)
-      .protocolCancelOperation(
-        operation,
-        constants.hub.actors.Sentinel,
-        getActorsMerkleProof({ actor: sentinel, type: constants.hub.actors.Sentinel }),
-        await sentinel.signMessage(ethers.utils.arrayify(operation.id))
-      )
     await expect(
       hub
         .connect(broadcaster)
@@ -541,6 +533,26 @@ describe('PNetworkHub', () => {
           constants.hub.actors.Guardian,
           getActorsMerkleProof({ actor: guardian, type: constants.hub.actors.Guardian }),
           await guardian.signMessage(ethers.utils.arrayify(operation.id))
+        )
+    )
+      .to.emit(hub, 'OperationCancelFinalized')
+      .withArgs(operation.serialize())
+  })
+
+  it('a sentinel should be able to cancel immediately an operation after the challenge period', async () => {
+    const operation = await generateOperation()
+    await hub
+      .connect(relayer)
+      .protocolQueueOperation(operation, { value: LOCKED_AMOUNT_CHALLENGE_PERIOD })
+    await time.increase(await hub.getCurrentChallengePeriodDuration())
+    await expect(
+      await hub
+        .connect(broadcaster)
+        .protocolCancelOperation(
+          operation,
+          constants.hub.actors.Sentinel,
+          getActorsMerkleProof({ actor: sentinel, type: constants.hub.actors.Sentinel }),
+          await sentinel.signMessage(ethers.utils.arrayify(operation.id))
         )
     )
       .to.emit(hub, 'OperationCancelFinalized')
