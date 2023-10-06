@@ -177,7 +177,7 @@ const main = async (
 }
 
 task(
-  'governance-message-relayer:verify-message',
+  'gm-relayer:verify-message',
   'Verify a Polygon event on Ethereum and propagate it on another chain using telepathy protocol'
 )
   .addPositionalParam('transactionHash')
