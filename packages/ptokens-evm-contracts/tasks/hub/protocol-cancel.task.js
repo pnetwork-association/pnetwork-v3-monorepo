@@ -5,7 +5,7 @@ const {
   parseUserOperationFromReport,
 } = require('ptokens-request-processor/lib/evm/evm-parse-user-operation')
 
-const TASK_NAME = 'pnetworkhub:cancel'
+const TASK_NAME = 'hub:cancel'
 const TASK_DESC = 'Perform a Guardian cancel operation on the deployed PNetworkHub contract'
 const TASK_PARAM_JSON = 'json'
 const TASK_PARAM_JSON_DESC = 'Stringified JSON of the event report stored in mongo by a listener.'

@@ -5,7 +5,7 @@ const {
 } = require('ptokens-request-processor/lib/evm/evm-parse-user-operation')
 const TASK_CONSTANTS = require('../constants')
 
-const TASK_NAME = 'pnetworkhub:execute'
+const TASK_NAME = 'hub:execute'
 const TASK_DESC = 'Perform an execute operation on the deployed PNetworkHub contract'
 const TASK_PARAM_JSON = 'json'
 const TASK_PARAM_JSON_DESC = 'Stringified JSON of the event report stored in mongo by a listener.'

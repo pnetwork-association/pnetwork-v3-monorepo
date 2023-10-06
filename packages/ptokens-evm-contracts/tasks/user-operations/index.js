@@ -1,11 +1,9 @@
 const { types } = require('hardhat/config')
-const mint = require('./user-send-mint.task.js')
-const transfer = require('./user-send-transfer.task.js')
-const burn = require('./user-send-burn.task.js')
+const userSend = require('./user-send.task.js')
 const TASK_CONSTANTS = require('../constants')
 
 const setCommonOptionalParams = () =>
-  [mint, transfer, burn].map(lib => {
+  [userSend].map(lib => {
     task(lib['TASK_NAME'])
       .addOptionalParam(
         TASK_CONSTANTS.PARAM_NAME_GASPRICE,
@@ -24,7 +22,5 @@ const setCommonOptionalParams = () =>
 setCommonOptionalParams()
 
 module.exports = {
-  ...mint,
-  ...transfer,
-  ...burn,
+  ...userSend,
 }

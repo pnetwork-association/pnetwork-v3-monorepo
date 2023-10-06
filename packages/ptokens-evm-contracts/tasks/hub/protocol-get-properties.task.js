@@ -1,6 +1,6 @@
 const { getHubAddress } = require('../lib/configuration-manager')
 
-const TASK_NAME_GET_PROPERTIES = 'pnetworkhub:get-properties'
+const TASK_NAME_GET_PROPERTIES = 'hub:get-properties'
 const TASK_DESC_GET_PROPERTIES = 'Get PNetworkHub contract properties'
 
 const getPropertyTask = async (taskArgs, hre) => {
