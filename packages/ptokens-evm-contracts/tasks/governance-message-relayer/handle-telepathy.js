@@ -91,11 +91,9 @@ const main = async (_args, _hre) => {
   console.info(`Tx mined @ ${tx.hash}`)
 }
 
-task(TASK_NAME_HANDLE_TELEPATHY, TASK_DESC_HANDLE_TELEPATHY, main)
-  .addOptionalParam(
-    PARAM_NAME_GOVERNANCE_MESSAGE_EMITTER,
-    PARAM_DESC_GOVERNANCE_MESSAGE_EMITTER,
-    undefined,
-    types.string
-  )
-  .addFlag('force', 'force propagation for current epoch', false, types.boolean)
+task(TASK_NAME_HANDLE_TELEPATHY, TASK_DESC_HANDLE_TELEPATHY, main).addOptionalParam(
+  PARAM_NAME_GOVERNANCE_MESSAGE_EMITTER,
+  PARAM_DESC_GOVERNANCE_MESSAGE_EMITTER,
+  undefined,
+  types.string
+)
