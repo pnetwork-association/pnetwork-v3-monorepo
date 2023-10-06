@@ -100,7 +100,7 @@ const main = async (_args, _hre) => {
   console.log('Actor addresses succesfully propagated ...', trasaction.hash)
 }
 
-task('governance-message-relayer:propagate-actors', 'Start the actors addresses propagation', main)
+task('gm-relayer:propagate-actors', 'Start the actors addresses propagation', main)
   .addOptionalParam(
     TASK_CONSTANTS.PARAM_NAME_GOVERNANCE_MESSAGE_EMITTER,
     TASK_CONSTANTS.PARAM_DESC_GOVERNANCE_MESSAGE_EMITTER,

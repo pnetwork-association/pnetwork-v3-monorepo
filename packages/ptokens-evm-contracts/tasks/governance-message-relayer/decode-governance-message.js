@@ -10,7 +10,7 @@ const {
   CONTRACT_NAME_GOVERNANCE_MESSAGE_EMITTER,
 } = require('../constants')
 
-const TASK_NAME_DECODE_GOVERNANCE_MESSAGE = 'governance-message-relayer:decode-message'
+const TASK_NAME_DECODE_GOVERNANCE_MESSAGE = 'gm-relayer:decode-message'
 const TASK_DESC_DECODE_GOVERNANCE_MESSAGE = 'Decode a governance message'
 
 const GOVERNANCE_MESSAGE_TOPIC =

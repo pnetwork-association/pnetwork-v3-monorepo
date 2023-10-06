@@ -4,7 +4,7 @@ const { getContractAddress } = require('../deploy/deploy-contract.task')
 const TASK_CONSTANTS = require('../constants')
 const { TASK_NAME_DECODE_GOVERNANCE_MESSAGE } = require('./decode-governance-message')
 
-const TASK_NAME_HANDLE_TELEPATHY = 'governance-message-relayer:handle-telepathy'
+const TASK_NAME_HANDLE_TELEPATHY = 'gm-relayer:handle-telepathy'
 const TASK_DESC_HANDLE_TELEPATHY = 'Call handleTelepathy (tests only)'
 
 const INITIALIZED_TOPIC = '0x7f26b83ff96e1f2b6a682f133852f6798a09c465da95921460cefb3847402498'
