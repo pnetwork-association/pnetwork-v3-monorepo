@@ -6,11 +6,13 @@ const TASK_DESC_DEPLOY_PFACTORY =
 
 const deployPFactoryTask = (_, hre) =>
   console.info('Deploying pFactory ...') ||
-  hre.run(TASK_NAME_DEPLOY_CONTRACT, {
-    configurableName: TASK_CONSTANTS.KEY_PFACTORY,
-    contractFactoryName: TASK_CONSTANTS.CONTRACT_NAME_PFACTORY,
-    deployArgsArray: [],
-  })
+  hre.ethers.getSigner().then(_signer =>
+    hre.run(TASK_NAME_DEPLOY_CONTRACT, {
+      configurableName: TASK_CONSTANTS.KEY_PFACTORY,
+      contractFactoryName: TASK_CONSTANTS.CONTRACT_NAME_PFACTORY,
+      deployArgsArray: [_signer.address],
+    })
+  )
 
 task(TASK_NAME_DEPLOY_PFACTORY, TASK_DESC_DEPLOY_PFACTORY, deployPFactoryTask)
 
