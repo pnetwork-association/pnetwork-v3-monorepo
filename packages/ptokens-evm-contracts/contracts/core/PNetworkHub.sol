@@ -22,7 +22,6 @@ error ActorAlreadyCancelledOperation(
     IPNetworkHub.ActorTypes actorType
 );
 error ChallengePeriodNotTerminated(uint64 startTimestamp, uint64 endTimestamp);
-error ChallengePeriodTerminated(uint64 startTimestamp, uint64 endTimestamp);
 error InvalidAssetParameters(uint256 assetAmount, address assetTokenAddress);
 error InvalidUserOperation();
 error PTokenNotCreated(address pTokenAddress);
@@ -798,11 +797,6 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
             revert InvalidOperationStatus(operationStatus, OperationStatus.Queued);
         }
 
-        (uint64 startTimestamp, uint64 endTimestamp) = _challengePeriodOf(operationId, operationStatus);
-        if (uint64(block.timestamp) >= endTimestamp) {
-            revert ChallengePeriodTerminated(startTimestamp, endTimestamp);
-        }
-
         Action memory action = Action({actor: actor, timestamp: uint64(block.timestamp)});
         if (actorType == ActorTypes.Governance) {
             address governance = _operationsGovernanceCancelAction[operationId].actor;
@@ -830,10 +824,13 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
         }
         emit OperationCancelled(operation, actor, actorType);
 
+        (uint64 startTimestamp, uint64 endTimestamp) = _challengePeriodOf(operationId, operationStatus);
+
         unchecked {
             ++_operationsTotalCancelActions[operationId];
         }
-        if (_operationsTotalCancelActions[operationId] == 2) {
+
+        if (uint64(block.timestamp) >= endTimestamp || _operationsTotalCancelActions[operationId] == 2) {
             unchecked {
                 --numberOfOperationsInQueue;
             }
