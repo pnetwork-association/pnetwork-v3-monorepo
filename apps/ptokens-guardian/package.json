@@ -6,5 +6,10 @@
     "guardian"
   ],
   "author": "oliviera9",
-  "license": "MIT"
+  "license": "MIT",
+  "dependencies": {
+    "ethers": "^6.7.1",
+    "node-fetch": "^3.3.2",
+    "ramda": "^0.29.1"
+  }
 }
