@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.19;
+pragma solidity ^0.8.20;
 
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {MockPToken} from "./MockPToken.sol";
@@ -7,6 +7,8 @@ import {IPFactory} from "../interfaces/IPFactory.sol";
 
 contract MockPFactory is IPFactory, Ownable {
     address public hub;
+
+    constructor(address initialOwner) Ownable(initialOwner) {}
 
     function deploy(
         string memory underlyingAssetName,

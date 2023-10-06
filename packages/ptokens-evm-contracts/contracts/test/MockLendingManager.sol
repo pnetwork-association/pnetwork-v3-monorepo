@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: Unlicense
 
-pragma solidity ^0.8.19;
+pragma solidity ^0.8.20;
 
 contract MockLendingManager {
     mapping(uint16 => uint24) private _epochsTotalBorrowedAmount;

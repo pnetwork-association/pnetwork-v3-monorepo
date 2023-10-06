@@ -13,7 +13,8 @@ const {
 } = require('./constants')
 const { deployPToken } = require('./utils')
 
-let user,
+let owner,
+  user,
   token,
   pToken,
   pFactory,
@@ -35,6 +36,7 @@ describe('PToken', () => {
         const FeesManager = await ethers.getContractFactory('MockFeesManager')
 
         const signers = await ethers.getSigners()
+        owner = signers[0]
         user = signers[1]
         fakeGovernanceMessageVerifier = signers[2]
         slasher = signers[3]
@@ -42,7 +44,7 @@ describe('PToken', () => {
         feesManager = await FeesManager.deploy()
 
         // H A R D H A T
-        pFactory = await PFactory.deploy()
+        pFactory = await PFactory.deploy(owner.address)
         epochsManager = await EpochsManager.deploy()
         hub = await PNetworkHub.deploy(
           pFactory.address,
