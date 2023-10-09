@@ -73,7 +73,7 @@ const getPTokenInfo = (hre, _pTokenAddress) =>
         : _pTokenInfo
     )
 
-const getPTokenInfoFromUnderlyingAsset = (hre, _underlyingAssetAddress) =>
+const getPTokenAddressFromUnderlyingAsset = (hre, _underlyingAssetAddress) =>
   getDeploymentFromHRE(hre)
     .then(R.prop(KEY_PTOKEN_LIST))
     .then(R.find(R.propEq(_underlyingAssetAddress, KEY_PTOKEN_UNDERLYING_ASSET_ADDRESS)))
@@ -102,13 +102,16 @@ const getPTokenFromAsset = (hre, _assetAddress) =>
     .then(R.find(R.propEq(_assetAddress, KEY_PTOKEN_UNDERLYING_ASSET_ADDRESS)))
     .then(R.prop(KEY_ADDRESS))
 
-const isPToken = (hre, _address) => getPTokenInfo(hre, _address).then(_ => true)
+const isPToken = (hre, _address) =>
+  getPTokenInfo(hre, _address)
+    .then(_ => true)
+    .catch(_ => false)
 
 const getUnderlyingAssetTokenAddressForPToken = (hre, _address) =>
   getPTokenInfo(hre, _address).then(R.prop(KEY_PTOKEN_UNDERLYING_ASSET_ADDRESS))
 
 const isUnderlyingAssetTokenAddress = (hre, _address) =>
-  getPTokenInfoFromUnderlyingAsset(hre, _address).then(utils.isNotNil)
+  getPTokenAddressFromUnderlyingAsset(hre, _address).then(utils.isNotNil)
 
 module.exports = {
   getNetworkId,
@@ -122,7 +125,7 @@ module.exports = {
   checkHubIsDeployed,
   getPTokenInfo,
   getDeploymentFromNetworkName,
-  getPTokenInfoFromUnderlyingAsset,
+  getPTokenAddressFromUnderlyingAsset,
   maybeAddEmptyUnderlyingAssetList,
   getGovernanceMessageEmitterAddress,
   getPTokenFromAsset,
