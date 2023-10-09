@@ -11,6 +11,6 @@ module.exports = {
   ERROR_CHALLENGE_PERIOD_NOT_TERMINATED: 'ChallengePeriodNotTerminated',
   ERROR_REPLACEMENT_UNDERPRICED: 'replacement transaction underpriced',
   ERROR_INVALID_PROPOSED_TIMESTAMP: 'Invalid proposed timestamp',
-  ERROR_INSUFFICIENT_FUNDS: 'Insufficient funds',
+  ERROR_INSUFFICIENT_FUNDS: 'insufficient funds',
   ERROR_NETWORK_FEE_NOT_ACCEPTED: 'Insufficient network fee',
 }

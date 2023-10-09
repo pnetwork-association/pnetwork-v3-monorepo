@@ -60,6 +60,9 @@ const errorHandler = (_resolve, _reject, _contract, _report, _err) => {
   if (_err.message.includes(constants.evm.ethers.ERROR_ESTIMATE_GAS)) {
     const hubError = new HubError(_contract, _err)
     return estimateGasErrorHandler(_resolve, _reject, _report, hubError)
+  } else if (_err.message.includes(errors.ERROR_INSUFFICIENT_FUNDS)) {
+    logger.error(`'${_err.info.error.message}' detected, retrying shortly...`)
+    return _resolve(null)
   } else if (_err.message.includes(errors.ERROR_NETWORK_FEE_NOT_ACCEPTED)) {
     logger.warn(_err.message)
     return _resolve(skipEvent(_report, _err))
