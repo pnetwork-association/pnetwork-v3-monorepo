@@ -81,9 +81,8 @@ module.exports = {
     'Underlying Asset chain name (defaults to the selected network)',
   PARAM_NAME_U_ASSET_ADDRESS: 'underlyingAssetTokenAddress',
   PARAM_DESC_U_ASSET_ADDRESS: 'The underlying asset address of the pToken we want to move',
-  PARAM_NAME_ASSET_ADDRESS: 'assetTokenAddress',
-  PARAM_DESC_ASSET_ADDRESS:
-    'It may coincide with the underlying asset when pegging in and with the pToken asset when pegging out',
+  PARAM_NAME_ASSET_ADDRESS: 'assetToSwap',
+  PARAM_DESC_ASSET_ADDRESS: 'Asset to swap (could be the pToken or the underlying asset address',
   PARAM_NAME_AMOUNT: 'amount',
   PARAM_DESC_AMOUNT: 'Amount of underlying asset to be used',
   PARAM_NAME_TX_HASH: 'txHash',
