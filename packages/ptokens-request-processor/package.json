@@ -1,6 +1,6 @@
 {
   "name": "ptokens-request-processor",
-  "version": "1.9.0",
+  "version": "1.9.1",
   "description": "A component for checking & broadcasting relayer's requests",
   "engines": {
     "node": ">=16.0.0"

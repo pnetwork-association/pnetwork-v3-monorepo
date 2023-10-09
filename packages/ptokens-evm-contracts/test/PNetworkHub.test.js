@@ -13,7 +13,6 @@ const {
   LOCKED_AMOUNT_CHALLENGE_PERIOD,
   LOCKED_AMOUNT_START_CHALLENGE,
   MAX_OPERATIONS_IN_QUEUE,
-  OPERATION_STATUS,
   PNETWORK_NETWORK_IDS,
   SLASHING_QUANTITY,
   TELEPATHY_ROUTER_ADDRESS,
@@ -392,7 +391,10 @@ describe('PNetworkHub', () => {
         .protocolQueueOperation(operation, { value: LOCKED_AMOUNT_CHALLENGE_PERIOD })
     )
       .to.be.revertedWithCustomError(hub, 'InvalidOperationStatus')
-      .withArgs(OPERATION_STATUS.Queued, OPERATION_STATUS.NotQueued)
+      .withArgs(
+        constants.hub.operationStatus.AlreadyQueued,
+        constants.hub.operationStatus.NotQueued
+      )
   })
 
   it('should not be able to cancel an operation twice with the same actor', async () => {
@@ -572,14 +574,20 @@ describe('PNetworkHub', () => {
         )
     )
       .to.be.revertedWithCustomError(hub, 'InvalidOperationStatus')
-      .withArgs(OPERATION_STATUS.NotQueued, OPERATION_STATUS.Queued)
+      .withArgs(
+        constants.hub.operationStatus.NotQueued,
+        constants.hub.operationStatus.AlreadyQueued
+      )
   })
 
   it('should not be able to execute an operation that has not been queued', async () => {
     const fakeOperation = new Operation()
     await expect(hub.connect(relayer).protocolExecuteOperation(fakeOperation))
       .to.be.revertedWithCustomError(hub, 'InvalidOperationStatus')
-      .withArgs(OPERATION_STATUS.NotQueued, OPERATION_STATUS.Queued)
+      .withArgs(
+        constants.hub.operationStatus.NotQueued,
+        constants.hub.operationStatus.AlreadyQueued
+      )
   })
 
   it('should not be able to execute an operation that has been cancelled', async () => {
@@ -598,7 +606,10 @@ describe('PNetworkHub', () => {
     await hubInterim.connect(fakeDandelionVoting).protocolGovernanceCancelOperation(operation)
     await expect(hubInterim.connect(relayer).protocolExecuteOperation(operation))
       .to.be.revertedWithCustomError(hubInterim, 'InvalidOperationStatus')
-      .withArgs(OPERATION_STATUS.Cancelled, OPERATION_STATUS.Queued)
+      .withArgs(
+        constants.hub.operationStatus.AlreadyCancelled,
+        constants.hub.operationStatus.AlreadyQueued
+      )
   })
 
   it('should not be able to cancel an operation on the interim chain if it msg.sender is not dandelion voting', async () => {
@@ -845,7 +856,10 @@ describe('PNetworkHub', () => {
     await hub.connect(relayer).protocolExecuteOperation(operation)
     await expect(hub.connect(relayer).protocolExecuteOperation(operation))
       .to.be.revertedWithCustomError(hub, 'InvalidOperationStatus')
-      .withArgs(OPERATION_STATUS.Executed, OPERATION_STATUS.Queued)
+      .withArgs(
+        constants.hub.operationStatus.AlreadyExecuted,
+        constants.hub.operationStatus.AlreadyQueued
+      )
   })
 
   it('should be able to execute an operation that contains user data', async () => {

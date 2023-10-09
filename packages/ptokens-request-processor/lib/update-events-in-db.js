@@ -15,6 +15,9 @@ const updateEventInDb = R.curry(
       const id = _eventReport[constants.db.KEY_ID]
       // Should update just the new fields
       const update = { $set: _eventReport }
+      if (R.isNil(_eventReport[constants.db.KEY_ERROR])) {
+        update['$unset'] = { [constants.db.KEY_ERROR]: '' }
+      }
       logger.debug(`Updating report ${id}`)
 
       return db.updateReportById(_table, update, id).then(resolve)
