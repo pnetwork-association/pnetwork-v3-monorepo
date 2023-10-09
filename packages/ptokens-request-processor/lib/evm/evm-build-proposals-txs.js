@@ -87,7 +87,7 @@ const makeProposalContractCall = R.curry(
       return checkNetworkFee(networkFee)
         .then(_ => checkEventName(eventName))
         .then(_ => contract.protocolQueueOperation(...args, { value: _amountToLock }))
-        .then(_tx => logger.debug('protocolQueue called, awaiting...') || _tx.wait())
+        .then(_tx => logger.debug('protocolQueue called, awaiting...') || _tx.wait(1))
         .then(_receipt => logger.info('Tx mined successfully!') || _receipt)
         .then(R.prop(constants.evm.ethers.KEY_TX_HASH))
         .then(addProposedTxHashToEvent(_report))

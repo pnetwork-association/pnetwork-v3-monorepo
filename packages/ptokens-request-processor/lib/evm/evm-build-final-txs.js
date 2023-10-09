@@ -63,7 +63,7 @@ const makeFinalContractCall = R.curry(
       logger.info(`Executing _id: ${id}`)
       return checkEventName(eventName)
         .then(_ => contract.protocolExecuteOperation(...args))
-        .then(_tx => logger.debug('protocolExecute called, awaiting...') || _tx.wait())
+        .then(_tx => logger.debug('protocolExecute called, awaiting...') || _tx.wait(1))
         .then(_receipt => logger.info('Tx mined successfully!') || _receipt)
         .then(R.prop(constants.evm.ethers.KEY_TX_HASH))
         .then(addFinalizedTxHashToEvent(_report))
