@@ -19,6 +19,7 @@ const addFinalizedTxHashToEvent = R.curry((_event, _finalizedTxHash) => {
   const id = _event[constants.db.KEY_ID]
   logger.debug(`Adding ${_finalizedTxHash} to ${id.slice(0, 20)}...`)
   const finalizedTimestamp = new Date().toISOString()
+  delete _event[constants.db.KEY_ERROR]
   const updatedEvent = {
     ..._event,
     [constants.db.KEY_FINAL_TX_TS]: finalizedTimestamp,
