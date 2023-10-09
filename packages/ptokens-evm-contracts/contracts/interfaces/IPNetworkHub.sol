@@ -293,6 +293,13 @@ interface IPNetworkHub is IGovernanceMessageHandler {
     ) external view returns (uint16);
 
     /*
+     * @notice Indicates if the protocol is in lockdown
+     *
+     * @return bool indicating if the protocol is in lockdown
+     */
+    function isLockedDown() external view returns (bool);
+
+    /*
      * @notice Return the status of an operation.
      *
      * @param operation
