@@ -17,6 +17,7 @@ const addCancelledTxHashToEvent = R.curry((_event, _finalizedTxHash) => {
   const id = _event[constants.db.KEY_ID]
   logger.debug(`Adding ${_finalizedTxHash} to ${id.slice(0, 20)}...`)
   const cancelledTimestamp = new Date().toISOString()
+  // Remove error field upon succeeding
   delete _event[constants.db.KEY_ERROR]
   const updatedEvent = {
     ..._event,

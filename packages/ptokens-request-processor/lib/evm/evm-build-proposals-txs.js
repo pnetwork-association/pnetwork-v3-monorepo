@@ -22,6 +22,7 @@ const addProposedTxHashToEvent = R.curry(
       const id = _event[constants.db.KEY_ID]
       logger.debug(`Adding ${_proposedTxHash} to ${id.slice(0, 20)}...`)
       const proposedTimestamp = new Date().toISOString()
+      // Remove error field upon succeeding
       delete _event[constants.db.KEY_ERROR]
       const updatedEvent = {
         ..._event,
