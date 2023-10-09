@@ -14,12 +14,6 @@ const constants = {
   // 0.2 just for testing
   LOCKED_AMOUNT_START_CHALLENGE: '200000000000000000',
   MAX_OPERATIONS_IN_QUEUE: 20,
-  OPERATION_STATUS: {
-    Cancelled: 3,
-    Executed: 2,
-    NotQueued: 0,
-    Queued: 1,
-  },
   PNETWORK_NETWORK_IDS: {
     ethereumMainnet: '0x005fe7f9',
     hardhat: '0x244ebbfe',
