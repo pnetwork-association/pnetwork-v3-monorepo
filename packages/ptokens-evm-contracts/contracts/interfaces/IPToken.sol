@@ -26,20 +26,20 @@ interface IPToken is IERC20 {
     function mint(uint256 amount) external;
 
     /*
-     * @notice Mint the corresponding `amount` of pToken through the PNetworkHub to `account`.
-     *
-     * @param account
-     * @param amount
-     */
-    function protocolMint(address account, uint256 amount) external;
-
-    /*
      * @notice Burn the corresponding `amount` of pToken through the PNetworkHub to `account` and release the collateral.
      *
      * @param account
      * @param amount
      */
     function protocolBurn(address account, uint256 amount) external;
+
+    /*
+     * @notice Mint the corresponding `amount` of pToken through the PNetworkHub to `account`.
+     *
+     * @param account
+     * @param amount
+     */
+    function protocolMint(address account, uint256 amount) external;
 
     function underlyingAssetDecimals() external returns (uint256);
 
@@ -50,6 +50,14 @@ interface IPToken is IERC20 {
     function underlyingAssetSymbol() external returns (string memory);
 
     function underlyingAssetTokenAddress() external returns (address);
+
+    /*
+     * @notice Burn the corresponding `amount` of pToken through the PRouter in behalf of `account` and release the.
+     *
+     * @param account
+     * @param amount
+     */
+    function userBurn(address account, uint256 amount) external;
 
     /*
      * @notice Take the collateral and mint the corresponding `amount` of pToken through the PRouter to `account`.
@@ -66,12 +74,4 @@ interface IPToken is IERC20 {
      * @param amount
      */
     function userMintAndBurn(address account, uint256 amount) external;
-
-    /*
-     * @notice Burn the corresponding `amount` of pToken through the PRouter in behalf of `account` and release the.
-     *
-     * @param account
-     * @param amount
-     */
-    function userBurn(address account, uint256 amount) external;
 }

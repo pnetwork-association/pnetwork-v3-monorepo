@@ -255,21 +255,6 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
     }
 
     /// @inheritdoc IPNetworkHub
-    function protocolGovernanceCancelOperation(Operation calldata operation) external {
-        bytes4 networkId = Network.getCurrentNetworkId();
-        if (networkId != interimChainNetworkId) {
-            revert InvalidNetwork(networkId, interimChainNetworkId);
-        }
-
-        address msgSender = _msgSender();
-        if (msgSender != dandelionVoting) {
-            revert NotDandelionVoting(msgSender, dandelionVoting);
-        }
-
-        _protocolCancelOperation(operation, operationIdOf(operation), msgSender, ActorTypes.Governance);
-    }
-
-    /// @inheritdoc IPNetworkHub
     function protocolCancelOperation(
         Operation calldata operation,
         ActorTypes actorType,
@@ -400,6 +385,21 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
 
         _releaseOperationLockedAmountChallengePeriod(operationId);
         emit OperationExecuted(operation);
+    }
+
+    /// @inheritdoc IPNetworkHub
+    function protocolGovernanceCancelOperation(Operation calldata operation) external {
+        bytes4 networkId = Network.getCurrentNetworkId();
+        if (networkId != interimChainNetworkId) {
+            revert InvalidNetwork(networkId, interimChainNetworkId);
+        }
+
+        address msgSender = _msgSender();
+        if (msgSender != dandelionVoting) {
+            revert NotDandelionVoting(msgSender, dandelionVoting);
+        }
+
+        _protocolCancelOperation(operation, operationIdOf(operation), msgSender, ActorTypes.Governance);
     }
 
     /// @inheritdoc IPNetworkHub

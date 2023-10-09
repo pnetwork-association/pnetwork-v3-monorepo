@@ -300,15 +300,6 @@ interface IPNetworkHub is IGovernanceMessageHandler {
     function isLockedDown() external view returns (bool);
 
     /*
-     * @notice Return the status of an operation.
-     *
-     * @param operation
-     *
-     * @return (OperationStatus) the operation status.
-     */
-    function operationStatusOf(Operation calldata operation) external view returns (OperationStatus);
-
-    /*
      * @notice Calculates the operation id.
      *
      * @param operation
@@ -318,13 +309,13 @@ interface IPNetworkHub is IGovernanceMessageHandler {
     function operationIdOf(Operation memory operation) external pure returns (bytes32);
 
     /*
-     * @notice The Governance instruct a cancel action. If 2 actors agree on it the operation is cancelled.
-     *          This function can be invoked ONLY by the DandelionVoting contract ONLY on the interim chain
+     * @notice Return the status of an operation.
      *
      * @param operation
      *
+     * @return (OperationStatus) the operation status.
      */
-    function protocolGovernanceCancelOperation(Operation calldata operation) external;
+    function operationStatusOf(Operation calldata operation) external view returns (OperationStatus);
 
     /*
      * @notice An actor instruct a cancel action. If 2 actors agree on it the operation is cancelled.
@@ -349,6 +340,15 @@ interface IPNetworkHub is IGovernanceMessageHandler {
      *
      */
     function protocolExecuteOperation(Operation calldata operation) external payable;
+
+    /*
+     * @notice The Governance instruct a cancel action. If 2 actors agree on it the operation is cancelled.
+     *          This function can be invoked ONLY by the DandelionVoting contract ONLY on the interim chain
+     *
+     * @param operation
+     *
+     */
+    function protocolGovernanceCancelOperation(Operation calldata operation) external;
 
     /*
      * @notice Queue an operation.

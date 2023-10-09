@@ -8,28 +8,6 @@ import {Network} from "./Network.sol";
 error CallFailed();
 
 library Utils {
-    function isBitSet(bytes32 data, uint256 position) internal pure returns (bool) {
-        return (uint256(data) & (uint256(1) << position)) != 0;
-    }
-
-    function normalizeAmountToProtocolFormat(uint256 amount, uint256 decimals) internal pure returns (uint256) {
-        uint256 difference = (10 ** (18 - decimals));
-        return amount * difference;
-    }
-
-    function normalizeAmountToOriginalFormat(uint256 amount, uint256 decimals) internal pure returns (uint256) {
-        uint256 difference = (10 ** (18 - decimals));
-        return amount / difference;
-    }
-
-    function normalizeAmountToProtocolFormatOnCurrentNetwork(
-        uint256 amount,
-        uint256 decimals,
-        bytes4 networkId
-    ) internal view returns (uint256) {
-        return Network.isCurrentNetwork(networkId) ? normalizeAmountToProtocolFormat(amount, decimals) : amount;
-    }
-
     function addressToHexString(address addr) internal pure returns (string memory) {
         return Strings.toHexString(uint256(uint160(addr)), 20);
     }
@@ -60,6 +38,28 @@ library Utils {
             iaddr += (b1 * 16 + b2);
         }
         return address(iaddr);
+    }
+
+    function isBitSet(bytes32 data, uint256 position) internal pure returns (bool) {
+        return (uint256(data) & (uint256(1) << position)) != 0;
+    }
+
+    function normalizeAmountToOriginalFormat(uint256 amount, uint256 decimals) internal pure returns (uint256) {
+        uint256 difference = (10 ** (18 - decimals));
+        return amount / difference;
+    }
+
+    function normalizeAmountToProtocolFormat(uint256 amount, uint256 decimals) internal pure returns (uint256) {
+        uint256 difference = (10 ** (18 - decimals));
+        return amount * difference;
+    }
+
+    function normalizeAmountToProtocolFormatOnCurrentNetwork(
+        uint256 amount,
+        uint256 decimals,
+        bytes4 networkId
+    ) internal view returns (uint256) {
+        return Network.isCurrentNetwork(networkId) ? normalizeAmountToProtocolFormat(amount, decimals) : amount;
     }
 
     function sendEther(address to, uint256 amount) internal {

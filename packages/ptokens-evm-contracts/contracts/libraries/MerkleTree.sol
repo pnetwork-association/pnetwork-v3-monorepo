@@ -63,15 +63,15 @@ library MerkleTree {
         return nodes[layer][0];
     }
 
-    function _hashPair(bytes32 a, bytes32 b) internal pure returns (bytes32) {
-        return a < b ? _efficientHash(a, b) : _efficientHash(b, a);
-    }
-
     function _efficientHash(bytes32 a, bytes32 b) internal pure returns (bytes32 value) {
         assembly {
             mstore(0x00, a)
             mstore(0x20, b)
             value := keccak256(0x00, 0x40)
         }
+    }
+
+    function _hashPair(bytes32 a, bytes32 b) internal pure returns (bytes32) {
+        return a < b ? _efficientHash(a, b) : _efficientHash(b, a);
     }
 }

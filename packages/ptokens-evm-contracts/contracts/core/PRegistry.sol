@@ -27,18 +27,6 @@ contract PRegistry is IPRegistry {
     }
 
     // @inheritdoc IPRegistry
-    function isNetworkIdSupported(bytes4 networkId) public view returns (bool) {
-        address hub = _networkIdToHub[networkId];
-        return (hub != address(0));
-    }
-
-    // @inheritdoc IPRegistry
-    function isChainIdSupported(uint32 chainId) external view returns (bool) {
-        bytes4 networkId = Network.getNetworkIdFromChainId(chainId);
-        return isNetworkIdSupported(networkId);
-    }
-
-    // @inheritdoc IPRegistry
     function getChainIdByNetworkId(bytes4 networkId) external view returns (uint32) {
         return _networkIdToChainId[networkId];
     }
@@ -49,13 +37,25 @@ contract PRegistry is IPRegistry {
     }
 
     // @inheritdoc IPRegistry
+    function getSupportedChainIds() external view returns (uint32[] memory) {
+        return _supportedChainIds;
+    }
+
+    // @inheritdoc IPRegistry
     function getSupportedHubs() external view returns (address[] memory) {
         return _supportedHubs;
     }
 
     // @inheritdoc IPRegistry
-    function getSupportedChainIds() external view returns (uint32[] memory) {
-        return _supportedChainIds;
+    function isChainIdSupported(uint32 chainId) external view returns (bool) {
+        bytes4 networkId = Network.getNetworkIdFromChainId(chainId);
+        return isNetworkIdSupported(networkId);
+    }
+
+    // @inheritdoc IPRegistry
+    function isNetworkIdSupported(bytes4 networkId) public view returns (bool) {
+        address hub = _networkIdToHub[networkId];
+        return (hub != address(0));
     }
 
     // @inheritdoc IPRegistry
