@@ -15,10 +15,10 @@ library MerkleTree {
         uint256 leaves = Math.log2(n) + 1;
         bytes32[][] memory nodes = new bytes32[][](leaves * (2 * n - 1));
 
-        for (uint256 l = 0; l <= leaves; ) {
-            nodes[l] = new bytes32[](2 * n - 1);
+        for (uint256 i = 0; i <= leaves; ) {
+            nodes[i] = new bytes32[](2 * n - 1);
             unchecked {
-                ++l;
+                ++i;
             }
         }
 
@@ -32,7 +32,7 @@ library MerkleTree {
 
         while (n > 1) {
             uint256 layerNodes = 0;
-            uint k = 0;
+            uint256 k = 0;
 
             for (uint256 i = 0; i < n; i += 2) {
                 if (i + 1 == n) {

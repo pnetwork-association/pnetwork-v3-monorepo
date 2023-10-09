@@ -14,7 +14,7 @@
     "fork2": "npx hardhat node --config hardhat.config.fork2.js --port 8546",
     "fork3": "npx hardhat node --config hardhat.config.fork3.js --port 8547",
     "compile": "npx hardhat compile",
-    "contracts:lint-and-format": "prettier --write \"./contracts/**/*.+(sol)\" && solhint ./contracts --fix",
+    "contracts:lint-and-format": "prettier --write \"./contracts/**/*.+(sol)\" && solhint contracts/**/*.sol --fix",
     "contracts:prepende-license": "npx hardhat prepend-spdx-license",
     "test": "npx hardhat test --bail"
   },

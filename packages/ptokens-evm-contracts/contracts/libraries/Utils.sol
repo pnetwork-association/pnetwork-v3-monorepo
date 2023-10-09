@@ -8,7 +8,7 @@ import {Network} from "./Network.sol";
 error CallFailed();
 
 library Utils {
-    function isBitSet(bytes32 data, uint position) internal pure returns (bool) {
+    function isBitSet(bytes32 data, uint256 position) internal pure returns (bool) {
         return (uint256(data) & (uint256(1) << position)) != 0;
     }
 
@@ -39,7 +39,7 @@ library Utils {
         uint160 iaddr = 0;
         uint160 b1;
         uint160 b2;
-        for (uint i = 2; i < 2 + 2 * 20; i += 2) {
+        for (uint256 i = 2; i < 2 + 2 * 20; i += 2) {
             iaddr *= 256;
             b1 = uint160(uint8(tmp[i]));
             b2 = uint160(uint8(tmp[i + 1]));

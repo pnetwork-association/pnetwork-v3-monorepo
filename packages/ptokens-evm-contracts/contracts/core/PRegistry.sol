@@ -11,8 +11,8 @@ contract PRegistry is IPRegistry {
 
     address[] private _supportedHubs;
     uint32[] private _supportedChainIds;
-    mapping(bytes4 => address) _networkIdToHub;
-    mapping(bytes4 => uint32) _networkIdToChainId;
+    mapping(bytes4 => address) private _networkIdToHub;
+    mapping(bytes4 => uint32) private _networkIdToChainId;
 
     modifier onlyDandelionVoting() {
         if (msg.sender != dandelionVoting) {
