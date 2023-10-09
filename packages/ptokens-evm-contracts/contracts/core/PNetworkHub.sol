@@ -241,10 +241,7 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
         // especially if the operation's queue time is significantly shorter than the lockdown duration.
         // To mitigate this risk, operations should not be queued if the max challenge period makes
         // the operation challenge period finish after 1 hour before the end of an epoch.
-        if (block.timestamp + maxChallengePeriodDuration >= currentEpochEndTimestamp - 1 hours) {
-            return true;
-        }
-        return false;
+        return block.timestamp + maxChallengePeriodDuration >= currentEpochEndTimestamp - 1 hours;
     }
 
     /// @inheritdoc IPNetworkHub
