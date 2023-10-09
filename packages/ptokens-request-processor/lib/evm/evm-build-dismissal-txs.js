@@ -76,7 +76,7 @@ const makeDismissalContractCall = R.curry(
             _signature
           )
         )
-        .then(_tx => logger.debug('protocolCancelOperation called, awaiting...') || _tx.wait(1))
+        .then(_tx => logger.debug('protocolCancelOperation called, awaiting...') || _tx.wait())
         .then(_receipt => logger.info('Tx mined successfully!') || _receipt)
         .then(R.prop(constants.evm.ethers.KEY_TX_HASH))
         .then(addCancelledTxHashToEvent(_report))
