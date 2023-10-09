@@ -1,4 +1,4 @@
-pragma solidity ^0.8.19;
+pragma solidity ^0.8.20;
 
 import {Network} from "../libraries/Network.sol";
 import {IPRegistry} from "../interfaces/IPRegistry.sol";

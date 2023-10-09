@@ -1,7 +1,6 @@
 require('dotenv').config()
 require('hardhat-tracer')
 require('@nomiclabs/hardhat-ethers')
-require('@openzeppelin/hardhat-upgrades')
 require('hardhat-gas-reporter')
 require('@nomicfoundation/hardhat-chai-matchers')
 require('hardhat-spdx-license-identifier')
@@ -22,7 +21,7 @@ const maybeGetAccounts = _envVar => (process.env[_envVar] ? [process.env[_envVar
  */
 module.exports = {
   solidity: {
-    version: '0.8.19',
+    version: '0.8.20',
     settings: {
       viaIR: true,
       optimizer: {

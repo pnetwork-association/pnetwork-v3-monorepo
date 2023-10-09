@@ -1,12 +1,13 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity ^0.8.19;
+pragma solidity ^0.8.20;
 
-import {ReentrancyGuard} from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
-import {IEpochsManager} from "@pnetwork-association/dao-v2-contracts/contracts/interfaces/IEpochsManager.sol";
-import {IFeesManager} from "@pnetwork-association/dao-v2-contracts/contracts/interfaces/IFeesManager.sol";
+import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import {MerkleProof} from "@openzeppelin/contracts/utils/cryptography/MerkleProof.sol";
 import {ECDSA} from "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
+import {MessageHashUtils} from "@openzeppelin/contracts/utils/cryptography/MessageHashUtils.sol";
+import {IEpochsManager} from "@pnetwork-association/dao-v2-contracts/contracts/interfaces/IEpochsManager.sol";
+import {IFeesManager} from "@pnetwork-association/dao-v2-contracts/contracts/interfaces/IFeesManager.sol";
 import {GovernanceMessageHandler} from "../governance/GovernanceMessageHandler.sol";
 import {IPToken} from "../interfaces/IPToken.sol";
 import {IPFactory} from "../interfaces/IPFactory.sol";
@@ -260,7 +261,7 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
         _checkActorsStatus();
 
         bytes32 operationId = operationIdOf(operation);
-        address actor = ECDSA.recover(ECDSA.toEthSignedMessageHash(operationId), signature);
+        address actor = ECDSA.recover(MessageHashUtils.toEthSignedMessageHash(operationId), signature);
         if (!_isActor(actor, actorType, proof)) {
             revert InvalidActor(actor, actorType);
         }
@@ -483,7 +484,7 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
         bytes calldata signature
     ) external {
         bytes32 challengeId = challengeIdOf(challenge);
-        address actor = ECDSA.recover(ECDSA.toEthSignedMessageHash(challengeId), signature);
+        address actor = ECDSA.recover(MessageHashUtils.toEthSignedMessageHash(challengeId), signature);
         if (actor != challenge.actor || !_isActor(actor, actorType, proof)) {
             revert InvalidActor(actor, actorType);
         }

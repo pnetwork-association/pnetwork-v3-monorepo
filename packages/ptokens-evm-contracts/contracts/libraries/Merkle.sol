@@ -1,5 +1,5 @@
 // taken here: https://github.com/maticnetwork/contracts/blob/main/contracts/common/lib/Merkle.sol
-pragma solidity ^0.8.19;
+pragma solidity ^0.8.20;
 
 library Merkle {
     function checkMembership(

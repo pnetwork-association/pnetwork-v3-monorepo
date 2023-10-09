@@ -225,7 +225,7 @@ describe('PNetworkHub', () => {
 
     // H A R D H A T
     testReceiver = await TestReceiver.deploy()
-    pFactory = await PFactory.deploy()
+    pFactory = await PFactory.deploy(owner.address)
     testNotReceiver = await TestNotReceiver.deploy()
     pRegistry = await PRegistry.deploy(dao.address)
     mockRegistrationManager = await MockRegistrationManager.deploy(lendingManager.address)
