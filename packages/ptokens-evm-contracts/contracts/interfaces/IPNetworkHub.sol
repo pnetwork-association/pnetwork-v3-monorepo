@@ -128,20 +128,6 @@ interface IPNetworkHub is IGovernanceMessageHandler {
     event ChallengeUnsolved(Challenge challenge);
 
     /**
-     * @dev Emitted when an operation is queued.
-     *
-     * @param operation The queued operation
-     */
-    event OperationQueued(Operation operation);
-
-    /**
-     * @dev Emitted when an operation is executed.
-     *
-     * @param operation The executed operation
-     */
-    event OperationExecuted(Operation operation);
-
-    /**
      * @dev Emitted when an operation is cancelled.
      *
      * @param operation The cancelled operation
@@ -156,6 +142,20 @@ interface IPNetworkHub is IGovernanceMessageHandler {
      * @param actorType the actor type
      */
     event OperationCancelled(Operation operation, address indexed actor, ActorTypes indexed actorType);
+
+    /**
+     * @dev Emitted when an operation is executed.
+     *
+     * @param operation The executed operation
+     */
+    event OperationExecuted(Operation operation);
+
+    /**
+     * @dev Emitted when an operation is queued.
+     *
+     * @param operation The queued operation
+     */
+    event OperationQueued(Operation operation);
 
     /**
      * @dev Emitted when an user operation is generated.

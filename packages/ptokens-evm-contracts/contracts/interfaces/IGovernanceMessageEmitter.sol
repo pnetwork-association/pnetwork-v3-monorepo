@@ -13,13 +13,6 @@ import {IPNetworkHub} from "./IPNetworkHub.sol";
 
 interface IGovernanceMessageEmitter {
     /**
-     * @dev Emitted when a governance message must be propagated on the other chains
-     *
-     * @param data The data
-     */
-    event GovernanceMessage(bytes data);
-
-    /**
      * @dev Emitted when actors are emitted.
      *
      * @param epoch The epoch
@@ -27,6 +20,13 @@ interface IGovernanceMessageEmitter {
      * @param actorsType The actor types
      */
     event ActorsPropagated(uint16 indexed epoch, address[] actors, IPNetworkHub.ActorTypes[] actorsType);
+
+    /**
+     * @dev Emitted when a governance message must be propagated on the other chains
+     *
+     * @param data The data
+     */
+    event GovernanceMessage(bytes data);
 
     /*
      * @notice Emit a GovernanceMessage event containing the total number of actors (sentinels and guardians) and

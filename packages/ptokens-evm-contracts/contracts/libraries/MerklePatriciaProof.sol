@@ -90,32 +90,6 @@ library MerklePatriciaProof {
         }
     }
 
-    function _nibblesToTraverse(
-        bytes memory encodedPartialPath,
-        bytes memory path,
-        uint256 pathPtr
-    ) private pure returns (uint256) {
-        uint256 len;
-        // encodedPartialPath has elements that are each two hex characters (1 byte), but partialPath
-        // and slicedPath have elements that are each one hex character (1 nibble)
-        bytes memory partialPath = _getNibbleArray(encodedPartialPath);
-        bytes memory slicedPath = new bytes(partialPath.length);
-
-        // pathPtr counts nibbles in path
-        // partialPath.length is a number of nibbles
-        for (uint256 i = pathPtr; i < pathPtr + partialPath.length; i++) {
-            bytes1 pathNibble = path[i];
-            slicedPath[i - pathPtr] = pathNibble;
-        }
-
-        if (keccak256(partialPath) == keccak256(slicedPath)) {
-            len = partialPath.length;
-        } else {
-            len = 0;
-        }
-        return len;
-    }
-
     // bytes b must be hp encoded
     function _getNibbleArray(bytes memory b) private pure returns (bytes memory) {
         bytes memory nibbles;
@@ -141,5 +115,31 @@ library MerklePatriciaProof {
 
     function _getNthNibbleOfBytes(uint256 n, bytes memory str) private pure returns (bytes1) {
         return bytes1(n % 2 == 0 ? uint8(str[n / 2]) / 0x10 : uint8(str[n / 2]) % 0x10);
+    }
+
+    function _nibblesToTraverse(
+        bytes memory encodedPartialPath,
+        bytes memory path,
+        uint256 pathPtr
+    ) private pure returns (uint256) {
+        uint256 len;
+        // encodedPartialPath has elements that are each two hex characters (1 byte), but partialPath
+        // and slicedPath have elements that are each one hex character (1 nibble)
+        bytes memory partialPath = _getNibbleArray(encodedPartialPath);
+        bytes memory slicedPath = new bytes(partialPath.length);
+
+        // pathPtr counts nibbles in path
+        // partialPath.length is a number of nibbles
+        for (uint256 i = pathPtr; i < pathPtr + partialPath.length; i++) {
+            bytes1 pathNibble = path[i];
+            slicedPath[i - pathPtr] = pathNibble;
+        }
+
+        if (keccak256(partialPath) == keccak256(slicedPath)) {
+            len = partialPath.length;
+        } else {
+            len = 0;
+        }
+        return len;
     }
 }
