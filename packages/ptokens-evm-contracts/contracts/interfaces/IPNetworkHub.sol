@@ -280,6 +280,16 @@ interface IPNetworkHub is IGovernanceMessageHandler {
     function getPendingChallengeIdByEpochOf(uint16 epoch, address actor) external view returns (bytes32);
 
     /*
+     * @notice Returns the total number of actors in an epoch.
+     *
+     * @param epoch
+     * @param actorType
+     *
+     * @return uint16 representing the total number of actors in an epoch.
+     */
+    function getTotalNumberOfActorsByEpochAndType(uint16 epoch, ActorTypes actorType) external view returns (uint16);
+
+    /*
      * @notice Returns the total number of inactive actors in an epoch.
      *
      * @param epoch

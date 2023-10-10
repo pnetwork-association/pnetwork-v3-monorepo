@@ -103,6 +103,10 @@ describe('PNetworkHub', () => {
     )) +
     (await hub.getTotalNumberOfInactiveActorsByEpochAndType(_epoch, constants.hub.actors.Guardian))
 
+  const getTotalNumberOfActorsByEpoch = async _epoch =>
+    (await hub.getTotalNumberOfActorsByEpochAndType(_epoch, constants.hub.actors.Sentinel)) +
+    (await hub.getTotalNumberOfActorsByEpochAndType(_epoch, constants.hub.actors.Guardian))
+
   const maxChallengePeriod =
     BASE_CHALLENGE_PERIOD_DURATION +
     MAX_OPERATIONS_IN_QUEUE * MAX_OPERATIONS_IN_QUEUE * K_CHALLENGE_PERIOD -
@@ -360,6 +364,8 @@ describe('PNetworkHub', () => {
           .handleTelepathy(chainId, fakeGovernanceMessageVerifier.address, _message)
       )
     )
+
+    expect(await getTotalNumberOfActorsByEpoch(currentEpoch)).to.be.eq(8)
   })
 
   it('should be able to queue an operation', async () => {

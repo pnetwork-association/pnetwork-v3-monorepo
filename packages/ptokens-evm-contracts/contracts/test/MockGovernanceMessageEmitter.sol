@@ -22,32 +22,6 @@ contract MockGovernanceMessageEmitter {
         epochsManager = epochsManager_;
     }
 
-    function resumeActor(address actor, bytes1 registrationKind) external {
-        emit GovernanceMessage(
-            abi.encode(
-                GOVERNANCE_MESSAGE_RESUME_ACTOR,
-                abi.encode(
-                    IEpochsManager(epochsManager).currentEpoch(),
-                    actor,
-                    _getActorTypeByRegistrationKind(registrationKind)
-                )
-            )
-        );
-    }
-
-    function slashActor(address actor, bytes1 registrationKind) external {
-        emit GovernanceMessage(
-            abi.encode(
-                GOVERNANCE_MESSAGE_SLASH_ACTOR,
-                abi.encode(
-                    IEpochsManager(epochsManager).currentEpoch(),
-                    actor,
-                    _getActorTypeByRegistrationKind(registrationKind)
-                )
-            )
-        );
-    }
-
     function propagateActors(uint16 epoch, address[] calldata guardians, address[] calldata sentinels) external {
         uint256 length = guardians.length + sentinels.length;
         address[] memory actors = new address[](length);
@@ -85,6 +59,32 @@ contract MockGovernanceMessageEmitter {
     function protocolGovernanceCancelOperation(IPNetworkHub.Operation calldata operation) external {
         emit GovernanceMessage(
             abi.encode(GOVERNANCE_MESSAGE_PROTOCOL_GOVERNANCE_CANCEL_OPERATION, abi.encode(operation))
+        );
+    }
+
+    function resumeActor(address actor, bytes1 registrationKind) external {
+        emit GovernanceMessage(
+            abi.encode(
+                GOVERNANCE_MESSAGE_RESUME_ACTOR,
+                abi.encode(
+                    IEpochsManager(epochsManager).currentEpoch(),
+                    actor,
+                    _getActorTypeByRegistrationKind(registrationKind)
+                )
+            )
+        );
+    }
+
+    function slashActor(address actor, bytes1 registrationKind) external {
+        emit GovernanceMessage(
+            abi.encode(
+                GOVERNANCE_MESSAGE_SLASH_ACTOR,
+                abi.encode(
+                    IEpochsManager(epochsManager).currentEpoch(),
+                    actor,
+                    _getActorTypeByRegistrationKind(registrationKind)
+                )
+            )
         );
     }
 

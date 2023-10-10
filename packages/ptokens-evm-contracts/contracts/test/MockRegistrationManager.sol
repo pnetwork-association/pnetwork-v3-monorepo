@@ -16,9 +16,9 @@ contract MockRegistrationManager {
         bytes1 kind;
     }
 
-    event StakingSentinelSlashed(address indexed sentinel, uint256 amount);
     event BorrowingSentinelSlashed(address indexed sentinel);
     event GuardianSlashed(address indexed guardian);
+    event StakingSentinelSlashed(address indexed sentinel, uint256 amount);
 
     address public immutable lendingManager;
     address public governanceMessageEmitter;
@@ -31,16 +31,16 @@ contract MockRegistrationManager {
         lendingManager = lendingManager_;
     }
 
-    function sentinelRegistration(address sentinel) external view returns (Registration memory) {
-        return _sentinelRegistrations[sentinel];
-    }
-
-    function sentinelStakedAmountByEpochOf(address sentinel, uint16 epoch) external view returns (uint24) {
-        return _sentinelsEpochsStakedAmount[sentinel][epoch];
-    }
-
-    function totalSentinelStakedAmountByEpoch(uint16 epoch) external view returns (uint24) {
-        return _sentinelsEpochsTotalStakedAmount[epoch];
+    function addBorrowingSentinel(address sentinel, address owner, uint16 startEpoch, uint16 endEpoch) external {
+        _sentinelRegistrations[sentinel] = Registration({
+            owner: owner,
+            startEpoch: startEpoch,
+            endEpoch: endEpoch,
+            kind: 0x02
+        });
+        for (uint16 epoch = startEpoch; epoch <= endEpoch; epoch++) {
+            IMockLendingManager(lendingManager).increaseTotalBorrowedAmountByEpoch(200000, epoch);
+        }
     }
 
     function addGuardian(address guardian, address owner, uint16 startEpoch, uint16 endEpoch) external {
@@ -72,16 +72,12 @@ contract MockRegistrationManager {
         }
     }
 
-    function addBorrowingSentinel(address sentinel, address owner, uint16 startEpoch, uint16 endEpoch) external {
-        _sentinelRegistrations[sentinel] = Registration({
-            owner: owner,
-            startEpoch: startEpoch,
-            endEpoch: endEpoch,
-            kind: 0x02
-        });
-        for (uint16 epoch = startEpoch; epoch <= endEpoch; epoch++) {
-            IMockLendingManager(lendingManager).increaseTotalBorrowedAmountByEpoch(200000, epoch);
-        }
+    function sentinelRegistration(address sentinel) external view returns (Registration memory) {
+        return _sentinelRegistrations[sentinel];
+    }
+
+    function sentinelStakedAmountByEpochOf(address sentinel, uint16 epoch) external view returns (uint24) {
+        return _sentinelsEpochsStakedAmount[sentinel][epoch];
     }
 
     function setGovernanceMessageEmitter(address governanceMessageEmitter_) external {
@@ -105,5 +101,9 @@ contract MockRegistrationManager {
             IGovernanceMessageEmitter(governanceMessageEmitter).slashActor(actor, 0x03);
             emit GuardianSlashed(actor);
         }
+    }
+
+    function totalSentinelStakedAmountByEpoch(uint16 epoch) external view returns (uint24) {
+        return _sentinelsEpochsTotalStakedAmount[epoch];
     }
 }
