@@ -1,6 +1,9 @@
 {
   "extends": "solhint:recommended",
+  "plugins": ["code-organizer"],
   "rules": {
+    "code-organizer/functions-alphabetically-sorted": "warn",
+    "code-organizer/events-alphabetically-sorted": "warn",
     "func-visibility": [
       "warn",
       {

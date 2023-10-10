@@ -47,6 +47,7 @@
     "ramda": "^0.29.0",
     "safe-buffer": "^5.2.1",
     "solhint": "^3.3.6",
+    "solhint-plugin-code-organizer": "https://github.com/allemanfredi/solhint-plugin-code-organizer.git",
     "solidity-coverage": "^0.8.4",
     "solidity-rlp": "^2.0.8"
   }
