@@ -1326,37 +1326,38 @@ describe('PNetworkHub', () => {
     await time.increase(await hubInterim.getCurrentChallengePeriodDuration())
 
     const protocolFee = operation.getProtocolFee()
-    // const pTokenAddress = await pFactory.getPTokenAddress(
-    //   operation.underlyingAssetName,
-    //   operation.underlyingAssetSymbol,
-    //   operation.underlyingAssetDecimals,
-    //   operation.underlyingAssetTokenAddress,
-    //   operation.underlyingAssetNetworkId
-    // )
+    const pTokenAddress = await pFactory.getPTokenAddress(
+      operation.underlyingAssetName,
+      operation.underlyingAssetSymbol,
+      operation.underlyingAssetDecimals,
+      operation.underlyingAssetTokenAddress,
+      operation.underlyingAssetNetworkId
+    )
 
     tx = hubInterim.connect(relayer).protocolExecuteOperation(operation)
 
     await expect(tx)
       .to.emit(hubInterim, 'UserOperation')
-      // .withArgs(
-      //   28851320,
-      //   operation.destinationAccount,
-      //   operation.forwardDestinationNetworkId,
-      //   operation.underlyingAssetName,
-      //   operation.underlyingAssetSymbol,
-      //   operation.underlyingAssetDecimals,
-      //   operation.underlyingAssetTokenAddress,
-      //   operation.underlyingAssetNetworkId,
-      //   pTokenAddress,
-      //   operation.assetAmountWithoutProtocolFeeAndNetworkFee,
-      //   ZERO_ADDRESS,
-      //   '0',
-      //   forwardNetworkFeeAssetAmount,
-      //   '0',
-      //   '0x00000000',
-      //   operation.userData,
-      //   operation.optionsMask
-      // )
+      .withArgs(
+        anyValue,
+        operation.originAccount,
+        operation.destinationAccount,
+        operation.forwardDestinationNetworkId,
+        operation.underlyingAssetName,
+        operation.underlyingAssetSymbol,
+        operation.underlyingAssetDecimals,
+        operation.underlyingAssetTokenAddress,
+        operation.underlyingAssetNetworkId,
+        pTokenAddress,
+        operation.assetAmountWithoutProtocolFeeAndNetworkFee,
+        '0',
+        forwardNetworkFeeAssetAmount,
+        '0',
+        '0x00000000',
+        operation.userData,
+        operation.optionsMask,
+        operation.isForProtocol
+      )
       .and.to.emit(pTokenInterim, 'Transfer')
       .withArgs(ZERO_ADDRESS, hubInterim.address, protocolFee)
       .and.to.emit(pTokenInterim, 'Transfer')
