@@ -79,8 +79,10 @@ module.exports = {
   PARAM_NAME_UNDERLYING_ASSET_CHAIN_NAME: 'assetChainName',
   PARAM_DESC_UNDERLYING_ASSET_CHAIN_NAME:
     'Underlying Asset chain name (defaults to the selected network)',
-  PARAM_NAME_ASSET_ADDRESS: 'assetAddress',
-  PARAM_DESC_ASSET_ADDRESS: 'Underlying asset address',
+  PARAM_NAME_U_ASSET_ADDRESS: 'underlyingAssetTokenAddress',
+  PARAM_DESC_U_ASSET_ADDRESS: 'The underlying asset address of the pToken we want to move',
+  PARAM_NAME_ASSET_ADDRESS: 'assetToSwap',
+  PARAM_DESC_ASSET_ADDRESS: 'Asset to swap (could be the pToken or the underlying asset address',
   PARAM_NAME_AMOUNT: 'amount',
   PARAM_DESC_AMOUNT: 'Amount of underlying asset to be used',
   PARAM_NAME_TX_HASH: 'txHash',
@@ -88,4 +90,6 @@ module.exports = {
   PARAM_NAME_EXPECTED_SOURCE_CHAIN_ID: 'expectedSourceChainId',
   PARAM_DESC_EXPECTED_SOURCE_CHAIN_ID:
     'Expected source chain ID for Governance Message Verifier Telepathy messages',
+  OPT_NAME_APPROVE: 'approve',
+  OPT_DESC_APPROVE: 'Approve the amount before transfering...',
 }

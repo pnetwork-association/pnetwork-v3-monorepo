@@ -8,6 +8,7 @@ const {
   KEY_PNETWORKHUB,
   KEY_UNDERLYING_ASSET_LIST,
   KEY_GOVERNANCE_MESSAGE_EMITTER,
+  KEY_PTOKEN_UNDERLYING_ASSET_ADDRESS,
 } = require('../constants')
 const { utils } = require('ptokens-utils')
 const { TASK_NAME_GET_NETWORK_ID } = require('../get-network-id')
@@ -62,6 +63,22 @@ const getDeploymentFromHRE = hre =>
 
 const getHubAddress = hre => getDeploymentFromHRE(hre).then(R.path([KEY_PNETWORKHUB, KEY_ADDRESS]))
 
+const getPTokenInfo = (hre, _pTokenAddress) =>
+  getDeploymentFromHRE(hre)
+    .then(R.prop(KEY_PTOKEN_LIST))
+    .then(R.find(R.propEq(_pTokenAddress, KEY_ADDRESS)))
+    .then(_pTokenInfo =>
+      R.isNil(_pTokenInfo)
+        ? Promise.reject(new Error(`Unable to find a suitable pToken for '${hre.network.name}'`))
+        : _pTokenInfo
+    )
+
+const getPTokenAddressFromUnderlyingAsset = (hre, _underlyingAssetAddress) =>
+  getDeploymentFromHRE(hre)
+    .then(R.prop(KEY_PTOKEN_LIST))
+    .then(R.find(R.propEq(_underlyingAssetAddress, KEY_PTOKEN_UNDERLYING_ASSET_ADDRESS)))
+    .then(R.prop(KEY_ADDRESS))
+
 const getNetworkId = hre => getDeploymentFromHRE(hre).then(R.prop(KEY_NETWORK_ID))
 
 const getNetworkIdFromChainName = _networkName =>
@@ -79,6 +96,23 @@ const checkHubIsDeployed = hre =>
     )
   )
 
+const getPTokenFromAsset = (hre, _assetAddress) =>
+  getDeploymentFromHRE(hre)
+    .then(R.prop(KEY_PTOKEN_LIST))
+    .then(R.find(R.propEq(_assetAddress, KEY_PTOKEN_UNDERLYING_ASSET_ADDRESS)))
+    .then(R.prop(KEY_ADDRESS))
+
+const isPToken = (hre, _address) =>
+  getPTokenInfo(hre, _address)
+    .then(_ => true)
+    .catch(_ => false)
+
+const getUnderlyingAssetTokenAddressForPToken = (hre, _address) =>
+  getPTokenInfo(hre, _address).then(R.prop(KEY_PTOKEN_UNDERLYING_ASSET_ADDRESS))
+
+const isUnderlyingAssetTokenAddress = (hre, _address) =>
+  getPTokenAddressFromUnderlyingAsset(hre, _address).then(utils.isNotNil)
+
 module.exports = {
   getNetworkId,
   getConfiguration,
@@ -89,7 +123,13 @@ module.exports = {
   maybeAddEmptyPTokenList,
   getNetworkIdFromChainName,
   checkHubIsDeployed,
+  getPTokenInfo,
   getDeploymentFromNetworkName,
+  getPTokenAddressFromUnderlyingAsset,
   maybeAddEmptyUnderlyingAssetList,
   getGovernanceMessageEmitterAddress,
+  getPTokenFromAsset,
+  isPToken,
+  getUnderlyingAssetTokenAddressForPToken,
+  isUnderlyingAssetTokenAddress,
 }
