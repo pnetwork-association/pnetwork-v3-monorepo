@@ -7,11 +7,11 @@ contract MockLendingManager {
 
     constructor() {}
 
-    function totalBorrowedAmountByEpoch(uint16 epoch) external view returns (uint24) {
-        return _epochsTotalBorrowedAmount[epoch];
-    }
-
     function increaseTotalBorrowedAmountByEpoch(uint24 amount, uint16 epoch) external {
         _epochsTotalBorrowedAmount[epoch] += amount;
+    }
+
+    function totalBorrowedAmountByEpoch(uint16 epoch) external view returns (uint24) {
+        return _epochsTotalBorrowedAmount[epoch];
     }
 }
