@@ -218,6 +218,11 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
     }
 
     /// @inheritdoc IPNetworkHub
+    function getTotalNumberOfActorsByEpochAndType(uint16 epoch, ActorTypes actorType) external view returns (uint16) {
+        return _epochsTotalNumberOfActors[epoch][actorType];
+    }
+
+    /// @inheritdoc IPNetworkHub
     function getTotalNumberOfInactiveActorsByEpochAndType(
         uint16 epoch,
         ActorTypes actorType
