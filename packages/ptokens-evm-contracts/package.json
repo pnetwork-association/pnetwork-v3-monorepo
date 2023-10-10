@@ -1,6 +1,6 @@
 {
   "name": "ptokens-evm-contracts",
-  "version": "0.3.1",
+  "version": "0.4.1",
   "description": "",
   "main": "index.js",
   "license": "MIT",
@@ -14,7 +14,7 @@
     "fork2": "npx hardhat node --config hardhat.config.fork2.js --port 8546",
     "fork3": "npx hardhat node --config hardhat.config.fork3.js --port 8547",
     "compile": "npx hardhat compile",
-    "contracts:lint-and-format": "prettier --write \"./contracts/**/*.+(sol)\" && solhint ./contracts --fix",
+    "contracts:lint-and-format": "prettier --write \"./contracts/**/*.+(sol)\" && solhint contracts/**/*.sol --fix",
     "contracts:prepende-license": "npx hardhat prepend-spdx-license",
     "test": "npx hardhat test --bail"
   },
@@ -47,6 +47,7 @@
     "ramda": "^0.29.0",
     "safe-buffer": "^5.2.1",
     "solhint": "^3.3.6",
+    "solhint-plugin-code-organizer": "https://github.com/allemanfredi/solhint-plugin-code-organizer.git",
     "solidity-coverage": "^0.8.4",
     "solidity-rlp": "^2.0.8"
   }

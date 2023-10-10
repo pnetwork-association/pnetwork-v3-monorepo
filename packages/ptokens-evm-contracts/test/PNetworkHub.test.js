@@ -915,6 +915,7 @@ describe('PNetworkHub', () => {
 
   it('should not be able to queue an operation because the defaultActors merkle root for the current epoch has not been received yet', async () => {
     await time.increase(epochDuration)
+    expect(await hub.isLockedDown()).to.be.true
     const operation = await generateOperation()
     await expect(
       hub
@@ -927,8 +928,9 @@ describe('PNetworkHub', () => {
     const currentEpoch = await epochsManager.currentEpoch()
     const startFirstEpochTimestamp = (await epochsManager.startFirstEpochTimestamp()).toNumber()
     const currentEpochEndTimestamp = startFirstEpochTimestamp + (currentEpoch + 1) * epochDuration
-
+    expect(await hub.isLockedDown()).to.be.false
     await time.increaseTo(currentEpochEndTimestamp - (3600 + maxChallengePeriod))
+    expect(await hub.isLockedDown()).to.be.true
     const operation = await generateOperation()
     await expect(
       hub
@@ -946,8 +948,9 @@ describe('PNetworkHub', () => {
     const currentEpoch = await epochsManager.currentEpoch()
     const startFirstEpochTimestamp = (await epochsManager.startFirstEpochTimestamp()).toNumber()
     const currentEpochEndTimestamp = startFirstEpochTimestamp + (currentEpoch + 1) * epochDuration
+    expect(await hub.isLockedDown()).to.be.false
     await time.increaseTo(currentEpochEndTimestamp - 1800)
-
+    expect(await hub.isLockedDown()).to.be.true
     await expect(
       hub.connect(relayer).protocolExecuteOperation(operation)
     ).to.be.revertedWithCustomError(hub, 'LockDown')
@@ -1887,11 +1890,15 @@ describe('PNetworkHub', () => {
       challenges.push(Challenge.fromReceipt(await tx.wait(1)))
     }
 
+    expect(await hub.isLockedDown()).to.be.false
+
     await time.increase(CHALLENGE_DURATION)
 
     for (const challenge of challenges) {
       await hub.connect(challenger).slashByChallenge(challenge)
     }
+
+    expect(await hub.isLockedDown()).to.be.true
 
     await expect(
       hub.connect(relayer).protocolQueueOperation(await generateOperation(), {
@@ -1915,11 +1922,15 @@ describe('PNetworkHub', () => {
       challenges.push(Challenge.fromReceipt(await tx.wait(1)))
     }
 
+    expect(await hub.isLockedDown()).to.be.false
+
     await time.increase(CHALLENGE_DURATION)
 
     for (const challenge of challenges) {
       await hub.connect(challenger).slashByChallenge(challenge)
     }
+
+    expect(await hub.isLockedDown()).to.be.true
 
     await expect(
       hub.connect(relayer).protocolQueueOperation(await generateOperation(), {
@@ -1967,7 +1978,12 @@ describe('PNetworkHub', () => {
       MAX_OPERATIONS_IN_QUEUE * MAX_OPERATIONS_IN_QUEUE * K_CHALLENGE_PERIOD -
       K_CHALLENGE_PERIOD
 
+    expect(await hub.isLockedDown()).to.be.false
+
     await time.increaseTo(currentEpochEndTimestamp - maxChallengePeriodDuration - 3600 + 1)
+
+    expect(await hub.isLockedDown()).to.be.true
+
     await expect(
       hub.connect(relayer).protocolQueueOperation(await generateOperation(), {
         value: LOCKED_AMOUNT_CHALLENGE_PERIOD,
@@ -2127,6 +2143,8 @@ describe('PNetworkHub', () => {
       await hub.connect(challenger).slashByChallenge(challenge)
     }
 
+    expect(await hub.isLockedDown()).to.be.true
+
     await expect(
       hub.connect(relayer).protocolQueueOperation(await generateOperation(), {
         value: LOCKED_AMOUNT_CHALLENGE_PERIOD,
@@ -2152,6 +2170,8 @@ describe('PNetworkHub', () => {
       .to.emit(hub, 'ActorResumed')
       .withArgs(currentEpoch, guardians[0].address)
 
+    expect(await hub.isLockedDown()).to.be.true
+
     tx = await governanceMessageEmitter.resumeActor(
       sentinels[0].address,
       REGISTRATION_KINDS.StakingSentinel
@@ -2171,6 +2191,8 @@ describe('PNetworkHub', () => {
       .to.emit(hub, 'ActorResumed')
       .withArgs(currentEpoch, sentinels[0].address)
 
+    expect(await hub.isLockedDown()).to.be.false
+
     const operation = await generateOperation()
     tx = hub
       .connect(relayer)
@@ -2188,7 +2210,11 @@ describe('PNetworkHub', () => {
         value: LOCKED_AMOUNT_CHALLENGE_PERIOD,
       })
     ).to.be.revertedWithCustomError(hub, 'LockDown')
+    expect(await hub.isLockedDown()).to.be.true
+
     await propagateActors({ guardians, sentinels })
+
+    expect(await hub.isLockedDown()).to.be.false
 
     const operation = await generateOperation()
     const tx = hub
@@ -2372,6 +2398,8 @@ describe('PNetworkHub', () => {
       await hub.connect(challenger).slashByChallenge(challenge)
     }
 
+    expect(await hub.isLockedDown()).to.be.true
+
     await expect(
       hub.connect(relayer).protocolQueueOperation(await generateOperation(), {
         value: LOCKED_AMOUNT_CHALLENGE_PERIOD,
@@ -2430,6 +2458,8 @@ describe('PNetworkHub', () => {
     )
       .to.emit(hub, 'ActorResumed')
       .withArgs(currentEpoch, guardian.address)
+
+    expect(await hub.isLockedDown()).to.be.false
 
     // At this point system should exit from lock down mode
     const operation = await generateOperation()
@@ -2511,6 +2541,8 @@ describe('PNetworkHub', () => {
         .withArgs(currentEpoch, sentinels[i].address)
       i++
     }
+
+    expect(await hub.isLockedDown()).to.be.true
 
     await expect(
       hub.connect(relayer).protocolQueueOperation(await generateOperation(), {
