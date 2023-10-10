@@ -128,20 +128,6 @@ interface IPNetworkHub is IGovernanceMessageHandler {
     event ChallengeUnsolved(Challenge challenge);
 
     /**
-     * @dev Emitted when an operation is queued.
-     *
-     * @param operation The queued operation
-     */
-    event OperationQueued(Operation operation);
-
-    /**
-     * @dev Emitted when an operation is executed.
-     *
-     * @param operation The executed operation
-     */
-    event OperationExecuted(Operation operation);
-
-    /**
      * @dev Emitted when an operation is cancelled.
      *
      * @param operation The cancelled operation
@@ -156,6 +142,20 @@ interface IPNetworkHub is IGovernanceMessageHandler {
      * @param actorType the actor type
      */
     event OperationCancelled(Operation operation, address indexed actor, ActorTypes indexed actorType);
+
+    /**
+     * @dev Emitted when an operation is executed.
+     *
+     * @param operation The executed operation
+     */
+    event OperationExecuted(Operation operation);
+
+    /**
+     * @dev Emitted when an operation is queued.
+     *
+     * @param operation The queued operation
+     */
+    event OperationQueued(Operation operation);
 
     /**
      * @dev Emitted when an user operation is generated.
@@ -293,13 +293,11 @@ interface IPNetworkHub is IGovernanceMessageHandler {
     ) external view returns (uint16);
 
     /*
-     * @notice Return the status of an operation.
+     * @notice Indicates if the protocol is in lockdown
      *
-     * @param operation
-     *
-     * @return (OperationStatus) the operation status.
+     * @return bool indicating if the protocol is in lockdown
      */
-    function operationStatusOf(Operation calldata operation) external view returns (OperationStatus);
+    function isLockedDown() external view returns (bool);
 
     /*
      * @notice Calculates the operation id.
@@ -311,13 +309,13 @@ interface IPNetworkHub is IGovernanceMessageHandler {
     function operationIdOf(Operation memory operation) external pure returns (bytes32);
 
     /*
-     * @notice The Governance instruct a cancel action. If 2 actors agree on it the operation is cancelled.
-     *          This function can be invoked ONLY by the DandelionVoting contract ONLY on the interim chain
+     * @notice Return the status of an operation.
      *
      * @param operation
      *
+     * @return (OperationStatus) the operation status.
      */
-    function protocolGovernanceCancelOperation(Operation calldata operation) external;
+    function operationStatusOf(Operation calldata operation) external view returns (OperationStatus);
 
     /*
      * @notice An actor instruct a cancel action. If 2 actors agree on it the operation is cancelled.
@@ -342,6 +340,15 @@ interface IPNetworkHub is IGovernanceMessageHandler {
      *
      */
     function protocolExecuteOperation(Operation calldata operation) external payable;
+
+    /*
+     * @notice The Governance instruct a cancel action. If 2 actors agree on it the operation is cancelled.
+     *          This function can be invoked ONLY by the DandelionVoting contract ONLY on the interim chain
+     *
+     * @param operation
+     *
+     */
+    function protocolGovernanceCancelOperation(Operation calldata operation) external;
 
     /*
      * @notice Queue an operation.

@@ -24,7 +24,7 @@ contract GovernanceMessageVerifier is IGovernanceMessageVerifier {
     address public immutable governanceMessageEmitter;
 
     uint256 public totalNumberOfProcessedMessages;
-    mapping(bytes32 => bool) _messagesProcessed;
+    mapping(bytes32 => bool) private _messagesProcessed;
 
     constructor(address governanceMessageEmitter_) {
         governanceMessageEmitter = governanceMessageEmitter_;
@@ -120,6 +120,7 @@ contract GovernanceMessageVerifier is IGovernanceMessageVerifier {
         }
 
         for (uint256 index = 0; index < chainIds.length; ) {
+            // solhint-disable-next-line multiple-sends
             ITelepathyRouter(TELEPATHY_ROUTER).send(chainIds[index], hubs[index], data);
 
             unchecked {

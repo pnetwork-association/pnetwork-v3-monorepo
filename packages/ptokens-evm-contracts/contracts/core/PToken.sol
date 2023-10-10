@@ -83,13 +83,18 @@ contract PToken is IPToken, ERC20 {
     }
 
     /// @inheritdoc IPToken
+    function protocolBurn(address account, uint256 amount) external onlyHub {
+        _burnAndReleaseCollateral(account, amount);
+    }
+
+    /// @inheritdoc IPToken
     function protocolMint(address account, uint256 amount) external onlyHub {
         _mint(account, amount);
     }
 
     /// @inheritdoc IPToken
-    function protocolBurn(address account, uint256 amount) external onlyHub {
-        _burnAndReleaseCollateral(account, amount);
+    function userBurn(address account, uint256 amount) external onlyHub {
+        _burn(account, amount);
     }
 
     /// @inheritdoc IPToken
@@ -103,11 +108,6 @@ contract PToken is IPToken, ERC20 {
         uint256 normalizedAmount = Utils.normalizeAmountToProtocolFormat(amount, underlyingAssetDecimals);
         emit Transfer(address(0), account, normalizedAmount);
         emit Transfer(account, address(0), normalizedAmount);
-    }
-
-    /// @inheritdoc IPToken
-    function userBurn(address account, uint256 amount) external onlyHub {
-        _burn(account, amount);
     }
 
     function _burnAndReleaseCollateral(address account, uint256 amount) internal {

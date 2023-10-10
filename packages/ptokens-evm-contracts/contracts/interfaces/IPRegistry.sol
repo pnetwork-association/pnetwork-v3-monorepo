@@ -17,21 +17,6 @@ interface IPRegistry {
      */
     event NetworkAdded(bytes4 indexed networkId, uint32 indexed chainId, address hub);
 
-    /*
-     * @dev Return true if the given network id has been registered on pNetwork
-     *
-     * @param networkId the network ID
-     *
-     * @return bool true or false
-     */
-    function isNetworkIdSupported(bytes4 networkId) external view returns (bool);
-
-    /**
-     * @dev Return the supported chain ID
-     * @param chainId the chain id
-     */
-    function isChainIdSupported(uint32 chainId) external view returns (bool);
-
     /**
      * @dev Returns the chain id for the given network ID
      *
@@ -42,9 +27,13 @@ interface IPRegistry {
     function getChainIdByNetworkId(bytes4 networkId) external view returns (uint32);
 
     /**
-     * @dev Return the supported hubs
+     * @dev Returns the pNetwork hub address for the given network ID
+     *
+     * @param networkId a network ID
+     *
+     * @return address pNetwork hub address on the given network ID
      */
-    function getSupportedHubs() external view returns (address[] memory);
+    function getHubByNetworkId(bytes4 networkId) external view returns (address);
 
     /**
      * @dev Return the supported chain IDs
@@ -53,13 +42,24 @@ interface IPRegistry {
     function getSupportedChainIds() external view returns (uint32[] memory);
 
     /**
-     * @dev Returns the pNetwork hub address for the given network ID
-     *
-     * @param networkId a network ID
-     *
-     * @return address pNetwork hub address on the given network ID
+     * @dev Return the supported hubs
      */
-    function getHubByNetworkId(bytes4 networkId) external view returns (address);
+    function getSupportedHubs() external view returns (address[] memory);
+
+    /**
+     * @dev Return the supported chain ID
+     * @param chainId the chain id
+     */
+    function isChainIdSupported(uint32 chainId) external view returns (bool);
+
+    /*
+     * @dev Return true if the given network id has been registered on pNetwork
+     *
+     * @param networkId the network ID
+     *
+     * @return bool true or false
+     */
+    function isNetworkIdSupported(bytes4 networkId) external view returns (bool);
 
     /*
      * @dev Add a new entry for the map network ID => hub

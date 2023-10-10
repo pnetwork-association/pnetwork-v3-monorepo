@@ -13,8 +13,6 @@ error NotSupportedNetworkId(bytes4 originNetworkId);
 contract Slasher is ISlasher {
     address public immutable pRegistry;
     address public immutable registrationManager;
-
-    // Quantity of PNT to slash
     uint256 public immutable stakingSentinelAmountToSlash;
 
     constructor(address pRegistry_, address registrationManager_, uint256 stakingSentinelAmountToSlash_) {

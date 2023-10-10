@@ -3,8 +3,8 @@
 pragma solidity ^0.8.20;
 
 library Network {
-    function isCurrentNetwork(bytes4 networkId) internal view returns (bool) {
-        return Network.getCurrentNetworkId() == networkId;
+    function getCurrentNetworkId() internal view returns (bytes4) {
+        return getNetworkIdFromChainId(uint32(block.chainid));
     }
 
     function getNetworkIdFromChainId(uint32 chainId) internal pure returns (bytes4) {
@@ -14,7 +14,7 @@ library Network {
         return bytes4(sha256(abi.encode(version, networkType, chainId, extraData)));
     }
 
-    function getCurrentNetworkId() internal view returns (bytes4) {
-        return getNetworkIdFromChainId(uint32(block.chainid));
+    function isCurrentNetwork(bytes4 networkId) internal view returns (bool) {
+        return Network.getCurrentNetworkId() == networkId;
     }
 }
