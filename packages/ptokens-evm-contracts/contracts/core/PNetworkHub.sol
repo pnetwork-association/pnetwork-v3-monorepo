@@ -67,20 +67,6 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
     string public constant UNDERLYING_ASSET_NAME_USER_DATA_PROTOCOL_FEE = "Dai Stablecoin";
     string public constant UNDERLYING_ASSET_SYMBOL_USER_DATA_PROTOCOL_FEE = "DAI";
 
-    mapping(bytes32 => Action) private _operationsRelayerQueueAction;
-    mapping(bytes32 => Action) private _operationsGovernanceCancelAction;
-    mapping(bytes32 => Action) private _operationsGuardianCancelAction;
-    mapping(bytes32 => Action) private _operationsSentinelCancelAction;
-    mapping(bytes32 => uint8) private _operationsTotalCancelActions;
-    mapping(bytes32 => OperationStatus) private _operationsStatus;
-    mapping(uint16 => bytes32) private _epochsActorsMerkleRoot;
-    mapping(uint16 => mapping(ActorTypes => uint16)) private _epochsTotalNumberOfActors;
-    mapping(uint16 => mapping(bytes32 => Challenge)) private _epochsChallenges;
-    mapping(uint16 => mapping(bytes32 => ChallengeStatus)) private _epochsChallengesStatus;
-    mapping(uint16 => mapping(address => ActorStatus)) private _epochsActorsStatus;
-    mapping(uint16 => mapping(ActorTypes => uint16)) private _epochsTotalNumberOfInactiveActors;
-    mapping(uint16 => mapping(address => bytes32)) private _epochsActorsPendingChallengeId;
-
     address public immutable factory;
     address public immutable epochsManager;
     address public immutable feesManager;
@@ -95,6 +81,19 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
     uint256 public immutable lockedAmountStartChallenge;
     uint64 public immutable challengeDuration;
 
+    mapping(bytes32 => Action) private _operationsRelayerQueueAction;
+    mapping(bytes32 => Action) private _operationsGovernanceCancelAction;
+    mapping(bytes32 => Action) private _operationsGuardianCancelAction;
+    mapping(bytes32 => Action) private _operationsSentinelCancelAction;
+    mapping(bytes32 => uint8) private _operationsTotalCancelActions;
+    mapping(bytes32 => OperationStatus) private _operationsStatus;
+    mapping(uint16 => bytes32) private _epochsActorsMerkleRoot;
+    mapping(uint16 => mapping(ActorTypes => uint16)) private _epochsTotalNumberOfActors;
+    mapping(uint16 => mapping(bytes32 => Challenge)) private _epochsChallenges;
+    mapping(uint16 => mapping(bytes32 => ChallengeStatus)) private _epochsChallengesStatus;
+    mapping(uint16 => mapping(address => ActorStatus)) private _epochsActorsStatus;
+    mapping(uint16 => mapping(ActorTypes => uint16)) private _epochsTotalNumberOfInactiveActors;
+    mapping(uint16 => mapping(address => bytes32)) private _epochsActorsPendingChallengeId;
     uint256 public challengesNonce;
     uint16 public numberOfOperationsInQueue;
 
