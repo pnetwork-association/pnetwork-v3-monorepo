@@ -34,7 +34,7 @@ const getRegistrationManagerDeployBlock = async _registrationManagerAddress => {
 }
 
 const filterForCurrentEpoch = R.curry(
-  (_epoch, _registration) => _registration.startEpoch <= _epoch && _epoch < _registration.endEpoch
+  (_epoch, _registration) => _registration.startEpoch <= _epoch && _epoch <= _registration.endEpoch
 )
 const getAddressFromRegistrationLog = _registration =>
   _registration.guardian || _registration.sentinel
