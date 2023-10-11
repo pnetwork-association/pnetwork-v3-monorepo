@@ -90,6 +90,8 @@ module.exports = {
   PARAM_NAME_EXPECTED_SOURCE_CHAIN_ID: 'expectedSourceChainId',
   PARAM_DESC_EXPECTED_SOURCE_CHAIN_ID:
     'Expected source chain ID for Governance Message Verifier Telepathy messages',
+  PARAM_NAME_NETWORKS: 'networks',
+  PARAM_DESC_NETWORKS: 'Treat only the specified networks, separated by a comma',
   FLAG_NAME_APPROVE: 'approve',
   FLAG_DESC_APPROVE: 'Approve the amount before transfering...',
   FLAG_NAME_FORCE: 'force',
