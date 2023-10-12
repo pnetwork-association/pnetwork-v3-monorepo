@@ -55,30 +55,10 @@ const updateConfiguration = (...vargs) =>
     return resolve(config)
   })
 
-const getDeploymentFromNetworkName = _networkName =>
-  getConfiguration().then(_config => _config.get(_networkName))
-
 const getDeploymentFromHRE = hre =>
   getConfiguration().then(_config => _config.get(hre.network.name))
 
 const getHubAddress = hre => getDeploymentFromHRE(hre).then(R.path([KEY_PNETWORKHUB, KEY_ADDRESS]))
-
-const getPTokenInfo = (hre, _pTokenAddress) =>
-  getDeploymentFromHRE(hre)
-    .then(R.prop(KEY_PTOKEN_LIST))
-    .then(R.find(R.compose(R.equals(_pTokenAddress), R.toLower, R.prop(KEY_ADDRESS))))
-    // .then(R.find(R.propEq(_pTokenAddress, KEY_ADDRESS)))
-    .then(_pTokenInfo =>
-      R.isNil(_pTokenInfo)
-        ? Promise.reject(new Error(`Unable to find a suitable pToken for '${hre.network.name}'`))
-        : _pTokenInfo
-    )
-
-const getPTokenAddressFromUnderlyingAsset = (hre, _underlyingAssetAddress) =>
-  getDeploymentFromHRE(hre)
-    .then(R.prop(KEY_PTOKEN_LIST))
-    .then(R.find(R.propEq(_underlyingAssetAddress, KEY_PTOKEN_UNDERLYING_ASSET_ADDRESS)))
-    .then(R.prop(KEY_ADDRESS))
 
 const getNetworkId = hre => getDeploymentFromHRE(hre).then(R.prop(KEY_NETWORK_ID))
 
@@ -96,23 +76,6 @@ const checkHubIsDeployed = hre =>
       `Could not find any PNetworkHub address for '${hre.network.name}', have you deployed it?`
     )
   )
-
-const getPTokenFromAsset = (hre, _assetAddress) =>
-  getDeploymentFromHRE(hre)
-    .then(R.prop(KEY_PTOKEN_LIST))
-    .then(R.find(R.propEq(_assetAddress, KEY_PTOKEN_UNDERLYING_ASSET_ADDRESS)))
-    .then(R.prop(KEY_ADDRESS))
-
-const isPToken = (hre, _address) =>
-  getPTokenInfo(hre, _address)
-    .then(_ => true)
-    .catch(_ => false)
-
-const getUnderlyingAssetTokenAddressForPToken = (hre, _address) =>
-  getPTokenInfo(hre, _address).then(R.prop(KEY_PTOKEN_UNDERLYING_ASSET_ADDRESS))
-
-const isUnderlyingAssetTokenAddress = (hre, _address) =>
-  getPTokenAddressFromUnderlyingAsset(hre, _address).then(utils.isNotNil)
 
 const getPTokenEntryFromPTokenAddress = (hre, _address) =>
   getDeploymentFromHRE(hre)
@@ -136,15 +99,8 @@ module.exports = {
   maybeAddEmptyPTokenList,
   getNetworkIdFromChainName,
   checkHubIsDeployed,
-  getPTokenInfo,
-  getDeploymentFromNetworkName,
-  getPTokenAddressFromUnderlyingAsset,
   maybeAddEmptyUnderlyingAssetList,
   getGovernanceMessageEmitterAddress,
-  getPTokenFromAsset,
-  isPToken,
-  getUnderlyingAssetTokenAddressForPToken,
   getPTokenEntryFromPTokenAddress,
-  isUnderlyingAssetTokenAddress,
   getPTokenEntryFromUnderlyingAsset,
 }
