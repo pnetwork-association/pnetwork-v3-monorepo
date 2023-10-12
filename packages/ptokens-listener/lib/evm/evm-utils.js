@@ -5,7 +5,9 @@ const { utils, validation } = require('ptokens-utils')
 const constants = require('ptokens-constants')
 
 const getEthersProvider = R.memoizeWith(R.identity, _url =>
-  validation.checkType('String', _url).then(_ => ethers.getDefaultProvider(_url))
+  validation
+    .checkType('String', _url)
+    .then(_ => new ethers.JsonRpcProvider(_url, undefined, { polling: true }))
 )
 
 const isEventFragment = _fragment => ethers.Fragment.isEvent(_fragment)
