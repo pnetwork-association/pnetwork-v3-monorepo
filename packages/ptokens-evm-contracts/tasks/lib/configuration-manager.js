@@ -66,7 +66,8 @@ const getHubAddress = hre => getDeploymentFromHRE(hre).then(R.path([KEY_PNETWORK
 const getPTokenInfo = (hre, _pTokenAddress) =>
   getDeploymentFromHRE(hre)
     .then(R.prop(KEY_PTOKEN_LIST))
-    .then(R.find(R.propEq(_pTokenAddress, KEY_ADDRESS)))
+    .then(R.find(R.compose(R.equals(_pTokenAddress), R.toLower, R.prop(KEY_ADDRESS))))
+    // .then(R.find(R.propEq(_pTokenAddress, KEY_ADDRESS)))
     .then(_pTokenInfo =>
       R.isNil(_pTokenInfo)
         ? Promise.reject(new Error(`Unable to find a suitable pToken for '${hre.network.name}'`))
@@ -113,6 +114,18 @@ const getUnderlyingAssetTokenAddressForPToken = (hre, _address) =>
 const isUnderlyingAssetTokenAddress = (hre, _address) =>
   getPTokenAddressFromUnderlyingAsset(hre, _address).then(utils.isNotNil)
 
+const getPTokenEntryFromPTokenAddress = (hre, _address) =>
+  getDeploymentFromHRE(hre)
+    .then(R.prop(KEY_PTOKEN_LIST))
+    .then(R.find(R.compose(R.equals(_address), R.toLower, R.prop(KEY_ADDRESS))))
+    .then(utils.rejectIfNil(`Unable to find a suitable pToken for '${hre.network.name}'`))
+
+const getPTokenEntryFromUnderlyingAsset = (hre, _underlyingAssetAddress) =>
+  getDeploymentFromHRE(hre)
+    .then(R.prop(KEY_PTOKEN_LIST))
+    .then(R.find(R.propEq(_underlyingAssetAddress, KEY_PTOKEN_UNDERLYING_ASSET_ADDRESS)))
+    .then(utils.rejectIfNil(`Underlying asset not found: '${_underlyingAssetAddress}'`))
+
 module.exports = {
   getNetworkId,
   getConfiguration,
@@ -131,5 +144,7 @@ module.exports = {
   getPTokenFromAsset,
   isPToken,
   getUnderlyingAssetTokenAddressForPToken,
+  getPTokenEntryFromPTokenAddress,
   isUnderlyingAssetTokenAddress,
+  getPTokenEntryFromUnderlyingAsset,
 }

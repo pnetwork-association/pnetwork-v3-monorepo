@@ -12,22 +12,19 @@ const {
   PARAM_DESC_AMOUNT,
   FLAG_NAME_APPROVE,
   FLAG_DESC_APPROVE,
+  KEY_ADDRESS,
+  KEY_PTOKEN_UNDERLYING_ASSET_ADDRESS,
 } = require('../constants')
 const {
   getHubAddress,
-  getNetworkId,
   getNetworkIdFromChainName,
-  getPTokenFromAsset,
-  isPToken,
-  getUnderlyingAssetTokenAddressForPToken,
-  isUnderlyingAssetTokenAddress,
+  getPTokenEntryFromPTokenAddress,
+  getPTokenEntryFromUnderlyingAsset,
 } = require('../lib/configuration-manager')
+const { KEY_UNDERLYING_ASSET_NETWORK_ID } = require('ptokens-constants/lib/db')
 
 const TASK_NAME = 'hub:usersend'
 const TASK_DESC = 'Swap tokens on pNetwork'
-
-const isDestinationChainDifferent = (hre, _destinationChainName) =>
-  hre.network.name !== _destinationChainName
 
 const userSend = async (taskArgs, hre) => {
   const signer = await hre.ethers.getSigner()
@@ -36,77 +33,68 @@ const userSend = async (taskArgs, hre) => {
   const hubAddress = await getHubAddress(hre)
   const hub = await PNetworkHub.attach(hubAddress)
 
+  const amount = taskArgs[PARAM_NAME_AMOUNT]
+  const gasLimit = taskArgs[PARAM_NAME_GAS]
+  const gasPrice = taskArgs[PARAM_NAME_GASPRICE]
+  const assetToSwapAddress = taskArgs[PARAM_NAME_ASSET_ADDRESS]
   const destinationAccount = taskArgs[PARAM_NAME_DEST_ADDRESS]
-  const assetToSwap = taskArgs[PARAM_NAME_ASSET_ADDRESS]
   const destinationChainName = taskArgs[PARAM_NAME_DEST_CHAIN]
 
-  let underlyingAssetTokenAddress = null
-  let assetTokenAddress = null
-
-  if (await isUnderlyingAssetTokenAddress(hre, assetToSwap)) {
-    underlyingAssetTokenAddress = assetToSwap
-    assetTokenAddress = assetToSwap
-  } else if (
-    (await isPToken(hre, assetToSwap)) &&
-    isDestinationChainDifferent(hre, destinationChainName)
-  ) {
-    underlyingAssetTokenAddress = getUnderlyingAssetTokenAddressForPToken(hre, assetToSwap)
-    assetTokenAddress = assetToSwap
-  } else {
-    throw new Error(
-      `Invalid Swap: either the pToken '${assetToSwap}' doesn't exist in the deployments.json file or the given pToken is belonging to the given destination chain name.`
-    )
-  }
-
-  const underlyingAssetToken = await hre.ethers.getContractAt('ERC20', underlyingAssetTokenAddress)
-  const underlyingAssetName = await underlyingAssetToken.name()
-  const underlyingAssetSymbol = await underlyingAssetToken.symbol()
-  const underlyingAssetDecimals = await underlyingAssetToken.decimals()
-  const underlyingAssetNetworkId = await getNetworkId(hre)
-  const parsedAmount = hre.ethers.utils.parseUnits(
-    taskArgs[PARAM_NAME_AMOUNT],
-    underlyingAssetDecimals
+  const pTokenEntry = await getPTokenEntryFromPTokenAddress(hre, assetToSwapAddress).catch(_ =>
+    getPTokenEntryFromUnderlyingAsset(hre, assetToSwapAddress)
   )
+
+  const pTokenAddress = pTokenEntry[KEY_ADDRESS]
+  const underlyingAssetAddress = pTokenEntry[KEY_PTOKEN_UNDERLYING_ASSET_ADDRESS]
+  const destinationNetworkId = await getNetworkIdFromChainName(destinationChainName)
+
+  console.log('Selected signer: ', signer.address)
+  console.log('Underlying asset address: ', underlyingAssetAddress)
+  console.log('Asset token address', assetToSwapAddress)
+  console.log('Destination chain:', destinationChainName)
+
+  const selectedNetwork = hre.network.name
+  await hre.changeNetwork('polygon')
+  console.log('hre.network.name:', hre.network.name)
+  const underlyingAsset = await hre.ethers.getContractAt('ERC20', underlyingAssetAddress)
+  const underlyingAssetChainName = pTokenEntry[KEY_UNDERLYING_ASSET_NETWORK_ID]
+  const underlyingAssetName = await underlyingAsset.name()
+  const underlyingAssetSymbol = await underlyingAsset.symbol()
+  const underlyingAssetDecimals = await underlyingAsset.decimals()
+  await hre.changeNetwork(selectedNetwork)
+
+  const underlyingAssetNetworkId = await getNetworkIdFromChainName(underlyingAssetChainName)
+  const parsedAmount = hre.ethers.utils.parseUnits(amount, underlyingAssetDecimals)
   const userData = '0x'
   const optionsMask = '0x'.padEnd(66, '0')
   const networkFeeAssetAmount = 1000
   const forwardNetworkFeeAssetAmount = 2000
 
-  console.log('Selected signer: ', signer.address)
-  console.log('Underlying asset address: ', underlyingAssetTokenAddress)
-  console.log('Asset token address', assetTokenAddress)
-  console.log('Destination chain:', destinationChainName)
-
-  if (taskArgs.approve) {
-    const pTokenAddress = await getPTokenFromAsset(hre, underlyingAssetTokenAddress)
-    console.log(`pToken address to approve for: ${pTokenAddress}`)
-    console.log(
-      `Approving ${parsedAmount} from ${underlyingAssetTokenAddress} for ${pTokenAddress}...`
-    )
-    await underlyingAssetToken.approve(pTokenAddress, parsedAmount)
+  if (taskArgs[OPT_NAME_APPROVE]) {
+    if (assetToSwapAddress === underlyingAssetAddress) {
+      console.log(`pToken address to approve for: ${pTokenAddress}`)
+      console.log(`Approving ${parsedAmount} from ${assetToSwapAddress} for ${pTokenAddress}...`)
+      await underlyingAsset.approve(pTokenAddress, parsedAmount)
+    } else {
+      console.warn('Approval not needed...')
+    }
   }
 
-  const destinationNetworkId = await getNetworkIdFromChainName(destinationChainName)
-
-  const options = {
-    gasPrice: taskArgs[PARAM_NAME_GASPRICE],
-    gasLimit: taskArgs[PARAM_NAME_GAS],
-  }
   const tx = await hub.userSend(
     destinationAccount,
     destinationNetworkId,
     underlyingAssetName,
     underlyingAssetSymbol,
     underlyingAssetDecimals,
-    underlyingAssetTokenAddress,
+    underlyingAssetAddress,
     underlyingAssetNetworkId,
-    assetTokenAddress,
+    assetToSwapAddress,
     parsedAmount,
     networkFeeAssetAmount,
     forwardNetworkFeeAssetAmount,
     userData,
     optionsMask,
-    options
+    { gasPrice, gasLimit }
   )
 
   const receipt = await tx.wait(1)
