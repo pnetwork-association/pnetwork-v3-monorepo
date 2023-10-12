@@ -1,9 +1,9 @@
 const { types } = require('hardhat/config')
-const statusOf = require('./protocol-status-of.task')
-const protocolQueue = require('./protocol-queue.task')
-const protocolCancel = require('./protocol-cancel.task')
-const protocolExecute = require('./protocol-execute.task')
-const getProperties = require('./protocol-get-properties.task')
+const statusOf = require('./status-of.task')
+const protocolQueue = require('./queue.task')
+const protocolCancel = require('./cancel.task')
+const protocolExecute = require('./execute.task')
+const getProperties = require('./properties.task')
 const TASK_CONSTANTS = require('../constants')
 
 const setCommonOptionalParams = () =>
