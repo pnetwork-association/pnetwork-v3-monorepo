@@ -10,8 +10,8 @@ const {
   PARAM_DESC_DEST_ADDRESS,
   PARAM_NAME_AMOUNT,
   PARAM_DESC_AMOUNT,
-  OPT_NAME_APPROVE,
-  OPT_DESC_APPROVE,
+  FLAG_NAME_APPROVE,
+  FLAG_DESC_APPROVE,
 } = require('../constants')
 const {
   getHubAddress,
@@ -118,7 +118,7 @@ task(TASK_NAME, TASK_DESC)
   .addPositionalParam(PARAM_NAME_DEST_CHAIN, PARAM_DESC_DEST_CHAIN, undefined, types.string)
   .addPositionalParam(PARAM_NAME_DEST_ADDRESS, PARAM_DESC_DEST_ADDRESS, undefined, types.string)
   .addPositionalParam(PARAM_NAME_AMOUNT, PARAM_DESC_AMOUNT, undefined, types.string)
-  .addFlag(OPT_NAME_APPROVE, OPT_DESC_APPROVE)
+  .addFlag(FLAG_NAME_APPROVE, FLAG_DESC_APPROVE)
   .setAction(userSend)
 
 module.exports = {

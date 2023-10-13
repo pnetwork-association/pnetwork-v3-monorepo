@@ -3,8 +3,16 @@ const { types } = require('hardhat/config')
 
 const { getContractAddress } = require('../deploy/deploy-contract.task')
 const { getLogs } = require('../lib/evm-utils')
-const TASK_CONSTANTS = require('../constants')
+const {
+  FLAG_NAME_FORCE,
+  FLAG_NAME_DRY,
+  PARAM_NAME_GOVERNANCE_MESSAGE_EMITTER,
+  PARAM_DESC_GOVERNANCE_MESSAGE_EMITTER,
+} = require('../constants')
 const registrationManagerAbi = require('./abi/registration-manager.json')
+
+const FLAG_DESC_FORCE = 'Force propagation for current epoch'
+const FLAG_DESC_DRY = 'Do not push transaction'
 
 const GUARDIAN_REGISTRATION_UPDATED_TOPIC =
   '0xafb67f2df87eac9d09ceb6895eb788a32942fe447f270883a9cc0d8cdcda6c8f'
@@ -34,7 +42,7 @@ const getRegistrationManagerDeployBlock = async _registrationManagerAddress => {
 }
 
 const filterForCurrentEpoch = R.curry(
-  (_epoch, _registration) => _registration.startEpoch <= _epoch && _epoch < _registration.endEpoch
+  (_epoch, _registration) => _registration.startEpoch <= _epoch && _epoch <= _registration.endEpoch
 )
 const getAddressFromRegistrationLog = _registration =>
   _registration.guardian || _registration.sentinel
@@ -47,8 +55,8 @@ const main = async (_args, _hre) => {
   const GovernanceMessageEmitter = await ethers.getContractFactory('GovernanceMessageEmitter')
 
   const governanceMessageEmitterAddress =
-    _args[TASK_CONSTANTS.PARAM_NAME_GOVERNANCE_MESSAGE_EMITTER] ||
-    (await getContractAddress(_hre, TASK_CONSTANTS.PARAM_NAME_GOVERNANCE_MESSAGE_EMITTER))
+    _args[PARAM_NAME_GOVERNANCE_MESSAGE_EMITTER] ||
+    (await getContractAddress(_hre, PARAM_NAME_GOVERNANCE_MESSAGE_EMITTER))
 
   const governanceMessageEmitter = await GovernanceMessageEmitter.attach(
     governanceMessageEmitterAddress
@@ -71,7 +79,7 @@ const main = async (_args, _hre) => {
     registrationManagerDeploymentBlock
   )
 
-  if (propagatedEvents.length > 0 && !_args.force) {
+  if (propagatedEvents.length > 0 && !_args[FLAG_NAME_DRY] && !_args[FLAG_NAME_FORCE]) {
     console.warn('Actors already propagated')
     return
   }
@@ -87,18 +95,22 @@ const main = async (_args, _hre) => {
 
   const guardians = getActiveRegistrationsByEpoch(guardianRegistrations, currentEpoch)
   const sentinels = getActiveRegistrationsByEpoch(sentinelRegistrations, currentEpoch)
-  console.info('guardians', guardians)
-  console.info('sentinels', sentinels)
+  console.info('epoch: ', currentEpoch)
+  console.info('guardians\n', guardians)
+  console.info('sentinels\n', sentinels)
 
-  const trasaction = await governanceMessageEmitter.propagateActors(guardians, sentinels)
-  console.log('Actor addresses succesfully propagated ...', trasaction.hash)
+  if (!_args[FLAG_NAME_DRY]) {
+    const trasaction = await governanceMessageEmitter.propagateActors(guardians, sentinels)
+    console.log('Actor addresses succesfully propagated ...', trasaction.hash)
+  }
 }
 
 task('gm-relayer:propagate-actors', 'Start the actors addresses propagation', main)
   .addOptionalParam(
-    TASK_CONSTANTS.PARAM_NAME_GOVERNANCE_MESSAGE_EMITTER,
-    TASK_CONSTANTS.PARAM_DESC_GOVERNANCE_MESSAGE_EMITTER,
+    PARAM_NAME_GOVERNANCE_MESSAGE_EMITTER,
+    PARAM_DESC_GOVERNANCE_MESSAGE_EMITTER,
     undefined,
     types.string
   )
-  .addFlag('force', 'force propagation for current epoch', false, types.boolean)
+  .addFlag(FLAG_NAME_FORCE, FLAG_DESC_FORCE, false, types.boolean)
+  .addFlag(FLAG_NAME_DRY, FLAG_DESC_DRY, false, types.boolean)
