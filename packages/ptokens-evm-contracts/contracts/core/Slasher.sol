@@ -3,19 +3,28 @@
 pragma solidity ^0.8.20;
 
 import {Utils} from "../libraries/Utils.sol";
+import {IEpochsManager} from "@pnetwork-association/dao-v2-contracts/contracts/interfaces/IEpochsManager.sol";
 import {IPRegistry} from "../interfaces/IPRegistry.sol";
 import {ISlasher} from "../interfaces/ISlasher.sol";
 import {IRegistrationManager} from "@pnetwork-association/dao-v2-contracts/contracts/interfaces/IRegistrationManager.sol";
 
 error NotHub(address hub);
 error NotSupportedNetworkId(bytes4 originNetworkId);
+error InvalidEpoch(uint16 epoch);
 
 contract Slasher is ISlasher {
     address public immutable pRegistry;
+    address public immutable epochsManager;
     address public immutable registrationManager;
     uint256 public immutable stakingSentinelAmountToSlash;
 
-    constructor(address pRegistry_, address registrationManager_, uint256 stakingSentinelAmountToSlash_) {
+    constructor(
+        address epochsManager_,
+        address pRegistry_,
+        address registrationManager_,
+        uint256 stakingSentinelAmountToSlash_
+    ) {
+        epochsManager = epochsManager_;
         pRegistry = pRegistry_;
         stakingSentinelAmountToSlash = stakingSentinelAmountToSlash_;
         registrationManager = registrationManager_;
@@ -26,6 +35,7 @@ contract Slasher is ISlasher {
         string calldata originAccount,
         bytes calldata userData
     ) external override {
+        uint16 currentEpoch = IEpochsManager(epochsManager).currentEpoch();
         address originAccountAddress = Utils.hexStringToAddress(originAccount);
 
         if (!IPRegistry(pRegistry).isNetworkIdSupported(originNetworkId)) revert NotSupportedNetworkId(originNetworkId);
@@ -33,7 +43,10 @@ contract Slasher is ISlasher {
         address registeredHub = IPRegistry(pRegistry).getHubByNetworkId(originNetworkId);
         if (originAccountAddress != registeredHub) revert NotHub(originAccountAddress);
 
-        (address actor, address challenger) = abi.decode(userData, (address, address));
+        (uint16 epoch, address actor, address challenger) = abi.decode(userData, (uint16, address, address));
+
+        if (epoch != currentEpoch) revert InvalidEpoch(epoch);
+
         IRegistrationManager.Registration memory registration = IRegistrationManager(registrationManager)
             .sentinelRegistration(actor);
 

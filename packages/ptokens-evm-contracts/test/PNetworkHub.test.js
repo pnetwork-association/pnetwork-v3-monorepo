@@ -232,12 +232,13 @@ describe('PNetworkHub', () => {
     testNotReceiver = await TestNotReceiver.deploy()
     pRegistry = await PRegistry.deploy(dao.address)
     mockRegistrationManager = await MockRegistrationManager.deploy(lendingManager.address)
+    epochsManager = await EpochsManager.deploy()
     slasher = await Slasher.deploy(
+      epochsManager.address,
       pRegistry.address,
       mockRegistrationManager.address,
       SLASHING_QUANTITY
     )
-    epochsManager = await EpochsManager.deploy()
     feesManager = await FeesManager.deploy()
 
     hubInterim = await PNetworkHub.deploy(
@@ -2843,6 +2844,8 @@ describe('PNetworkHub', () => {
   // })
 
   it('should slash an actor(sentinel) successfully on the interim chain', async () => {
+    const currentEpoch = await epochsManager.currentEpoch()
+
     const slashedSentinel = sentinels[0]
     await mockRegistrationManager.addStakingSentinel(
       sentinel.address,
@@ -2873,8 +2876,8 @@ describe('PNetworkHub', () => {
     time.increase(CHALLENGE_DURATION)
 
     const encodedBytes = ethers.utils.defaultAbiCoder.encode(
-      ['address', 'address'],
-      [slashedSentinel.address, challenger.address]
+      ['uint16', 'address', 'address'],
+      [currentEpoch, slashedSentinel.address, challenger.address]
     )
 
     let nonce = anyValue // gasLeft
@@ -2964,7 +2967,6 @@ describe('PNetworkHub', () => {
     time.increase(maxChallengePeriod)
 
     tx = await hubInterim.connect(relayer).protocolExecuteOperation(operation)
-    const currentEpoch = await epochsManager.currentEpoch()
     const tag = ethers.utils.keccak256(Buffer.from('GOVERNANCE_MESSAGE_SLASH_ACTOR'))
     const expectedGovernanceMessageArgs = ethers.utils.defaultAbiCoder.encode(
       ['bytes32', 'bytes'],

@@ -489,7 +489,7 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
                 0,
                 0,
                 0,
-                abi.encode(challenge.actor, challenge.challenger),
+                abi.encode(currentEpoch, challenge.actor, challenge.challenger),
                 bytes32(0),
                 true // isForProtocol
             );
