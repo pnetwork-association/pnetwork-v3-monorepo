@@ -13,6 +13,7 @@ const deploySlasherTask = (_args, hre) =>
     configurableName: TASK_CONSTANTS.KEY_SLASHER,
     contractFactoryName: TASK_CONSTANTS.CONTRACT_NAME_SLASHER,
     deployArgsArray: [
+      _args[TASK_CONSTANTS.PARAM_NAME_EPOCHS_MANAGER],
       _args[TASK_CONSTANTS.PARAM_NAME_PREGISTRY],
       _args[TASK_CONSTANTS.PARAM_NAME_REGISTRATION_MANAGER_ADDRESS],
       _args[TASK_CONSTANTS.PARAM_NAME_AMOUNT_TO_SLASH],
@@ -20,6 +21,12 @@ const deploySlasherTask = (_args, hre) =>
   })
 
 task(TASK_NAME_DEPLOY_SLASHER, TASK_DESC_DEPLOY_SLASHER, deploySlasherTask)
+  .addPositionalParam(
+    TASK_CONSTANTS.PARAM_NAME_EPOCHS_MANAGER,
+    TASK_CONSTANTS.PARAM_DESC_EPOCHS_MANAGER,
+    undefined,
+    types.string
+  )
   .addPositionalParam(
     TASK_CONSTANTS.PARAM_NAME_PREGISTRY,
     TASK_CONSTANTS.PARAM_DESC_PREGISTRY,
@@ -36,7 +43,7 @@ task(TASK_NAME_DEPLOY_SLASHER, TASK_DESC_DEPLOY_SLASHER, deploySlasherTask)
     TASK_CONSTANTS.PARAM_NAME_AMOUNT_TO_SLASH,
     TASK_CONSTANTS.PARAM_DESC_AMOUNT_TO_SLASH,
     undefined,
-    types.int
+    types.string
   )
 
 module.exports = {
