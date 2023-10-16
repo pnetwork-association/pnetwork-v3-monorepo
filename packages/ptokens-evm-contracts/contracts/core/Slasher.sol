@@ -10,7 +10,7 @@ import {IRegistrationManager} from "@pnetwork-association/dao-v2-contracts/contr
 
 error NotHub(address hub);
 error NotSupportedNetworkId(bytes4 originNetworkId);
-error InvalidEpoch(uint16 epoch);
+error InvalidEpoch(uint16 epoch, uint16 expectedEpoch);
 
 contract Slasher is ISlasher {
     address public immutable pRegistry;
@@ -45,7 +45,7 @@ contract Slasher is ISlasher {
 
         (uint16 epoch, address actor, address challenger) = abi.decode(userData, (uint16, address, address));
 
-        if (epoch != currentEpoch) revert InvalidEpoch(epoch);
+        if (epoch != currentEpoch) revert InvalidEpoch(epoch, currentEpoch);
 
         IRegistrationManager.Registration memory registration = IRegistrationManager(registrationManager)
             .sentinelRegistration(actor);

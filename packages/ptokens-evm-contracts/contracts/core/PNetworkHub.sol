@@ -48,7 +48,7 @@ error ChallengeDurationMustBeLessOrEqualThanMaxChallengePeriodDuration(
     uint64 challengeDuration,
     uint64 maxChallengePeriodDuration
 );
-error InvalidEpoch(uint16 epoch);
+error InvalidEpoch(uint16 epoch, uint16 maxEpoch);
 error Inactive();
 error NotDandelionVoting(address dandelionVoting, address expectedDandelionVoting);
 
@@ -159,7 +159,7 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
         uint16 challengeEpoch = getChallengeEpoch(challenge);
 
         if (challengeEpoch >= currentEpoch) {
-            revert InvalidEpoch(challengeEpoch);
+            revert InvalidEpoch(challengeEpoch, currentEpoch);
         }
 
         ChallengeStatus challengeStatus = _epochsChallengesStatus[challengeEpoch][challengeId];
