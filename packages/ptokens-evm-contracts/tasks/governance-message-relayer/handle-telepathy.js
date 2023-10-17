@@ -21,11 +21,10 @@ const TASK_DESC_HANDLE_TELEPATHY = 'Call handleTelepathy (tests only)'
 const GOVERNANCE_MESSAGE_TOPIC =
   '0x85aab78efe4e39fd3b313a465f645990e6a1b923f5f5b979957c176e632c5a07'
 
-const callHandleTelepathy = async (_signer, _hubAddress, _data, _gasPrice) => {
+const callHandleTelepathy = async (_signer, _hubAddress, _data, _opts) => {
   const hubFactory = await ethers.getContractFactory(CONTRACT_NAME_PNETWORKHUB, _signer)
   const hub = await hubFactory.attach(_hubAddress)
-  const options = _gasPrice === 'auto' ? {} : { gasPrice: _gasPrice }
-  const tx = await hub.handleTelepathy(1, _signer.address, _data, options)
+  const tx = await hub.handleTelepathy(1, _signer.address, _data, _opts)
   return tx.hash
 }
 
@@ -35,12 +34,18 @@ const decodeGovernanceMessage = _message =>
 const getNetworkByChainId = (_chainId, _networks) =>
   _networks.find(({ chainId }) => chainId === _chainId)
 
+const maybeAddGasPrice = R.curry((_network, _opts) =>
+  _network.gasPrice === 'auto' ? _opts : R.assoc('gasPrice', _network.gasPrice, _opts)
+)
+
+const getNetworkOpts = _network => R.pipe(maybeAddGasPrice(_network))({})
+
 const relayDataToHub = R.curry(async (_hub, _data, _network) => {
   const provider = ethers.getDefaultProvider(_network.url)
   const signer = new ethers.Wallet(_network.accounts[0], provider)
   try {
     console.info(`[${_network[KEY_ASSET_NAME]}] Calling handleTelepathy @ ${_hub}`)
-    const txHash = await callHandleTelepathy(signer, _hub, _data, _network.gasPrice)
+    const txHash = await callHandleTelepathy(signer, _hub, _data, getNetworkOpts(_network))
     console.info(`[${_network[KEY_ASSET_NAME]}] Tx mined ${txHash}`)
     return txHash
   } catch (_err) {
