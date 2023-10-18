@@ -1,6 +1,6 @@
 {
   "name": "ptokens-state-emitter",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Propagates guardian state to a distributed network",
   "main": "index.js",
   "bin": "./index.js",
