@@ -1,87 +1,122 @@
 const { types } = require('hardhat/config')
+const R = require('ramda')
 
 const { getContractAddress } = require('../deploy/deploy-contract.task')
 const {
   KEY_GOVERNANCE_MESSAGE_EMITTER,
-  KEY_PNETWORKHUB,
-  CONTRACT_NAME_EPOCHS_MANAGER,
-  CONTRACT_NAME_GOVERNANCE_MESSAGE_EMITTER,
-  CONTRACT_NAME_PNETWORKHUB,
+  KEY_ASSET_NAME,
   PARAM_NAME_GOVERNANCE_MESSAGE_EMITTER,
   PARAM_DESC_GOVERNANCE_MESSAGE_EMITTER,
+  PARAM_NAME_NETWORKS,
+  PARAM_DESC_NETWORKS,
   PARAM_NAME_TX_HASH,
+  PARAM_DESC_TX_HASH,
+  CONTRACT_NAME_GOVERNANCE_MESSAGE_EMITTER,
+  CONTRACT_NAME_PNETWORKHUB,
 } = require('../constants')
-const { getLogs } = require('../lib/evm-utils')
-const { TASK_NAME_DECODE_GOVERNANCE_MESSAGE } = require('./decode-governance-message')
 
 const TASK_NAME_HANDLE_TELEPATHY = 'gm-relayer:handle-telepathy'
 const TASK_DESC_HANDLE_TELEPATHY = 'Call handleTelepathy (tests only)'
 
-const INITIALIZED_TOPIC = '0x7f26b83ff96e1f2b6a682f133852f6798a09c465da95921460cefb3847402498'
-const ACTORS_PROPAGATED_TOPIC = '0x7d394dea630b3e42246f284e4e4b75cff4f959869b3d753639ba8ae6120c67c3'
+const GOVERNANCE_MESSAGE_TOPIC =
+  '0x85aab78efe4e39fd3b313a465f645990e6a1b923f5f5b979957c176e632c5a07'
 
-const getRegistrationManagerDeployBlock = async _registrationManagerAddress => {
-  const log = await getLogs(_registrationManagerAddress, [INITIALIZED_TOPIC], 10000)
-  if (log.length === 1) return log[0].blockNumber
-  else throw new Error('Unable to get initialization block')
+const callHandleTelepathy = async (_signer, _hubAddress, _data, _opts) => {
+  const hubFactory = await ethers.getContractFactory(CONTRACT_NAME_PNETWORKHUB, _signer)
+  const hub = await hubFactory.attach(_hubAddress)
+  const tx = await hub.handleTelepathy(1, _signer.address, _data, _opts)
+  return tx.hash
 }
 
-/* eslint-disable no-console */
-const main = async (_args, _hre) => {
-  const selectedChain = _hre.network.name
+const decodeGovernanceMessage = _message =>
+  new ethers.utils.AbiCoder().decode(['uint256', 'uint32[]', 'address[]', 'bytes'], _message)
 
+const getNetworkByChainId = (_chainId, _networks) =>
+  _networks.find(({ chainId }) => chainId === _chainId)
+
+const maybeAddGasPrice = R.curry((_network, _opts) =>
+  _network.gasPrice === 'auto' ? _opts : R.assoc('gasPrice', _network.gasPrice, _opts)
+)
+
+const getNetworkOpts = _network => R.pipe(maybeAddGasPrice(_network))({})
+
+const relayDataToHub = R.curry(async (_hub, _data, _network) => {
+  const provider = ethers.getDefaultProvider(_network.url)
+  const signer = new ethers.Wallet(_network.accounts[0], provider)
+  try {
+    console.info(`[${_network[KEY_ASSET_NAME]}] Calling handleTelepathy @ ${_hub}`)
+    const txHash = await callHandleTelepathy(signer, _hub, _data, getNetworkOpts(_network))
+    console.info(`[${_network[KEY_ASSET_NAME]}] Tx mined ${txHash}`)
+    return txHash
+  } catch (_err) {
+    console.info(`[${_network[KEY_ASSET_NAME]}] Failed to broadcast tx: ${_err.message}`)
+    throw _err
+  }
+})
+
+const processEvent = (_log, _networks) => {
+  const [, chainIds, hubs, data] = decodeGovernanceMessage(_log.args.data)
+  return Promise.allSettled(
+    chainIds.map((_chainId, _i) =>
+      Promise.resolve(getNetworkByChainId(_chainId, _networks)).then(relayDataToHub(hubs[_i], data))
+    )
+  )
+}
+
+const getNetworksWithIds = (_hre, _filter = null) =>
+  Promise.resolve(Object.entries(_hre.config.networks))
+    .then(R.map(([_key, _val]) => R.assoc(KEY_ASSET_NAME, _key, _val)))
+    .then(R.filter(_network => _network.chainId && _network.accounts))
+    .then(_networks =>
+      _filter
+        ? R.filter(_network => _filter.includes(_network[KEY_ASSET_NAME]), _networks)
+        : _networks
+    )
+
+const main = async (_args, _hre) => {
+  const networksFilter = _args[PARAM_NAME_NETWORKS] ? _args[PARAM_NAME_NETWORKS].split(',') : null
+  const networks = await getNetworksWithIds(_hre, networksFilter)
   // switch to interim chain polygon
   await _hre.changeNetwork('polygon')
-  const GovernanceMessageEmitter = await ethers.getContractFactory(
-    CONTRACT_NAME_GOVERNANCE_MESSAGE_EMITTER
-  )
-
   const governanceMessageEmitterAddress =
     _args[PARAM_NAME_GOVERNANCE_MESSAGE_EMITTER] ||
     (await getContractAddress(_hre, KEY_GOVERNANCE_MESSAGE_EMITTER))
-
-  const governanceMessageEmitter = await GovernanceMessageEmitter.attach(
+  const governanceMessageEmitter = await ethers.getContractAt(
+    CONTRACT_NAME_GOVERNANCE_MESSAGE_EMITTER,
     governanceMessageEmitterAddress
   )
-
-  const epochsManagerAddress = await governanceMessageEmitter.epochsManager()
-  const EpochsManager = await ethers.getContractFactory(CONTRACT_NAME_EPOCHS_MANAGER)
-  const epochsManager = await EpochsManager.attach(epochsManagerAddress)
-
-  const currentEpoch = await epochsManager.currentEpoch()
-
-  const registrationManagerAddress = await governanceMessageEmitter.registrationManager()
-  const registrationManagerDeploymentBlock = await getRegistrationManagerDeployBlock(
-    registrationManagerAddress
-  )
-
-  const propagatedEvents = await getLogs(
-    governanceMessageEmitter.address,
-    [ACTORS_PROPAGATED_TOPIC, ethers.utils.hexZeroPad(currentEpoch, 32)],
-    registrationManagerDeploymentBlock
-  )
-
-  if (propagatedEvents.length === 0) {
-    console.warn('No actors propagated for the current epoch')
-    return
+  if (_args[PARAM_NAME_TX_HASH]) {
+    const receipt = await ethers.provider.getTransactionReceipt(_args[PARAM_NAME_TX_HASH])
+    if (!receipt) throw new Error('Missing receipt for transaction')
+    const relevantLog = receipt.logs.find(_log => _log.topics.includes(GOVERNANCE_MESSAGE_TOPIC))
+    if (!relevantLog) throw new Error('No GovernanceMessage event in the transaction')
+    const governanceMessageLog = governanceMessageEmitter.interface.parseLog(relevantLog)
+    console.info('Processing GovernanceMessage event in transaction')
+    await processEvent(governanceMessageLog, networks)
+  } else {
+    const filter = governanceMessageEmitter.filters.GovernanceMessage()
+    governanceMessageEmitter.on(filter, (_, _log) => processEvent(_log, networks))
+    console.info(`Listening to GovernanceMessage events @ ${governanceMessageEmitterAddress}`)
+    for (;;) {
+      await new Promise(resolve => setTimeout(resolve, 1000))
+    }
   }
-
-  const decodedMessage = await _hre.run(TASK_NAME_DECODE_GOVERNANCE_MESSAGE, {
-    [PARAM_NAME_TX_HASH]: propagatedEvents.at(-1).transactionHash,
-  })
-
-  await _hre.changeNetwork(selectedChain)
-  const PNetworkHub = await ethers.getContractFactory(CONTRACT_NAME_PNETWORKHUB)
-  const pNetworkHubAddress = await getContractAddress(_hre, KEY_PNETWORKHUB)
-  const accounts = await _hre.ethers.getSigners()
-  const pNetworkHub = PNetworkHub.attach(pNetworkHubAddress)
-  const tx = await pNetworkHub.handleTelepathy(1, accounts[0].address, decodedMessage[3])
-  console.info(`Tx mined @ ${tx.hash}`)
 }
 
-task(TASK_NAME_HANDLE_TELEPATHY, TASK_DESC_HANDLE_TELEPATHY, main).addOptionalParam(
-  PARAM_NAME_GOVERNANCE_MESSAGE_EMITTER,
-  PARAM_DESC_GOVERNANCE_MESSAGE_EMITTER,
-  undefined,
-  types.string
-)
+const mainWrapper = (_args, _hre) =>
+  main(_args, _hre)
+    .then(() => process.exit(0))
+    .catch(error => {
+      console.error(error)
+      process.exit(1)
+    })
+
+task(TASK_NAME_HANDLE_TELEPATHY, TASK_DESC_HANDLE_TELEPATHY, mainWrapper)
+  .addOptionalParam(
+    PARAM_NAME_GOVERNANCE_MESSAGE_EMITTER,
+    PARAM_DESC_GOVERNANCE_MESSAGE_EMITTER,
+    undefined,
+    types.string
+  )
+  .addOptionalParam(PARAM_NAME_TX_HASH, PARAM_DESC_TX_HASH, undefined, types.string)
+  .addOptionalParam(PARAM_NAME_NETWORKS, PARAM_DESC_NETWORKS, undefined, types.string)
