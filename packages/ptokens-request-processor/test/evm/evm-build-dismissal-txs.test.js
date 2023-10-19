@@ -1,3 +1,4 @@
+const ethers = require('ethers')
 const {
   STATE_TO_BE_DISMISSED_REQUESTS,
   STATE_DISMISSED_DB_REPORTS,
@@ -76,16 +77,13 @@ describe('Build dismissal test for EVM', () => {
   describe('maybeBuildDismissalTxsAndPutInState', () => {
     const privKey = '0xdf57089febbacf7ba0bc227dafbffa9fc08a93fdc68e1e42411a14efcf23656e'
     const gpgEncryptedFile = './identity.gpg'
+    const { utils } = require('ptokens-utils')
 
-    afterEach(async () => {
+    beforeEach(async () => {
       jest.restoreAllMocks()
-      jest.resetModules()
     })
 
     it('Should build the dismissal and add them to the state', async () => {
-      const ethers = require('ethers')
-      const { utils } = require('ptokens-utils')
-
       const mockProtocolCancel = jest.fn().mockResolvedValue({
         wait: jest.fn().mockResolvedValue({
           [constants.evm.ethers.KEY_TX_HASH]:
@@ -144,9 +142,6 @@ describe('Build dismissal test for EVM', () => {
     })
 
     it('Should build the dismissal and handle not-queued error', async () => {
-      const ethers = require('ethers')
-      const { utils } = require('ptokens-utils')
-
       jest.spyOn(ethers, 'JsonRpcProvider').mockReturnValue({})
 
       jest.spyOn(utils, 'readIdentityFileSync').mockReturnValue(privKey)
@@ -211,9 +206,6 @@ describe('Build dismissal test for EVM', () => {
     })
 
     it('Should build the dismissal and handle underpriced replacement error', async () => {
-      const ethers = require('ethers')
-      const { utils } = require('ptokens-utils')
-
       jest.spyOn(ethers, 'JsonRpcProvider').mockReturnValue({})
       jest.spyOn(utils, 'readIdentityFileSync').mockReturnValue(privKey)
 

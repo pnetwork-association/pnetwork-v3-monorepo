@@ -1,3 +1,5 @@
+const ethers = require('ethers')
+const { logic, utils } = require('ptokens-utils')
 const constants = require('ptokens-constants')
 const {
   STATE_PROPOSED_DB_REPORTS,
@@ -81,7 +83,6 @@ const executeTxHashes = [
 describe('General final txs testing', () => {
   describe('makeFinalContractCall', () => {
     it('Should execute a previously queued operation', async () => {
-      const ethers = require('ethers')
       const finalizedTxHash = '0xce3c89b5ddf1d1a21819fa91afc880dadd14847894c6e6acbab58f2522d4cd57'
 
       const expectedObject = {
@@ -121,13 +122,9 @@ describe('General final txs testing', () => {
 
     beforeEach(async () => {
       jest.restoreAllMocks()
-      jest.resetModules()
     })
 
     it('Should build the execute transactions and add them to the state', async () => {
-      const ethers = require('ethers')
-      const { logic, utils } = require('ptokens-utils')
-
       jest.spyOn(logic, 'sleepForXMilliseconds').mockImplementation(_ => Promise.resolve())
       jest.spyOn(utils, 'readIdentityFileSync').mockReturnValue(privKey)
       jest.spyOn(ethers, 'JsonRpcProvider').mockReturnValue({})
@@ -198,9 +195,6 @@ describe('General final txs testing', () => {
     })
 
     it('Should build the finalize transactions and handle errors', async () => {
-      const { logic, utils } = require('ptokens-utils')
-      const ethers = require('ethers')
-
       jest.spyOn(logic, 'sleepForXMilliseconds').mockImplementation(_ => Promise.resolve())
       jest.spyOn(utils, 'readIdentityFileSync').mockReturnValue(privKey)
       jest.spyOn(ethers, 'JsonRpcProvider').mockReturnValue({})

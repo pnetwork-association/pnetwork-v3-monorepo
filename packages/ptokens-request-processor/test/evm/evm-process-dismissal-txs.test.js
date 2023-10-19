@@ -1,6 +1,5 @@
+const ethers = require('ethers')
 const R = require('ramda')
-const pendingChallenges = require('../samples/pending-challenges-report-set')
-const actorspropagated = require('../samples/actors-propagated-report-set')
 const constants = require('ptokens-constants')
 const { db, utils, logic } = require('ptokens-utils')
 
@@ -13,10 +12,10 @@ const {
   STATE_DISMISSED_DB_REPORTS,
   STATE_PENDING_CHALLENGES,
 } = require('../../lib/state/constants')
-const queuedReports = require('../samples/queued-report-set.json')
 const requestsReports = require('../samples/detected-report-set.json')
-const actorsPropagatedReportSet = require('../samples/actors-propagated-report-set')
-const reports = [...queuedReports, ...requestsReports, ...actorsPropagatedReportSet]
+const actorsPropagatedReports = require('../samples/actors-propagated-report-set')
+const queuedReports = require('../samples/queued-report-set.json')
+const pendingChallenges = require('../samples/pending-challenges-report-set')
 
 describe('Tests for queued requests detection and dismissal', () => {
   let collection = null
@@ -36,20 +35,15 @@ describe('Tests for queued requests detection and dismissal', () => {
 
   describe('maybeProcessNewRequestsAndDismiss', () => {
     beforeEach(async () => {
-      await collection.insertMany(reports)
-    })
-
-    afterEach(async () => {
+      const reports = [...queuedReports, ...requestsReports, ...actorsPropagatedReports]
+      jest.restoreAllMocks()
       await Promise.all(reports.map(R.prop('_id'))).then(_ids =>
         Promise.all(_ids.map(db.deleteReport(collection)))
       )
-      jest.restoreAllMocks()
+      await collection.insertMany(reports)
     })
 
     it('Should put invalid transactions to be dismissed into state', async () => {
-      const { logic, utils } = require('ptokens-utils')
-      const ethers = require('ethers')
-
       const expectedCallResult = [
         {
           hash: '0xd656ffac17b71e2ea2e24f72cd4c15c909a0ebe1696f8ead388eb268268f1cbf',
@@ -129,20 +123,15 @@ describe('Tests for queued requests detection and dismissal', () => {
 
   describe('Solve pending challenges', () => {
     beforeEach(async () => {
-      await collection.insertMany(pendingChallenges)
-      await collection.insertMany(actorspropagated)
-    })
-
-    afterEach(async () => {
-      await Promise.all(pendingChallenges.map(R.prop('_id'))).then(_ids =>
+      const reports = [...pendingChallenges, ...actorsPropagatedReports]
+      jest.restoreAllMocks()
+      await Promise.all(reports.map(R.prop('_id'))).then(_ids =>
         Promise.all(_ids.map(db.deleteReport(collection)))
       )
-      jest.restoreAllMocks()
+      await collection.insertMany(reports)
     })
 
     it('Should detect pending challenges and solve the pertinent ones', async () => {
-      const ethers = require('ethers')
-
       const finalizedTxHashes = [
         '0x3319a74fd2e369da02c230818d5196682daaf86d213ce5257766858558ee5462',
         '0x5639789165d988f45f55bc8fcfc5bb24a6000b2669d0d2f1524f693ce3e4588f',

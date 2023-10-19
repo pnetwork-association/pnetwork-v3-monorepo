@@ -1,3 +1,4 @@
+const ethers = require('ethers')
 const R = require('ramda')
 const { db, logic, utils } = require('ptokens-utils')
 
@@ -32,8 +33,6 @@ describe('Main EVM flow for transaction proposal tests', () => {
     })
 
     it('Should detect the new events and build the proposals', async () => {
-      const ethers = require('ethers')
-
       const proposedTxHashes = [
         '0xd656ffac17b71e2ea2e24f72cd4c15c909a0ebe1696f8ead388eb268268f1cbf',
         '0x2c7e8870be7643d97699bbcf3396dfb13217ee54a6784abfcacdb1e077fe201f',
