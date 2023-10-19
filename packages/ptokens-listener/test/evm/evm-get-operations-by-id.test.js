@@ -16,7 +16,7 @@ describe('Get EVM operations by Operation ID', () => {
         getLogs: getLogsSpy,
       }
       const getDefaultProviderSpy = jest
-        .spyOn(ethers, 'getDefaultProvider')
+        .spyOn(ethers, 'JsonRpcProvider')
         .mockImplementation(_url => fakeProvider)
 
       const { getEvmOperationsById } = require('../../lib/evm/evm-get-operations-by-id')
@@ -32,7 +32,9 @@ describe('Get EVM operations by Operation ID', () => {
         hubAddress,
         fromBlock
       )
-      expect(getDefaultProviderSpy).toHaveBeenNthCalledWith(1, provider)
+      expect(getDefaultProviderSpy).toHaveBeenNthCalledWith(1, provider, undefined, {
+        polling: true,
+      })
       expect(getLogsSpy).toHaveBeenNthCalledWith(1, {
         address: hubAddress,
         fromBlock: 45583400,
@@ -60,7 +62,7 @@ describe('Get EVM operations by Operation ID', () => {
         getLogs: getLogsSpy,
       }
       const getDefaultProviderSpy = jest
-        .spyOn(ethers, 'getDefaultProvider')
+        .spyOn(ethers, 'JsonRpcProvider')
         .mockImplementation(_url => fakeProvider)
 
       const { getEvmOperationsById } = require('../../lib/evm/evm-get-operations-by-id')
@@ -76,7 +78,9 @@ describe('Get EVM operations by Operation ID', () => {
         hubAddress,
         fromBlock
       )
-      expect(getDefaultProviderSpy).toHaveBeenNthCalledWith(1, provider)
+      expect(getDefaultProviderSpy).toHaveBeenNthCalledWith(1, provider, undefined, {
+        polling: true,
+      })
       expect(getLogsSpy).toHaveBeenNthCalledWith(1, {
         address: hubAddress,
         fromBlock: 34923840,

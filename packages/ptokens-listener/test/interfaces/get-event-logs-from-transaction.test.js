@@ -2,7 +2,6 @@ describe('Tests for the getEventLogsFromTransaction interface', () => {
   describe('getEventLogsFromTransaction', () => {
     beforeEach(() => {
       jest.resetAllMocks()
-      jest.resetModules()
     })
 
     test.each([['0xd41b1c5b'], ['0xf9b459a1'], ['0xfc8ebb2b']])(
