@@ -30,7 +30,7 @@
     "@openzeppelin/contracts": "^5.0.0",
     "@pnetwork-association/dao-v2-contracts": "https://github.com/pnetwork-association/dao-v2-contracts.git#feat/guardians-registration",
     "chai": "^4.3.0",
-    "data-store": "^4.0.3",
+    "data-store": "https://github.com/Brittany-Reid/data-store#05b5b234e157b35e6d69053056348ca0febef163",
     "dotenv": "^8.2.0",
     "ethereumjs-util": "^7.1.5",
     "ethers": "^5.7.2",
