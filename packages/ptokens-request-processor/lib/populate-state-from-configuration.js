@@ -17,7 +17,7 @@ const getConfigPropertyAndPutInState = R.curry((_config, _configKey, _stateKey, 
 )
 
 const DEFAULT_TX_TIMEOUT = 10000 // 10s
-const DEFAULT_LOOP_SLEEP_TIME = 1000 // 1s
+const DEFAULT_LOOP_SLEEP_TIME = 3000 // 1s
 
 const getInitialStateFromConfiguration = _config =>
   getDbAndPutInState(_config, {})
@@ -40,8 +40,8 @@ const getInitialStateFromConfiguration = _config =>
     .then(
       getConfigPropertyAndPutInState(
         _config,
-        constants.config.KEY_STATE_MANAGER,
-        constants.state.KEY_STATE_MANAGER_ADDRESS,
+        constants.config.KEY_HUB_ADDRESS,
+        constants.state.KEY_HUB_ADDRESS,
         null
       )
     )

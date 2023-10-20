@@ -22,12 +22,12 @@ const getImplementationForBlockchainType = _blockchainType => {
   }
 }
 
-const getOperationsById = (_providerUrl, _networkId, _id, _stateManagerAddress, _fromBlock) =>
+const getOperationsById = (_providerUrl, _networkId, _id, _hubAddress, _fromBlock) =>
   utils
     .getBlockchainTypeFromChainId(_networkId)
     .then(getImplementationForBlockchainType)
     .then(_implementation =>
-      _implementation(_providerUrl, _networkId, _id, _stateManagerAddress, _fromBlock)
+      _implementation(_providerUrl, _networkId, _id, _hubAddress, _fromBlock)
     )
 
 module.exports = { getOperationsById }

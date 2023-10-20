@@ -10,11 +10,14 @@ describe('EVM utils', () => {
       const { getEthersProvider } = require('../../lib/evm/evm-utils')
       const url = 'http://eth-node-1.ext.nu.p.network'
 
-      const getDefaultProviderSpy = jest.spyOn(ethers, 'getDefaultProvider')
+      const getDefaultProviderSpy = jest
+        .spyOn(ethers, 'JsonRpcProvider')
+        .mockImplementation(() => {})
 
       const result = await getEthersProvider(url)
 
       expect(getDefaultProviderSpy).toHaveBeenCalledTimes(1)
+      expect(getDefaultProviderSpy).toHaveBeenCalledWith(url, undefined, { polling: true })
       expect(result).toBeInstanceOf(ethers.JsonRpcProvider)
     })
   })

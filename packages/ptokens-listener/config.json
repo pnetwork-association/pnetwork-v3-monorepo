@@ -1,19 +1,17 @@
 {
-  "chain-name": "telos",
-  "chain-type": "eos",
-  "chain-id": "0x0",
+  "chain-type": "chain-type",
+  "network-id": "network-id",
+  "chain-name": "chain-name",
+  "provider-url": "provider-url",
   "events": [
     {
-      "name": "redeem",
-      "contracts": ["btc.ptokens", "ltc.ptokens"]
-    },
-    {
-      "name": "pegin",
-      "contracts": ["xbsc.ptokens"]
+      "contracts": ["contrtact"],
+      "name": "event-signature"
     }
   ],
   "db": {
-    "url": "127.0.0.1"
-  },
-  "provider-url": "provider-url"
+    "name": "db-name",
+    "table-events": "table-events",
+    "url": "mongodb://localhost:27017"
+  }
 }

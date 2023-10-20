@@ -1,4 +1,3 @@
-const R = require('ramda')
 const { db } = require('ptokens-utils')
 const constants = require('ptokens-constants')
 const detectedEvents = require('./samples/detected-report-set').slice(0, 2)
@@ -17,21 +16,16 @@ describe('General get events from db tests', () => {
     })
 
     beforeEach(async () => {
+      await collection.deleteMany({})
       await collection.insertMany(detectedEvents)
-    })
-
-    afterEach(async () => {
-      await Promise.all(detectedEvents.map(R.prop('_id'))).then(_ids =>
-        Promise.all(_ids.map(db.deleteReport(collection)))
-      )
     })
 
     afterAll(async () => {
       await db.closeConnection(uri)
     })
 
-    it('Should get the detected events with the chain id 0x00e4b170', async () => {
-      const networkId = '0xe15503e4'
+    it('Should get the detected events with the chain id 0xf9b459a1', async () => {
+      const networkId = '0xf9b459a1'
       const state = {
         [constants.state.KEY_DB]: collection,
         [constants.state.KEY_NETWORK_ID]: networkId,
@@ -39,7 +33,6 @@ describe('General get events from db tests', () => {
 
       const result = await getDetectedEventsFromDbAndPutInState(state)
       const expectedReports = [detectedEvents[0], detectedEvents[1]]
-
       expect(result).toHaveProperty(constants.state.KEY_DB)
       expect(result).toHaveProperty(constants.state.KEY_NETWORK_ID)
       expect(result).toEqual(

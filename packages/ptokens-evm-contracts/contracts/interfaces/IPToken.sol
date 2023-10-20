@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity 0.8.17;
+pragma solidity ^0.8.20;
+
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 /**
  * @title IPToken
@@ -8,7 +10,7 @@ pragma solidity 0.8.17;
  *
  * @notice
  */
-interface IPToken {
+interface IPToken is IERC20 {
     /*
      * @notice Burn the corresponding `amount` of pToken and release the collateral.
      *
@@ -24,20 +26,30 @@ interface IPToken {
     function mint(uint256 amount) external;
 
     /*
-     * @notice Take the collateral and mint the corresponding `amount` of pToken through the PRouter to `account`.
+     * @notice Burn the corresponding `amount` of pToken through the PNetworkHub to `account` and release the collateral.
      *
      * @param account
      * @param amount
      */
-    function routedUserMint(address account, uint256 amount) external;
+    function protocolBurn(address account, uint256 amount) external;
 
     /*
-     * @notice Take the collateral, mint and burn the corresponding `amount` of pToken through the PRouter to `account`.
+     * @notice Mint the corresponding `amount` of pToken through the PNetworkHub to `account`.
      *
      * @param account
      * @param amount
      */
-    function routedUserMintAndBurn(address account, uint256 amount) external;
+    function protocolMint(address account, uint256 amount) external;
+
+    function underlyingAssetDecimals() external returns (uint256);
+
+    function underlyingAssetName() external returns (string memory);
+
+    function underlyingAssetNetworkId() external returns (bytes4);
+
+    function underlyingAssetSymbol() external returns (string memory);
+
+    function underlyingAssetTokenAddress() external returns (address);
 
     /*
      * @notice Burn the corresponding `amount` of pToken through the PRouter in behalf of `account` and release the.
@@ -45,21 +57,21 @@ interface IPToken {
      * @param account
      * @param amount
      */
-    function routedUserBurn(address account, uint256 amount) external;
+    function userBurn(address account, uint256 amount) external;
 
     /*
-     * @notice Mint the corresponding `amount` of pToken through the StateManager to `account`.
+     * @notice Take the collateral and mint the corresponding `amount` of pToken through the PRouter to `account`.
      *
      * @param account
      * @param amount
      */
-    function stateManagedProtocolMint(address account, uint256 amount) external;
+    function userMint(address account, uint256 amount) external;
 
     /*
-     * @notice Burn the corresponding `amount` of pToken through the StateManager to `account` and release the collateral.
+     * @notice Take the collateral, mint and burn the corresponding `amount` of pToken through the PRouter to `account`.
      *
      * @param account
      * @param amount
      */
-    function stateManagedProtocolBurn(address account, uint256 amount) external;
+    function userMintAndBurn(address account, uint256 amount) external;
 }

@@ -5,13 +5,21 @@ const {
   getEventFilter,
   getTopicFromEventSignature,
 } = require('./evm-utils')
+const { logger } = require('../get-logger')
+const { utils } = require('ptokens-utils')
+const errors = require('../errors')
 
 const maybeFilterLogsForMatchingTopics = R.curry((_logs, _filter) =>
-  _filter.topics ? R.filter(areTopicsMatching(_filter), _logs) : _logs
+  _filter.topics
+    ? R.filter(areTopicsMatching(_filter), _logs)
+    : logger.info('No topics has been found in logs!') || _logs
 )
 
 const getTransactionLogs = R.curry((_hash, _provider) =>
-  _provider.getTransactionReceipt(_hash).then(R.prop('logs'))
+  _provider
+    .getTransactionReceipt(_hash)
+    .then(R.prop('logs'))
+    .then(utils.rejectIfNil(errors.ERROR_LOGS_NOT_FOUND))
 )
 
 const maybeFilterLogsByEventSignature = R.curry((_eventSignature, _logs) =>

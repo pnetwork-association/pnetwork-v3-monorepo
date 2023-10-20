@@ -1,11 +1,11 @@
-const { jestMockContractConstructor } = require('./mock/jest-utils')
+const ethers = require('ethers')
+const R = require('ramda')
 const {
   STATE_ONCHAIN_REQUESTS,
   STATE_DETECTED_DB_REPORTS,
   STATE_PROPOSED_DB_REPORTS,
   STATE_FINALIZED_DB_REPORTS,
 } = require('../../lib/state/constants')
-const R = require('ramda')
 const { db, logic } = require('ptokens-utils')
 const constants = require('ptokens-constants')
 
@@ -26,14 +26,11 @@ describe('Main EVM flow for transaction proposal tests', () => {
     })
 
     beforeEach(async () => {
-      await collection.insertMany(proposedEvents)
-    })
-
-    afterEach(async () => {
+      jest.restoreAllMocks()
       await Promise.all(proposedEvents.map(R.prop('_id'))).then(_ids =>
         Promise.all(_ids.map(db.deleteReport(collection)))
       )
-      jest.restoreAllMocks()
+      await collection.insertMany(proposedEvents)
     })
 
     afterAll(async () => {
@@ -41,8 +38,7 @@ describe('Main EVM flow for transaction proposal tests', () => {
     })
 
     it('Should finalize proposed events which challenge period has expired', async () => {
-      const ethers = require('ethers')
-      const fs = require('fs/promises')
+      const { utils } = require('ptokens-utils')
 
       const finalizedTxHashes = [
         '0x3319a74fd2e369da02c230818d5196682daaf86d213ce5257766858558ee5462',
@@ -64,25 +60,32 @@ describe('Main EVM flow for transaction proposal tests', () => {
           .mockResolvedValueOnce(expectedCallResults[1]),
       })
 
+      const mockChallengePeriodOf = jest
+        .fn()
+        .mockResolvedValueOnce([1680615440, 1680616620])
+        .mockResolvedValueOnce([1680615440, 1680619040])
+        .mockResolvedValueOnce([1680615440, 1680622640])
+        .mockResolvedValueOnce([1680615440, 1680616620])
+        .mockResolvedValueOnce([1680615440, 1680616620])
+
       jest.spyOn(logic, 'sleepForXMilliseconds').mockImplementation(_ => Promise.resolve())
       jest
         .spyOn(logic, 'sleepThenReturnArg')
         .mockImplementation(R.curry((_, _r) => Promise.resolve(_r)))
 
-      jest
-        .spyOn(ethers, 'Contract')
-        .mockImplementation(
-          jestMockContractConstructor('protocolExecuteOperation', mockExecuteOperation)
-        )
+      jest.spyOn(ethers, 'Contract').mockImplementation(() => ({
+        protocolExecuteOperation: mockExecuteOperation,
+        challengePeriodOf: mockChallengePeriodOf,
+      }))
 
-      jest.spyOn(fs, 'readFile').mockResolvedValue(privKey)
+      jest.spyOn(utils, 'readIdentityFileSync').mockReturnValue(privKey)
 
       const state = {
         [constants.state.KEY_DB]: collection,
         [constants.state.KEY_LOOP_SLEEP_TIME]: 1,
         [constants.state.KEY_CHALLENGE_PERIOD]: 20,
         [constants.state.KEY_NETWORK_ID]: '0xe15503e4',
-        [constants.state.KEY_STATE_MANAGER_ADDRESS]: '0xC8E4270a6EF24B67eD38046318Fc8FC2d312f73C',
+        [constants.state.KEY_HUB_ADDRESS]: '0xC8E4270a6EF24B67eD38046318Fc8FC2d312f73C',
         [constants.state.KEY_IDENTITY_FILE]: gpgEncryptedFile,
       }
 

@@ -1,4 +1,5 @@
 const ethers = require('ethers')
+const { evm } = require('ptokens-constants')
 const { logger } = require('../logger')
 const { blockchainType } = require('../constants')
 const { getBlockchainTypeFromChainId } = require('./utils-network-id')
@@ -7,20 +8,26 @@ const getEventIdEvm = ({
   originatingBlockHash,
   originatingTransactionHash,
   originatingNetworkId,
+  originatingAddress,
   blockHash,
   transactionHash,
   networkId,
   nonce,
   destinationAccount,
   destinationNetworkId,
+  forwardDestinationNetworkId,
   underlyingAssetName,
   underlyingAssetSymbol,
   underlyingAssetDecimals,
   underlyingAssetTokenAddress,
   underlyingAssetNetworkId,
   assetAmount,
+  userDataProtocolFeeAssetAmount,
+  networkFeeAssetAmount,
+  forwardNetworkFeeAssetAmount,
   userData,
   optionsMask,
+  isForProtocol,
 }) => {
   /*
     struct Operation {
@@ -29,72 +36,54 @@ const getEventIdEvm = ({
         bytes32 optionsMask;
         uint256 nonce;
         uint256 underlyingAssetDecimals;
-        uint256 amount;
+        uint256 assetAmount;
+        uint256 userDataProtocolFeeAssetAmount;
+        uint256 networkFeeAssetAmount;
+        uint256 forwardNetworkFeeAssetAmount;
         address underlyingAssetTokenAddress;
         bytes4 originNetworkId;
         bytes4 destinationNetworkId;
+        bytes4 forwardDestinationNetworkId;
         bytes4 underlyingAssetNetworkId;
+        string originAccount;
         string destinationAccount;
         string underlyingAssetName;
         string underlyingAssetSymbol;
         bytes userData;
+        bool isForProtocol;
     }
-    function operationIdOf(Operation memory operation) public pure returns (bytes32) {
-    return
-        keccak256(
-            abi.encode(
-                operation.originBlockHash,
-                operation.originTransactionHash,
-                operation.originNetworkId,
-                operation.nonce,
-                operation.destinationAccount,
-                operation.destinationNetworkId,
-                operation.underlyingAssetName,
-                operation.underlyingAssetSymbol,
-                operation.underlyingAssetDecimals,
-                operation.underlyingAssetTokenAddress,
-                operation.underlyingAssetNetworkId,
-                operation.amount,
-                operation.userData,
-                operation.optionsMask
-            )
-        );
+
+    function operationIdOf(Operation calldata operation) public pure returns (bytes32) {
+        return sha256(abi.encode(operation));
     }
   */
 
-  const types = [
-    'bytes32',
-    'bytes32',
-    'bytes4',
-    'uint256',
-    'string',
-    'bytes4',
-    'string',
-    'string',
-    'uint256',
-    'address',
-    'bytes4',
-    'uint256',
-    'bytes',
-    'bytes32',
-  ]
+  const types = [evm.events.OPERATION_TUPLE]
   const coder = new ethers.AbiCoder()
-  return ethers.keccak256(
+  return ethers.sha256(
     coder.encode(types, [
-      originatingBlockHash || blockHash,
-      originatingTransactionHash || transactionHash,
-      originatingNetworkId || networkId,
-      nonce,
-      destinationAccount,
-      destinationNetworkId,
-      underlyingAssetName,
-      underlyingAssetSymbol,
-      underlyingAssetDecimals,
-      underlyingAssetTokenAddress,
-      underlyingAssetNetworkId,
-      assetAmount,
-      userData,
-      optionsMask,
+      [
+        originatingBlockHash || blockHash,
+        originatingTransactionHash || transactionHash,
+        optionsMask,
+        nonce,
+        underlyingAssetDecimals,
+        assetAmount,
+        userDataProtocolFeeAssetAmount,
+        networkFeeAssetAmount,
+        forwardNetworkFeeAssetAmount,
+        underlyingAssetTokenAddress,
+        originatingNetworkId || networkId,
+        destinationNetworkId,
+        forwardDestinationNetworkId,
+        underlyingAssetNetworkId,
+        originatingAddress,
+        destinationAccount,
+        underlyingAssetName,
+        underlyingAssetSymbol,
+        userData,
+        isForProtocol,
+      ],
     ])
   )
 }
@@ -106,20 +95,26 @@ const getEventId = ({
   originatingBlockHash,
   originatingTransactionHash,
   originatingNetworkId,
+  originatingAddress,
   blockHash,
   transactionHash,
   networkId,
   nonce,
   destinationAccount,
   destinationNetworkId,
+  forwardDestinationNetworkId,
   underlyingAssetName,
   underlyingAssetSymbol,
   underlyingAssetDecimals,
   underlyingAssetTokenAddress,
   underlyingAssetNetworkId,
   assetAmount,
+  userDataProtocolFeeAssetAmount,
+  networkFeeAssetAmount,
+  forwardNetworkFeeAssetAmount,
   userData,
   optionsMask,
+  isForProtocol,
 }) =>
   getBlockchainTypeFromChainId(destinationNetworkId)
     .then(_type => {
@@ -129,20 +124,26 @@ const getEventId = ({
             originatingBlockHash,
             originatingTransactionHash,
             originatingNetworkId,
+            originatingAddress,
             blockHash,
             transactionHash,
             networkId,
             nonce,
             destinationAccount,
             destinationNetworkId,
+            forwardDestinationNetworkId,
             underlyingAssetName,
             underlyingAssetSymbol,
             underlyingAssetDecimals,
             underlyingAssetTokenAddress,
             underlyingAssetNetworkId,
             assetAmount,
+            userDataProtocolFeeAssetAmount,
+            networkFeeAssetAmount,
+            forwardNetworkFeeAssetAmount,
             userData,
             optionsMask,
+            isForProtocol,
           })
         default:
           return fallbackEventId(networkId, blockHash, transactionHash)

@@ -24,8 +24,11 @@ const getValidEventsWithStatusAndPutInState = R.curry(
       .then(filterForValidReports)
       .then(
         _reports =>
-          logger.info(`Adding reports w/ status '${_status}' to state under '${_stateKey}' key`) ||
-          R.assoc(_stateKey, _reports, _state)
+          logger.info(
+            `Adding ${
+              _reports.length || 0
+            } reports w/ status '${_status}' to state under '${_stateKey}' key`
+          ) || R.assoc(_stateKey, _reports, _state)
       )
 )
 
@@ -40,9 +43,9 @@ const getDetectedEventsFromDbAndPutInState = _state =>
 
 const getQueuedEventsFromDbAndPutInState = _state =>
   getValidEventsWithStatusAndPutInState(
-    constants.db.txStatus.DETECTED,
+    constants.db.txStatus.PROPOSED,
     STATE_QUEUED_DB_REPORTS,
-    constants.db.KEY_ORIGINATING_NETWORK_ID,
+    constants.db.KEY_DESTINATION_NETWORK_ID,
     constants.db.eventNames.QUEUED_OPERATION,
     _state
   )

@@ -1,23 +1,23 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity ^0.8.17;
+pragma solidity ^0.8.20;
+
+import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
+import {Network} from "./Network.sol";
+
+error CallFailed();
 
 library Utils {
-    function isBitSet(bytes32 data, uint position) internal pure returns (bool) {
-        return (uint256(data) & (uint256(1) << position)) != 0;
+    function addressToHexString(address addr) internal pure returns (string memory) {
+        return Strings.toHexString(uint256(uint160(addr)), 20);
     }
 
-    function normalizeAmount(uint256 amount, uint256 decimals, bool use) internal pure returns (uint256) {
-        uint256 difference = (10 ** (18 - decimals));
-        return use ? amount * difference : amount / difference;
-    }
-
-    function parseAddress(string memory addr) internal pure returns (address) {
+    function hexStringToAddress(string memory addr) internal pure returns (address) {
         bytes memory tmp = bytes(addr);
         uint160 iaddr = 0;
         uint160 b1;
         uint160 b2;
-        for (uint i = 2; i < 2 + 2 * 20; i += 2) {
+        for (uint256 i = 2; i < 2 + 2 * 20; i += 2) {
             iaddr *= 256;
             b1 = uint160(uint8(tmp[i]));
             b2 = uint160(uint8(tmp[i + 1]));
@@ -38,5 +38,34 @@ library Utils {
             iaddr += (b1 * 16 + b2);
         }
         return address(iaddr);
+    }
+
+    function isBitSet(bytes32 data, uint256 position) internal pure returns (bool) {
+        return (uint256(data) & (uint256(1) << position)) != 0;
+    }
+
+    function normalizeAmountToOriginalFormat(uint256 amount, uint256 decimals) internal pure returns (uint256) {
+        uint256 difference = (10 ** (18 - decimals));
+        return amount / difference;
+    }
+
+    function normalizeAmountToProtocolFormat(uint256 amount, uint256 decimals) internal pure returns (uint256) {
+        uint256 difference = (10 ** (18 - decimals));
+        return amount * difference;
+    }
+
+    function normalizeAmountToProtocolFormatOnCurrentNetwork(
+        uint256 amount,
+        uint256 decimals,
+        bytes4 networkId
+    ) internal view returns (uint256) {
+        return Network.isCurrentNetwork(networkId) ? normalizeAmountToProtocolFormat(amount, decimals) : amount;
+    }
+
+    function sendEther(address to, uint256 amount) internal {
+        (bool sent, ) = to.call{value: amount}("");
+        if (!sent) {
+            revert CallFailed();
+        }
     }
 }

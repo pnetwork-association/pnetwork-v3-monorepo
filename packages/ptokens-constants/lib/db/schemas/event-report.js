@@ -1,5 +1,6 @@
 const {
   KEY_ID,
+  KEY_ERROR,
   KEY_STATUS,
   KEY_EVENT_NAME,
 
@@ -29,6 +30,13 @@ const {
   KEY_WITNESSED_TS,
   KEY_FINAL_TX_HASH,
   KEY_FINAL_TX_TS,
+
+  KEY_FORWARD_DESTINATION_NETWORK_ID,
+  KEY_FORWARD_NETWORK_FEE_ASSET_AMOUNT,
+  KEY_NETWORK_FEE_ASSET_AMOUNT,
+  KEY_PROTOCOL_FEE_ASSET_AMOUNT,
+
+  KEY_EVENT_ARGS,
 } = require('../constants')
 const enumTxStatus = require('../tx-status')
 
@@ -39,7 +47,7 @@ module.exports = {
     KEY_ID,
     KEY_STATUS,
     KEY_EVENT_NAME,
-
+    KEY_EVENT_ARGS,
     KEY_NONCE,
     KEY_DESTINATION_ACCOUNT,
     KEY_DESTINATION_NETWORK_ID,
@@ -66,6 +74,11 @@ module.exports = {
     KEY_WITNESSED_TS,
     KEY_FINAL_TX_HASH,
     KEY_FINAL_TX_TS,
+
+    KEY_FORWARD_DESTINATION_NETWORK_ID,
+    KEY_FORWARD_NETWORK_FEE_ASSET_AMOUNT,
+    KEY_NETWORK_FEE_ASSET_AMOUNT,
+    KEY_PROTOCOL_FEE_ASSET_AMOUNT,
   ],
 
   properties: {
@@ -77,6 +90,9 @@ module.exports = {
     },
     [KEY_EVENT_NAME]: {
       type: 'string',
+    },
+    [KEY_EVENT_ARGS]: {
+      type: ['array', 'null'],
     },
     [KEY_NONCE]: {
       type: 'string',
@@ -152,6 +168,21 @@ module.exports = {
     [KEY_FINAL_TX_TS]: {
       type: ['string', 'null'],
       format: 'date-time',
+    },
+    [KEY_ERROR]: {
+      type: ['string', 'null'],
+    },
+    [KEY_FORWARD_DESTINATION_NETWORK_ID]: {
+      type: ['string', 'null'],
+    },
+    [KEY_FORWARD_NETWORK_FEE_ASSET_AMOUNT]: {
+      type: ['string', 'null'],
+    },
+    [KEY_NETWORK_FEE_ASSET_AMOUNT]: {
+      type: ['string', 'null'],
+    },
+    [KEY_PROTOCOL_FEE_ASSET_AMOUNT]: {
+      type: ['string', 'null'],
     },
   },
 }

@@ -11,14 +11,14 @@ const printInfo = _info =>
         'No operation found! This does not necessarily mean that there is no related operation on-chain. Try to specify an hint block with --fromBlock.'
       )) || _info
 
-const getOperationsByIdCommand = (_config, _id, _stateManagerAddress, _fromBlock) =>
+const getOperationsByIdCommand = (_config, _id, _hubAddress, _fromBlock) =>
   checkConfiguration(_config)
     .then(_config =>
       getOperationsById(
         _config[constants.config.KEY_PROVIDER_URL],
         _config[constants.config.KEY_NETWORK_ID],
         _id,
-        _stateManagerAddress,
+        _hubAddress,
         _fromBlock
       )
     )

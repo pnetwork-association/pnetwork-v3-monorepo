@@ -11,6 +11,9 @@ const { processEventLog } = require('./evm-process-event-log')
 
 const listenFromFilter = (_providerUrl, _networkId, _filter, _interface, _callback) =>
   logger.info(`Listening for event from ${_filter.address} with topics [${_filter.topics}]`) ||
+  // Referring to https://github.com/ethers-io/ethers.js/issues/4104,
+  // now getEthersProvider() returns a JsonRpcProvider with polling set to true,
+  // thus using getLogs instead of filters, permitting to avoid the "filter not found".
   getEthersProvider(_providerUrl).then(_provider =>
     _provider.on(_filter, processEventLog(_networkId, _interface, _callback))
   )

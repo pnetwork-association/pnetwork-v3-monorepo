@@ -1,6 +1,6 @@
-const { jestMockContractConstructor } = require('./mock/jest-utils')
+const ethers = require('ethers')
 const R = require('ramda')
-const { db, logic } = require('ptokens-utils')
+const { db, logic, utils } = require('ptokens-utils')
 
 const constants = require('ptokens-constants')
 const {
@@ -24,13 +24,8 @@ describe('Main EVM flow for transaction proposal tests', () => {
     })
 
     beforeEach(async () => {
+      await collection.deleteMany({})
       await collection.insertMany(detectedEvents)
-    })
-
-    afterEach(async () => {
-      await Promise.all(detectedEvents.map(R.prop('_id'))).then(_ids =>
-        Promise.all(_ids.map(db.deleteReport(collection)))
-      )
     })
 
     afterAll(async () => {
@@ -38,9 +33,6 @@ describe('Main EVM flow for transaction proposal tests', () => {
     })
 
     it('Should detect the new events and build the proposals', async () => {
-      const ethers = require('ethers')
-      const fs = require('fs/promises')
-
       const proposedTxHashes = [
         '0xd656ffac17b71e2ea2e24f72cd4c15c909a0ebe1696f8ead388eb268268f1cbf',
         '0x2c7e8870be7643d97699bbcf3396dfb13217ee54a6784abfcacdb1e077fe201f',
@@ -54,6 +46,14 @@ describe('Main EVM flow for transaction proposal tests', () => {
           hash: proposedTxHashes[1],
         },
       ]
+
+      jest.spyOn(logic, 'sleepForXMilliseconds').mockImplementation(_ => Promise.resolve())
+      jest
+        .spyOn(logic, 'sleepThenReturnArg')
+        .mockImplementation(R.curry((_, _r) => Promise.resolve(_r)))
+
+      const mockOperationStatusOf = jest.fn().mockResolvedValue('0x00')
+      const mockLockedAmountChallengePeriod = jest.fn().mockResolvedValue(1)
       const mockQueueOperation = jest.fn().mockResolvedValue({
         wait: jest
           .fn()
@@ -61,30 +61,26 @@ describe('Main EVM flow for transaction proposal tests', () => {
           .mockResolvedValueOnce(expectedCallResult[1]),
       })
 
-      jest.spyOn(logic, 'sleepForXMilliseconds').mockImplementation(_ => Promise.resolve())
-      jest
-        .spyOn(logic, 'sleepThenReturnArg')
-        .mockImplementation(R.curry((_, _r) => Promise.resolve(_r)))
+      jest.spyOn(ethers, 'Contract').mockImplementation(() => ({
+        protocolQueueOperation: mockQueueOperation,
+        operationStatusOf: mockOperationStatusOf,
+        lockedAmountChallengePeriod: mockLockedAmountChallengePeriod,
+      }))
 
-      jest
-        .spyOn(ethers, 'Contract')
-        .mockImplementation(
-          jestMockContractConstructor('protocolQueueOperation', mockQueueOperation)
-        )
-
-      jest.spyOn(fs, 'readFile').mockResolvedValue(privKey)
+      jest.spyOn(utils, 'readIdentityFileSync').mockReturnValue(privKey)
 
       const state = {
         [constants.state.KEY_DB]: collection,
         [constants.state.KEY_LOOP_SLEEP_TIME]: 1,
         [constants.state.KEY_IDENTITY_FILE]: gpgEncryptedFile,
-        [constants.state.KEY_NETWORK_ID]: '0xe15503e4',
+        [constants.state.KEY_NETWORK_ID]: '0xf9b459a1',
       }
       const {
         maybeProcessNewRequestsAndPropose,
       } = require('../../lib/evm/evm-process-proposal-txs')
       const result = await maybeProcessNewRequestsAndPropose(state)
 
+      expect(mockLockedAmountChallengePeriod).toHaveBeenCalledTimes(1)
       expect(result).toHaveProperty(constants.state.KEY_DB)
       expect(result).not.toHaveProperty(STATE_ONCHAIN_REQUESTS)
       expect(result).not.toHaveProperty(STATE_DETECTED_DB_REPORTS)

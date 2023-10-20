@@ -12,3 +12,25 @@ module.exports.getOptionMaskWithOptionEnabledForBit = (
       .padStart(64, '0')
   )
 }
+
+module.exports.deployPToken = async (
+  _underlyingAssetName,
+  _underlyingAssetSymbol,
+  _underlyingAssetDecimals,
+  _underlyingAssetTokenAddress,
+  _underlyingAssetChainId,
+  { pFactory }
+) => {
+  const PToken = await ethers.getContractFactory('MockPToken')
+  const transaction = await pFactory.deploy(
+    _underlyingAssetName,
+    _underlyingAssetSymbol,
+    _underlyingAssetDecimals,
+    _underlyingAssetTokenAddress,
+    _underlyingAssetChainId
+  )
+  const receipt = await transaction.wait()
+  const event = receipt.events.find(({ event }) => event === 'PTokenDeployed')
+  const { pTokenAddress } = event.args
+  return await PToken.attach(pTokenAddress)
+}

@@ -1,105 +1,135 @@
-const ethers = require('ethers')
-
-const constants = require('ptokens-constants')
 const R = require('ramda')
-const { ERROR_INVALID_EVENT_NAME, ERROR_OPERATION_NOT_QUEUED } = require('../errors')
+const ethers = require('ethers')
+const errors = require('../errors')
+const abi = require('./abi/PNetworkHub').abi
+const constants = require('ptokens-constants')
 const { logger } = require('../get-logger')
-const { constants: ptokensUtilsConstants, errors, logic, utils } = require('ptokens-utils')
+const { HubError } = require('./evm-hub-error')
+const { getMerkleProof } = require('./get-merkle-proof')
+const { checkEventName } = require('../check-event-name')
+const { addErrorToReport } = require('../add-error-to-event')
+const { constants: ptokensUtilsConstants, logic, utils } = require('ptokens-utils')
 const { addDismissedReportsToState } = require('../state/state-operations.js')
 const { STATE_TO_BE_DISMISSED_REQUESTS } = require('../state/constants')
-const { callContractFunctionAndAwait } = require('./evm-call-contract-function')
-const {
-  logUserOperationFromAbiArgs,
-  getProtocolCancelOperationAbi,
-  getUserOperationAbiArgsFromReport,
-} = require('./evm-abi-manager')
-const { readIdentityFile } = require('../read-identity-file')
+const { parseUserOperationFromReport } = require('./evm-parse-user-operation')
 
-// TODO: factor out (check evm-build-proposals-txs)
 const addCancelledTxHashToEvent = R.curry((_event, _finalizedTxHash) => {
-  // TODO: replace _id field
   const id = _event[constants.db.KEY_ID]
   logger.debug(`Adding ${_finalizedTxHash} to ${id.slice(0, 20)}...`)
   const cancelledTimestamp = new Date().toISOString()
-  _event[constants.db.KEY_FINAL_TX_TS] = cancelledTimestamp
-  _event[constants.db.KEY_FINAL_TX_HASH] = _finalizedTxHash
-  _event[constants.db.KEY_STATUS] = constants.db.txStatus.CANCELLED
-
-  return Promise.resolve(_event)
-})
-
-const cancelOperationErrorHandler = R.curry((resolve, reject, _eventReport, _err) => {
-  const reportId = _eventReport[constants.db.KEY_ID]
-  if (_err.message.includes(errors.ERROR_TIMEOUT)) {
-    logger.error(`Tx for ${reportId} failed:`, _err.message)
-    return reject(_eventReport)
-  } else if (_err.message.includes(ERROR_OPERATION_NOT_QUEUED)) {
-    logger.error(`Tx for ${reportId} is not in the queue`)
-    return resolve(addCancelledTxHashToEvent(_eventReport, '0x'))
-  } else {
-    logger.error(`Tx for ${reportId} failed with error: ${_err.message}`)
-    return reject(_err)
+  // Remove error field upon succeeding
+  delete _event[constants.db.KEY_ERROR]
+  const updatedEvent = {
+    ..._event,
+    [constants.db.KEY_FINAL_TX_TS]: cancelledTimestamp,
+    [constants.db.KEY_FINAL_TX_HASH]: _finalizedTxHash,
+    [constants.db.KEY_STATUS]: constants.db.txStatus.CANCELLED,
   }
+  return Promise.resolve(updatedEvent)
 })
+
+const estimateGasErrorHandler = (_resolve, _reject, _report, _err) => {
+  if (
+    _err.message.includes(errors.ERROR_OPERATION_NOT_QUEUED) ||
+    _err.message.includes(errors.ERROR_OPERATION_ALREADY_CANCELED)
+  ) {
+    return _resolve(addCancelledTxHashToEvent(_report, '0x'))
+  } else if (_err.message.includes(errors.ERROR_LOCKDOWN_MODE)) {
+    logger.error(`'${_err.message}' detected, retrying shortly...`)
+    return _resolve(null)
+  } else {
+    logger.error(_err)
+    return _resolve(addErrorToReport(_report, _err))
+  }
+}
+
+const errorHandler = (_resolve, _reject, _contract, _report, _err) => {
+  if (_err.message.includes(constants.evm.ethers.ERROR_ESTIMATE_GAS)) {
+    const hubError = new HubError(_contract, _err)
+    return estimateGasErrorHandler(_resolve, _reject, _report, hubError)
+  } else if (_err.message.includes(errors.ERROR_INSUFFICIENT_FUNDS)) {
+    logger.error(`'${_err.info.error.message}' detected, retrying shortly...`)
+    return _resolve(null)
+  } else {
+    logger.error(_err)
+    return _resolve(addErrorToReport(_report, _err))
+  }
+}
 
 const makeDismissalContractCall = R.curry(
-  (_wallet, _stateManager, _txTimeout, _eventReport) =>
+  (_wallet, _hubAddress, _proof, _txTimeout, _report) =>
     new Promise((resolve, reject) => {
-      const id = _eventReport[constants.db.KEY_ID]
-      const eventName = _eventReport[constants.db.KEY_EVENT_NAME]
-
-      if (!R.includes(eventName, R.values(constants.db.eventNames))) {
-        return reject(new Error(`${ERROR_INVALID_EVENT_NAME}: ${eventName}`))
-      }
-
-      const abi = getProtocolCancelOperationAbi()
-      const contractAddress = _stateManager
-      const functionName = 'protocolCancelOperation'
-      const args = getUserOperationAbiArgsFromReport(_eventReport)
-      const contract = new ethers.Contract(contractAddress, abi, _wallet)
+      const id = _report[constants.db.KEY_ID]
+      const eventName = _report[constants.db.KEY_EVENT_NAME]
+      const args = parseUserOperationFromReport(_report)
+      const contract = new ethers.Contract(_hubAddress, abi, _wallet)
 
       logger.info(`Executing _id: ${id}`)
-      logUserOperationFromAbiArgs(functionName, args)
 
-      return callContractFunctionAndAwait(functionName, args, contract, _txTimeout)
+      return checkEventName(eventName)
+        .then(_ => utils.getEventId(_report))
+        .then(_idHex => _wallet.signMessage(ethers.getBytes(_idHex)))
+        .then(_signature =>
+          contract.protocolCancelOperation(
+            ...args,
+            constants.hub.actors.Guardian,
+            _proof,
+            _signature
+          )
+        )
+        .then(_tx => logger.debug('protocolCancelOperation called, awaiting...') || _tx.wait())
+        .then(_receipt => logger.info('Tx mined successfully!') || _receipt)
         .then(R.prop(constants.evm.ethers.KEY_TX_HASH))
-        .then(addCancelledTxHashToEvent(_eventReport))
+        .then(addCancelledTxHashToEvent(_report))
         .then(resolve)
-        .catch(cancelOperationErrorHandler(resolve, reject, _eventReport))
+        .catch(_err => errorHandler(resolve, reject, contract, _report, _err))
     })
 )
 
-const sendDismissalTransaction = R.curry(
-  (_eventReports, _stateManager, _timeOut, _wallet) =>
-    logger.info(`Sending final txs w/ address ${_wallet.address}`) ||
-    logic
-      .executePromisesSequentially(
-        _eventReports,
-        makeDismissalContractCall(_wallet, _stateManager, _timeOut)
+const sendDismissalTransactions = R.curry(
+  async (_reports, _hubAddress, _timeOut, _wallet, _proof) => {
+    logger.info(`Sending final txs w/ address ${_wallet.address} w/ proof ${_proof}`)
+    const updatedReports = []
+    for (const report of _reports) {
+      const newReport = await makeDismissalContractCall(
+        _wallet,
+        _hubAddress,
+        _proof,
+        _timeOut,
+        report
       )
-      .then(logic.getFulfilledPromisesValues)
+      if (utils.isNotNil(newReport)) updatedReports.push(newReport)
+      await logic.sleepForXMilliseconds(1000) // TODO: make configurable
+    }
+
+    return updatedReports
+  }
 )
 
 // TODO: function very similar to the one for building proposals...factor out?
 const buildDismissalTxsAndPutInState = _state =>
-  new Promise(resolve => {
+  new Promise((resolve, reject) => {
     logger.info('Building dismissal txs...')
     const invalidRequests = _state[STATE_TO_BE_DISMISSED_REQUESTS] || []
     const providerUrl = _state[constants.state.KEY_PROVIDER_URL]
     const identityGpgFile = _state[constants.state.KEY_IDENTITY_FILE]
     const provider = new ethers.JsonRpcProvider(providerUrl)
     const txTimeout = _state[constants.state.KEY_TX_TIMEOUT]
-    const stateManager = _state[constants.state.KEY_STATE_MANAGER_ADDRESS]
+    const hub = _state[constants.state.KEY_HUB_ADDRESS]
+    const db = _state[constants.state.KEY_DB]
+    const privateKey = utils.readIdentityFileSync(identityGpgFile)
+    const wallet = new ethers.Wallet(privateKey, provider)
 
-    return readIdentityFile(identityGpgFile)
-      .then(_privateKey => new ethers.Wallet(_privateKey, provider))
-      .then(sendDismissalTransaction(invalidRequests, stateManager, txTimeout))
+    return getMerkleProof(db, wallet.address)
+      .then(sendDismissalTransactions(invalidRequests, hub, txTimeout, wallet))
       .then(addDismissedReportsToState(_state))
       .then(resolve)
+      .catch(reject)
   })
 
 const maybeBuildDismissalTxsAndPutInState = _state =>
   new Promise(resolve => {
+    logger.info('Maybe building cancel transactions...')
     const networkId = _state[constants.state.KEY_NETWORK_ID]
     const blockChainName = utils.flipObjectPropertiesSync(ptokensUtilsConstants.networkIds)[
       networkId

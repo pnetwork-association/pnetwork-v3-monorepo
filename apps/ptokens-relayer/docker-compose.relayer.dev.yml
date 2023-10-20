@@ -1,0 +1,92 @@
+#
+# NOTE: Generate the relative *.config.json using
+# npx hardhat --network arbitrum apps:generate-configs --localhost
+#
+# NOTE: This dev docker-compose file use the mongo db instance
+# on localhost, that's why you need to specify the --localhost
+# flag above.
+#
+version: '3'
+services:
+  bsc-listener:
+    image: ${IMAGE_EVM_LISTENER}:${VERSION_LISTENER:-latest}
+    volumes:
+      - './bsc.listener.config.json:${APP_CONFIG_JSON}'
+      - './logs:${APP_FOLDER_LOGS}'
+    restart: unless-stopped
+    network_mode: host
+
+  bsc-proposer:
+    image: ${IMAGE_EVM_PROCESSOR}:${VERSION_PROCESSOR:-latest}
+    volumes:
+      - './private-key:${PRIVATE_KEY_FILE}'
+      - './bsc.processor.config.json:${APP_CONFIG_JSON}'
+      - './logs:${APP_FOLDER_LOGS}'
+    restart: unless-stopped
+    command: ./index.js pollForRequestsAndPropose
+    network_mode: host
+
+  #   bsc-finalizer:
+  #     image: ${IMAGE_EVM_PROCESSOR}:${VERSION_PROCESSOR:-latest}
+  #     volumes:
+  #       - './private-key:${PRIVATE_KEY_FILE}'
+  #       - './bsc.processor.config.json:${APP_CONFIG_JSON}'
+  #       - './logs:${APP_FOLDER_LOGS}'
+  #     restart: unless-stopped
+  #     command: ./index.js processFinalTransactions
+  #     network_mode: host
+
+  #   polygon-listener:
+  #     image: ${IMAGE_EVM_LISTENER}:${VERSION_LISTENER:-latest}
+  #     volumes:
+  #       - './polygon.listener.config.json:${APP_CONFIG_JSON}'
+  #       - './logs:${APP_FOLDER_LOGS}'
+  #     restart: unless-stopped
+  #     network_mode: host
+
+  polygon-proposer:
+    image: ${IMAGE_EVM_PROCESSOR}:${VERSION_PROCESSOR:-latest}
+    volumes:
+      - './private-key:${PRIVATE_KEY_FILE}'
+      - './polygon.processor.config.json:${APP_CONFIG_JSON}'
+      - './logs:${APP_FOLDER_LOGS}'
+    restart: unless-stopped
+    command: ./index.js pollForRequestsAndPropose
+    network_mode: host
+#   polygon-finalizer:
+#     image: ${IMAGE_EVM_PROCESSOR}:${VERSION_PROCESSOR:-latest}
+#     volumes:
+#       - './private-key:${PRIVATE_KEY_FILE}'
+#       - './polygon.processor.config.json:${APP_CONFIG_JSON}'
+#       - './logs:${APP_FOLDER_LOGS}'
+#     restart: unless-stopped
+#     command: ./index.js processFinalTransactions
+#     network_mode: host
+
+# goerli-listener:
+#     image: ${IMAGE_EVM_LISTENER}:${VERSION_LISTENER:-latest}
+#     volumes:
+#       - './goerli.listener.config.json:${APP_CONFIG_JSON}'
+#       - './logs:${APP_FOLDER_LOGS}'
+#     restart: unless-stopped
+#     network_mode: host
+
+#   goerli-proposer:
+#     image: ${IMAGE_EVM_PROCESSOR}:${VERSION_PROCESSOR:-latest}
+#     volumes:
+#       - './private-key:${PRIVATE_KEY_FILE}'
+#       - './goerli.processor.config.json:${APP_CONFIG_JSON}'
+#       - './logs:${APP_FOLDER_LOGS}'
+#     restart: unless-stopped
+#     command: ./index.js pollForRequestsAndPropose
+#     network_mode: host
+
+#   goerli-finalizer:
+#     image: ${IMAGE_EVM_PROCESSOR}:${VERSION_PROCESSOR:-latest}
+#     volumes:
+#       - './private-key:${PRIVATE_KEY_FILE}'
+#       - './goerli.processor.config.json:${APP_CONFIG_JSON}'
+#       - './logs:${APP_FOLDER_LOGS}'
+#     restart: unless-stopped
+#     command: ./index.js processFinalTransactions
+#     network_mode: host

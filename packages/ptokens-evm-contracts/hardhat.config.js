@@ -1,15 +1,12 @@
 require('dotenv').config()
 require('hardhat-tracer')
 require('@nomiclabs/hardhat-ethers')
-require('@nomiclabs/hardhat-etherscan')
-require('@openzeppelin/hardhat-upgrades')
 require('hardhat-gas-reporter')
 require('@nomicfoundation/hardhat-chai-matchers')
 require('hardhat-spdx-license-identifier')
 require('hardhat-log-remover')
 require('solidity-coverage')
 require('@nomicfoundation/hardhat-toolbox')
-require('hardhat-tracer')
 require('hardhat-change-network')
 
 const fork1Config = require('./hardhat.config.fork1')
@@ -24,12 +21,12 @@ const maybeGetAccounts = _envVar => (process.env[_envVar] ? [process.env[_envVar
  */
 module.exports = {
   solidity: {
-    version: '0.8.17',
+    version: '0.8.20',
     settings: {
       viaIR: true,
       optimizer: {
         enabled: true,
-        runs: 200,
+        runs: 100,
         details: {
           yul: true,
         },
@@ -86,12 +83,28 @@ module.exports = {
       url: getEnvironmentVariable('GOERLI_NODE'),
       accounts: maybeGetAccounts('PK'),
     },
+    arbitrum: {
+      chainId: 0xa4b1,
+      url: getEnvironmentVariable('ARBITRUM_NODE'),
+      accounts: maybeGetAccounts('PK'),
+      gasPrice: 0.1e9,
+    },
+    gnosis: {
+      chainId: 0x64,
+      url: getEnvironmentVariable('GNOSIS_CHAIN_NODE'),
+      accounts: maybeGetAccounts('PK'),
+      gasPrice: 5e9,
+    },
   },
   etherscan: {
     apiKey: {
       mainnet: getEnvironmentVariable('ETHERSCAN_API_KEY'),
       polygon: getEnvironmentVariable('POLYGONSCAN_API_KEY'),
       mumbai: getEnvironmentVariable('POLYGONSCAN_API_KEY'),
+      arbitrum: getEnvironmentVariable('ARBISCAN_API_KEY'),
+      gnosis: getEnvironmentVariable('GNOSISSCAN_API_KEY'),
+      goerli: getEnvironmentVariable('GOERLI_API_KEY'),
+      bsc: getEnvironmentVariable('BSCSCAN_API_KEY'),
     },
     customChains: [
       {
@@ -111,11 +124,35 @@ module.exports = {
         },
       },
       {
+        network: 'goerli',
+        chainId: 5,
+        urls: {
+          apiURL: 'https://api-goerli.etherscan.io/api',
+          browserURL: 'https://goerli.etherscan.io',
+        },
+      },
+      {
         network: 'mumbai',
         chainId: 80001,
         urls: {
           apiURL: 'https://api-testnet.polygonscan.com/',
           browserURL: 'https://mumbai.polygonscan.com/',
+        },
+      },
+      {
+        network: 'bsc',
+        chainId: 56,
+        urls: {
+          apiURL: 'https://api.bscscan.com/api',
+          browserURL: 'https://bscscan.com/',
+        },
+      },
+      {
+        network: 'arbitrum',
+        chainId: 42161,
+        urls: {
+          apiURL: 'https://api.arbiscan.io/api',
+          browserURL: 'https://arbiscan.io',
         },
       },
     ],

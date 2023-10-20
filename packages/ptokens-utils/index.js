@@ -1,7 +1,7 @@
 const db = require('./lib/db')
 const cli = require('./lib/cli')
+const ipfs = require('./lib/ipfs')
 const http = require('./lib/http')
-const web3 = require('./lib/web3')
 const logic = require('./lib/logic')
 const utils = require('./lib/utils')
 const logger = require('./lib/logger')
@@ -14,8 +14,8 @@ const bridgeTypes = require('./lib/bridge-types')
 const ptokensUtils = {
   db: db,
   cli: cli,
-  web3: web3,
   http: http,
+  ipfs: ipfs,
   utils: utils,
   logic: logic,
   errors: errors,

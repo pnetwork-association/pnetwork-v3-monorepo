@@ -30,6 +30,11 @@ const getEventWithAllRequiredSetToNull = _ => ({
   [constants.db.KEY_WITNESSED_TS]: null,
   [constants.db.KEY_FINAL_TX_HASH]: null,
   [constants.db.KEY_FINAL_TX_TS]: null,
+  [constants.db.KEY_FORWARD_DESTINATION_NETWORK_ID]: null,
+  [constants.db.KEY_FORWARD_NETWORK_FEE_ASSET_AMOUNT]: null,
+  [constants.db.KEY_NETWORK_FEE_ASSET_AMOUNT]: null,
+  [constants.db.KEY_PROTOCOL_FEE_ASSET_AMOUNT]: null,
+  [constants.db.KEY_IS_FOR_PROTOCOL]: null,
 })
 
 const bigIntToNumber = R.tryCatch(_n => Number(_n) || null, R.always(null))
@@ -37,7 +42,13 @@ const bitIntToString = R.tryCatch(_n => _n.toString(), R.always(null))
 
 const addEventName = _eventLog => R.assoc(constants.db.KEY_EVENT_NAME, _eventLog.name)
 
-const setStatusToDetected = R.assoc(constants.db.KEY_STATUS, constants.db.txStatus.DETECTED)
+const addEventArgs = _eventLog => R.assoc(constants.db.KEY_EVENT_ARGS, Array.from(_eventLog.args))
+
+const setCorrectStatus = R.curry((_parsedLog, _obj) =>
+  _parsedLog.name === constants.db.eventNames.QUEUED_OPERATION
+    ? R.assoc(constants.db.KEY_STATUS, constants.db.txStatus.PROPOSED, _obj)
+    : R.assoc(constants.db.KEY_STATUS, constants.db.txStatus.DETECTED, _obj)
+)
 
 const addFieldFromEventArgs = (_eventValue, _destKey, _conversionFunction, _standardEvent) =>
   logger.debug(`Adding ${_eventValue} to "${_destKey}"`) ||
@@ -65,8 +76,9 @@ const maybeAddFieldFromEventArgs = R.curry(
 
 const addInfoFromParsedLog = (_parsedLog, _obj) =>
   Promise.resolve(_obj)
-    .then(setStatusToDetected)
+    .then(setCorrectStatus(_parsedLog))
     .then(addEventName(_parsedLog))
+    .then(addEventArgs(_parsedLog))
     .then(
       maybeAddFieldFromEventArgs(_parsedLog.args, ['nonce'], constants.db.KEY_NONCE, bitIntToString)
     )
@@ -83,6 +95,14 @@ const addInfoFromParsedLog = (_parsedLog, _obj) =>
         _parsedLog.args,
         ['destinationNetworkId', 'destinationChainId'],
         constants.db.KEY_DESTINATION_NETWORK_ID,
+        R.identity
+      )
+    )
+    .then(
+      maybeAddFieldFromEventArgs(
+        _parsedLog.args,
+        ['forwardDestinationNetworkId'],
+        constants.db.KEY_FORWARD_DESTINATION_NETWORK_ID,
         R.identity
       )
     )
@@ -145,7 +165,31 @@ const addInfoFromParsedLog = (_parsedLog, _obj) =>
     .then(
       maybeAddFieldFromEventArgs(
         _parsedLog.args,
-        ['from'],
+        ['userDataProtocolFeeAssetAmount'],
+        constants.db.KEY_PROTOCOL_FEE_ASSET_AMOUNT,
+        bitIntToString
+      )
+    )
+    .then(
+      maybeAddFieldFromEventArgs(
+        _parsedLog.args,
+        ['networkFeeAssetAmount'],
+        constants.db.KEY_NETWORK_FEE_ASSET_AMOUNT,
+        bitIntToString
+      )
+    )
+    .then(
+      maybeAddFieldFromEventArgs(
+        _parsedLog.args,
+        ['forwardNetworkFeeAssetAmount'],
+        constants.db.KEY_FORWARD_NETWORK_FEE_ASSET_AMOUNT,
+        bitIntToString
+      )
+    )
+    .then(
+      maybeAddFieldFromEventArgs(
+        _parsedLog.args,
+        ['from', 'originAccount'],
         constants.db.KEY_ORIGINATING_ADDRESS,
         R.identity
       )
@@ -190,6 +234,14 @@ const addInfoFromParsedLog = (_parsedLog, _obj) =>
         R.identity
       )
     )
+    .then(
+      maybeAddFieldFromEventArgs(
+        _parsedLog.args,
+        ['isForProtocol'],
+        constants.db.KEY_IS_FOR_PROTOCOL,
+        R.identity
+      )
+    )
 
 const addFieldFromLog = (_eventLog, _originKey, _destKey) =>
   R.assoc(_destKey, _eventLog[_originKey])
@@ -211,6 +263,7 @@ const parseLog = (_interface, _log) =>
       logger.debug('  name:', _parsedLog.name) ||
       logger.debug('  signature:', _parsedLog.signature) ||
       logger.debug('  args:', _parsedLog.args) ||
+      logger.debug('  data:', _parsedLog.data) ||
       _parsedLog
   )
 

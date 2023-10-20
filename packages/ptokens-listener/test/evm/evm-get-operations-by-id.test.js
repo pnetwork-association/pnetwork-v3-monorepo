@@ -1,4 +1,5 @@
 const ethers = require('ethers')
+const utils = require('ptokens-utils')
 const { logs } = require('../mock/evm-logs')
 
 describe('Get EVM operations by Operation ID', () => {
@@ -10,43 +11,45 @@ describe('Get EVM operations by Operation ID', () => {
     it('Should get operations linked to an Operation ID', async () => {
       const getLogsSpy = jest
         .spyOn(ethers.AbstractProvider.prototype, 'getLogs')
-        .mockResolvedValue([logs[10]])
+        .mockResolvedValue([logs[2]])
       const fakeProvider = {
         getLogs: getLogsSpy,
       }
       const getDefaultProviderSpy = jest
-        .spyOn(ethers, 'getDefaultProvider')
+        .spyOn(ethers, 'JsonRpcProvider')
         .mockImplementation(_url => fakeProvider)
 
       const { getEvmOperationsById } = require('../../lib/evm/evm-get-operations-by-id')
-      const provider = 'mumbai-provider-url-1'
-      const networkId = 'network-id'
-      const operationId = '0x46840d7667c567d8ae702801c296d9cb19535d7c77f8e132c79f06c25df79600'
-      const stateManagerAddress = '0x565033350582f4Ad298fDD8d59b7c36D0cAC1712'
-      const fromBlock = 34923840
+      const provider = 'polygon-provider-url-1'
+      const networkId = utils.constants.networkIds.POLYGON_MAINNET
+      const operationId = '0xd9feb6e60cd73c396cbaeb3e5fa55c774c03a274c54f5bc53a62a59855ec7cc4'
+      const hubAddress = '0xd2bac275fffdbdd23ecea72f4b161b3af90300a3'
+      const fromBlock = 45583400
       const ret = await getEvmOperationsById(
         provider,
         networkId,
         operationId,
-        stateManagerAddress,
+        hubAddress,
         fromBlock
       )
-      expect(getDefaultProviderSpy).toHaveBeenNthCalledWith(1, provider)
+      expect(getDefaultProviderSpy).toHaveBeenNthCalledWith(1, provider, undefined, {
+        polling: true,
+      })
       expect(getLogsSpy).toHaveBeenNthCalledWith(1, {
-        address: stateManagerAddress,
-        fromBlock: 34923840,
+        address: hubAddress,
+        fromBlock: 45583400,
         topics: [
           [
-            '0xec5d8f38737ebccaa579d2caeaed8fbc5f2c7c598fee1eb335429c8c48ec2598',
-            '0xfb83c807750a326c5845536dc89b4d2da9f1f5e0df344e9f69f27c84f4d7d726',
-            '0xd1a85d51ecfea5edd75f97fcf615b22c6f56eaf8f0487db9fadfbe661689b9af',
+            '0x0b9d0b9c6d9aae1efe690e3f8c347a95a78fc08968c2b0a2381e11799e82ecce',
+            '0x0dd9442ca0ceb76d843508ae85c58c2ef3742491a1cc480e4c0d1c96ab9965a6',
+            '0xe7bf22971bde3dd8a6a3bf8434e8b7a7c7554dad8328f741da1484d67b445c19',
           ],
         ],
       })
       expect(ret).toStrictEqual([
         {
-          eventName: 'OperationQueued',
-          txHash: '0x2eff067a18db079a26a9f26e22c404dd6f68c5f377935db0afd913a59a1ede02',
+          eventName: 'OperationExecuted',
+          txHash: '0xa5c5838123aa37d2efd69285f7b6bd8c2e93d4cf243d45926169502c13b23a49',
         },
       ])
     })
@@ -59,31 +62,33 @@ describe('Get EVM operations by Operation ID', () => {
         getLogs: getLogsSpy,
       }
       const getDefaultProviderSpy = jest
-        .spyOn(ethers, 'getDefaultProvider')
+        .spyOn(ethers, 'JsonRpcProvider')
         .mockImplementation(_url => fakeProvider)
 
       const { getEvmOperationsById } = require('../../lib/evm/evm-get-operations-by-id')
-      const provider = 'mumbai-provider-url-2'
-      const networkId = 'network-id'
+      const provider = 'polygon-provider-url-2'
+      const networkId = utils.constants.networkIds.POLYGON_MAINNET
       const operationId = '0x2eff067a18db079a26a9f26e22c404dd6f68c5f377935db0afd913a59a1ede02'
-      const stateManagerAddress = '0x565033350582f4Ad298fDD8d59b7c36D0cAC1712'
+      const hubAddress = '0xd2bac275fffdbdd23ecea72f4b161b3af90300a3'
       const fromBlock = 34923840
       const ret = await getEvmOperationsById(
         provider,
         networkId,
         operationId,
-        stateManagerAddress,
+        hubAddress,
         fromBlock
       )
-      expect(getDefaultProviderSpy).toHaveBeenNthCalledWith(1, provider)
+      expect(getDefaultProviderSpy).toHaveBeenNthCalledWith(1, provider, undefined, {
+        polling: true,
+      })
       expect(getLogsSpy).toHaveBeenNthCalledWith(1, {
-        address: stateManagerAddress,
+        address: hubAddress,
         fromBlock: 34923840,
         topics: [
           [
-            '0xec5d8f38737ebccaa579d2caeaed8fbc5f2c7c598fee1eb335429c8c48ec2598',
-            '0xfb83c807750a326c5845536dc89b4d2da9f1f5e0df344e9f69f27c84f4d7d726',
-            '0xd1a85d51ecfea5edd75f97fcf615b22c6f56eaf8f0487db9fadfbe661689b9af',
+            '0x0b9d0b9c6d9aae1efe690e3f8c347a95a78fc08968c2b0a2381e11799e82ecce',
+            '0x0dd9442ca0ceb76d843508ae85c58c2ef3742491a1cc480e4c0d1c96ab9965a6',
+            '0xe7bf22971bde3dd8a6a3bf8434e8b7a7c7554dad8328f741da1484d67b445c19',
           ],
         ],
       })

@@ -1,10 +1,13 @@
-const ethers = require('ethers')
 const R = require('ramda')
-const { validation } = require('ptokens-utils')
+const ethers = require('ethers')
+const { logger } = require('../get-logger')
+const { utils, validation } = require('ptokens-utils')
 const constants = require('ptokens-constants')
 
 const getEthersProvider = R.memoizeWith(R.identity, _url =>
-  validation.checkType('String', _url).then(_ => ethers.getDefaultProvider(_url))
+  validation
+    .checkType('String', _url)
+    .then(_ => new ethers.JsonRpcProvider(_url, undefined, { polling: true }))
 )
 
 const isEventFragment = _fragment => ethers.Fragment.isEvent(_fragment)
@@ -25,8 +28,9 @@ const getInterfaceFromEvent = _eventSignature =>
   getEventFragment(_eventSignature).then(Array.of).then(createInterface)
 
 const maybeAddTopicsToFilter = R.curry((_topics, _filter) =>
-  (R.type(_topics) === 'String' && !R.isEmpty(_topics)) ||
-  (R.type(_topics === 'Array') && !R.isEmpty(_topics))
+  logger.debug(`Adding these topics to the event filter: ${_topics}`) ||
+  (R.type(_topics) === 'String' && utils.isNotEmpty(_topics)) ||
+  (R.type(_topics === 'Array') && utils.isNotEmpty(_topics))
     ? R.assoc('topics', [_topics], _filter)
     : _filter
 )
@@ -60,8 +64,11 @@ const getEventFilter = ({ topics, contractAddress, fromBlock, toBlock }) =>
     .then(maybeAddFromBlockToFilter(fromBlock))
     .then(maybeAddToBlockToFilter(toBlock))
 
-const areTopicsMatching = R.curry((_filter, _log) =>
-  R.equals(R.flatten(_filter.topics), _log.topics)
+const areTopicsMatching = R.curry(
+  // Sometimes the event topics is included in a log with other topics, like
+  // logs:    [0x1234, 0x0000]
+  // filter:  [0x1234]
+  (_filter, _log) => R.intersection(_log.topics, _filter.topics).length > 0
 )
 
 const createContract = (_contractAddress, _abi) =>

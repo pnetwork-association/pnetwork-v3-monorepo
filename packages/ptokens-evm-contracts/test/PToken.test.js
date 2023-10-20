@@ -1,27 +1,70 @@
 const { expect } = require('chai')
 const { ethers } = require('hardhat')
 
-const { QUEUE_TIME, PNETWORK_NETWORK_IDS } = require('./constants')
-const { deployPToken } = require('../tasks/deploy/deploy-ptoken.task')
+const {
+  BASE_CHALLENGE_PERIOD_DURATION,
+  K_CHALLENGE_PERIOD,
+  LOCKED_AMOUNT_CHALLENGE_PERIOD,
+  LOCKED_AMOUNT_START_CHALLENGE,
+  CHALLENGE_DURATION,
+  MAX_OPERATIONS_IN_QUEUE,
+  PNETWORK_NETWORK_IDS,
+  TELEPATHY_ROUTER_ADDRESS,
+} = require('./constants')
+const { deployPToken } = require('./utils')
 
-let user, token, pToken, pRouter, pFactory, stateManager
+let owner,
+  user,
+  token,
+  pToken,
+  pFactory,
+  hub,
+  epochsManager,
+  fakeGovernanceMessageVerifier,
+  slasher,
+  feesManager,
+  fakeDandelionVoting
 
 describe('PToken', () => {
   for (const decimals of [6, 18]) {
     describe(`${decimals} decimals`, () => {
       beforeEach(async () => {
-        const StateManager = await ethers.getContractFactory('StateManager')
+        const PNetworkHub = await ethers.getContractFactory('PNetworkHub')
         const StandardToken = await ethers.getContractFactory('StandardToken')
         const PFactory = await ethers.getContractFactory('PFactory')
-        const PRouter = await ethers.getContractFactory('PRouter')
+        const EpochsManager = await ethers.getContractFactory('EpochsManager')
+        const FeesManager = await ethers.getContractFactory('MockFeesManager')
 
         const signers = await ethers.getSigners()
+        owner = signers[0]
         user = signers[1]
+        fakeGovernanceMessageVerifier = signers[2]
+        slasher = signers[3]
+        fakeDandelionVoting = signers[4]
+        feesManager = await FeesManager.deploy()
 
         // H A R D H A T
-        pFactory = await PFactory.deploy()
-        pRouter = await PRouter.deploy(pFactory.address)
-        stateManager = await StateManager.deploy(pFactory.address, QUEUE_TIME)
+        pFactory = await PFactory.deploy(owner.address)
+        epochsManager = await EpochsManager.deploy()
+        hub = await PNetworkHub.deploy(
+          pFactory.address,
+          BASE_CHALLENGE_PERIOD_DURATION,
+          epochsManager.address,
+          feesManager.address,
+          TELEPATHY_ROUTER_ADDRESS,
+          fakeGovernanceMessageVerifier.address,
+          slasher.address,
+          fakeDandelionVoting.address,
+          LOCKED_AMOUNT_CHALLENGE_PERIOD,
+          K_CHALLENGE_PERIOD,
+          MAX_OPERATIONS_IN_QUEUE,
+          PNETWORK_NETWORK_IDS.ethereumMainnet,
+          LOCKED_AMOUNT_START_CHALLENGE,
+          CHALLENGE_DURATION,
+          (
+            await ethers.provider.getNetwork()
+          ).chainId
+        )
 
         token = await StandardToken.deploy(
           'Token',
@@ -30,8 +73,7 @@ describe('PToken', () => {
           ethers.utils.parseUnits('100000000', decimals)
         )
 
-        await pFactory.setRouter(pRouter.address)
-        await pFactory.setStateManager(stateManager.address)
+        await pFactory.setHub(hub.address)
         await pFactory.renounceOwnership()
 
         pToken = await deployPToken(

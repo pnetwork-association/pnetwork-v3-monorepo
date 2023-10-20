@@ -1,5 +1,5 @@
-const appsRelayerConfiguration = require('./config-relayer.task')
+const appsGenerateConfigurations = require('./generate-configs.task')
 
 module.exports = {
-  appsRelayerConfiguration,
+  appsGenerateConfigurations,
 }

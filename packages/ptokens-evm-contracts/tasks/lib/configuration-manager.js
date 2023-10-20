@@ -2,15 +2,16 @@ const R = require('ramda')
 const Store = require('data-store')
 const PATH_CONFIG_FILE = '/deployments.json'
 const {
-  KEY_PROUTER,
   KEY_ADDRESS,
   KEY_NETWORK_ID,
   KEY_PTOKEN_LIST,
-  KEY_STATEMANAGER,
+  KEY_PNETWORKHUB,
   KEY_UNDERLYING_ASSET_LIST,
-  TASK_NAME_GET_NETWORK_ID,
+  KEY_GOVERNANCE_MESSAGE_EMITTER,
+  KEY_PTOKEN_UNDERLYING_ASSET_ADDRESS,
 } = require('../constants')
 const { utils } = require('ptokens-utils')
+const { TASK_NAME_GET_NETWORK_ID } = require('../get-network-id')
 
 const getConfiguration = () => Promise.resolve(Store({ path: process.cwd() + PATH_CONFIG_FILE }))
 
@@ -54,40 +55,81 @@ const updateConfiguration = (...vargs) =>
     return resolve(config)
   })
 
-const getDeploymentForNetworkName = hre =>
+const getDeploymentFromNetworkName = _networkName =>
+  getConfiguration().then(_config => _config.get(_networkName))
+
+const getDeploymentFromHRE = hre =>
   getConfiguration().then(_config => _config.get(hre.network.name))
 
-const getPRouterAddress = hre =>
-  getDeploymentForNetworkName(hre).then(R.path([KEY_PROUTER, KEY_ADDRESS]))
+const getHubAddress = hre => getDeploymentFromHRE(hre).then(R.path([KEY_PNETWORKHUB, KEY_ADDRESS]))
 
-const getStateManagerAddress = hre =>
-  getDeploymentForNetworkName(hre).then(R.path([KEY_STATEMANAGER, KEY_ADDRESS]))
+const getPTokenInfo = (hre, _pTokenAddress) =>
+  getDeploymentFromHRE(hre)
+    .then(R.prop(KEY_PTOKEN_LIST))
+    .then(R.find(R.propEq(_pTokenAddress, KEY_ADDRESS)))
+    .then(_pTokenInfo =>
+      R.isNil(_pTokenInfo)
+        ? Promise.reject(new Error(`Unable to find a suitable pToken for '${hre.network.name}'`))
+        : _pTokenInfo
+    )
 
-const getNetworkId = hre => getDeploymentForNetworkName(hre).then(R.prop(KEY_NETWORK_ID))
+const getPTokenAddressFromUnderlyingAsset = (hre, _underlyingAssetAddress) =>
+  getDeploymentFromHRE(hre)
+    .then(R.prop(KEY_PTOKEN_LIST))
+    .then(R.find(R.propEq(_underlyingAssetAddress, KEY_PTOKEN_UNDERLYING_ASSET_ADDRESS)))
+    .then(R.prop(KEY_ADDRESS))
 
-const checkStateManagerIsDeployed = hre =>
-  getStateManagerAddress(hre).then(
+const getNetworkId = hre => getDeploymentFromHRE(hre).then(R.prop(KEY_NETWORK_ID))
+
+const getNetworkIdFromChainName = _networkName =>
+  getConfiguration()
+    .then(_config => _config.get(_networkName))
+    .then(R.prop(KEY_NETWORK_ID))
+
+const getGovernanceMessageEmitterAddress = hre =>
+  getDeploymentFromHRE(hre).then(R.path([KEY_GOVERNANCE_MESSAGE_EMITTER, KEY_ADDRESS]))
+
+const checkHubIsDeployed = hre =>
+  getHubAddress(hre).then(
     utils.promises.rejectIfNil(
-      `Could not find any StateManager address for '${hre.network.name}', have you deployed it?`
+      `Could not find any PNetworkHub address for '${hre.network.name}', have you deployed it?`
     )
   )
 
-const checkPRouterIsDeployed = hre =>
-  getPRouterAddress(hre).then(
-    utils.promises.rejectIfNil(
-      `Could not find any PRouter address for '${hre.network.name}', have you deployed it?`
-    )
-  )
+const getPTokenFromAsset = (hre, _assetAddress) =>
+  getDeploymentFromHRE(hre)
+    .then(R.prop(KEY_PTOKEN_LIST))
+    .then(R.find(R.propEq(_assetAddress, KEY_PTOKEN_UNDERLYING_ASSET_ADDRESS)))
+    .then(R.prop(KEY_ADDRESS))
+
+const isPToken = (hre, _address) =>
+  getPTokenInfo(hre, _address)
+    .then(_ => true)
+    .catch(_ => false)
+
+const getUnderlyingAssetTokenAddressForPToken = (hre, _address) =>
+  getPTokenInfo(hre, _address).then(R.prop(KEY_PTOKEN_UNDERLYING_ASSET_ADDRESS))
+
+const isUnderlyingAssetTokenAddress = (hre, _address) =>
+  getPTokenAddressFromUnderlyingAsset(hre, _address).then(utils.isNotNil)
 
 module.exports = {
   getNetworkId,
   getConfiguration,
-  getPRouterAddress,
   maybeAddNewNetwork,
   updateConfiguration,
-  getStateManagerAddress,
-  checkPRouterIsDeployed,
+  getDeploymentFromHRE,
+  getHubAddress,
   maybeAddEmptyPTokenList,
-  checkStateManagerIsDeployed,
+  getNetworkIdFromChainName,
+  checkHubIsDeployed,
+  getPTokenInfo,
+  getDeploymentFromNetworkName,
+  getPTokenAddressFromUnderlyingAsset,
   maybeAddEmptyUnderlyingAssetList,
+  getGovernanceMessageEmitterAddress,
+  getPTokenFromAsset,
+  isPToken,
+  getUnderlyingAssetTokenAddressForPToken,
+  isUnderlyingAssetTokenAddress,
 }

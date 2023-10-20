@@ -1,6 +1,6 @@
 {
   "name": "ptokens-listener",
-  "version": "1.7.0",
+  "version": "1.8.2",
   "description": "Node.js implementation of the v3 pTokens Listener.",
   "bin": "./index.js",
   "scripts": {

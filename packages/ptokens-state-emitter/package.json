@@ -1,0 +1,27 @@
+{
+  "name": "ptokens-state-emitter",
+  "version": "1.0.1",
+  "description": "Propagates guardian state to a distributed network",
+  "main": "index.js",
+  "bin": "./index.js",
+  "scripts": {
+    "lint": "eslint .",
+    "test": "jest --config test/jest.config.js",
+    "docker-build": "PROJECT_ROOT=$(pwd) ./docker-build.sh",
+    "clean": "rm -rf $(pwd)/build"
+  },
+  "author": "gitmp01",
+  "license": "MIT",
+  "dependencies": {
+    "ethers": "^6.7.1",
+    "log4js": "^6.9.1",
+    "ramda": "^0.29.0",
+    "ptokens-utils": "*",
+    "ptokens-constants": "*"
+  },
+  "nx": {
+    "implicitDependencies": [
+      "ptokens-docker-stages"
+    ]
+  }
+}

@@ -9,14 +9,20 @@ module.exports = class Operation {
       nonce = 0,
       underlyingAssetDecimals = 0,
       assetAmount = '0',
+      userDataProtocolFeeAssetAmount = '0',
+      networkFeeAssetAmount = '0',
       underlyingAssetTokenAddress = '0x'.padEnd(42, '0'),
       originNetworkId = PNETWORK_NETWORK_IDS.hardhat,
       destinationNetworkId = PNETWORK_NETWORK_IDS.hardhat,
       underlyingAssetNetworkId = PNETWORK_NETWORK_IDS.hardhat,
+      forwardDestinationNetworkId = PNETWORK_NETWORK_IDS.ethereumMainnet,
+      forwardNetworkFeeAssetAmount = '0',
+      originAccount = '0x'.padEnd(42, '0'),
       destinationAccount = '0x'.padEnd(42, '0'),
       underlyingAssetName = 'NAME',
       underlyingAssetSymbol = 'SYMBOL',
       userData = '0x',
+      isForProtocol = false,
     } = _opts
 
     this.originBlockHash = originBlockHash
@@ -29,10 +35,16 @@ module.exports = class Operation {
     this.originNetworkId = originNetworkId
     this.destinationNetworkId = destinationNetworkId
     this.underlyingAssetNetworkId = underlyingAssetNetworkId
+    this.originAccount = originAccount
     this.destinationAccount = destinationAccount
     this.underlyingAssetName = underlyingAssetName
     this.underlyingAssetSymbol = underlyingAssetSymbol
     this.userData = userData
+    this.userDataProtocolFeeAssetAmount = userDataProtocolFeeAssetAmount
+    this.forwardDestinationNetworkId = forwardDestinationNetworkId
+    this.networkFeeAssetAmount = networkFeeAssetAmount
+    this.forwardNetworkFeeAssetAmount = forwardNetworkFeeAssetAmount
+    this.isForProtocol = isForProtocol
   }
 
   serialize() {
@@ -43,18 +55,84 @@ module.exports = class Operation {
       this.nonce,
       this.underlyingAssetDecimals,
       this.assetAmount,
+      this.userDataProtocolFeeAssetAmount,
+      this.networkFeeAssetAmount,
+      this.forwardNetworkFeeAssetAmount,
       this.underlyingAssetTokenAddress,
       this.originNetworkId,
       this.destinationNetworkId,
+      this.forwardDestinationNetworkId,
       this.underlyingAssetNetworkId,
+      this.originAccount,
       this.destinationAccount,
       this.underlyingAssetName,
       this.underlyingAssetSymbol,
       this.userData,
+      this.isForProtocol,
     ]
   }
 
   get() {
     return this.serialize()
+  }
+
+  getProtocolFee() {
+    return this.assetAmount.mul(20).div(10000)
+  }
+
+  get assetAmountWithoutProtocolFee() {
+    return this.assetAmount.sub(this.getProtocolFee())
+  }
+
+  get assetAmountWithoutProtocolFeeAndNetworkFee() {
+    return this.assetAmount.sub(this.getProtocolFee()).sub(this.networkFeeAssetAmount)
+  }
+
+  get assetAmountWithoutNetworkFee() {
+    return this.assetAmount.sub(this.networkFeeAssetAmount)
+  }
+
+  get queueRelayerNetworkFeeAssetAmount() {
+    return this.networkFeeAssetAmount.mul(3700).div(10000)
+  }
+
+  get executeRelayerNetworkFeeAssetAmount() {
+    return this.networkFeeAssetAmount.mul(6300).div(10000)
+  }
+
+  get id() {
+    const abiCoder = new ethers.utils.AbiCoder()
+
+    return ethers.utils.sha256(
+      abiCoder.encode(
+        [
+          'tuple(bytes32,bytes32,bytes32,uint256,uint256,uint256,uint256,uint256,uint256,address,bytes4,bytes4,bytes4,bytes4,string,string,string,string,bytes,bool)',
+        ],
+        [
+          [
+            this.originBlockHash,
+            this.originTransactionHash,
+            this.optionsMask,
+            this.nonce,
+            this.underlyingAssetDecimals,
+            this.assetAmount,
+            this.userDataProtocolFeeAssetAmount,
+            this.networkFeeAssetAmount,
+            this.forwardNetworkFeeAssetAmount,
+            this.underlyingAssetTokenAddress,
+            this.originNetworkId,
+            this.destinationNetworkId,
+            this.forwardDestinationNetworkId,
+            this.underlyingAssetNetworkId,
+            this.originAccount,
+            this.destinationAccount,
+            this.underlyingAssetName,
+            this.underlyingAssetSymbol,
+            this.userData,
+            this.isForProtocol,
+          ],
+        ]
+      )
+    )
   }
 }

@@ -1,23 +1,27 @@
 const {
-  TASK_NAME_DEPLOY_INIT,
-  TASK_NAME_DEPLOY_CONTRACT,
   KEY_ADDRESS,
   KEY_UNDERLYING_ASSET_LIST,
   KEY_PFACTORY,
-  KEY_PROUTER,
-  KEY_STATEMANAGER,
+  KEY_PNETWORKHUB,
   KEY_ASSET_NAME,
   KEY_ASSET_SYMBOL,
   KEY_ASSET_DECIMALS,
   KEY_ASSET_TOTAL_SUPPLY,
+  KEY_PREGISTRY,
+  KEY_SLASHER,
+  KEY_GOVERNANCE_MESSAGE_EMITTER,
+  KEY_GOVERNANCE_MESSAGE_VERIFIER,
+  KEY_EPOCHS_MANAGER,
 } = require('../constants')
 const { utils } = require('ptokens-utils')
 const { types } = require('hardhat/config')
 const { errors } = require('ptokens-utils')
+const { TASK_NAME_DEPLOY_INIT } = require('./deploy-init.task')
 const { getConfiguration, updateConfiguration } = require('../lib/configuration-manager')
 const R = require('ramda')
 
-const TASK_DESC_DEPLOY_CONTRACT = 'Deploy a contract.'
+const TASK_NAME_DEPLOY_CONTRACT = 'deploy:contract'
+const TASK_DESC_DEPLOY_CONTRACT = 'Subtask to deploy a contract.'
 
 const configEntryLookup = {
   [KEY_UNDERLYING_ASSET_LIST]: (_taskArgs, _contractAddress) => ({
@@ -30,10 +34,22 @@ const configEntryLookup = {
   [KEY_PFACTORY]: (_taskArgs, _contractAddress) => ({
     [KEY_ADDRESS]: _contractAddress,
   }),
-  [KEY_PROUTER]: (_taskArgs, _contractAddress) => ({
+  [KEY_PNETWORKHUB]: (_taskArgs, _contractAddress) => ({
     [KEY_ADDRESS]: _contractAddress,
   }),
-  [KEY_STATEMANAGER]: (_taskArgs, _contractAddress) => ({
+  [KEY_PREGISTRY]: (_taskArgs, _contractAddress) => ({
+    [KEY_ADDRESS]: _contractAddress,
+  }),
+  [KEY_SLASHER]: (_taskArgs, _contractAddress) => ({
+    [KEY_ADDRESS]: _contractAddress,
+  }),
+  [KEY_GOVERNANCE_MESSAGE_EMITTER]: (_taskArgs, _contractAddress) => ({
+    [KEY_ADDRESS]: _contractAddress,
+  }),
+  [KEY_GOVERNANCE_MESSAGE_VERIFIER]: (_taskArgs, _contractAddress) => ({
+    [KEY_ADDRESS]: _contractAddress,
+  }),
+  [KEY_EPOCHS_MANAGER]: (_taskArgs, _contractAddress) => ({
     [KEY_ADDRESS]: _contractAddress,
   }),
 }
@@ -91,10 +107,11 @@ const deployContractErrorHandler = R.curry((hre, taskArgs, _err) =>
     : console.error(_err)
 )
 
+const getContractAddress = (hre, _name) =>
+  hre.run(TASK_NAME_DEPLOY_INIT).then(utils.getKeyFromObjThroughPath([_name, KEY_ADDRESS]))
+
 const deployContractTask = (taskArgs, hre) =>
-  hre
-    .run(TASK_NAME_DEPLOY_INIT)
-    .then(utils.getKeyFromObjThroughPath([taskArgs.configurableName, KEY_ADDRESS]))
+  getContractAddress(hre, taskArgs.configurableName)
     .then(attachToContract(hre, taskArgs))
     .catch(deployContractErrorHandler(hre, taskArgs))
 
@@ -113,3 +130,9 @@ subtask(TASK_NAME_DEPLOY_CONTRACT, TASK_DESC_DEPLOY_CONTRACT)
     types.json
   )
   .setAction(deployContractTask)
+
+module.exports = {
+  getContractAddress,
+  createConfigEntryFromTaskArgs,
+  TASK_NAME_DEPLOY_CONTRACT,
+}

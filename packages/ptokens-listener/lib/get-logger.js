@@ -1,12 +1,11 @@
 const log4js = require('log4js')
 const pTokensUtils = require('ptokens-utils')
 const constants = require('ptokens-constants')
-
 const config = require('../config')
 
 const loggingParams = {
   stdoutLevel: 'debug',
-  logFileRelativePath: `./logs/listener-${config[constants.config.KEY_NETWORK_ID]}.log`,
+  logFileRelativePath: `./logs/${config[constants.config.KEY_CHAIN_NAME]}-listener.log`, // FIXME: conflicts with queue & request listeners
 }
 
 // Important: ptokens-utils logs are not shown when the

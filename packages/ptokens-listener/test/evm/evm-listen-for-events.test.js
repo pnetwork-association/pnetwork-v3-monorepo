@@ -16,7 +16,7 @@ describe('EVM listen for events', () => {
 
     it('Should call callback with the standardized event', async () => {
       const state = {
-        [constants.state.KEY_NETWORK_ID]: '0xe15503e4',
+        [constants.state.KEY_NETWORK_ID]: '0xf9b459a1',
         [constants.state.KEY_PROVIDER_URL]: 'provider-url',
         [STATE_KEY_EVENTS]: [
           {
@@ -25,9 +25,8 @@ describe('EVM listen for events', () => {
             [constants.config.KEY_CONTRACTS]: ['0xdac17f958d2ee523a2206206994597c13d831ec7'],
           },
           {
-            [constants.config.KEY_NAME]:
-              'UserOperation(uint256 nonce,string destinationAccount,bytes4 destinationNetworkId,string underlyingAssetName,string underlyingAssetSymbol,uint256 underlyingAssetDecimals,address underlyingAssetTokenAddress,bytes4 underlyingAssetNetworkId,address assetTokenAddress,uint256 assetAmount,bytes userData,bytes32 optionsMask)',
-            [constants.config.KEY_CONTRACTS]: ['0xEFcD9f9eE77A79A6E2536cb3759Ed3c00107a398'],
+            [constants.config.KEY_NAME]: constants.evm.events.USER_OPERATION_SIGNATURE,
+            [constants.config.KEY_CONTRACTS]: ['0xd2bac275fffdbdd23ecea72f4b161b3af90300a3'],
           },
         ],
       }
@@ -36,7 +35,7 @@ describe('EVM listen for events', () => {
 
       const onListenerSpy = jest
         .spyOn(fakeProvider, 'on')
-        .mockImplementationOnce((_filter, _func) => _func(logs[0]))
+        .mockImplementationOnce((_filter, _func) => _func(logs[3]))
         .mockImplementationOnce((_filter, _func) =>
           _func(logs[1]).then(_ =>
             // exit from the never-ending listenForEvmEvents
@@ -44,7 +43,7 @@ describe('EVM listen for events', () => {
           )
         )
       const getDefaultProviderSpy = jest
-        .spyOn(ethers, 'getDefaultProvider')
+        .spyOn(ethers, 'JsonRpcProvider')
         .mockImplementation(_url => fakeProvider)
       const { listenForEvmEvents } = require('../../lib/evm/evm-listen-for-events')
       const callback = jest.fn()
@@ -53,7 +52,9 @@ describe('EVM listen for events', () => {
         await listenForEvmEvents(state, callback)
       } catch (_err) {
         if (_err.message === 'terminate') {
-          expect(getDefaultProviderSpy).toHaveBeenNthCalledWith(1, 'provider-url')
+          expect(getDefaultProviderSpy).toHaveBeenNthCalledWith(1, 'provider-url', undefined, {
+            polling: true,
+          })
           expect(onListenerSpy).toHaveBeenCalledTimes(2)
           expect(onListenerSpy).toHaveBeenNthCalledWith(
             1,
@@ -66,25 +67,32 @@ describe('EVM listen for events', () => {
           expect(onListenerSpy).toHaveBeenNthCalledWith(
             2,
             {
-              address: '0xEFcD9f9eE77A79A6E2536cb3759Ed3c00107a398',
-              topics: ['0xba98a314fb19bf102109515e22a4e48acbbe8f5610a657a9ed6cb3327afbc2e2'],
+              address: '0xd2bac275fffdbdd23ecea72f4b161b3af90300a3',
+              topics: ['0x71d1a48fb10648c4ca31c3abd9a916f0f6545176b2387214ed134a71c924e79f'],
             },
             expect.anything()
           )
+
           expect(callback).toHaveBeenCalledTimes(2)
           expect(callback).toHaveBeenNthCalledWith(1, {
             [constants.db.KEY_ID]:
-              'transfer_0x36f48a80848eeb2b49d59aac077aedf775f75463ed7d34b531750329dceaa8b5',
+              'transfer_0xc43c1614b094019835a81f1f889a679e109dd5efe2542c1050888f77985feeb1',
             [constants.db.KEY_STATUS]: constants.db.txStatus.DETECTED,
             [constants.db.KEY_ASSET_AMOUNT]: '200000000',
             [constants.db.KEY_USER_DATA]: null,
             [constants.db.KEY_EVENT_NAME]: 'Transfer',
+            [constants.db.KEY_EVENT_ARGS]: expect.any(Array),
             [constants.db.KEY_ASSET_TOKEN_ADDRESS]: null,
             [constants.db.KEY_PROPOSAL_TS]: null,
             [constants.db.KEY_PROPOSAL_TX_HASH]: null,
+            [constants.db.KEY_PROTOCOL_FEE_ASSET_AMOUNT]: null,
             [constants.db.KEY_WITNESSED_TS]: expect.stringMatching(ISO_FORMAT_REGEX),
             [constants.db.KEY_FINAL_TX_HASH]: null,
             [constants.db.KEY_FINAL_TX_TS]: null,
+            [constants.db.KEY_IS_FOR_PROTOCOL]: null,
+            [constants.db.KEY_FORWARD_DESTINATION_NETWORK_ID]: null,
+            [constants.db.KEY_FORWARD_NETWORK_FEE_ASSET_AMOUNT]: null,
+            [constants.db.KEY_NETWORK_FEE_ASSET_AMOUNT]: null,
             [constants.db.KEY_OPTIONS_MASK]: null,
             [constants.db.KEY_NONCE]: null,
             [constants.db.KEY_DESTINATION_ACCOUNT]: '0x31c43E2be5BCd4EDb512aD47A0F1A93aA22941b9',
@@ -98,45 +106,52 @@ describe('EVM listen for events', () => {
             [constants.db.KEY_ORIGINATING_NETWORK_ID]: null,
             [constants.db.KEY_ORIGINATING_TX_HASH]: null,
             [constants.db.KEY_ORIGINATING_BLOCK_HASH]: null,
-            [constants.db.KEY_NETWORK_ID]: '0xe15503e4',
+            [constants.db.KEY_NETWORK_ID]: '0xf9b459a1',
             [constants.db.KEY_BLOCK_HASH]:
               '0x460635ecc1efa7230644fe6c2c01635f873663e81afc8c727947da5560ed12e5',
             [constants.db.KEY_TX_HASH]:
               '0x37eeb55eab329c73aeac6a172faa6c77e7013cd0cda0fc472274c5faf0df7003',
           })
+
           expect(callback).toHaveBeenNthCalledWith(2, {
             [constants.db.KEY_ID]:
-              'useroperation_0xbe8b7571ab50cc63da7f1d9f6b22802922aa2e242a5c7400c493ba9c831b24aa',
+              'useroperation_0x22e7253e862e3e1d4b59570bd796c3ff8c56e773f991529795605d6db8999fc0',
             [constants.db.KEY_STATUS]: constants.db.txStatus.DETECTED,
             [constants.db.KEY_EVENT_NAME]: constants.db.eventNames.USER_OPERATION,
 
-            [constants.db.KEY_NONCE]: '6648',
-            [constants.db.KEY_ASSET_AMOUNT]: '1000000000000000000',
-            [constants.db.KEY_DESTINATION_ACCOUNT]: '0xdDb5f4535123DAa5aE343c24006F4075aBAF5F7B',
-            [constants.db.KEY_DESTINATION_NETWORK_ID]: '0xe15503e4',
+            [constants.db.KEY_NONCE]: '88418',
+            [constants.db.KEY_ASSET_AMOUNT]: '100000000000',
+            [constants.db.KEY_EVENT_ARGS]: expect.any(Array),
+            [constants.db.KEY_DESTINATION_ACCOUNT]: '0xa41657bf225F8Ec7E2010C89c3F084172948264D',
+            [constants.db.KEY_DESTINATION_NETWORK_ID]: '0xf9b459a1',
 
             [constants.db.KEY_FINAL_TX_HASH]: null,
             [constants.db.KEY_FINAL_TX_TS]: null,
-            [constants.db.KEY_UNDERLYING_ASSET_NAME]: 'Token',
-            [constants.db.KEY_UNDERLYING_ASSET_SYMBOL]: 'TKN',
+            [constants.db.KEY_FORWARD_DESTINATION_NETWORK_ID]: '0x5aca268b',
+            [constants.db.KEY_FORWARD_NETWORK_FEE_ASSET_AMOUNT]: '100',
+            [constants.db.KEY_NETWORK_FEE_ASSET_AMOUNT]: '100',
+            [constants.db.KEY_IS_FOR_PROTOCOL]: false,
+            [constants.db.KEY_UNDERLYING_ASSET_NAME]: 'pTokens PNT',
+            [constants.db.KEY_UNDERLYING_ASSET_SYMBOL]: 'PNT',
             [constants.db.KEY_UNDERLYING_ASSET_DECIMALS]: 18,
-            [constants.db.KEY_UNDERLYING_ASSET_NETWORK_ID]: '0xe15503e4',
+            [constants.db.KEY_UNDERLYING_ASSET_NETWORK_ID]: '0xf9b459a1',
             [constants.db.KEY_UNDERLYING_ASSET_TOKEN_ADDRESS]:
-              '0x49a5D1CF92772328Ad70f51894FD632a14dF12C9',
+              '0xB6bcae6468760bc0CDFb9C8ef4Ee75C9dd23e1Ed',
             [constants.db.KEY_OPTIONS_MASK]:
               '0x0000000000000000000000000000000000000000000000000000000000000000',
             [constants.db.KEY_ORIGINATING_NETWORK_ID]: null,
-            [constants.db.KEY_ORIGINATING_ADDRESS]: null,
+            [constants.db.KEY_ORIGINATING_ADDRESS]: '0xa41657bf225f8ec7e2010c89c3f084172948264d',
             [constants.db.KEY_ORIGINATING_BLOCK_HASH]: null,
             [constants.db.KEY_ORIGINATING_TX_HASH]: null,
-            [constants.db.KEY_NETWORK_ID]: '0xe15503e4',
+            [constants.db.KEY_NETWORK_ID]: '0xf9b459a1',
             [constants.db.KEY_BLOCK_HASH]:
-              '0xbaa9e89896c03366c3578a4568a6defd4b127e4b09bb06b67a12cb1a4c332376',
+              '0xf23f2167fa252212acddad3c7e0d292c59dab1e0f7deca2b8f98b1a9383b53e2',
             [constants.db.KEY_TX_HASH]:
-              '0x0907eefad58dfcb2cbfad66d29accd4d6ddc345851ec1d180b23122084fa2834',
+              '0xec42da425ecce69f5417b76822723289fe1f6bca3734fc2cbef1f1a0fd1a6445',
             [constants.db.KEY_PROPOSAL_TX_HASH]: null,
             [constants.db.KEY_PROPOSAL_TS]: null,
-            [constants.db.KEY_ASSET_TOKEN_ADDRESS]: '0x49a5D1CF92772328Ad70f51894FD632a14dF12C9',
+            [constants.db.KEY_PROTOCOL_FEE_ASSET_AMOUNT]: '0',
+            [constants.db.KEY_ASSET_TOKEN_ADDRESS]: '0xB6bcae6468760bc0CDFb9C8ef4Ee75C9dd23e1Ed',
             [constants.db.KEY_USER_DATA]: '0x',
             [constants.db.KEY_WITNESSED_TS]: expect.stringMatching(ISO_FORMAT_REGEX),
           })

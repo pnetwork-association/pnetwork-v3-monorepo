@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity 0.8.17;
+pragma solidity ^0.8.20;
 
 /**
  * @title IPFactory
@@ -35,7 +35,5 @@ interface IPFactory {
         bytes4 underlyingAssetNetworkId
     ) external view returns (address);
 
-    function setRouter(address _router) external;
-
-    function setStateManager(address _stateManager) external;
+    function setHub(address _hub) external;
 }
