@@ -114,11 +114,27 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
         uint64 challengeDuration_,
         uint32 expectedSourceChainId
     ) GovernanceMessageHandler(telepathyRouter, governanceMessageVerifier, expectedSourceChainId) {
-        // NOTE: see the comment within _checkNearEndOfEpochStartChallenge
         maxChallengePeriodDuration =
             baseChallengePeriodDuration_ +
             ((maxOperationsInQueue_ ** 2) * kChallengePeriod_) -
             kChallengePeriod_;
+
+        // Queue operations are not allowed in lockdown mode, meaning when
+        //
+        // block.timestamp >= currentEpochEndTimestamp - 1 hours - maxChallengePeriodDuration
+        //
+        // We want the challenge mechanism enabled also when the system is in lockdown mode,
+        // but challenges shouldn't be started and eventually solved when it's less than one hour to
+        // the epoch's ending, to permit slashing messages to be propagated to the other chains.
+        //
+        // This means that the following condition should hold:
+        //
+        // currentEpochEndTimestamp - 1 hours - maxChallengePeriodDuration < currentEpochEndTimestamp - 1 hours - challengeDuration
+        //
+        // This implies:
+        //
+        // challengeDuration <=  maxChallengePeriodDuration (see reverting condition in the constructor)
+        //
         if (challengeDuration_ > maxChallengePeriodDuration) {
             revert ChallengeDurationMustBeLessOrEqualThanMaxChallengePeriodDuration(
                 challengeDuration_,
@@ -239,12 +255,7 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
         uint256 startFirstEpochTimestamp = IEpochsManager(epochsManager).startFirstEpochTimestamp();
         uint256 currentEpochEndTimestamp = startFirstEpochTimestamp + ((currentEpoch + 1) * epochDuration);
 
-        // If a relayer queues a malicious operation shortly before lockdown mode begins, what happens?
-        // When lockdown mode is initiated, both sentinels and guardians lose their ability to cancel operations.
-        // Consequently, the malicious operation may be executed immediately after the lockdown period ends,
-        // especially if the operation's queue time is significantly shorter than the lockdown duration.
-        // To mitigate this risk, operations should not be queued if the max challenge period makes
-        // the operation challenge period finish after 1 hour before the end of an epoch.
+        // This is to allow executions up to 1 hour earlier than the epoch's ending
         return block.timestamp + maxChallengePeriodDuration >= currentEpochEndTimestamp - 1 hours;
     }
 
@@ -678,14 +689,7 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
         uint256 startFirstEpochTimestamp = IEpochsManager(epochsManager).startFirstEpochTimestamp();
         uint256 currentEpochEndTimestamp = startFirstEpochTimestamp + ((currentEpoch + 1) * epochDuration);
 
-        // NOTE: 1 hours = threshold that a guardian/sentinel or challenger has time to resolve the challenge
-        // before the epoch ends. Not setting this threshold would mean that it is possible
-        // to open a challenge that can be solved an instant before the epoch change causing problems.
-        // It is important that the system enters in lockdown mode before stopping to start challenges.
-        // In this way we are sure that no malicious operations can be queued when keep alive mechanism is disabled.
-        // currentEpochEndTimestamp - 1 hours - challengeDuration <= currentEpochEndTimestamp - 1 hours - maxChallengePeriodDuration
-        // challengeDuration <=  maxChallengePeriodDuration
-        // challengeDuration <= baseChallengePeriodDuration + (maxOperationsInQueue * maxOperationsInQueue * kChallengePeriod) - kChallengePeriod
+        // This is to allow solving challenges up to one hour earlier than the epoch's ending
         if (block.timestamp + challengeDuration > currentEpochEndTimestamp - 1 hours) {
             revert NearToEpochEnd();
         }
