@@ -9,6 +9,7 @@ module.exports = {
   KEY_ADDRESS: 'address',
   KEY_PTOKEN_UNDERLYING_ASSET_ADDRESS: 'underlyingAssetAddress',
   KEY_PTOKEN_UNDERLYING_ASSET_NETWORKID: 'underlyingAssetNetworkId',
+  KEY_PTOKEN_UNDERLYING_ASSET_CHAIN_NAME: 'underlyingAssetChainName',
   KEY_PNETWORKHUB: 'hub',
   KEY_PFACTORY: 'pFactory',
   KEY_EPOCHS_MANAGER: 'epochsManager',
