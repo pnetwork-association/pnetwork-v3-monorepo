@@ -28,7 +28,7 @@
     "lint-staged": "^13.2.2",
     "mocha": "^10.2.0",
     "mongodb-memory-server": "^8.11.4",
-    "nx": "15.7.1",
+    "nx": "15.9.7",
     "nyc": "^15.1.0",
     "prettier": "^2.6.2",
     "prettier-plugin-solidity": "^1.1.3",
