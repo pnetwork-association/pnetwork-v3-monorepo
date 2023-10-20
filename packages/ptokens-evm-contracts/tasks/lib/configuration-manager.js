@@ -80,13 +80,21 @@ const checkHubIsDeployed = hre =>
 const getPTokenEntryFromPTokenAddress = (hre, _address) =>
   getDeploymentFromHRE(hre)
     .then(R.prop(KEY_PTOKEN_LIST))
-    .then(R.find(R.compose(R.equals(_address), R.toLower, R.prop(KEY_ADDRESS))))
+    .then(R.find(R.compose(R.equals(R.toLower(_address)), R.toLower, R.prop(KEY_ADDRESS))))
     .then(utils.rejectIfNil(`Unable to find a suitable pToken for '${hre.network.name}'`))
 
-const getPTokenEntryFromUnderlyingAsset = (hre, _underlyingAssetAddress) =>
+const getPTokenEntryFromUnderlyingAssetAddress = (hre, _underlyingAssetAddress) =>
   getDeploymentFromHRE(hre)
     .then(R.prop(KEY_PTOKEN_LIST))
-    .then(R.find(R.propEq(_underlyingAssetAddress, KEY_PTOKEN_UNDERLYING_ASSET_ADDRESS)))
+    .then(
+      R.find(
+        R.compose(
+          R.equals(R.toLower(_underlyingAssetAddress)),
+          R.toLower,
+          R.prop(KEY_PTOKEN_UNDERLYING_ASSET_ADDRESS)
+        )
+      )
+    )
     .then(utils.rejectIfNil(`Underlying asset not found: '${_underlyingAssetAddress}'`))
 
 module.exports = {
@@ -102,5 +110,5 @@ module.exports = {
   maybeAddEmptyUnderlyingAssetList,
   getGovernanceMessageEmitterAddress,
   getPTokenEntryFromPTokenAddress,
-  getPTokenEntryFromUnderlyingAsset,
+  getPTokenEntryFromUnderlyingAssetAddress,
 }

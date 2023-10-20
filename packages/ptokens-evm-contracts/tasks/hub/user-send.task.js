@@ -1,4 +1,5 @@
 const { types } = require('hardhat/config')
+const R = require('ramda')
 const {
   PARAM_NAME_GASPRICE,
   PARAM_NAME_GAS,
@@ -14,14 +15,14 @@ const {
   FLAG_DESC_APPROVE,
   KEY_ADDRESS,
   KEY_PTOKEN_UNDERLYING_ASSET_ADDRESS,
+  KEY_PTOKEN_UNDERLYING_ASSET_CHAIN_NAME,
 } = require('../constants')
 const {
   getHubAddress,
   getNetworkIdFromChainName,
   getPTokenEntryFromPTokenAddress,
-  getPTokenEntryFromUnderlyingAsset,
+  getPTokenEntryFromUnderlyingAssetAddress,
 } = require('../lib/configuration-manager')
-const { KEY_UNDERLYING_ASSET_NETWORK_ID } = require('ptokens-constants/lib/db')
 
 const TASK_NAME = 'hub:usersend'
 const TASK_DESC = 'Swap tokens on pNetwork'
@@ -41,7 +42,7 @@ const userSend = async (taskArgs, hre) => {
   const destinationChainName = taskArgs[PARAM_NAME_DEST_CHAIN]
 
   const pTokenEntry = await getPTokenEntryFromPTokenAddress(hre, assetToSwapAddress).catch(_ =>
-    getPTokenEntryFromUnderlyingAsset(hre, assetToSwapAddress)
+    getPTokenEntryFromUnderlyingAssetAddress(hre, assetToSwapAddress)
   )
 
   const pTokenAddress = pTokenEntry[KEY_ADDRESS]
@@ -54,10 +55,9 @@ const userSend = async (taskArgs, hre) => {
   console.log('Destination chain:', destinationChainName)
 
   const selectedNetwork = hre.network.name
-  await hre.changeNetwork('polygon')
-  console.log('hre.network.name:', hre.network.name)
+  const underlyingAssetChainName = pTokenEntry[KEY_PTOKEN_UNDERLYING_ASSET_CHAIN_NAME]
+  await hre.changeNetwork(underlyingAssetChainName)
   const underlyingAsset = await hre.ethers.getContractAt('ERC20', underlyingAssetAddress)
-  const underlyingAssetChainName = pTokenEntry[KEY_UNDERLYING_ASSET_NETWORK_ID]
   const underlyingAssetName = await underlyingAsset.name()
   const underlyingAssetSymbol = await underlyingAsset.symbol()
   const underlyingAssetDecimals = await underlyingAsset.decimals()
@@ -70,8 +70,8 @@ const userSend = async (taskArgs, hre) => {
   const networkFeeAssetAmount = 1000
   const forwardNetworkFeeAssetAmount = 2000
 
-  if (taskArgs[OPT_NAME_APPROVE]) {
-    if (assetToSwapAddress === underlyingAssetAddress) {
+  if (taskArgs[FLAG_NAME_APPROVE]) {
+    if (R.toLower(assetToSwapAddress) === R.toLower(underlyingAssetAddress)) {
       console.log(`pToken address to approve for: ${pTokenAddress}`)
       console.log(`Approving ${parsedAmount} from ${assetToSwapAddress} for ${pTokenAddress}...`)
       await underlyingAsset.approve(pTokenAddress, parsedAmount)

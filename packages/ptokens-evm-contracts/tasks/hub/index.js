@@ -4,6 +4,7 @@ const protocolQueue = require('./queue.task')
 const protocolCancel = require('./cancel.task')
 const protocolExecute = require('./execute.task')
 const getProperties = require('./properties.task')
+const userOperations = require('./user-send.task')
 const TASK_CONSTANTS = require('../constants')
 
 const setCommonOptionalParams = () =>
@@ -31,4 +32,5 @@ module.exports = {
   ...protocolQueue,
   ...protocolCancel,
   ...protocolExecute,
+  ...userOperations,
 }
