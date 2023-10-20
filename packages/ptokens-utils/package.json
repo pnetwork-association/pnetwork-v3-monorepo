@@ -23,7 +23,7 @@
     "ethers": "6.3.0",
     "inquirer": "8.2.3",
     "jsonrpc-lite": "2.2.0",
-    "mongodb": "5.5.0",
+    "mongodb": "5.8.0",
     "node-fetch": "2.6.11",
     "ptokens-constants": "*",
     "ramda": "0.29.0",
