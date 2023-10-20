@@ -1,10 +1,11 @@
+const ethers = require('ethers')
+const R = require('ramda')
 const {
   STATE_ONCHAIN_REQUESTS,
   STATE_DETECTED_DB_REPORTS,
   STATE_PROPOSED_DB_REPORTS,
   STATE_FINALIZED_DB_REPORTS,
 } = require('../../lib/state/constants')
-const R = require('ramda')
 const { db, logic } = require('ptokens-utils')
 const constants = require('ptokens-constants')
 
@@ -25,14 +26,11 @@ describe('Main EVM flow for transaction proposal tests', () => {
     })
 
     beforeEach(async () => {
-      await collection.insertMany(proposedEvents)
-    })
-
-    afterEach(async () => {
+      jest.restoreAllMocks()
       await Promise.all(proposedEvents.map(R.prop('_id'))).then(_ids =>
         Promise.all(_ids.map(db.deleteReport(collection)))
       )
-      jest.restoreAllMocks()
+      await collection.insertMany(proposedEvents)
     })
 
     afterAll(async () => {
@@ -40,7 +38,6 @@ describe('Main EVM flow for transaction proposal tests', () => {
     })
 
     it('Should finalize proposed events which challenge period has expired', async () => {
-      const ethers = require('ethers')
       const { utils } = require('ptokens-utils')
 
       const finalizedTxHashes = [

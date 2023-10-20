@@ -1,11 +1,11 @@
 const stateConstants = require('../../lib/state/constants')
 const constants = require('ptokens-constants')
+const { db } = require('ptokens-utils')
 
 describe('Tests for the listener interface', () => {
   describe('listenForEvents', () => {
     beforeEach(() => {
       jest.resetAllMocks()
-      jest.resetModules()
     })
 
     const getState = _networkId => ({
@@ -26,7 +26,6 @@ describe('Tests for the listener interface', () => {
     test.each([['0xd41b1c5b'], ['0xf9b459a1'], ['0xfc8ebb2b']])(
       'Should listen to EVM events for chain id %p',
       async _networkId => {
-        const { db } = require('ptokens-utils')
         const evmListener = require('../../lib/evm/evm-listen-for-events')
 
         const insertReportSpy = jest

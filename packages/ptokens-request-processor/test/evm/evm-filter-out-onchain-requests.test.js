@@ -1,3 +1,4 @@
+const ethers = require('ethers')
 const { db } = require('ptokens-utils')
 const constants = require('ptokens-constants')
 const { jestMockContractConstructor } = require('./mock/jest-utils')
@@ -17,7 +18,6 @@ describe('Tests for already processed requests filtering', () => {
 
     beforeEach(async () => {
       jest.resetAllMocks()
-      jest.resetModules()
       await collection.deleteMany({})
       await collection.insertMany(detectedEvents)
     })
@@ -27,7 +27,6 @@ describe('Tests for already processed requests filtering', () => {
     })
 
     it('Should update the onchain requests w/ the correct status', async () => {
-      const ethers = require('ethers')
       const mockOperationStatusOf = jest
         .fn()
         .mockResolvedValueOnce('0x01')

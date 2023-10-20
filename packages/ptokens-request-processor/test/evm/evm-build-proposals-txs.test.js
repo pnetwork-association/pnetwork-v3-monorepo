@@ -1,8 +1,9 @@
+const ethers = require('ethers')
 const {
   STATE_DETECTED_DB_REPORTS,
   STATE_PROPOSED_DB_REPORTS,
 } = require('../../lib/state/constants')
-const { validation } = require('ptokens-utils')
+const { utils, validation } = require('ptokens-utils')
 const constants = require('ptokens-constants')
 const detectedEvents = require('../samples/detected-report-set')
 const errors = require('../../lib/errors')
@@ -34,16 +35,11 @@ describe('Build proposals test for EVM', () => {
     { value: 1 },
   ]
   describe('makeProposalContractCall', () => {
-    beforeAll(() => {
-      jest.resetModules()
-    })
-
     beforeEach(() => {
       jest.resetAllMocks()
     })
 
     it('Should enqueue a UserOperation as expected', async () => {
-      const ethers = require('ethers')
       const proposedTxHashes = [
         '0xd656ffac17b71e2ea2e24f72cd4c15c909a0ebe1696f8ead388eb268268f1cbf',
       ]
@@ -92,17 +88,11 @@ describe('Build proposals test for EVM', () => {
     const privKey = '0xdf57089febbacf7ba0bc227dafbffa9fc08a93fdc68e1e42411a14efcf23656e'
     const gpgEncryptedFile = './identity.gpg'
 
-    beforeAll(() => {
-      jest.resetModules()
-    })
-
     beforeEach(() => {
       jest.resetAllMocks()
     })
 
     it('Should build the proposals and add them to the state', async () => {
-      const ethers = require('ethers')
-      const { utils } = require('ptokens-utils')
       const proposedTxHashes = [
         '0xd656ffac17b71e2ea2e24f72cd4c15c909a0ebe1696f8ead388eb268268f1cbf',
       ]
@@ -177,9 +167,6 @@ describe('Build proposals test for EVM', () => {
     })
 
     it('Should build the proposal and handle already queued error', async () => {
-      const ethers = require('ethers')
-      const { utils } = require('ptokens-utils')
-
       jest.spyOn(ethers, 'JsonRpcProvider').mockReturnValue({})
       jest.spyOn(ethers, 'Wallet').mockImplementation(_ => jest.fn())
       jest.spyOn(utils, 'readIdentityFileSync').mockReturnValue(privKey)
@@ -242,9 +229,6 @@ describe('Build proposals test for EVM', () => {
     })
 
     it('Should build the proposal and handle underpriced error', async () => {
-      const ethers = require('ethers')
-      const { utils } = require('ptokens-utils')
-
       jest.spyOn(ethers, 'JsonRpcProvider').mockReturnValue({})
       jest.spyOn(ethers, 'Wallet').mockImplementation(_ => jest.fn())
       jest.spyOn(utils, 'readIdentityFileSync').mockReturnValue(privKey)

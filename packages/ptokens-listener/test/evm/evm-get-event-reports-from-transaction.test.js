@@ -20,7 +20,7 @@ describe('Get EVM event reports', () => {
         getTransactionReceipt: getTransactionReceiptSpy,
       }
       const getDefaultProviderSpy = jest
-        .spyOn(ethers, 'getDefaultProvider')
+        .spyOn(ethers, 'JsonRpcProvider')
         .mockImplementation(_url => fakeProvider)
 
       const {
@@ -35,7 +35,9 @@ describe('Get EVM event reports', () => {
         txHash,
         constants.evm.events.OPERATION_EXECUTED_SIGNATURE
       )
-      expect(getDefaultProviderSpy).toHaveBeenNthCalledWith(1, provider)
+      expect(getDefaultProviderSpy).toHaveBeenNthCalledWith(1, provider, undefined, {
+        polling: true,
+      })
       expect(getTransactionReceiptSpy).toHaveBeenNthCalledWith(1, txHash)
       expect(ret).toStrictEqual([
         {

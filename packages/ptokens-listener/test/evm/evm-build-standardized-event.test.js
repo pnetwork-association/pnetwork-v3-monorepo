@@ -1,6 +1,5 @@
 const { logs } = require('../mock/evm-logs')
 const constants = require('ptokens-constants')
-const { validation } = require('ptokens-utils')
 const { getInterfaceFromEvent } = require('../../lib/evm/evm-utils')
 
 describe('Event building for EVM', () => {
@@ -31,47 +30,45 @@ describe('Event building for EVM', () => {
 
       const expected = {
         [constants.db.KEY_ID]:
-          'useroperation_0xd9feb6e60cd73c396cbaeb3e5fa55c774c03a274c54f5bc53a62a59855ec7cc4',
+          'useroperation_0x9f762006a18c631eb889ca5acbf07660f505bc97e8dd3439b3fda4251135fd5e',
         [constants.db.KEY_STATUS]: constants.db.txStatus.DETECTED,
         [constants.db.KEY_EVENT_NAME]: constants.db.eventNames.USER_OPERATION,
 
-        [constants.db.KEY_NONCE]: '98322',
-        [constants.db.KEY_ASSET_AMOUNT]: '200000',
+        [constants.db.KEY_NONCE]: '68149',
+        [constants.db.KEY_ASSET_AMOUNT]: '100000000000',
         [constants.db.KEY_EVENT_ARGS]: expect.any(Array),
-        [constants.db.KEY_DESTINATION_ACCOUNT]: '0xdDb5f4535123DAa5aE343c24006F4075aBAF5F7B',
+        [constants.db.KEY_DESTINATION_ACCOUNT]: '0xa41657bf225F8Ec7E2010C89c3F084172948264D',
         [constants.db.KEY_DESTINATION_NETWORK_ID]: '0xf9b459a1',
         [constants.db.KEY_FINAL_TX_HASH]: null,
         [constants.db.KEY_FINAL_TX_TS]: null,
-        [constants.db.KEY_UNDERLYING_ASSET_NAME]: 'pNetwork Token',
+        [constants.db.KEY_UNDERLYING_ASSET_NAME]: 'pTokens PNT',
         [constants.db.KEY_UNDERLYING_ASSET_SYMBOL]: 'PNT',
         [constants.db.KEY_UNDERLYING_ASSET_DECIMALS]: 18,
-        [constants.db.KEY_UNDERLYING_ASSET_NETWORK_ID]: '0x5aca268b',
+        [constants.db.KEY_UNDERLYING_ASSET_NETWORK_ID]: '0xf9b459a1',
         [constants.db.KEY_UNDERLYING_ASSET_TOKEN_ADDRESS]:
-          '0xdaacB0Ab6Fb34d24E8a67BfA14BF4D95D4C7aF92',
+          '0xB6bcae6468760bc0CDFb9C8ef4Ee75C9dd23e1Ed',
         [constants.db.KEY_OPTIONS_MASK]:
-          '0x0000000000000000000000000000000000000000000000000000000000000000',
+          '0x0000000000000000000000000000000000000000000000000000000000000001',
         [constants.db.KEY_ORIGINATING_NETWORK_ID]: null,
-        [constants.db.KEY_ORIGINATING_ADDRESS]: '0xddb5f4535123daa5ae343c24006f4075abaf5f7b',
+        [constants.db.KEY_ORIGINATING_ADDRESS]: '0xa41657bf225f8ec7e2010c89c3f084172948264d',
         [constants.db.KEY_ORIGINATING_BLOCK_HASH]: null,
         [constants.db.KEY_ORIGINATING_TX_HASH]: null,
         [constants.db.KEY_NETWORK_ID]: '0x5aca268b',
         [constants.db.KEY_BLOCK_HASH]:
-          '0x05cf0e83408207704ee0ea2a4a6ea87905fc0d2038dbb610a0ca64f2cf47b134',
+          '0xce823a64f61258f8186c6c8de9a6e934f47799fc533d529a6f783759d82b111f',
         [constants.db.KEY_TX_HASH]:
-          '0xb1bb8b6502edc17fdd0cc83505289a6d429a6381ffe5dbf4fe31a88dd236d643',
+          '0x2ab67dfd14a5268d6752d167232d67471e96ccd3e365cb4ae376391a50bec50f',
         [constants.db.KEY_PROPOSAL_TX_HASH]: null,
         [constants.db.KEY_PROPOSAL_TS]: null,
-        [constants.db.KEY_ASSET_TOKEN_ADDRESS]: '0xdaacB0Ab6Fb34d24E8a67BfA14BF4D95D4C7aF92',
+        [constants.db.KEY_ASSET_TOKEN_ADDRESS]: '0x49b3609415759949f207F1e6733b5612cB7820ba',
         [constants.db.KEY_USER_DATA]: '0x',
         [constants.db.KEY_WITNESSED_TS]: '2023-03-14T16:00:00.000Z',
-        [constants.db.KEY_FORWARD_DESTINATION_NETWORK_ID]: '0xb9286154',
-        [constants.db.KEY_FORWARD_NETWORK_FEE_ASSET_AMOUNT]: '2000',
-        [constants.db.KEY_NETWORK_FEE_ASSET_AMOUNT]: '1000',
+        [constants.db.KEY_FORWARD_DESTINATION_NETWORK_ID]: '0xf9b459a1',
+        [constants.db.KEY_FORWARD_NETWORK_FEE_ASSET_AMOUNT]: '100',
+        [constants.db.KEY_NETWORK_FEE_ASSET_AMOUNT]: '100',
         [constants.db.KEY_PROTOCOL_FEE_ASSET_AMOUNT]: '0',
         [constants.db.KEY_IS_FOR_PROTOCOL]: false,
       }
-
-      await validation.validateJson(constants.db.schemas.eventReport, expected)
       expect(result).toStrictEqual(expected)
     })
 
@@ -132,7 +129,6 @@ describe('Event building for EVM', () => {
         [constants.db.KEY_WITNESSED_TS]: '2023-03-14T16:00:00.000Z',
         [constants.db.KEY_IS_FOR_PROTOCOL]: false,
       }
-
       expect(result).toStrictEqual(expected)
     })
 

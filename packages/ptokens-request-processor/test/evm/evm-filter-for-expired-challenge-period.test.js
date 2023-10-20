@@ -1,17 +1,20 @@
+const ethers = require('ethers')
 const constants = require('ptokens-constants')
 const proposedReports = require('../samples/proposed-report-set')
 const { jestMockContractConstructor } = require('./mock/jest-utils')
 const { STATE_PROPOSED_DB_REPORTS } = require('../../lib/state/constants')
 
 describe('Challenge period expired report filtering', () => {
+  beforeEach(() => {
+    jest.restoreAllMocks()
+  })
+
   afterEach(() => {
     jest.useRealTimers()
-    jest.restoreAllMocks()
   })
 
   describe('maybefilterForExpiredProposalsAndPutThemInState', () => {
     it('Should filter the correct reports', async () => {
-      const ethers = require('ethers')
       const now = '2023-04-04T14:05:00.000Z'
 
       const mockChallengePeriodOf = jest
@@ -48,7 +51,6 @@ describe('Challenge period expired report filtering', () => {
     })
 
     it('Should add a stored operation even if its challenge period is not queued', async () => {
-      const ethers = require('ethers')
       const now = '2023-04-04T14:05:00.000Z'
 
       const mockChallengePeriodOf = jest.fn().mockResolvedValueOnce([0, 0]) // Contract return this when operation is not queued
