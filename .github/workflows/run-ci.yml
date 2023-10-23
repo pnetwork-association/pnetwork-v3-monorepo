@@ -1,7 +1,9 @@
 name: CI
 on:
   pull_request:
-    branches: ['master']
+    branches:
+      - master
+      - develop
 
 jobs:
   nx:
@@ -17,7 +19,7 @@ jobs:
           cache: 'npm'
       - uses: nrwl/nx-set-shas@v3
         with:
-          main-branch-name: 'master'
+          main-branch-name: ${{github.base_ref}}
       - run: npm ci
       - run: npx nx workspace-lint
       - run: npx nx format:check
