@@ -1,0 +1,14 @@
+{
+  "mode": "pre",
+  "tag": "beta",
+  "initialVersions": {
+    "ptokens-constants": "1.6.1",
+    "ptokens-docker-stages": "1.2.1",
+    "ptokens-evm-contracts": "0.5.1",
+    "ptokens-listener": "1.8.2",
+    "ptokens-request-processor": "1.9.2",
+    "ptokens-state-emitter": "1.0.1",
+    "ptokens-utils": "4.6.1"
+  },
+  "changesets": []
+}
