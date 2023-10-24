@@ -1,5 +1,10 @@
 # Developer reference
 
+Thank you for considering contributing to pnetwork! We appreciate your interest in making our project better. By participating, you not only help improve the project but also become a part of the open-source community.
+
+Please take a moment to review this document to understand how you can contribute.
+
+- [How to Contribute](#how-to-contribute)
 - [Basic tutorial](#basic-tutorial)
   - [Install `Nx`](#basic-install)
   - [Add a new project:](#basic-new-proj)
@@ -15,6 +20,66 @@
 - [Development](#development)
   - [Build images](#dev-build-images)
   - [Troubleshooting](#dev-troubleshooting)
+
+## <a name="how-to-contribute"></a> How to Contribute
+
+There are several ways to contribute to [Your Project Name], and we welcome all types of contributions, including bug reports, feature requests, code contributions, documentation improvements, and more. Here's a general outline of the steps to get started:
+
+1. **Clone the Repository:**
+
+   Clone your forked repository to your local machine using the following command (replace `<your-username>` with your GitHub username):
+
+   ```bash
+   git clone https://github.com/pnetwork-association//pnetwork.git
+   ```
+
+2. **Create a branch:**
+
+   Create a new branch for your work with a descriptive name. For example:
+
+   ```bash
+   git checkout -b feat/new-feature
+   ```
+
+3. **Make Changes:**
+
+   Ensure your changes are properly tested. If your contribution involves code, write tests to cover your changes. Follow [Basic tutorial](#basic-tutorial).
+
+4. **Commit Your Changes:**
+
+   Create a changeset for the modified packages:
+
+   ```bash
+   npx changeset # if the version needs to be bumped
+   # or
+   npx changeset --empty # if version does not need to be bumped (e.g. you modified tests)
+   ```
+
+   Commit your changes with a clear and concise commit message (follow commitlint convention):
+
+   ```bash
+   git commit -m "feat: your feature description"
+   ```
+
+5. **Push Your Changes:**
+
+   Push your changes to your fork on GitHub:
+
+   ```bash
+   git push origin feature/new-feature
+   ```
+
+6. **Create a Pull Request:**
+
+   Go to the [original repository](https://github.com/pnetwork-association/pnetwork) and create a Pull Request (PR) to merge your changes to `develop`. Provide a detailed description of your changes in the PR. Make sure to reference any related issues.
+
+7. **Review and Discuss:**
+
+   Participate in discussions and make necessary changes based on feedback from maintainers and other contributors.
+
+8. **Wait for Approval:**
+
+   Once your PR is approved, it will be merged into the project.
 
 ## <a name="basic-tutorial"></a> Basic tutorial
 
