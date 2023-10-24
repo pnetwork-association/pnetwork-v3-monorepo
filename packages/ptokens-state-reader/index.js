@@ -3,8 +3,11 @@ const config = require('./config')
 const constants = require('ptokens-constants')
 const { validation } = require('ptokens-utils')
 const { logger } = require('./lib/get-logger')
-const { getActorsForCurrentEpochAndAddToState, estimateBlockTimePerChainAndAddToState } =
-  require('./lib/chains').evm
+const {
+  getActorsForCurrentEpochAndAddToState,
+  estimateBlockTimePerChainAndAddToState,
+  getChallengerLockAmountsAndAddToState,
+} = require('./lib/chains').evm
 
 const { setupExitEventListeners } = require('./lib/setup-exit-listeners')
 
@@ -18,8 +21,8 @@ const main = () =>
     .then(_ => initializeStateFromConfiguration(config))
     .then(estimateBlockTimePerChainAndAddToState)
     .then(getActorsForCurrentEpochAndAddToState)
+    .then(getChallengerLockAmountsAndAddToState)
     .then(_x => logger.info(_x))
-// .then(getChallengerLockAmountsAndAddToState)
 // .then(_state => Promise.all([
 //   getSyncStateAndUpdateTimestamps(_state),
 //   maybeChallengeInactiveActors(_state),
