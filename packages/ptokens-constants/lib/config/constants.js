@@ -19,6 +19,8 @@ module.exports = {
   KEY_SUPPORTED_CHAINS: 'supported-chains',
   KEY_TYPE: 'type',
   KEY_DATA: 'data',
-  KEY_WARMUP_TIME: 'warmupTime',
-  KEY_FIRE_CHALLENGE_THRESHOLD: 'fireChallengeThreshold',
+  KEY_WARMUP_TIME: 'warmup-time',
+  KEY_FIRE_CHALLENGE_THRESHOLD: 'fire-challenge-threshold',
+  KEY_EPOCHS_MANAGER_ADDRESS: 'epochs-manager',
+  KEY_GOVERNANCE_MESSAGE_EMITTER_ADDRESS: 'governance-message-emitter',
 }

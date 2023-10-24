@@ -1,4 +1,10 @@
-const { KEY_CHAIN_TYPE, KEY_CHAIN_NAME, KEY_NETWORK_ID, KEY_PROVIDER_URL } = require('../constants')
+const {
+  KEY_CHAIN_TYPE,
+  KEY_CHAIN_NAME,
+  KEY_NETWORK_ID,
+  KEY_PROVIDER_URL,
+  KEY_GOVERNANCE_MESSAGE_EMITTER_ADDRESS,
+} = require('../constants')
 
 module.exports = {
   type: 'object',
@@ -15,6 +21,9 @@ module.exports = {
     },
     [KEY_PROVIDER_URL]: {
       type: 'string',
+    },
+    [KEY_GOVERNANCE_MESSAGE_EMITTER_ADDRESS]: {
+      type: ['string', 'null'],
     },
   },
 }
