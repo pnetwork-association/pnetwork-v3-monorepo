@@ -1,13 +1,17 @@
 #!/usr/bin/env node
+const R = require('ramda')
 const config = require('./config')
 const constants = require('ptokens-constants')
 const { validation } = require('ptokens-utils')
-const { logger } = require('./lib/get-logger')
 const {
   getActorsForCurrentEpochAndAddToState,
   estimateBlockTimePerChainAndAddToState,
   getChallengerLockAmountsAndAddToState,
 } = require('./lib/chains').evm
+// eslint-disable-next-line no-unused-vars
+const Memory = require('./lib/ram/Memory')
+const { getSyncStateAndUpdateTimestamps } = require('./lib/get-sync-state')
+const { STATE_MEMORY_KEY } = require('./lib/constants')
 
 const { setupExitEventListeners } = require('./lib/setup-exit-listeners')
 
@@ -16,17 +20,21 @@ const initializeStateFromConfiguration = _config =>
     _ => _config
   )
 
+const addMemoryToState = _state => R.assoc(STATE_MEMORY_KEY, Memory, _state)
+
 const main = () =>
   setupExitEventListeners()
     .then(_ => initializeStateFromConfiguration(config))
+    .then(addMemoryToState)
     .then(estimateBlockTimePerChainAndAddToState)
     .then(getActorsForCurrentEpochAndAddToState)
     .then(getChallengerLockAmountsAndAddToState)
-    .then(_x => logger.info(_x))
-// .then(_state => Promise.all([
-//   getSyncStateAndUpdateTimestamps(_state),
-//   maybeChallengeInactiveActors(_state),
-//   maybeSlashInactiveActors(_state)
-// ]))
+    .then(_state =>
+      Promise.all([
+        getSyncStateAndUpdateTimestamps(_state),
+        // maybeChallengeInactiveActors(_state),
+        // maybeSlashInactiveActors(_state)
+      ])
+    )
 
 main()

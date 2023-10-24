@@ -19,12 +19,15 @@
   "license": "MIT",
   "dependencies": {
     "ethers": "^6.8.0",
+    "install": "^0.13.0",
     "log4js": "^6.9.1",
+    "lokijs": "^1.5.12",
     "merkletreejs": "^0.3.10",
-    "ramda": "^0.29.1",
-    "redis": "^4.6.10",
+    "npm": "^10.2.1",
     "ptokens-constants": "*",
-    "ptokens-utils": "*"
+    "ptokens-utils": "*",
+    "ramda": "^0.29.1",
+    "redis": "^4.6.10"
   },
   "nx": {
     "implicitDependencies": [
