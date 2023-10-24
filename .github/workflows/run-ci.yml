@@ -21,6 +21,9 @@ jobs:
         with:
           main-branch-name: ${{github.base_ref}}
       - run: npm ci
+      - name: Check changesets
+        if: github.base_ref == 'develop'
+        run: npx changeset status --since=origin/develop
       - run: npx nx workspace-lint
       - run: npx nx format:check
       - run: npx nx affected --target=lint --parallel=3
