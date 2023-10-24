@@ -2,10 +2,8 @@ const R = require('ramda')
 const ethers = require('ethers')
 const constants = require('ptokens-constants')
 const { logger } = require('../../get-logger')
+const { getSupportedChainsFromState } = require('../get-supported-chains')
 const { STATE_AVG_BLOCK_TIME_KEY, STATE_BLOCK_TIMES_ESTIMATIONS_KEY } = require('../../constants')
-
-const getSupportedChains = _state =>
-  Promise.resolve(R.prop(constants.config.KEY_SUPPORTED_CHAINS, _state))
 
 // [t0, t1, t2]
 // t1-t0/3 + t2-t1/3
@@ -61,7 +59,7 @@ const addEstimationsToState = R.curry(
     R.assoc(STATE_BLOCK_TIMES_ESTIMATIONS_KEY, _estimationsObject, _state)
 )
 module.exports.estimateBlockTimePerChainAndAddToState = _state =>
-  getSupportedChains(_state)
+  getSupportedChainsFromState(_state)
     .then(_providers => Promise.all(_providers.map(getBlockTimesEstimationObject)))
     .then(createBlockEstimationObjectFromEstimationsList)
     .then(addEstimationsToState(_state))
