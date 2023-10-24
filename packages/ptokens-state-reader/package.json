@@ -1,0 +1,34 @@
+{
+  "name": "ptokens-state-reader",
+  "version": "1.0.0",
+  "description": "Component used to read the Guardians and Sentinels state on decentralized file systems",
+  "engines": {
+    "node": ">=16.0.0"
+  },
+  "bin": "index.js",
+  "scripts": {
+    "lint": "eslint .",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "ipfs",
+    "ptokens",
+    "pnetwork"
+  ],
+  "author": "gitmp01",
+  "license": "MIT",
+  "dependencies": {
+    "ethers": "^6.8.0",
+    "log4js": "^6.9.1",
+    "merkletreejs": "^0.3.10",
+    "ramda": "^0.29.1",
+    "redis": "^4.6.10",
+    "ptokens-constants": "*",
+    "ptokens-utils": "*"
+  },
+  "nx": {
+    "implicitDependencies": [
+      "ptokens-docker-stages"
+    ]
+  }
+}
