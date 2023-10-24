@@ -19,4 +19,6 @@ module.exports = {
   KEY_SUPPORTED_CHAINS: 'supported-chains',
   KEY_TYPE: 'type',
   KEY_DATA: 'data',
+  KEY_WARMUP_TIME: 'warmupTime',
+  KEY_FIRE_CHALLENGE_THRESHOLD: 'fireChallengeThreshold',
 }
