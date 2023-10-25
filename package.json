@@ -11,6 +11,7 @@
     "@changesets/cli": "^2.26.2",
     "@commitlint/config-conventional": "^17.6.3",
     "@nrwl/js": "^15.6.3",
+    "@secretlint/secretlint-rule-filter-comments": "^7.0.7",
     "@secretlint/secretlint-rule-preset-recommend": "^7.0.7",
     "@secretlint/secretlint-rule-privatekey": "^7.0.7",
     "@secretlint/secretlint-rule-secp256k1-privatekey": "^7.0.7",
