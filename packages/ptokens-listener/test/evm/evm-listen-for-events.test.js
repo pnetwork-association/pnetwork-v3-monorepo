@@ -43,7 +43,7 @@ describe('EVM listen for events', () => {
           )
         )
       const getDefaultProviderSpy = jest
-        .spyOn(ethers, 'JsonRpcProvider')
+        .spyOn(ethers.providers, 'JsonRpcProvider')
         .mockImplementation(_url => fakeProvider)
       const { listenForEvmEvents } = require('../../lib/evm/evm-listen-for-events')
       const callback = jest.fn()
@@ -52,15 +52,13 @@ describe('EVM listen for events', () => {
         await listenForEvmEvents(state, callback)
       } catch (_err) {
         if (_err.message === 'terminate') {
-          expect(getDefaultProviderSpy).toHaveBeenNthCalledWith(1, 'provider-url', undefined, {
-            polling: true,
-          })
+          expect(getDefaultProviderSpy).toHaveBeenNthCalledWith(1, 'provider-url')
           expect(onListenerSpy).toHaveBeenCalledTimes(2)
           expect(onListenerSpy).toHaveBeenNthCalledWith(
             1,
             {
               address: '0xdac17f958d2ee523a2206206994597c13d831ec7',
-              topics: ['0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef'],
+              topics: ['0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef'], // secretlint-disable-line
             },
             expect.anything()
           )
@@ -68,7 +66,7 @@ describe('EVM listen for events', () => {
             2,
             {
               address: '0xd2bac275fffdbdd23ecea72f4b161b3af90300a3',
-              topics: ['0x71d1a48fb10648c4ca31c3abd9a916f0f6545176b2387214ed134a71c924e79f'],
+              topics: ['0x71d1a48fb10648c4ca31c3abd9a916f0f6545176b2387214ed134a71c924e79f'], // secretlint-disable-line
             },
             expect.anything()
           )
@@ -76,7 +74,7 @@ describe('EVM listen for events', () => {
           expect(callback).toHaveBeenCalledTimes(2)
           expect(callback).toHaveBeenNthCalledWith(1, {
             [constants.db.KEY_ID]:
-              'transfer_0xc43c1614b094019835a81f1f889a679e109dd5efe2542c1050888f77985feeb1',
+              'transfer_0xc43c1614b094019835a81f1f889a679e109dd5efe2542c1050888f77985feeb1', // secretlint-disable-line
             [constants.db.KEY_STATUS]: constants.db.txStatus.DETECTED,
             [constants.db.KEY_ASSET_AMOUNT]: '200000000',
             [constants.db.KEY_USER_DATA]: null,
@@ -108,14 +106,14 @@ describe('EVM listen for events', () => {
             [constants.db.KEY_ORIGINATING_BLOCK_HASH]: null,
             [constants.db.KEY_NETWORK_ID]: '0xf9b459a1',
             [constants.db.KEY_BLOCK_HASH]:
-              '0x460635ecc1efa7230644fe6c2c01635f873663e81afc8c727947da5560ed12e5',
+              '0x460635ecc1efa7230644fe6c2c01635f873663e81afc8c727947da5560ed12e5', // secretlint-disable-line
             [constants.db.KEY_TX_HASH]:
-              '0x37eeb55eab329c73aeac6a172faa6c77e7013cd0cda0fc472274c5faf0df7003',
+              '0x37eeb55eab329c73aeac6a172faa6c77e7013cd0cda0fc472274c5faf0df7003', // secretlint-disable-line
           })
 
           expect(callback).toHaveBeenNthCalledWith(2, {
             [constants.db.KEY_ID]:
-              'useroperation_0x22e7253e862e3e1d4b59570bd796c3ff8c56e773f991529795605d6db8999fc0',
+              'useroperation_0x22e7253e862e3e1d4b59570bd796c3ff8c56e773f991529795605d6db8999fc0', // secretlint-disable-line
             [constants.db.KEY_STATUS]: constants.db.txStatus.DETECTED,
             [constants.db.KEY_EVENT_NAME]: constants.db.eventNames.USER_OPERATION,
 
@@ -145,9 +143,9 @@ describe('EVM listen for events', () => {
             [constants.db.KEY_ORIGINATING_TX_HASH]: null,
             [constants.db.KEY_NETWORK_ID]: '0xf9b459a1',
             [constants.db.KEY_BLOCK_HASH]:
-              '0xf23f2167fa252212acddad3c7e0d292c59dab1e0f7deca2b8f98b1a9383b53e2',
+              '0xf23f2167fa252212acddad3c7e0d292c59dab1e0f7deca2b8f98b1a9383b53e2', // secretlint-disable-line
             [constants.db.KEY_TX_HASH]:
-              '0xec42da425ecce69f5417b76822723289fe1f6bca3734fc2cbef1f1a0fd1a6445',
+              '0xec42da425ecce69f5417b76822723289fe1f6bca3734fc2cbef1f1a0fd1a6445', // secretlint-disable-line
             [constants.db.KEY_PROPOSAL_TX_HASH]: null,
             [constants.db.KEY_PROPOSAL_TS]: null,
             [constants.db.KEY_PROTOCOL_FEE_ASSET_AMOUNT]: '0',

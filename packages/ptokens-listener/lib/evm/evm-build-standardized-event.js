@@ -55,7 +55,7 @@ const addFieldFromEventArgs = (_eventValue, _destKey, _conversionFunction, _stan
   Promise.resolve(R.assoc(_destKey, _eventValue, _standardEvent))
 
 const getValueFromEventArgsByKey = R.curry((_eventArgs, _key) =>
-  typeof _eventArgs[0] === 'object' ? _eventArgs[0].getValue(_key) : _eventArgs.getValue(_key)
+  _eventArgs['operation'] ? _eventArgs['operation'][_key] : _eventArgs[_key]
 )
 
 const maybeAddFieldFromEventArgs = R.curry(
@@ -267,6 +267,7 @@ const parseLog = (_interface, _log) =>
       _parsedLog
   )
 
+// secretlint-disable
 /**
  * Build an event based on the pNetwork schema from
  * an EVM one. The expected log is of the form
@@ -290,6 +291,7 @@ const parseLog = (_interface, _log) =>
  * @param  {object} _log [on chain event log]
  * @return {object}            [the standard event object]
  */
+// secretlint-enable
 const buildStandardizedEvmEventObjectFromLog = R.curry((_networkId, _interface, _log) =>
   Promise.all([getEventWithAllRequiredSetToNull(), parseLog(_interface, _log)])
     .then(([_obj, _parsedLog]) => addInfoFromParsedLog(_parsedLog, _obj))

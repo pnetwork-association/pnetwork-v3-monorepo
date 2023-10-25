@@ -2,27 +2,24 @@ const R = require('ramda')
 const ethers = require('ethers')
 const { logger } = require('../get-logger')
 const { utils, validation } = require('ptokens-utils')
-const constants = require('ptokens-constants')
 
 const getEthersProvider = R.memoizeWith(R.identity, _url =>
-  validation
-    .checkType('String', _url)
-    .then(_ => new ethers.JsonRpcProvider(_url, undefined, { polling: true }))
+  validation.checkType('String', _url).then(_ => new ethers.providers.JsonRpcProvider(_url))
 )
 
-const isEventFragment = _fragment => ethers.Fragment.isEvent(_fragment)
+const isEventFragment = _fragment => ethers.utils.EventFragment.isEventFragment(_fragment)
 
 const getTopicFromEventFragment = _fragment =>
   new Promise((resolve, reject) =>
     isEventFragment(_fragment)
-      ? resolve(R.prop(constants.evm.ethers.TOPIC_HASH, _fragment))
+      ? resolve(ethers.utils.id(_fragment.format()))
       : reject(new Error('Invalid fragment'))
   )
 
 const getEventFragment = _eventSignature =>
-  Promise.resolve(ethers.EventFragment.from(_eventSignature))
+  Promise.resolve(ethers.utils.EventFragment.from(_eventSignature))
 
-const createInterface = _fragments => Promise.resolve(new ethers.Interface(_fragments))
+const createInterface = _fragments => Promise.resolve(new ethers.utils.Interface(_fragments))
 
 const getInterfaceFromEvent = _eventSignature =>
   getEventFragment(_eventSignature).then(Array.of).then(createInterface)
