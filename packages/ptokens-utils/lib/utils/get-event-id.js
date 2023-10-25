@@ -1,7 +1,6 @@
 const ethers = require('ethers')
-const { evm } = require('ptokens-constants')
 const { logger } = require('../logger')
-const { blockchainType } = require('../constants')
+const constants = require('ptokens-constants')
 const { getBlockchainTypeFromChainId } = require('./utils-network-id')
 
 const getEventIdEvm = ({
@@ -58,7 +57,7 @@ const getEventIdEvm = ({
     }
   */
 
-  const types = [evm.events.OPERATION_TUPLE]
+  const types = [constants.evm.events.OPERATION_TUPLE]
   const coder = new ethers.AbiCoder()
   return ethers.sha256(
     coder.encode(types, [
@@ -119,7 +118,7 @@ const getEventId = ({
   getBlockchainTypeFromChainId(destinationNetworkId)
     .then(_type => {
       switch (_type) {
-        case blockchainType.EVM:
+        case constants.blockchainType.EVM:
           return getEventIdEvm({
             originatingBlockHash,
             originatingTransactionHash,

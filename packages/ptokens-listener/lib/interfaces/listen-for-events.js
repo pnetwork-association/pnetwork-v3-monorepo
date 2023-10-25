@@ -1,4 +1,4 @@
-const { constants: ptokensUtilsConstants, utils } = require('ptokens-utils')
+const { utils } = require('ptokens-utils')
 const constants = require('ptokens-constants')
 const { listenForEvmEvents } = require('../evm/evm-listen-for-events')
 const { logger } = require('../get-logger')
@@ -12,13 +12,13 @@ const listenForUtxoDeposits = (_state, _callback) => Promise.reject(new Error('T
 const getListenerForBlockchainType = _blockchainType => {
   logger.info(`Listen to ${_blockchainType} events`)
   switch (_blockchainType) {
-    case ptokensUtilsConstants.blockchainType.EVM:
+    case constants.blockchainType.EVM:
       return listenForEvmEvents
-    case ptokensUtilsConstants.blockchainType.EOSIO:
+    case constants.blockchainType.EOSIO:
       return listenForEosioEvents
-    case ptokensUtilsConstants.blockchainType.UTXO:
+    case constants.blockchainType.UTXO:
       return listenForUtxoDeposits
-    case ptokensUtilsConstants.blockchainType.ALGORAND:
+    case constants.blockchainType.ALGORAND:
       return listenForAlgorandEvents
     default:
       return () => Promise.reject(new Error('Invalid blockchain type'))
