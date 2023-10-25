@@ -1,5 +1,5 @@
 const R = require('ramda')
-const { KEY_STATUS_OBJECT } = require('../constants')
+const { STATE_STATUS_OBJ_KEY } = require('../constants')
 const { ERROR_UNSUPPORTED_PROTOCOL } = require('../errors')
 const protocols = require('../protocols')
 const pTokensConstants = require('ptokens-constants')
@@ -20,7 +20,7 @@ const publishStatus = R.curry(
 const publishStatusObjectAndReturnState = _state =>
   new Promise((resolve, reject) => {
     const protocols = _state[pTokensConstants.config.KEY_PROTOCOLS]
-    const status = _state[KEY_STATUS_OBJECT]
+    const status = _state[STATE_STATUS_OBJ_KEY]
 
     return Promise.all(protocols.map(publishStatus(status)))
       .then(R.identity(_state))
