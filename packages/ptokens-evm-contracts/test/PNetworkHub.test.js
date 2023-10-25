@@ -404,6 +404,70 @@ describe('PNetworkHub', () => {
       )
   })
 
+  it('should not be able to queue the same operation after one cancellation', async () => {
+    const operation = await generateOperation()
+    await hub
+      .connect(relayer)
+      .protocolQueueOperation(operation, { value: LOCKED_AMOUNT_CHALLENGE_PERIOD })
+    await time.increase((await hub.getCurrentChallengePeriodDuration()).div(2))
+    await hub
+      .connect(broadcaster)
+      .protocolCancelOperation(
+        operation,
+        constants.hub.actors.Guardian,
+        getActorsMerkleProof({ actor: guardian, type: constants.hub.actors.Guardian }),
+        await guardian.signMessage(ethers.utils.arrayify(operation.id))
+      )
+    await expect(
+      hub
+        .connect(relayer)
+        .protocolQueueOperation(operation, { value: LOCKED_AMOUNT_CHALLENGE_PERIOD })
+    )
+      .to.be.revertedWithCustomError(hub, 'InvalidOperationStatus')
+      .withArgs(
+        constants.hub.operationStatus.AlreadyQueued,
+        constants.hub.operationStatus.NotQueued
+      )
+  })
+
+  it('should not be able to queue the same operation after a complete cancellation', async () => {
+    const operation = await generateOperation()
+    await hub
+      .connect(relayer)
+      .protocolQueueOperation(operation, { value: LOCKED_AMOUNT_CHALLENGE_PERIOD })
+    await time.increase((await hub.getCurrentChallengePeriodDuration()).div(2))
+    await hub
+      .connect(broadcaster)
+      .protocolCancelOperation(
+        operation,
+        constants.hub.actors.Sentinel,
+        getActorsMerkleProof({ actor: sentinel, type: constants.hub.actors.Sentinel }),
+        await sentinel.signMessage(ethers.utils.arrayify(operation.id))
+      )
+    await expect(
+      hub
+        .connect(broadcaster)
+        .protocolCancelOperation(
+          operation,
+          constants.hub.actors.Guardian,
+          getActorsMerkleProof({ actor: guardian, type: constants.hub.actors.Guardian }),
+          await guardian.signMessage(ethers.utils.arrayify(operation.id))
+        )
+    )
+      .to.emit(hub, 'OperationCancelFinalized')
+      .withArgs(operation.serialize())
+    await expect(
+      hub
+        .connect(relayer)
+        .protocolQueueOperation(operation, { value: LOCKED_AMOUNT_CHALLENGE_PERIOD })
+    )
+      .to.be.revertedWithCustomError(hub, 'InvalidOperationStatus')
+      .withArgs(
+        constants.hub.operationStatus.AlreadyCancelled,
+        constants.hub.operationStatus.NotQueued
+      )
+  })
+
   it('should not be able to cancel an operation twice with the same actor', async () => {
     const operation = await generateOperation()
     await hub
