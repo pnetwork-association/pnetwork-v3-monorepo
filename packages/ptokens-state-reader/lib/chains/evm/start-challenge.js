@@ -48,6 +48,6 @@ module.exports.startChallenge = R.curry(
               .then(_log => hub.interface.parseLog(_log))
               .then(_parsedLog => new Challenge(_parsedLog))
               .then(_challenge => Memory.addPendingChallenge(_challenge))
-              .catch(generalErrorHandler(wallet))
+              .catch(generalErrorHandler(wallet, hub))
       })
 )

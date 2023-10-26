@@ -33,6 +33,6 @@ module.exports.slashActor = R.curry(
             .then(_challenge =>
               Memory.changeChallengeStatus(_challenge, constants.hub.challengeStatus.UNSOLVED)
             )
-            .catch(generalErrorHandler(wallet))
+            .catch(generalErrorHandler(wallet, hub))
     })
 )
