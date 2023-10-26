@@ -7,6 +7,10 @@ class Challenge {
     this.timestamp = timestamp
     this.networkId = networkId
   }
+
+  getArg() {
+    return [this.nonce, this.actor, this.challenger, this.actorType, this.timestamp, this.networkId]
+  }
 }
 
 module.exports = Challenge
