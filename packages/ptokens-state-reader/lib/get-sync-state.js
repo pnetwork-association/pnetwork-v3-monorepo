@@ -4,7 +4,7 @@ const protocols = require('./protocols')
 const { logger } = require('./get-logger')
 const { utils, errors, validation } = require('ptokens-utils')
 const { verifySignature } = require('./verify-signature')
-const { STATE_MEMORY_KEY, STATE_ACTORS_PROPAGATED_KEY } = require('./constants')
+const { STATE_MEMORY_KEY } = require('./constants')
 const { ERROR_UNSUPPORTED_PROTOCOL, ERROR_UNABLE_TO_FIND_ACTOR_FOR_EPOCH } = require('./errors')
 
 const errorHandler = _err => {
@@ -22,12 +22,11 @@ const onMessageHandler = R.curry((_state, _message) =>
     .then(validation.validateJson(constants.config.schemas.statusObject))
     .then(_statusObj => {
       logger.info('Received new status object:', JSON.stringify(_statusObj))
+      const Memory = _state[STATE_MEMORY_KEY]
       const actorAddress = _statusObj[constants.config.KEY_SIGNER_ADDRESS]
       const signature = _statusObj[constants.config.KEY_SIGNATURE]
       const syncState = _statusObj[constants.config.KEY_SYNC_STATE]
-      const actorsPropagated = _state[STATE_ACTORS_PROPAGATED_KEY]
-
-      const Memory = _state[STATE_MEMORY_KEY]
+      const actorsPropagated = Memory.getActorsPropagated()
 
       if (!R.find(R.equals(actorAddress), actorsPropagated.actors)) {
         // TODO: check actor's type too
