@@ -36,18 +36,10 @@ services:
       - ipfs
     network_mode: host
 
-  goerli-requests:
+  goerli-listener:
     image: ${IMAGE_EVM_LISTENER}:${VERSION_LISTENER:-latest}
     volumes:
-      - './goerli.listener.requests.config.json:${APP_CONFIG_JSON}'
-      - './logs:${APP_FOLDER_LOGS}'
-    restart: unless-stopped
-    depends_on: ['mongodb']
-
-  goerli-queue:
-    image: ${IMAGE_EVM_LISTENER}:${VERSION_LISTENER:-latest}
-    volumes:
-      - './goerli.listener.queue.config.json:${APP_CONFIG_JSON}'
+      - './goerli.listener.config.json:${APP_CONFIG_JSON}'
       - './logs:${APP_FOLDER_LOGS}'
     restart: unless-stopped
     depends_on: ['mongodb']
@@ -62,18 +54,10 @@ services:
     command: ./index.js pollForRequestsAndDismiss
     depends_on: ['mongodb']
 
-  polygon-requests:
+  polygon-listener:
     image: ${IMAGE_EVM_LISTENER}:${VERSION_LISTENER:-latest}
     volumes:
-      - './polygon.listener.requests.config.json:${APP_CONFIG_JSON}'
-      - './logs:${APP_FOLDER_LOGS}'
-    restart: unless-stopped
-    depends_on: ['mongodb']
-
-  polygon-queue:
-    image: ${IMAGE_EVM_LISTENER}:${VERSION_LISTENER:-latest}
-    volumes:
-      - './polygon.listener.queue.config.json:${APP_CONFIG_JSON}'
+      - './polygon.listener.config.json:${APP_CONFIG_JSON}'
       - './logs:${APP_FOLDER_LOGS}'
     restart: unless-stopped
     depends_on: ['mongodb']
@@ -88,18 +72,10 @@ services:
     command: ./index.js pollForRequestsAndDismiss
     depends_on: ['mongodb']
 
-  bsc-requests:
+  bsc-listener:
     image: ${IMAGE_EVM_LISTENER}:${VERSION_LISTENER:-latest}
     volumes:
-      - './bsc.listener.requests.config.json:${APP_CONFIG_JSON}'
-      - './logs:${APP_FOLDER_LOGS}'
-    restart: unless-stopped
-    depends_on: ['mongodb']
-
-  bsc-queue:
-    image: ${IMAGE_EVM_LISTENER}:${VERSION_LISTENER:-latest}
-    volumes:
-      - './bsc.listener.queue.config.json:${APP_CONFIG_JSON}'
+      - './bsc.listener.config.json:${APP_CONFIG_JSON}'
       - './logs:${APP_FOLDER_LOGS}'
     restart: unless-stopped
     depends_on: ['mongodb']
