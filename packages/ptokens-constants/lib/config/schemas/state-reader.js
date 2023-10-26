@@ -4,6 +4,7 @@ const {
   KEY_WARMUP_TIME,
   KEY_CHECK_INACTIVITY_INTERVAL,
   KEY_FIRE_CHALLENGE_THRESHOLD,
+  KEY_DRY_RUN,
 } = require('../constants')
 
 module.exports = R.mergeDeepWith(R.concat, stateEmitter, {
@@ -17,6 +18,9 @@ module.exports = R.mergeDeepWith(R.concat, stateEmitter, {
     },
     [KEY_FIRE_CHALLENGE_THRESHOLD]: {
       type: 'integer',
+    },
+    [KEY_DRY_RUN]: {
+      type: 'boolean',
     },
   },
 })

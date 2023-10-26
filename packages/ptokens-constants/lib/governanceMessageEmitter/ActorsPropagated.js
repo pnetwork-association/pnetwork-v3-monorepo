@@ -1,7 +1,7 @@
 class ActorsPropagated {
-  constructor({ args: [currentEpoch, actors, actorsType] }) {
+  constructor({ args: [currentEpoch, actors, actorsTypes] }) {
     this.actors = actors
-    this.actorsType = actorsType.map(Number)
+    this.actorsTypes = actorsTypes.map(Number)
     this.currentEpoch = Number(currentEpoch)
   }
 }

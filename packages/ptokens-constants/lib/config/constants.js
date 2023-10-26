@@ -33,4 +33,5 @@ module.exports = {
   KEY_SW_VERSIONS: 'softwareVersions',
   KEY_TIMESTAMP: 'timestamp',
   KEY_SIGNATURE: 'signature',
+  KEY_DRY_RUN: 'dry-run',
 }
