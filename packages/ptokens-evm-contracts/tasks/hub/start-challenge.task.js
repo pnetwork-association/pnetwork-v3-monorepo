@@ -9,8 +9,10 @@ const PARAM_NAME_ACTOR_ADDRESS = 'sentinelAddress'
 const PARAM_DESC_ACTOR_ADDRESS = 'The sentinel address'
 const PARAM_NAME_ACTOR_TYPE = 'actorType'
 const PARAM_DESC_ACTOR_TYPE = 'The type of the actor (sentinel or guardian)'
-const PARAM_NAME_ACTORS_PROPAGATED_EVENT = 'actorsPropagatedJson'
-const PARAM_DESC_ACTORS_PROPAGATED_EVENT =
+const OPT_NAME_PROOF = 'proof'
+const OPT_DESC_PROOF = 'The merkle path as an array of hex-strings'
+const OPT_NAME_ACTORS_PROPAGATED_EVENT = 'actorsPropagatedJson'
+const OPT_DESC_ACTORS_PROPAGATED_EVENT =
   'JSON given by the listener when getting the ActorsPropagated event'
 
 const getActorsMerkleProof = ({ actors, actor, types, type }) => {
@@ -34,15 +36,27 @@ const startChallenge = async (_args, _hre) => {
   const actorType = _args[PARAM_NAME_ACTOR_TYPE]
   const gasLimit = _args[PARAM_NAME_GAS]
   const gasPrice = _args[PARAM_NAME_GASPRICE]
-  const actorsPropagatedEvent = JSON.parse(_args[PARAM_NAME_ACTORS_PROPAGATED_EVENT])
-  const actors = actorsPropagatedEvent[constants.db.KEY_EVENT_ARGS][1]
-  const actorsTypes = actorsPropagatedEvent[constants.db.KEY_EVENT_ARGS][2]
-  const proof = getActorsMerkleProof({
-    actors,
-    actor: actorAddress,
-    types: actorsTypes,
-    type: actorType,
-  })
+  const proofArg = _args[OPT_NAME_PROOF]
+  const actorsPropagatedEvent = _args[OPT_NAME_ACTORS_PROPAGATED_EVENT]
+
+  let proof = null
+  if (proofArg) {
+    proof = proofArg
+  } else if (actorsPropagatedEvent) {
+    const actors = actorsPropagatedEvent[constants.db.KEY_EVENT_ARGS][1]
+    const actorsTypes = actorsPropagatedEvent[constants.db.KEY_EVENT_ARGS][2]
+    proof = getActorsMerkleProof({
+      actors,
+      actor: actorAddress,
+      types: actorsTypes,
+      type: actorType,
+    })
+  } else {
+    throw Error(
+      `Either one of --${OPT_NAME_PROOF} or --${OPT_NAME_ACTORS_PROPAGATED_EVENT} is required!`
+    )
+  }
+
   console.log('Proof:', proof)
   const amountToLock = parseInt(await hub.lockedAmountStartChallenge())
 
@@ -51,7 +65,7 @@ const startChallenge = async (_args, _hre) => {
   console.log('proof:', proof)
   console.log('amountToLock:', amountToLock)
 
-  const tx = await hub.callStatic.startChallenge(actorAddress, actorType, proof, {
+  const tx = await hub.startChallenge(actorAddress, actorType, proof, {
     value: amountToLock,
     gasPrice,
     gasLimit,
@@ -65,12 +79,13 @@ const startChallenge = async (_args, _hre) => {
 task(TASK_NAME, TASK_DESC)
   .addPositionalParam(PARAM_NAME_ACTOR_ADDRESS, PARAM_DESC_ACTOR_ADDRESS, undefined, types.string)
   .addPositionalParam(PARAM_NAME_ACTOR_TYPE, PARAM_DESC_ACTOR_TYPE, undefined, types.int)
-  .addPositionalParam(
-    PARAM_NAME_ACTORS_PROPAGATED_EVENT,
-    PARAM_DESC_ACTORS_PROPAGATED_EVENT,
+  .addOptionalParam(
+    OPT_NAME_ACTORS_PROPAGATED_EVENT,
+    OPT_DESC_ACTORS_PROPAGATED_EVENT,
     undefined,
-    types.string
+    types.json
   )
+  .addOptionalParam(OPT_NAME_PROOF, OPT_DESC_PROOF, undefined, types.json)
   .setAction(startChallenge)
 
 module.exports = {
