@@ -4,13 +4,14 @@ const config = require('./config')
 const constants = require('ptokens-constants')
 const { validation } = require('ptokens-utils')
 const {
-  getActorsForCurrentEpochAndAddToState,
+  storeActorsForCurrentEpoch,
   estimateBlockTimePerChainAndAddToState,
   getChallengerLockAmountsAndAddToState,
 } = require('./lib/chains').evm
 // eslint-disable-next-line no-unused-vars
 const Memory = require('./lib/ram/Memory')
 const { getSyncStateAndUpdateTimestamps } = require('./lib/get-sync-state')
+const { maybeChallengeInactiveActors } = require('./lib/challenge-actors')
 const { STATE_MEMORY_KEY } = require('./lib/constants')
 
 const { setupExitEventListeners } = require('./lib/setup-exit-listeners')
@@ -27,12 +28,12 @@ const main = () =>
     .then(_ => initializeStateFromConfiguration(config))
     .then(addMemoryToState)
     .then(estimateBlockTimePerChainAndAddToState)
-    .then(getActorsForCurrentEpochAndAddToState)
+    .then(storeActorsForCurrentEpoch)
     .then(getChallengerLockAmountsAndAddToState)
     .then(_state =>
       Promise.all([
         getSyncStateAndUpdateTimestamps(_state),
-        // maybeChallengeInactiveActors(_state),
+        maybeChallengeInactiveActors(_state),
         // maybeSlashInactiveActors(_state)
       ])
     )

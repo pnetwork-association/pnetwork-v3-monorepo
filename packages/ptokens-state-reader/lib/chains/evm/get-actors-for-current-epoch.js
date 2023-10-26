@@ -3,11 +3,12 @@ const ethers = require('ethers')
 const { utils, logic } = require('ptokens-utils')
 const { logger } = require('../../get-logger')
 const constants = require('ptokens-constants')
-const { STATE_ACTORS_PROPAGATED_KEY } = require('../../constants')
+const { STATE_MEMORY_KEY } = require('../../constants')
 const {
   ERROR_FAILED_TO_GET_SUPPORTED_CHAIN,
   ERROR_GOVERNANCE_MESSAGE_EMITTER_NOT_FOUND,
 } = require('../../errors')
+const { ActorsPropagated } = constants.governanceMessageEmitter
 const { getSupportedChainsFromState } = require('../get-supported-chains')
 const GovernanceMessageEmitterAbi = require('./abi/GovernanceMessageEmitter.json')
 const EpochsManagerAbi = require('./abi/EpochsManager.json')
@@ -54,18 +55,15 @@ const getLastActorsPropagatedEvent = R.curry(
       .getBlockNumber()
       .then(searchForLogBackwards(_provider, _governanceMessageEmitter))
       .then(_log => _governanceMessageEmitter.interface.parseLog(_log))
-      .then(_parsedLog => new constants.governanceMessageEmitter.ActorsPropagated(_parsedLog))
+      .then(_parsedLog => new ActorsPropagated(_parsedLog))
 )
 
-const addActorsPropagatedEventToState = R.curry((_state, _actorsPropagated) =>
-  Promise.resolve(R.assoc(STATE_ACTORS_PROPAGATED_KEY, _actorsPropagated, _state))
-)
-
-module.exports.getActorsForCurrentEpochAndAddToState = _state =>
+module.exports.storeActorsForCurrentEpoch = _state =>
   getSupportedChainsFromState(_state)
     .then(R.find(R.propEq('polygon', constants.config.KEY_CHAIN_NAME)))
     .then(utils.rejectIfNil(ERROR_FAILED_TO_GET_SUPPORTED_CHAIN))
     .then(_polygonSupportedChain => {
+      const Memory = _state[STATE_MEMORY_KEY]
       const provider = new ethers.JsonRpcProvider(
         _polygonSupportedChain[constants.config.KEY_PROVIDER_URL]
       )
@@ -88,5 +86,6 @@ module.exports.getActorsForCurrentEpochAndAddToState = _state =>
       return epochsManager
         .currentEpoch()
         .then(getLastActorsPropagatedEvent(provider, governanceMessageEmitter))
-        .then(addActorsPropagatedEventToState(_state))
+        .then(_actorsPropagated => Memory.addActorsPropagated(_actorsPropagated))
+        .then(_ => _state)
     })

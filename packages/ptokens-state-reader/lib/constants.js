@@ -13,4 +13,5 @@ module.exports = {
   MEM_ACTOR: 'actor',
   MEM_NETWORKID: 'networkId',
   MEM_SYNC_STATE: 'syncState',
+  MEM_ACTORS_PROPAGATED: 'actorsPropagated',
 }

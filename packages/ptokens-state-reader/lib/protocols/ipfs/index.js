@@ -2,7 +2,7 @@ const R = require('ramda')
 const { logger } = require('../../get-logger')
 const { ipfs, utils } = require('ptokens-utils')
 
-const errorHandler = _err => new Promise.reject(new Error(_err))
+const errorHandler = _err => Promise.reject(new Error(_err))
 
 const readStatus = R.curry((_protocolData, _onMessageHandler) =>
   utils
