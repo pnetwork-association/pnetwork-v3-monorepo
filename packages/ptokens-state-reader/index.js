@@ -10,6 +10,7 @@ const {
 } = require('./lib/chains').evm
 // eslint-disable-next-line no-unused-vars
 const Memory = require('./lib/ram/Memory')
+const { maybeSlashInactiveActors } = require('./lib/slash-inactive-actors')
 const { getSyncStateAndUpdateTimestamps } = require('./lib/get-sync-state')
 const { maybeChallengeInactiveActors } = require('./lib/challenge-actors')
 const { STATE_MEMORY_KEY } = require('./lib/constants')
@@ -34,7 +35,7 @@ const main = () =>
       Promise.all([
         getSyncStateAndUpdateTimestamps(_state),
         maybeChallengeInactiveActors(_state),
-        // maybeSlashInactiveActors(_state)
+        maybeSlashInactiveActors(_state),
       ])
     )
 

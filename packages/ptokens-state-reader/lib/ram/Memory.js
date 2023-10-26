@@ -12,13 +12,14 @@ const {
   MEM_SYNC_STATE,
   MEM_ACTORS_PROPAGATED,
 } = require('../constants')
+const constants = require('ptokens-constants')
 
 class Memory {
   static dryRun = false
   static memory = new loki(MEM_MEMORY)
   static actors = this.memory.addCollection(MEM_ACTORS)
   static actorsPropagated = this.memory.addCollection(MEM_ACTORS_PROPAGATED)
-  static pendingChallenges = this.memory.addCollection(MEM_CHALLENGES, {
+  static challenges = this.memory.addCollection(MEM_CHALLENGES, {
     indices: [MEM_ACTOR, MEM_NETWORKID],
   })
 
@@ -94,7 +95,29 @@ class Memory {
 
   static addPendingChallenge(_challenge) {
     logger.debug('Adding new challenge:', _challenge)
-    this.pendingChallenges.insert(_challenge)
+    this.challenges.insert({
+      ..._challenge,
+      status: constants.hub.challengeStatus.PENDING,
+    })
+  }
+
+  static getPendingChallenges() {
+    logger.debug('Getting pending challenges...')
+    const query = x => x.status === constants.hub.challengeStatus.PENDING
+    return this.challenges.where(query)
+  }
+
+  static changeChallengeStatus(_challenge, _challengeStatus) {
+    const challenge = this.challenges.where(
+      x => x.nonce === _challenge.nonce && x.networkId === _challenge.networkId
+    )
+    logger.debug(
+      `Changing status of challenge ${_challenge.nonce} from ${challenge.status} to ${_challengeStatus}`
+    )
+
+    challenge.status = _challengeStatus
+
+    this.challenges.update(challenge)
   }
 }
 

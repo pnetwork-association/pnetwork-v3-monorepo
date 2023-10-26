@@ -7,17 +7,7 @@ const PNetworkHubAbi = require('./abi/PNetworkHub.json')
 const { findSupportedChain } = require('../../find-supported-chain')
 const { Challenge } = constants.hub
 const { ERROR_ACTOR_NOT_PROPAGATED } = require('../../errors')
-
-const errorHandler = _err =>
-  new Promise((resolve, reject) => {
-    if (_err.message.includes(constants.evm.ethers.ERROR_EXECUTION_REVERTED)) {
-      logger.error(`Transaction would revert with ${_err.reason}`)
-      logger.error(`  ${_err.invocation.method}(${_err.invocation.args.join(', ')})`)
-      return resolve(null)
-    }
-
-    return reject(_err)
-  })
+const { generalErrorHandler } = require('./general-error-handler')
 
 module.exports.startChallenge = R.curry(
   (Memory, _privateKey, _supportedChains, _lockAmount, _address, _proof, _networkId) =>
@@ -47,7 +37,7 @@ module.exports.startChallenge = R.curry(
         return dryRun
           ? hub.startChallenge
               .staticCall(_address, actorType, _proof, { value: _lockAmount })
-              .catch(errorHandler)
+              .catch(generalErrorHandler)
           : hub
               .startChallenge(_address, actorType, _proof, { value: _lockAmount })
               .then(_tx => _tx.wait(1))
@@ -58,6 +48,6 @@ module.exports.startChallenge = R.curry(
               .then(_log => hub.interface.parseLog(_log))
               .then(_parsedLog => new Challenge(_parsedLog))
               .then(_challenge => Memory.addPendingChallenge(_challenge))
-              .catch(errorHandler)
+              .catch(generalErrorHandler(wallet))
       })
 )
