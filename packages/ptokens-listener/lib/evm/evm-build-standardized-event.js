@@ -243,8 +243,9 @@ const addInfoFromParsedLog = (_parsedLog, _obj) =>
       )
     )
 
-const addFieldFromLog = (_eventLog, _originKey, _destKey) =>
-  R.assoc(_destKey, _eventLog[_originKey])
+const maybeAddFieldFromLog = R.curry((_eventLog, _originKey, _destKey, _obj) =>
+  R.isNil(R.prop(_destKey, _obj)) ? R.assoc(_destKey, _eventLog[_originKey], _obj) : _obj
+)
 
 const addWitnessedTimestamp = _obj =>
   Promise.resolve(new Date().toISOString()).then(_ts =>
@@ -296,8 +297,9 @@ const buildStandardizedEvmEventObjectFromLog = R.curry((_networkId, _interface, 
   Promise.all([getEventWithAllRequiredSetToNull(), parseLog(_interface, _log)])
     .then(([_obj, _parsedLog]) => addInfoFromParsedLog(_parsedLog, _obj))
     .then(R.assoc(constants.db.KEY_NETWORK_ID, _networkId))
-    .then(addFieldFromLog(_log, 'blockHash', constants.db.KEY_BLOCK_HASH))
-    .then(addFieldFromLog(_log, 'transactionHash', constants.db.KEY_TX_HASH))
+    .then(maybeAddFieldFromLog(_log, 'logIndex', constants.db.KEY_NONCE))
+    .then(maybeAddFieldFromLog(_log, 'blockHash', constants.db.KEY_BLOCK_HASH))
+    .then(maybeAddFieldFromLog(_log, 'transactionHash', constants.db.KEY_TX_HASH))
     .then(addWitnessedTimestamp)
     .then(setId)
 )

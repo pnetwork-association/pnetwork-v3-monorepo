@@ -88,8 +88,8 @@ const getEventIdEvm = ({
   )
 }
 
-const fallbackEventId = (networkId, blockHash, transactionHash) =>
-  ethers.keccak256(ethers.concat([networkId, blockHash, transactionHash]))
+const fallbackEventId = (networkId, blockHash, transactionHash, nonce) =>
+  ethers.keccak256(ethers.concat([networkId, blockHash, transactionHash, ethers.toBeHex(nonce)]))
 
 const getEventId = ({
   originatingBlockHash,
@@ -146,12 +146,14 @@ const getEventId = ({
             isForProtocol,
           })
         default:
-          return fallbackEventId(networkId, blockHash, transactionHash)
+          return fallbackEventId(networkId, blockHash, transactionHash, nonce)
       }
     })
     // This should handle cases where
     //  - The ID is not defined in the networkIds object
     //  - The event does not have the expected properties
-    .catch(_err => logger.error(_err) || fallbackEventId(networkId, blockHash, transactionHash))
+    .catch(
+      _err => logger.error(_err) || fallbackEventId(networkId, blockHash, transactionHash, nonce)
+    )
 
 module.exports = { getEventId }

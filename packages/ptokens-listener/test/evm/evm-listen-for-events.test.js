@@ -74,7 +74,7 @@ describe('EVM listen for events', () => {
           expect(callback).toHaveBeenCalledTimes(2)
           expect(callback).toHaveBeenNthCalledWith(1, {
             [constants.db.KEY_ID]:
-              'transfer_0xc43c1614b094019835a81f1f889a679e109dd5efe2542c1050888f77985feeb1', // secretlint-disable-line
+              'transfer_0xdce97cc6701b7781884f4554fe8213acfbccbeec69456440ce88e0e6060e52fe', // secretlint-disable-line
             [constants.db.KEY_STATUS]: constants.db.txStatus.DETECTED,
             [constants.db.KEY_ASSET_AMOUNT]: '200000000',
             [constants.db.KEY_USER_DATA]: null,
@@ -92,7 +92,7 @@ describe('EVM listen for events', () => {
             [constants.db.KEY_FORWARD_NETWORK_FEE_ASSET_AMOUNT]: null,
             [constants.db.KEY_NETWORK_FEE_ASSET_AMOUNT]: null,
             [constants.db.KEY_OPTIONS_MASK]: null,
-            [constants.db.KEY_NONCE]: null,
+            [constants.db.KEY_NONCE]: 191,
             [constants.db.KEY_DESTINATION_ACCOUNT]: '0x31c43E2be5BCd4EDb512aD47A0F1A93aA22941b9',
             [constants.db.KEY_DESTINATION_NETWORK_ID]: null,
             [constants.db.KEY_UNDERLYING_ASSET_NAME]: null,
