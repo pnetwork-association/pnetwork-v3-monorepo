@@ -1,6 +1,6 @@
 const { logs } = require('../mock/evm-logs')
 const constants = require('ptokens-constants')
-const { getInterfaceFromEvent } = require('../../lib/evm/evm-utils')
+const { getInterfaceFromEventSignatures } = require('../../lib/evm/evm-utils')
 
 describe('Event building for EVM', () => {
   describe('buildStandardizedEventFromEvmEvent', () => {
@@ -21,7 +21,7 @@ describe('Event building for EVM', () => {
       const networkId = '0x5aca268b'
       const eventName = constants.evm.events.USER_OPERATION_SIGNATURE
       const eventLog = logs[0]
-      const methodInterface = await getInterfaceFromEvent(eventName)
+      const methodInterface = await getInterfaceFromEventSignatures([eventName])
       const result = await buildStandardizedEvmEventObjectFromLog(
         networkId,
         methodInterface,
@@ -30,7 +30,7 @@ describe('Event building for EVM', () => {
 
       const expected = {
         [constants.db.KEY_ID]:
-          'useroperation_0x9f762006a18c631eb889ca5acbf07660f505bc97e8dd3439b3fda4251135fd5e',
+          'useroperation_0x9f762006a18c631eb889ca5acbf07660f505bc97e8dd3439b3fda4251135fd5e', // secretlint-disable-line
         [constants.db.KEY_STATUS]: constants.db.txStatus.DETECTED,
         [constants.db.KEY_EVENT_NAME]: constants.db.eventNames.USER_OPERATION,
 
@@ -55,9 +55,9 @@ describe('Event building for EVM', () => {
         [constants.db.KEY_ORIGINATING_TX_HASH]: null,
         [constants.db.KEY_NETWORK_ID]: '0x5aca268b',
         [constants.db.KEY_BLOCK_HASH]:
-          '0xce823a64f61258f8186c6c8de9a6e934f47799fc533d529a6f783759d82b111f',
+          '0xce823a64f61258f8186c6c8de9a6e934f47799fc533d529a6f783759d82b111f', // secretlint-disable-line
         [constants.db.KEY_TX_HASH]:
-          '0x2ab67dfd14a5268d6752d167232d67471e96ccd3e365cb4ae376391a50bec50f',
+          '0x2ab67dfd14a5268d6752d167232d67471e96ccd3e365cb4ae376391a50bec50f', // secretlint-disable-line
         [constants.db.KEY_PROPOSAL_TX_HASH]: null,
         [constants.db.KEY_PROPOSAL_TS]: null,
         [constants.db.KEY_ASSET_TOKEN_ADDRESS]: '0x49b3609415759949f207F1e6733b5612cB7820ba',
@@ -79,7 +79,7 @@ describe('Event building for EVM', () => {
       const chainId = '0xe15503e4'
       const eventName = constants.evm.events.OPERATION_QUEUED_SIGNATURE
       const eventLog = logs[4]
-      const methodInterface = await getInterfaceFromEvent(eventName)
+      const methodInterface = await getInterfaceFromEventSignatures([eventName])
       const result = await buildStandardizedEvmEventObjectFromLog(
         chainId,
         methodInterface,
@@ -88,7 +88,7 @@ describe('Event building for EVM', () => {
 
       const expected = {
         [constants.db.KEY_ID]:
-          'operationqueued_0xd9feb6e60cd73c396cbaeb3e5fa55c774c03a274c54f5bc53a62a59855ec7cc4',
+          'operationqueued_0xd9feb6e60cd73c396cbaeb3e5fa55c774c03a274c54f5bc53a62a59855ec7cc4', // secretlint-disable-line
         [constants.db.KEY_STATUS]: constants.db.txStatus.PROPOSED,
         [constants.db.KEY_EVENT_NAME]: constants.db.eventNames.QUEUED_OPERATION,
 
@@ -113,14 +113,14 @@ describe('Event building for EVM', () => {
         [constants.db.KEY_ORIGINATING_NETWORK_ID]: '0x5aca268b',
         [constants.db.KEY_ORIGINATING_ADDRESS]: '0xddb5f4535123daa5ae343c24006f4075abaf5f7b',
         [constants.db.KEY_ORIGINATING_BLOCK_HASH]:
-          '0x05cf0e83408207704ee0ea2a4a6ea87905fc0d2038dbb610a0ca64f2cf47b134',
+          '0x05cf0e83408207704ee0ea2a4a6ea87905fc0d2038dbb610a0ca64f2cf47b134', // secretlint-disable-line
         [constants.db.KEY_ORIGINATING_TX_HASH]:
-          '0xb1bb8b6502edc17fdd0cc83505289a6d429a6381ffe5dbf4fe31a88dd236d643',
+          '0xb1bb8b6502edc17fdd0cc83505289a6d429a6381ffe5dbf4fe31a88dd236d643', // secretlint-disable-line
         [constants.db.KEY_NETWORK_ID]: '0xe15503e4',
         [constants.db.KEY_BLOCK_HASH]:
-          '0xfa7f1989507da8e2bd7be30ab9064c9819d34f2b43f77d8eba3c15f427486a46',
+          '0xfa7f1989507da8e2bd7be30ab9064c9819d34f2b43f77d8eba3c15f427486a46', // secretlint-disable-line
         [constants.db.KEY_TX_HASH]:
-          '0x9a6123eaa2acd909f2314e3fd0e799ce316ef301e5625aa5f89d1a70ba80e96b',
+          '0x9a6123eaa2acd909f2314e3fd0e799ce316ef301e5625aa5f89d1a70ba80e96b', // secretlint-disable-line
         [constants.db.KEY_PROPOSAL_TX_HASH]: null,
         [constants.db.KEY_PROPOSAL_TS]: null,
         [constants.db.KEY_PROTOCOL_FEE_ASSET_AMOUNT]: '0',
@@ -139,7 +139,7 @@ describe('Event building for EVM', () => {
       const chainId = '0xe15503e4'
       const eventName = constants.evm.events.OPERATION_EXECUTED_SIGNATURE
       const eventLog = logs[2]
-      const methodInterface = await getInterfaceFromEvent(eventName)
+      const methodInterface = await getInterfaceFromEventSignatures([eventName])
       const result = await buildStandardizedEvmEventObjectFromLog(
         chainId,
         methodInterface,
@@ -148,7 +148,7 @@ describe('Event building for EVM', () => {
 
       const expected = {
         [constants.db.KEY_ID]:
-          'operationexecuted_0xd9feb6e60cd73c396cbaeb3e5fa55c774c03a274c54f5bc53a62a59855ec7cc4',
+          'operationexecuted_0xd9feb6e60cd73c396cbaeb3e5fa55c774c03a274c54f5bc53a62a59855ec7cc4', // secretlint-disable-line
         [constants.db.KEY_STATUS]: constants.db.txStatus.DETECTED,
         [constants.db.KEY_EVENT_NAME]: constants.db.eventNames.EXECUTED_OPERATION,
         [constants.db.KEY_NONCE]: '98322',
@@ -172,14 +172,14 @@ describe('Event building for EVM', () => {
         [constants.db.KEY_ORIGINATING_NETWORK_ID]: '0x5aca268b',
         [constants.db.KEY_ORIGINATING_ADDRESS]: '0xddb5f4535123daa5ae343c24006f4075abaf5f7b',
         [constants.db.KEY_ORIGINATING_BLOCK_HASH]:
-          '0x05cf0e83408207704ee0ea2a4a6ea87905fc0d2038dbb610a0ca64f2cf47b134',
+          '0x05cf0e83408207704ee0ea2a4a6ea87905fc0d2038dbb610a0ca64f2cf47b134', // secretlint-disable-line
         [constants.db.KEY_ORIGINATING_TX_HASH]:
-          '0xb1bb8b6502edc17fdd0cc83505289a6d429a6381ffe5dbf4fe31a88dd236d643',
+          '0xb1bb8b6502edc17fdd0cc83505289a6d429a6381ffe5dbf4fe31a88dd236d643', // secretlint-disable-line
         [constants.db.KEY_NETWORK_ID]: '0xe15503e4',
         [constants.db.KEY_BLOCK_HASH]:
-          '0x0fc3588f727dde10ccd937b04f5666fb04e39553b4c73719555acd7a6a430764',
+          '0x0fc3588f727dde10ccd937b04f5666fb04e39553b4c73719555acd7a6a430764', // secretlint-disable-line
         [constants.db.KEY_TX_HASH]:
-          '0xa5c5838123aa37d2efd69285f7b6bd8c2e93d4cf243d45926169502c13b23a49',
+          '0xa5c5838123aa37d2efd69285f7b6bd8c2e93d4cf243d45926169502c13b23a49', // secretlint-disable-line
         [constants.db.KEY_PROPOSAL_TX_HASH]: null,
         [constants.db.KEY_PROPOSAL_TS]: null,
         [constants.db.KEY_PROTOCOL_FEE_ASSET_AMOUNT]: '0',

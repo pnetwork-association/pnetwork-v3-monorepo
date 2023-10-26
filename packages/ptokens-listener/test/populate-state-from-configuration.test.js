@@ -16,12 +16,12 @@ describe('State utilities tests', () => {
         [constants.config.KEY_NETWORK_ID]: '0x00112233',
         [constants.config.KEY_EVENTS]: [
           {
-            [constants.config.KEY_NAME]: 'redeem',
-            [constants.config.KEY_CONTRACTS]: ['btc.ptokens', 'ltc.ptokens'],
+            [constants.config.KEY_SIGNATURES]: ['redeem'],
+            [constants.config.KEY_CONTRACT]: 'btc.ptokens',
           },
           {
-            [constants.config.KEY_NAME]: 'pegin',
-            [constants.config.KEY_CONTRACTS]: ['xbsc.ptokens'],
+            [constants.config.KEY_SIGNATURES]: ['pegin', 'pegout'],
+            [constants.config.KEY_CONTRACT]: 'xbsc.ptokens',
           },
         ],
         [constants.config.KEY_PROVIDER_URL]: 'provider-url',
@@ -38,12 +38,12 @@ describe('State utilities tests', () => {
         [constants.state.KEY_NETWORK_ID]: '0x00112233',
         [stateConstants.STATE_KEY_EVENTS]: [
           {
-            [constants.config.KEY_NAME]: 'redeem',
-            [constants.config.KEY_CONTRACTS]: ['btc.ptokens', 'ltc.ptokens'],
+            [constants.config.KEY_SIGNATURES]: ['redeem'],
+            [constants.config.KEY_CONTRACT]: 'btc.ptokens',
           },
           {
-            [constants.config.KEY_NAME]: 'pegin',
-            [constants.config.KEY_CONTRACTS]: ['xbsc.ptokens'],
+            [constants.config.KEY_SIGNATURES]: ['pegin', 'pegout'],
+            [constants.config.KEY_CONTRACT]: 'xbsc.ptokens',
           },
         ],
         [constants.state.KEY_PROVIDER_URL]: 'provider-url',

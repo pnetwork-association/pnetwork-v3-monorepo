@@ -12,12 +12,12 @@ describe('Tests for the listener interface', () => {
       [constants.state.KEY_NETWORK_ID]: _networkId,
       [stateConstants.STATE_KEY_EVENTS]: [
         {
-          [constants.config.KEY_NAME]: 'event1',
-          [constants.config.KEY_CONTRACTS]: ['address1', 'address2'],
+          [constants.config.KEY_SIGNATURES]: ['event1', 'event2'],
+          [constants.config.KEY_CONTRACT]: 'address1',
         },
         {
-          [constants.config.KEY_NAME]: 'event2',
-          [constants.config.KEY_CONTRACTS]: ['address3', 'address4'],
+          [constants.config.KEY_SIGNATURES]: ['event3', 'event4'],
+          [constants.config.KEY_CONTRACT]: 'address2',
         },
       ],
       [constants.state.KEY_DB]: { database: 'database' },
@@ -36,8 +36,8 @@ describe('Tests for the listener interface', () => {
           .spyOn(evmListener, 'listenForEvmEvents')
           .mockImplementation((_state, _callback) =>
             _state[stateConstants.STATE_KEY_EVENTS].forEach(_event =>
-              _event[constants.config.KEY_CONTRACTS].forEach(_address =>
-                _callback({ event: _event.name, address: _address })
+              _event[constants.config.KEY_SIGNATURES].forEach(_signature =>
+                _callback({ event: _signature, address: _event[constants.config.KEY_CONTRACT] })
               )
             )
           )
@@ -62,24 +62,24 @@ describe('Tests for the listener interface', () => {
           2,
           { database: 'database' },
           {
-            address: 'address2',
-            event: 'event1',
+            address: 'address1',
+            event: 'event2',
           }
         )
         expect(insertReportSpy).toHaveBeenNthCalledWith(
           3,
           { database: 'database' },
           {
-            address: 'address3',
-            event: 'event2',
+            address: 'address2',
+            event: 'event3',
           }
         )
         expect(insertReportSpy).toHaveBeenNthCalledWith(
           4,
           { database: 'database' },
           {
-            address: 'address4',
-            event: 'event2',
+            address: 'address2',
+            event: 'event4',
           }
         )
       }

@@ -21,8 +21,8 @@ const getEventFragment = _eventSignature =>
 
 const createInterface = _fragments => Promise.resolve(new ethers.utils.Interface(_fragments))
 
-const getInterfaceFromEvent = _eventSignature =>
-  getEventFragment(_eventSignature).then(Array.of).then(createInterface)
+const getInterfaceFromEventSignatures = _eventSignatures =>
+  Promise.all(_eventSignatures.map(getEventFragment)).then(createInterface)
 
 const maybeAddTopicsToFilter = R.curry((_topics, _filter) =>
   logger.debug(`Adding these topics to the event filter: ${_topics}`) ||
@@ -78,7 +78,7 @@ module.exports = {
   areTopicsMatching,
   createContract,
   getEthersProvider,
-  getInterfaceFromEvent,
+  getInterfaceFromEventSignatures,
   getEventFilter,
   getTopicFromEventFragment,
   getTopicFromEventSignature,

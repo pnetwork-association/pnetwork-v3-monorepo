@@ -20,13 +20,17 @@ describe('EVM listen for events', () => {
         [constants.state.KEY_PROVIDER_URL]: 'provider-url',
         [STATE_KEY_EVENTS]: [
           {
-            [constants.config.KEY_NAME]:
+            [constants.config.KEY_SIGNATURES]: [
               'Transfer(address indexed from,address indexed to,uint256 value)',
-            [constants.config.KEY_CONTRACTS]: ['0xdac17f958d2ee523a2206206994597c13d831ec7'],
+            ],
+            [constants.config.KEY_CONTRACT]: '0xdac17f958d2ee523a2206206994597c13d831ec7',
           },
           {
-            [constants.config.KEY_NAME]: constants.evm.events.USER_OPERATION_SIGNATURE,
-            [constants.config.KEY_CONTRACTS]: ['0xd2bac275fffdbdd23ecea72f4b161b3af90300a3'],
+            [constants.config.KEY_SIGNATURES]: [
+              constants.evm.events.USER_OPERATION_SIGNATURE,
+              constants.evm.events.OPERATION_QUEUED_SIGNATURE,
+            ],
+            [constants.config.KEY_CONTRACT]: '0xd2bac275fffdbdd23ecea72f4b161b3af90300a3',
           },
         ],
       }
@@ -58,7 +62,7 @@ describe('EVM listen for events', () => {
             1,
             {
               address: '0xdac17f958d2ee523a2206206994597c13d831ec7',
-              topics: ['0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef'], // secretlint-disable-line
+              topics: [['0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef']], // secretlint-disable-line
             },
             expect.anything()
           )
@@ -66,7 +70,12 @@ describe('EVM listen for events', () => {
             2,
             {
               address: '0xd2bac275fffdbdd23ecea72f4b161b3af90300a3',
-              topics: ['0x71d1a48fb10648c4ca31c3abd9a916f0f6545176b2387214ed134a71c924e79f'], // secretlint-disable-line
+              topics: [
+                [
+                  '0x71d1a48fb10648c4ca31c3abd9a916f0f6545176b2387214ed134a71c924e79f', // secretlint-disable-line
+                  '0xe7bf22971bde3dd8a6a3bf8434e8b7a7c7554dad8328f741da1484d67b445c19', // secretlint-disable-line
+                ],
+              ],
             },
             expect.anything()
           )

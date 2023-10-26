@@ -42,8 +42,8 @@ const getMongoUrlFromTaskArgs = taskArgs =>
 
 const addActorsPropagatedEvent = R.curry((_config, _governanceMessageEmitterAddress) => {
   const obj = {
-    [constants.config.KEY_CONTRACTS]: [_governanceMessageEmitterAddress],
-    [constants.config.KEY_NAME]: constants.evm.events.ACTORS_PROPAGATED_SIGNATURE,
+    [constants.config.KEY_CONTRACT]: _governanceMessageEmitterAddress,
+    [constants.config.KEY_SIGNATURES]: [constants.evm.events.ACTORS_PROPAGATED_SIGNATURE],
   }
 
   const events = _config[constants.config.KEY_EVENTS]
@@ -69,8 +69,8 @@ const generateListenerConfiguration = (taskArgs, hre, _networkId, _events) =>
     [constants.config.KEY_CHAIN_NAME]: hre.network.name,
     [constants.config.KEY_PROVIDER_URL]: hre.network.config.url,
     [constants.config.KEY_EVENTS]: _events.map(_event => ({
-      [constants.config.KEY_CONTRACTS]: _event.contracts,
-      [constants.config.KEY_NAME]: _event.topic,
+      [constants.config.KEY_CONTRACT]: _event.contracts,
+      [constants.config.KEY_SIGNATURES]: _event.topics,
     })),
     [constants.config.KEY_DB]: {
       [constants.config.KEY_NAME]: 'pnetwork',
@@ -100,7 +100,7 @@ const generateRequestProcessorConfiguration = (taskArgs, hre, _networkId, _contr
 
 const saveRelayerListenerConfiguration = (taskArgs, hre, _networkId, _hubAddress) =>
   generateListenerConfiguration(taskArgs, hre, _networkId, [
-    { contracts: [_hubAddress], topic: constants.evm.events.USER_OPERATION_SIGNATURE },
+    { contracts: _hubAddress, topics: [constants.evm.events.USER_OPERATION_SIGNATURE] },
   ]).then(
     maybeSaveConfiguration(
       taskArgs,
@@ -121,8 +121,13 @@ const saveRelayerProcessorConfiguration = (taskArgs, hre, _networkId, _hubAddres
 const saveGuardianListenerConfiguration = (taskArgs, hre, _networkId, _hubAddress) =>
   console.info('_hubAddress', _hubAddress) ||
   generateListenerConfiguration(taskArgs, hre, _networkId, [
-    { contracts: [_hubAddress], topic: constants.evm.events.USER_OPERATION_SIGNATURE },
-    { contracts: [_hubAddress], topic: constants.evm.events.OPERATION_QUEUED_SIGNATURE },
+    {
+      contracts: _hubAddress,
+      topics: [
+        constants.evm.events.USER_OPERATION_SIGNATURE,
+        constants.evm.events.OPERATION_QUEUED_SIGNATURE,
+      ],
+    },
   ]).then(
     maybeSaveConfiguration(
       taskArgs,
