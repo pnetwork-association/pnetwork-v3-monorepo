@@ -34,7 +34,7 @@ const listenForEvmEvent = (
     )
     .then(
       ([_filter, _interface]) =>
-        logger.info(`Listen_eventSignatureing to ${_eventSignature} @ ${_contractAddress}`) ||
+        logger.info(`Listen to ${_eventSignature} @ ${_contractAddress}`) ||
         listenFromFilter(_providerUrl, _networkId, _filter, _interface, _callback)
     )
 
