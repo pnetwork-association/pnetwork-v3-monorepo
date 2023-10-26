@@ -8,7 +8,9 @@
   "bin": "index.js",
   "scripts": {
     "lint": "eslint .",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "docker-build": "PROJECT_ROOT=$(pwd) ./docker-build.sh",
+    "clean": "rm -rf $(pwd)/build"
   },
   "keywords": [
     "ipfs",
