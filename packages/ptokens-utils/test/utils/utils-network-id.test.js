@@ -1,6 +1,7 @@
 const assert = require('assert')
 const R = require('ramda')
-const { utils, constants } = require('../..')
+const { utils } = require('../..')
+const constants = require('ptokens-constants')
 
 describe('Chain ID utils tests', () => {
   describe('getBlockchainTypeFromChainId', () => {
