@@ -3,14 +3,19 @@ const ethers = require('ethers')
 const constants = require('ptokens-constants')
 const { logger } = require('./get-logger')
 const {
-  STATE_MEMORY_KEY,
   STATE_LOCK_AMOUNTS_KEY,
-  STATE_BLOCK_TIMES_ESTIMATIONS_KEY,
   MEM_ACTOR,
   MEM_SYNC_STATE,
+  STATE_DB_ACTORS_KEY,
+  STATE_DB_ACTORS_PROPAGATED_KEY,
+  STATE_DB_CHALLENGES_KEY,
+  STATE_BLOCK_THRESHOLDS_KEY,
+  ID_ACTORS_PROPAGATED,
+  STATE_PROOFS_KEY,
 } = require('./constants')
-const { utils, logic } = require('ptokens-utils')
+const { db, utils, logic } = require('ptokens-utils')
 const chains = require('./chains')
+const { findSupportedChain } = require('./find-supported-chain')
 
 const KEY_ACTOR_ADDRESS = 'actorAddress'
 const KEY_INACTIVE_NETWORK_IDS = 'inactiveNetworkIds'
@@ -57,33 +62,34 @@ const isLastBlockNumberOverThreshold = R.curry(
 )
 
 const getInactiveActorsAndNetworkIds = R.curry(
-  (Memory, _blockThresholds, _latestBlockNumbersObj, _actorAddress) =>
-    new Promise(resolve => {
-      const actor = Memory.getActor(_actorAddress)
+  (_actorsStorage, _blockThresholds, _latestBlockNumbersObj, _actorAddress) =>
+    db.findReport(_actorsStorage, { actor: R.toLower(_actorAddress) }).then(_actor => {
+      // Gently reminder
+      // _blockThresholds = { '0x1234': 500, '0x4566': 6000 }
       const supportedNetworkIds = R.keys(_blockThresholds)
       let inactiveNetworkIds = []
-      if (utils.isNotNil(actor)) {
-        const syncState = actor[MEM_SYNC_STATE]
-        logger.info(`Checking actor ${actor[MEM_ACTOR]} sync state...`)
+      if (utils.isNotNil(_actor)) {
+        const syncState = _actor[MEM_SYNC_STATE]
+        logger.info(`Checking actor ${_actor[MEM_ACTOR]} sync state...`)
 
         inactiveNetworkIds = supportedNetworkIds.filter(
           isLastBlockNumberOverThreshold(syncState, _blockThresholds, _latestBlockNumbersObj)
         )
       } else {
         // Means we've never received any state update
-        // from the actor until now
+        // from the _actor until now
         inactiveNetworkIds = supportedNetworkIds
       }
 
       const maybeLogSuffix =
         inactiveNetworkIds.length > 0 ? ` (${inactiveNetworkIds.join(', ')})` : ''
-      return R.isNil(actor) || inactiveNetworkIds.length > 0
+      return R.isNil(_actor) || inactiveNetworkIds.length > 0
         ? logger.info(`Inactive actor '${_actorAddress.slice(0, 10)}...'${maybeLogSuffix}`) ||
-            resolve({
+            Promise.resolve({
               [KEY_ACTOR_ADDRESS]: _actorAddress,
               [KEY_INACTIVE_NETWORK_IDS]: inactiveNetworkIds,
             })
-        : resolve(null)
+        : Promise.resolve(null)
     })
 )
 
@@ -93,64 +99,114 @@ const getInactiveActorsAndNetworkIds = R.curry(
 //   "inactiveNetworkIds": [ "0x1234", "0x5678"]
 // }]
 const filterForInactiveActors = R.curry(
-  (Memory, _actorsPropagated, _blockThresholds, _latestBlockNumbersObj) =>
-    Promise.all(
-      _actorsPropagated.actors.map(
-        getInactiveActorsAndNetworkIds(Memory, _blockThresholds, _latestBlockNumbersObj)
+  (_actorsStorage, _actorsPropagatedStorage, _blockThresholds, _latestBlockNumbersObj) =>
+    db
+      .findReportById(_actorsPropagatedStorage, ID_ACTORS_PROPAGATED)
+      .then(R.prop('actors'))
+      .then(
+        logic.mapAll(
+          getInactiveActorsAndNetworkIds(_actorsStorage, _blockThresholds, _latestBlockNumbersObj)
+        )
       )
-    ).then(utils.removeNilsFromList)
+      .then(utils.removeNilsFromList)
 )
 
 const startChallengeOnNetworkId = R.curry(
-  (Memory, _privateKey, _supportedChains, _lockAmounts, _address, _proof, _networkId) =>
+  (
+    _challengesStorage,
+    _supportedChains,
+    _privateKey,
+    _lockAmounts,
+    _dryRun,
+    _actorAddress,
+    _actorType,
+    _proof,
+    _networkId
+  ) =>
     new Promise((resolve, reject) => {
-      logger.info(`Challenging actor ${_address.slice(0, 10)}... on '${_networkId}'...`)
-      const chainType = R.toLower(utils.getBlockchainTypeFromChainIdSync(_networkId))
+      logger.info(`Challenging actor '${_actorAddress}' type ${_actorType} on '${_networkId}'...`)
       const lockAmount = _lockAmounts[_networkId]
+      const chainType = utils.getBlockchainTypeFromChainIdSync(_networkId)
+      const supportedChain = findSupportedChain(_supportedChains, _networkId)
 
-      return chains[chainType]
+      return chains[R.toLower(chainType)]
         .startChallenge(
-          Memory,
+          _challengesStorage,
+          supportedChain,
           _privateKey,
-          _supportedChains,
           lockAmount,
-          _address,
+          _actorAddress,
+          _actorType,
           _proof,
-          _networkId
+          _networkId,
+          _dryRun
         )
         .then(resolve)
         .catch(reject)
     })
 )
 
-const challengeActor = R.curry((Memory, _privateKey, _supportedChains, _lockAmounts, _actorElem) =>
-  Promise.resolve(Memory.getActorsPropagated()).then(({ currentEpoch, actors, actorsTypes }) => {
-    const actorAddress = _actorElem[KEY_ACTOR_ADDRESS]
-    const proof = utils.getMerkleProofSync(currentEpoch, actors, actorsTypes, actorAddress)
-    const inactiveNetworkIds = _actorElem[KEY_INACTIVE_NETWORK_IDS]
-    return Promise.all(
-      inactiveNetworkIds.map(
-        startChallengeOnNetworkId(
-          Memory,
-          _privateKey,
-          _supportedChains,
-          _lockAmounts,
-          actorAddress,
-          proof
+const challengeActor = R.curry(
+  (
+    _challengesStorage,
+    _actorsPropagatedStorage,
+    _proofsByActor,
+    _privateKey,
+    _supportedChains,
+    _lockAmounts,
+    _dryRun,
+    _actorElem
+  ) =>
+    db
+      .findReportById(_actorsPropagatedStorage, ID_ACTORS_PROPAGATED)
+      .then(({ actors, actorsTypes }) => {
+        const actorAddress = _actorElem[KEY_ACTOR_ADDRESS]
+        const actorType = actorsTypes[actors.indexOf(actorAddress)]
+        const proof = _proofsByActor[actorAddress]
+        const inactiveNetworkIds = _actorElem[KEY_INACTIVE_NETWORK_IDS]
+
+        return logic.mapAll(
+          startChallengeOnNetworkId(
+            _challengesStorage,
+            _supportedChains,
+            _privateKey,
+            _lockAmounts,
+            _dryRun,
+            actorAddress,
+            actorType,
+            proof
+          ),
+          inactiveNetworkIds
         )
-      )
-    )
-  })
+      })
 )
 
 const challengeActors = R.curry(
-  (Memory, _privateKeyFile, _supportedChains, _lockAmounts, _actorsList) =>
+  (
+    _challengesStorage,
+    _actorsPropagatedStorage,
+    _proofsByActor,
+    _privateKeyFile,
+    _supportedChains,
+    _lockAmounts,
+    _dryRun,
+    _actorsList
+  ) =>
     utils.readIdentityFile(_privateKeyFile).then(async _privateKey => {
       logger.info(`Found ${_actorsList.length} inactive actors`)
       const results = []
       for (const actor of _actorsList) {
         results.push(
-          await challengeActor(Memory, _privateKey, _supportedChains, _lockAmounts, actor)
+          await challengeActor(
+            _challengesStorage,
+            _actorsPropagatedStorage,
+            _proofsByActor,
+            _privateKey,
+            _supportedChains,
+            _lockAmounts,
+            _dryRun,
+            actor
+          )
         )
         await logic.sleepForXMilliseconds(2000)
       }
@@ -158,81 +214,48 @@ const challengeActors = R.curry(
     })
 )
 
-const startChallenger = (
-  Memory,
-  _supportedChains,
-  _actorsPropagated,
-  _blockThresholds,
-  _lockAmounts,
-  _privateKeyFile
-) =>
-  getLatestBlockNumbersByNetworkId(_supportedChains)
-    .then(buildLatestBlockNumbersObject)
-    .then(filterForInactiveActors(Memory, _actorsPropagated, _blockThresholds))
-    .then(challengeActors(Memory, _privateKeyFile, _supportedChains, _lockAmounts))
+const startChallenger = _state =>
+  new Promise((resolve, reject) => {
+    const actorsStorage = _state[STATE_DB_ACTORS_KEY]
+    const challengesStorage = _state[STATE_DB_CHALLENGES_KEY]
+    const actorsPropagatedStorage = _state[STATE_DB_ACTORS_PROPAGATED_KEY]
+    const privateKeyFile = _state[constants.config.KEY_IDENTITY_GPG]
+    const lockAmounts = _state[STATE_LOCK_AMOUNTS_KEY]
+    const blockThresholds = _state[STATE_BLOCK_THRESHOLDS_KEY]
+    const supportedChains = _state[constants.config.KEY_SUPPORTED_CHAINS]
+    const proofsByActor = _state[STATE_PROOFS_KEY]
+    const dryRun = _state[constants.config.KEY_DRY_RUN]
 
-const maybeChallengeEachActor = R.curry(
-  (
-    Memory,
-    _supportedChains,
-    _actorsPropagated,
-    _blockThresholds,
-    _lockAmounts,
-    _checkInactivityInterval,
-    _privateKeyFile
-  ) =>
-    logger.info('Challenger started...') ||
-    setInterval(
-      startChallenger,
-      _checkInactivityInterval * 1000,
-      Memory,
-      _supportedChains,
-      _actorsPropagated,
-      _blockThresholds,
-      _lockAmounts,
-      _privateKeyFile
-    )
-)
+    return getLatestBlockNumbersByNetworkId(supportedChains)
+      .then(buildLatestBlockNumbersObject)
+      .then(filterForInactiveActors(actorsStorage, actorsPropagatedStorage, blockThresholds))
+      .then(
+        challengeActors(
+          challengesStorage,
+          actorsPropagatedStorage,
+          proofsByActor,
+          privateKeyFile,
+          supportedChains,
+          lockAmounts,
+          dryRun
+        )
+      )
+      .then(resolve)
+      .then(reject)
+  })
 
-const getThreshold = (_blockTime, _fireChallengeThreshold) =>
-  Math.floor(_fireChallengeThreshold / _blockTime)
-
-const getThresholdsFromBlockTimes = (_blockTimes, _fireChallengeThreshold) =>
-  R.keys(_blockTimes).reduce(
-    (_result, _networkId) => ({
-      ..._result,
-      [_networkId]: getThreshold(_blockTimes[_networkId], _fireChallengeThreshold),
-    }),
-    {}
-  )
+const maybeChallengeEachActor = _state =>
+  new Promise((resolve, _) => {
+    const inactivityCheckInterval = _state[constants.config.KEY_CHECK_INACTIVITY_INTERVAL]
+    logger.info('Challenger started...')
+    setInterval(startChallenger, inactivityCheckInterval * 1000, _state)
+    return resolve()
+  })
 
 module.exports.maybeChallengeInactiveActors = _state => {
-  const supportedChains = _state[constants.config.KEY_SUPPORTED_CHAINS]
-  const blockTimes = _state[STATE_BLOCK_TIMES_ESTIMATIONS_KEY]
-  const lockAmounts = _state[STATE_LOCK_AMOUNTS_KEY]
-  const fireChallengeThreshold = _state[constants.config.KEY_FIRE_CHALLENGE_THRESHOLD] // seconds
   const warmUpTime = _state[constants.config.KEY_WARMUP_TIME]
-  const inactivityInterval = _state[constants.config.KEY_CHECK_INACTIVITY_INTERVAL]
-  const privateKeyFile = _state[constants.config.KEY_IDENTITY_GPG]
-  const Memory = _state[STATE_MEMORY_KEY]
-  const actorsPropagated = Memory.getActorsPropagated()
-
-  // TODO: move to index
-  Memory.setDryRunTo(_state[constants.config.KEY_DRY_RUN])
-
-  const blockThresholdsByNetworkId = getThresholdsFromBlockTimes(blockTimes, fireChallengeThreshold)
 
   logger.info(`Check for inactivity in ${warmUpTime} seconds...`)
 
-  setTimeout(
-    maybeChallengeEachActor,
-    warmUpTime * 1000,
-    Memory,
-    supportedChains,
-    actorsPropagated,
-    blockThresholdsByNetworkId,
-    lockAmounts,
-    inactivityInterval,
-    privateKeyFile
-  )
+  setTimeout(maybeChallengeEachActor, warmUpTime * 1000, _state)
 }

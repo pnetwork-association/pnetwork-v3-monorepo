@@ -18,7 +18,7 @@ const getLockAmount = _supportedChain =>
     logger.info(`Getting challenger locked amount for '${chainName}'...`)
     return hub
       .lockedAmountStartChallenge()
-      .then(_lockedAmount => ({ [networkId]: _lockedAmount }))
+      .then(_lockedAmount => ({ [networkId]: Number(_lockedAmount) }))
       .then(resolve)
       .catch(reject)
   })

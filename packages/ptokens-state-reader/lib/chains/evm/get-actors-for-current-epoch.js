@@ -1,9 +1,9 @@
 const R = require('ramda')
 const ethers = require('ethers')
-const { utils, logic } = require('ptokens-utils')
+const { db, utils, logic } = require('ptokens-utils')
 const { logger } = require('../../get-logger')
 const constants = require('ptokens-constants')
-const { STATE_MEMORY_KEY } = require('../../constants')
+const { STATE_DB_ACTORS_PROPAGATED_KEY, ID_ACTORS_PROPAGATED } = require('../../constants')
 const {
   ERROR_FAILED_TO_GET_SUPPORTED_CHAIN,
   ERROR_GOVERNANCE_MESSAGE_EMITTER_NOT_FOUND,
@@ -58,12 +58,18 @@ const getLastActorsPropagatedEvent = R.curry(
       .then(_parsedLog => new ActorsPropagated(_parsedLog))
 )
 
+const updateActorsPropagatedEventInStorage = R.curry(
+  (_storage, _actorsPropagatedEvent) =>
+    db.updateReportById(_storage, { $set: _actorsPropagatedEvent }, ID_ACTORS_PROPAGATED) ||
+    logger.info(`Actors for epoch ${_actorsPropagatedEvent.currentEpoch} inserted in memory!`)
+)
+
 module.exports.storeActorsForCurrentEpoch = _state =>
   getSupportedChainsFromState(_state)
     .then(R.find(R.propEq('polygon', constants.config.KEY_CHAIN_NAME)))
     .then(utils.rejectIfNil(ERROR_FAILED_TO_GET_SUPPORTED_CHAIN))
     .then(_polygonSupportedChain => {
-      const Memory = _state[STATE_MEMORY_KEY]
+      const actorsPropagatedStorage = _state[STATE_DB_ACTORS_PROPAGATED_KEY]
       const provider = new ethers.JsonRpcProvider(
         _polygonSupportedChain[constants.config.KEY_PROVIDER_URL]
       )
@@ -86,6 +92,6 @@ module.exports.storeActorsForCurrentEpoch = _state =>
       return epochsManager
         .currentEpoch()
         .then(getLastActorsPropagatedEvent(provider, governanceMessageEmitter))
-        .then(_actorsPropagated => Memory.addActorsPropagated(_actorsPropagated))
+        .then(updateActorsPropagatedEventInStorage(actorsPropagatedStorage))
         .then(_ => _state)
     })

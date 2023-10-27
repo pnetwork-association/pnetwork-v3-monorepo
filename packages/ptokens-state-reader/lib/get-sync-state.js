@@ -2,9 +2,18 @@ const R = require('ramda')
 const constants = require('ptokens-constants')
 const protocols = require('./protocols')
 const { logger } = require('./get-logger')
-const { utils, errors, validation } = require('ptokens-utils')
+const { db, utils, errors, validation } = require('ptokens-utils')
 const { verifySignature } = require('./verify-signature')
-const { STATE_MEMORY_KEY } = require('./constants')
+const {
+  MEM_EPOCH,
+  MEM_ACTOR,
+  MEM_TIMESTAMP,
+  MEM_SYNC_STATE,
+  STATE_DB_ACTORS_KEY,
+  STATE_DB_ACTORS_PROPAGATED_KEY,
+  ID_ACTORS_PROPAGATED,
+} = require('./constants')
+const { getActorsReportId } = require('./get-actors-report-id')
 const { ERROR_UNSUPPORTED_PROTOCOL, ERROR_UNABLE_TO_FIND_ACTOR_FOR_EPOCH } = require('./errors')
 
 const errorHandler = _err => {
@@ -20,15 +29,18 @@ const onMessageHandler = R.curry((_state, _message) =>
   utils
     .parseJsonAsync(_message)
     .then(validation.validateJson(constants.config.schemas.statusObject))
-    .then(_statusObj => {
+    .then(async _statusObj => {
       logger.info('Received new status object:', JSON.stringify(_statusObj))
-      const Memory = _state[STATE_MEMORY_KEY]
+      const actorsStorage = _state[STATE_DB_ACTORS_KEY]
       const actorAddress = _statusObj[constants.config.KEY_SIGNER_ADDRESS]
       const signature = _statusObj[constants.config.KEY_SIGNATURE]
       const syncState = _statusObj[constants.config.KEY_SYNC_STATE]
-      const actorsPropagated = Memory.getActorsPropagated()
+      const actorsPropagated = await db.findReportById(
+        _state[STATE_DB_ACTORS_PROPAGATED_KEY],
+        ID_ACTORS_PROPAGATED
+      )
 
-      if (!R.find(R.equals(actorAddress), actorsPropagated.actors)) {
+      if (!R.find(R.equals(R.toLower(actorAddress)), actorsPropagated.actors)) {
         // TODO: check actor's type too
         return Promise.reject(
           new Error(`${ERROR_UNABLE_TO_FIND_ACTOR_FOR_EPOCH}: '${actorAddress}'`)
@@ -37,7 +49,14 @@ const onMessageHandler = R.curry((_state, _message) =>
 
       if (verifySignature(_statusObj, signature)) {
         logger.info(`Valid signature for ${actorAddress}!`)
-        Memory.updateActorState(actorsPropagated.currentEpoch, actorAddress, syncState)
+        const id = getActorsReportId(actorAddress)
+        const report = {
+          [MEM_EPOCH]: actorsPropagated.currentEpoch,
+          [MEM_ACTOR]: R.toLower(actorAddress),
+          [MEM_TIMESTAMP]: Date.now(),
+          [MEM_SYNC_STATE]: syncState,
+        }
+        await db.updateReportById(actorsStorage, { $set: report }, id)
       } else {
         logger.info('Invalid signature, ignoring...')
       }

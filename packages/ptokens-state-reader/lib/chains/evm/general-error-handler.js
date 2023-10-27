@@ -18,15 +18,29 @@ const logInvocation = _invocation => {
   logger.error(`  ${_invocation.method}(${_invocation.args.join(', ')})`)
 }
 
+const formatErrorDescription = _parsedError =>
+  `${_parsedError.name}(${_parsedError.args.join(', ')})`
+
+const errorDescriptionHandler = (_actorAddress, _errDescription) =>
+  new Promise((resolve, _) => {
+    const formattedMsg = formatErrorDescription(_errDescription)
+    if (formattedMsg.includes('InvalidActorStatus(1, 0)')) {
+      logger.warn(`${_actorAddress} already challenged!`)
+    } else {
+      logger.warn(formattedMsg)
+    }
+    return resolve(null)
+  })
+
 module.exports.generalErrorHandler = R.curry(
-  (_wallet, _contract, _err) =>
+  (_actorAddress, _wallet, _contract, _err) =>
     new Promise((resolve, reject) => {
       const msg = _err.message
       const data = _err['data']
       if (utils.isNotNil(data)) {
         const parsedError = _contract.interface.parseError(data)
         if (parsedError instanceof ethers.ErrorDescription) {
-          logger.warn(`${parsedError.name}(${parsedError.args.join(', ')})`)
+          return errorDescriptionHandler(_actorAddress, parsedError).then(resolve)
         } else {
           logger.debug(_err.message)
         }

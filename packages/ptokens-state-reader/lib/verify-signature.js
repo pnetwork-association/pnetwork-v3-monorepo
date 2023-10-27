@@ -8,5 +8,5 @@ module.exports.verifySignature = R.curry((_statusObject, _signature) => {
   const actorAddress = _statusObject[constants.config.KEY_SIGNER_ADDRESS]
   const message = utils.sortKeysAlphabetically(_statusObject)
   const address = ethers.verifyMessage(JSON.stringify(message), _signature)
-  return address === actorAddress
+  return R.toLower(address) === R.toLower(actorAddress)
 })
