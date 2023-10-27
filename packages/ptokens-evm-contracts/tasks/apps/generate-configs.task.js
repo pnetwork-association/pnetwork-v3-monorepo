@@ -126,6 +126,7 @@ const saveGuardianListenerConfiguration = (taskArgs, hre, _networkId, _hubAddres
       topics: [
         constants.evm.events.USER_OPERATION_SIGNATURE,
         constants.evm.events.OPERATION_QUEUED_SIGNATURE,
+        constants.evm.events.CHALLENGE_PENDING_SIGNATURE,
       ],
     },
   ]).then(
