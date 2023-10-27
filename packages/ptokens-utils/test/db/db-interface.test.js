@@ -76,6 +76,23 @@ describe('Database interface tests', () => {
     })
   })
 
+  describe('getCollection', () => {
+    it('Should get different collection in a Promise.all and terminate', () => {
+      const { db } = require('../..')
+      const uri = mongod.getUri()
+      const name = 'adatabase'
+
+      const promiseAllCollections = () =>
+        Promise.all([
+          db.getCollection(uri, name, 'collection1'),
+          db.getCollection(uri, name, 'collection2'),
+          db.getCollection(uri, name, 'collection3'),
+        ])
+
+      assert.doesNotReject(promiseAllCollections())
+    })
+  })
+
   describe('insertReport', () => {
     const { db } = require('../..')
     let collection
