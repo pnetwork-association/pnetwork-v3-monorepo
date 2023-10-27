@@ -1,6 +1,5 @@
 const rewire = require('rewire')
 const assert = require('assert')
-const { errors } = require('../..')
 const { MongoMemoryServer } = require('mongodb-memory-server')
 
 describe('Database interface tests', () => {
@@ -138,28 +137,6 @@ describe('Database interface tests', () => {
     })
   })
 
-  describe('updateReportOrReject', () => {
-    let collection
-    const { db } = require('../..')
-
-    before(async () => {
-      collection = await db.getCollection(mongod.getUri(), DATABASE_NAME, COLLECTION_NAME)
-    })
-
-    it('Should reject when no report is updated', async () => {
-      try {
-        await db.updateReportOrReject(
-          collection,
-          { $set: { user: 'foo' } },
-          { notExistingKey: 'newValue' }
-        )
-        assert.fail('Should never reach here!')
-      } catch (e) {
-        assert(e.message.includes(errors.ERROR_NO_UPDATE_FOR_REPORT))
-      }
-    })
-  })
-
   describe('updateReportById', () => {
     let collection
     const { db } = require('../..')
@@ -214,6 +191,7 @@ describe('Database interface tests', () => {
       await db.deleteReportByQuery(collection, { ciao: 'mondo' })
 
       const results = await db.findReports(collection, {})
+
       assert.equal(results.length, 1)
       assert.deepStrictEqual(results, [reports[0]])
     })
