@@ -38,7 +38,7 @@ const getEventWithAllRequiredSetToNull = _ => ({
 })
 
 const bigIntToNumber = R.tryCatch(_n => Number(_n) || null, R.always(null))
-const bitIntToString = R.tryCatch(_n => _n.toString(), R.always(null))
+const bigIntToString = R.tryCatch(_n => _n.toString(), R.always(null))
 
 const addEventName = _eventLog => R.assoc(constants.db.KEY_EVENT_NAME, _eventLog.name)
 
@@ -91,7 +91,7 @@ const addInfoFromParsedLog = (_parsedLog, _obj) =>
     .then(addEventName(_parsedLog))
     .then(addEventArgs(_parsedLog))
     .then(
-      maybeAddFieldFromEventArgs(_parsedLog.args, ['nonce'], constants.db.KEY_NONCE, bitIntToString)
+      maybeAddFieldFromEventArgs(_parsedLog.args, ['nonce'], constants.db.KEY_NONCE, bigIntToString)
     )
     .then(
       maybeAddFieldFromEventArgs(
@@ -170,7 +170,7 @@ const addInfoFromParsedLog = (_parsedLog, _obj) =>
         _parsedLog.args,
         ['assetAmount', 'amount', '_tokenAmount', 'value'],
         constants.db.KEY_ASSET_AMOUNT,
-        bitIntToString
+        bigIntToString
       )
     )
     .then(
@@ -178,7 +178,7 @@ const addInfoFromParsedLog = (_parsedLog, _obj) =>
         _parsedLog.args,
         ['userDataProtocolFeeAssetAmount'],
         constants.db.KEY_PROTOCOL_FEE_ASSET_AMOUNT,
-        bitIntToString
+        bigIntToString
       )
     )
     .then(
@@ -186,7 +186,7 @@ const addInfoFromParsedLog = (_parsedLog, _obj) =>
         _parsedLog.args,
         ['networkFeeAssetAmount'],
         constants.db.KEY_NETWORK_FEE_ASSET_AMOUNT,
-        bitIntToString
+        bigIntToString
       )
     )
     .then(
@@ -194,7 +194,7 @@ const addInfoFromParsedLog = (_parsedLog, _obj) =>
         _parsedLog.args,
         ['forwardNetworkFeeAssetAmount'],
         constants.db.KEY_FORWARD_NETWORK_FEE_ASSET_AMOUNT,
-        bitIntToString
+        bigIntToString
       )
     )
     .then(
@@ -210,7 +210,7 @@ const addInfoFromParsedLog = (_parsedLog, _obj) =>
         _parsedLog.args,
         ['optionsMask'],
         constants.db.KEY_OPTIONS_MASK,
-        bitIntToString
+        bigIntToString
       )
     )
     .then(
@@ -218,7 +218,7 @@ const addInfoFromParsedLog = (_parsedLog, _obj) =>
         _parsedLog.args,
         ['originBlockHash'],
         constants.db.KEY_ORIGINATING_BLOCK_HASH,
-        bitIntToString
+        bigIntToString
       )
     )
     .then(
@@ -226,7 +226,7 @@ const addInfoFromParsedLog = (_parsedLog, _obj) =>
         _parsedLog.args,
         ['originTransactionHash'],
         constants.db.KEY_ORIGINATING_TX_HASH,
-        bitIntToString
+        bigIntToString
       )
     )
     .then(
@@ -234,7 +234,7 @@ const addInfoFromParsedLog = (_parsedLog, _obj) =>
         _parsedLog.args,
         ['originNetworkId'],
         constants.db.KEY_ORIGINATING_NETWORK_ID,
-        bitIntToString
+        bigIntToString
       )
     )
     .then(
