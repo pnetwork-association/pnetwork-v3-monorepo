@@ -4,7 +4,7 @@ const OPERATION_TUPLE =
 const OPERATION_CANCELLED_SIGNATURE = `OperationCancelFinalized(${OPERATION_TUPLE} operation)`
 
 const CHALLENGE_TUPLE =
-  'tuple(uint256 nonce, address actor, address challenger, uint64 timestamp, bytes4 networkId)'
+  'tuple(uint256 nonce, address actor, address challenger, uint8 actorType, uint64 timestamp, bytes4 networkId)'
 
 const OPERATION_EXECUTED_SIGNATURE = `OperationExecuted(${OPERATION_TUPLE} operation)`
 
