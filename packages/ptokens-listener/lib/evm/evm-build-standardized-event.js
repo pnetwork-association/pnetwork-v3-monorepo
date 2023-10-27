@@ -42,7 +42,18 @@ const bitIntToString = R.tryCatch(_n => _n.toString(), R.always(null))
 
 const addEventName = _eventLog => R.assoc(constants.db.KEY_EVENT_NAME, _eventLog.name)
 
-const addEventArgs = _eventLog => R.assoc(constants.db.KEY_EVENT_ARGS, Array.from(_eventLog.args))
+const argsToString = _arg =>
+  R.type(_arg) === 'Array'
+    ? _arg.map(argsToString)
+    : R.type(_arg) === 'Boolean'
+    ? _arg
+    : _arg.toString()
+
+const addEventArgs = _eventLog =>
+  R.assoc(
+    constants.db.KEY_EVENT_ARGS,
+    Array.from(_eventLog.args.map(argsToString)) // .map(R.tryCatch(_arg => _arg.toString(), R.always(null)))
+  )
 
 const setCorrectStatus = R.curry((_parsedLog, _obj) =>
   _parsedLog.name === constants.db.eventNames.QUEUED_OPERATION
