@@ -1,10 +1,12 @@
 const R = require('ramda')
+const dbSchema = require('./db')
 const stateEmitter = require('./state-emitter')
 const {
   KEY_WARMUP_TIME,
   KEY_CHECK_INACTIVITY_INTERVAL,
   KEY_FIRE_CHALLENGE_THRESHOLD,
   KEY_DRY_RUN,
+  KEY_DB,
 } = require('../constants')
 
 module.exports = R.mergeDeepWith(R.concat, stateEmitter, {
@@ -22,5 +24,6 @@ module.exports = R.mergeDeepWith(R.concat, stateEmitter, {
     [KEY_DRY_RUN]: {
       type: 'boolean',
     },
+    [KEY_DB]: dbSchema,
   },
 })
