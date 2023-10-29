@@ -1,47 +1,33 @@
 const R = require('ramda')
-const { utils, logic } = require('ptokens-utils')
+const { db, utils, logic } = require('ptokens-utils')
 const { logger } = require('./get-logger')
 const constants = require('ptokens-constants')
 const chains = require('./chains')
-const { STATE_MEMORY_KEY } = require('./constants')
+const { STATE_DB_CHALLENGES_KEY } = require('./constants')
 const { findSupportedChain } = require('./find-supported-chain')
 const { setInterval } = require('timers/promises')
 
-const slashChallenges = R.curry(
-  async (Memory, _privateKey, _supportedChain, _waitingTimeAmongCalls, _challenges) => {
+const slashByChallenge = R.curry(
+  async (_challengesStorage, _privateKey, _supportedChains, _challengeObj, _dryRun, _networkId) => {
     const results = []
-    const networkId = _supportedChain[constants.config.KEY_NETWORK_ID]
-    const chainType = utils.getBlockchainTypeFromChainId(networkId)
+    const supportedChain = findSupportedChain(_supportedChains, _networkId)
+    const chainType = utils.getBlockchainTypeFromChainId(_networkId)
+    const challenges = _challengeObj[_networkId]
 
     logger.info(`Performing slashing on '${chainType}'`)
-    for (const challenge of _challenges) {
+    for (const challenge of challenges) {
       results.push(
-        await chains[chainType].slashActor(Memory, _privateKey, _supportedChain, challenge)
-      )
-      await logic.sleepForXMilliseconds(_waitingTimeAmongCalls)
-    }
-  }
-)
-
-const slashChallengesOrganizeByNetworkId = R.curry(
-  (Memory, _privateKeyFile, _supportedChains, _waitingTimeAmongCalls, _challengesObj) =>
-    utils
-      .readIdentityFile(_privateKeyFile)
-      .then(_privateKey =>
-        Promise.all(
-          R.keys(_challengesObj).map(_networkId =>
-            Promise.resolve(findSupportedChain(_networkId)).then(_supportedChain =>
-              slashChallenges(
-                Memory,
-                _privateKey,
-                _supportedChain,
-                _waitingTimeAmongCalls,
-                _challengesObj[_networkId]
-              )
-            )
-          )
+        await chains[chainType].slashActor(
+          _challengesStorage,
+          _privateKey,
+          supportedChain,
+          challenge,
+          _dryRun
         )
       )
+      await logic.sleepForXMilliseconds(1000)
+    }
+  }
 )
 
 const buildChallengesObjectByNetworkId = _challenges =>
@@ -54,30 +40,36 @@ const buildChallengesObjectByNetworkId = _challenges =>
     }, {})
   )
 
-module.exports.maybeSlashInactiveActors = _state =>
-  new Promise((resolve, reject) => {
-    const Memory = _state[STATE_MEMORY_KEY]
-    const supportedChains = _state[constants.config.KEY_SUPPORTED_CHAINS]
-    const privateKeyFile = _state[constants.config.KEY_IDENTITY_GPG]
-    const pendingChallenges = Memory.getPendingChallenges()
-    const waitingTimeAmongCalls = 1500
+const getPendingChallenges = _challengesStorage =>
+  db.findReports(
+    _challengesStorage,
+    {
+      [constants.db.KEY_STATUS]: constants.hub.challengeStatus.PENDING,
+    },
+    {}
+  )
 
-    logger.info(`Found ${pendingChallenges.length} pending challenges...`)
+const slashingLoop = _state =>
+  Promise.resolve(_state[STATE_DB_CHALLENGES_KEY])
+    .then(getPendingChallenges)
+    .then(_pendingChallenges => {
+      logger.info(`Found ${_pendingChallenges.length} pending challenges...`)
+      const challengesStorage = _state[STATE_DB_CHALLENGES_KEY]
+      const privateKeyFile = _state[constants.config.KEY_IDENTITY_GPG]
+      const privateKey = utils.readIdentityFileSync(privateKeyFile)
+      const supportedChains = _state[constants.config.KEY_SUPPORTED_CHAINS]
+      const dryRun = _state[constants.config.KEY_DRY_RUN]
 
-    const slashingLoop = () =>
-      pendingChallenges.length > 0
-        ? buildChallengesObjectByNetworkId(pendingChallenges)
-            .then(
-              slashChallengesOrganizeByNetworkId(
-                Memory,
-                privateKeyFile,
-                supportedChains,
-                waitingTimeAmongCalls
-              )
-            )
-            .then(resolve)
-            .then(reject)
-        : logger.info('No pending challenges to process, phew!') || Promise.resolve()
+      return buildChallengesObjectByNetworkId(_pendingChallenges).then(_challengeObj =>
+        logic.mapAll(
+          slashByChallenge(challengesStorage, privateKey, supportedChains, _challengeObj, dryRun),
+          R.keys(_challengeObj)
+        )
+      )
+    })
 
-    setInterval(slashingLoop, 10000) // TODO: configurable
-  })
+module.exports.maybeSlashInactiveActors = _state => {
+  setInterval(slashingLoop, 10000)
+
+  return Promise.resolve(_state)
+}
