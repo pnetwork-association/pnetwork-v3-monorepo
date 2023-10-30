@@ -5,6 +5,7 @@ const { logger } = require('../../get-logger')
 const constants = require('ptokens-constants')
 const { STATE_DB_ACTORS_PROPAGATED_KEY, ID_ACTORS_PROPAGATED } = require('../../constants')
 const {
+  ERROR_INVALID_EPOCH,
   ERROR_FAILED_TO_GET_SUPPORTED_CHAIN,
   ERROR_GOVERNANCE_MESSAGE_EMITTER_NOT_FOUND,
 } = require('../../errors')
@@ -48,6 +49,12 @@ const searchForLogBackwards = R.curry((_provider, _governanceMessageEmitter, _la
     })
 )
 
+const checkEpoch = R.curry((_expectedEpoch, _parsedLog) =>
+  Promise.resolve(R.path(['args', 'currentEpoch'])).then(
+    utils.rejectIfNotEqual(`${ERROR_INVALID_EPOCH}, should be ${_expectedEpoch}`, _expectedEpoch)
+  )
+)
+
 const getLastActorsPropagatedEvent = R.curry(
   (_provider, _governanceMessageEmitter, _epoch) =>
     logger.info(`Getting latest ActorsPropagated event for epoch ${_epoch}...`) ||
@@ -55,6 +62,7 @@ const getLastActorsPropagatedEvent = R.curry(
       .getBlockNumber()
       .then(searchForLogBackwards(_provider, _governanceMessageEmitter))
       .then(_log => _governanceMessageEmitter.interface.parseLog(_log))
+      .then(checkEpoch(_epoch))
       .then(_parsedLog => new ActorsPropagated(_parsedLog))
 )
 
