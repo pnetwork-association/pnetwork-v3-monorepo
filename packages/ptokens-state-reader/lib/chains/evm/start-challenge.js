@@ -32,12 +32,7 @@ module.exports.startChallenge = R.curry(
         const hub = new ethers.Contract(hubAddress, PNetworkHubAbi, wallet)
 
         const dryRunPrefix = _dryRun ? ' (dry-run)' : ''
-        logger.debug(
-          `${chainName}: startChallenge(${_actorAddress.slice(
-            0,
-            10
-          )}..., ${_actorType}, ${_proof.map(R.slice(0, 10))}...)${dryRunPrefix}`
-        )
+        logger.debug(`startChallenge(${_actorAddress}, ${_actorType}, [${_proof}])${dryRunPrefix}`)
         return _dryRun
           ? hub.startChallenge
               .staticCall(_actorAddress, _actorType, _proof, { value: _lockAmount })

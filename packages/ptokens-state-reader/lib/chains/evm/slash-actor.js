@@ -26,14 +26,15 @@ module.exports.slashActor = R.curry(
       const hub = new ethers.Contract(hubAddress, PNetworkHubAbi, wallet)
       const dryRunPrefix = _dryRun ? ' (dry-run)' : ''
 
-      logger.debug(`${chainName}: slashByChallenge()${dryRunPrefix}`)
+      const challengeArg = _challenge.getArg()
+      logger.debug(`slashByChallenge(${challengeArg})${dryRunPrefix}`)
 
       return _dryRun
         ? hub.slashByChallenge
-            .staticCall(_challenge.getArg())
+            .staticCall(challengeArg)
             .catch(generalErrorHandler(_challenge.actor, wallet, hub))
         : hub
-            .slashByChallenge(_challenge.getArg())
+            .slashByChallenge(challengeArg)
             .then(_tx => _tx.wait(1))
             .then(_receipt => logger.info(`Tx mined @ ${_receipt.hash}(${chainName})`) || _receipt)
             .then(R.path(['logs', 0]))
