@@ -22,8 +22,7 @@ contract MockRegistrationManager {
 
     address public immutable lendingManager;
     address public governanceMessageEmitter;
-    mapping(address => Registration) private _sentinelRegistrations;
-    mapping(address => Registration) private _guardianRegistrations;
+    mapping(address => Registration) private _registrations;
     mapping(uint16 => uint24) private _sentinelsEpochsTotalStakedAmount;
     mapping(address => mapping(uint16 => uint24)) private _sentinelsEpochsStakedAmount;
 
@@ -32,7 +31,7 @@ contract MockRegistrationManager {
     }
 
     function addBorrowingSentinel(address sentinel, address owner, uint16 startEpoch, uint16 endEpoch) external {
-        _sentinelRegistrations[sentinel] = Registration({
+        _registrations[sentinel] = Registration({
             owner: owner,
             startEpoch: startEpoch,
             endEpoch: endEpoch,
@@ -44,7 +43,7 @@ contract MockRegistrationManager {
     }
 
     function addGuardian(address guardian, address owner, uint16 startEpoch, uint16 endEpoch) external {
-        _guardianRegistrations[guardian] = Registration({
+        _registrations[guardian] = Registration({
             owner: owner,
             startEpoch: startEpoch,
             endEpoch: endEpoch,
@@ -59,7 +58,7 @@ contract MockRegistrationManager {
         uint16 endEpoch,
         uint24 amount
     ) external {
-        _sentinelRegistrations[sentinel] = Registration({
+        _registrations[sentinel] = Registration({
             owner: owner,
             startEpoch: startEpoch,
             endEpoch: endEpoch,
@@ -72,8 +71,8 @@ contract MockRegistrationManager {
         }
     }
 
-    function sentinelRegistration(address sentinel) external view returns (Registration memory) {
-        return _sentinelRegistrations[sentinel];
+    function registrationOf(address actor) external view returns (Registration memory) {
+        return _registrations[actor];
     }
 
     function sentinelStakedAmountByEpochOf(address sentinel, uint16 epoch) external view returns (uint24) {
@@ -85,7 +84,7 @@ contract MockRegistrationManager {
     }
 
     function slash(address actor, uint256 amount, address challenger) external {
-        Registration memory regitration = _sentinelRegistrations[actor];
+        Registration memory regitration = _registrations[actor];
 
         if (regitration.kind == 0x01) {
             IGovernanceMessageEmitter(governanceMessageEmitter).slashActor(actor, 0x01);

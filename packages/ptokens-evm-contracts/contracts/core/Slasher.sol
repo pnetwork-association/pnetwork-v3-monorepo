@@ -6,7 +6,8 @@ import {Utils} from "../libraries/Utils.sol";
 import {IEpochsManager} from "@pnetwork-association/dao-v2-contracts/contracts/interfaces/IEpochsManager.sol";
 import {IPRegistry} from "../interfaces/IPRegistry.sol";
 import {ISlasher} from "../interfaces/ISlasher.sol";
-import {IRegistrationManager} from "@pnetwork-association/dao-v2-contracts/contracts/interfaces/IRegistrationManager.sol";
+// TODO: replace with interface from dao-v2 repository once stable
+import {IRegistrationManager} from "../interfaces/external/IRegistrationManager.sol";
 
 error NotHub(address hub);
 error NotSupportedNetworkId(bytes4 originNetworkId);
@@ -48,7 +49,7 @@ contract Slasher is ISlasher {
         if (epoch != currentEpoch) revert InvalidEpoch(epoch, currentEpoch);
 
         IRegistrationManager.Registration memory registration = IRegistrationManager(registrationManager)
-            .sentinelRegistration(actor);
+            .registrationOf(actor);
 
         // See file `Constants.sol` in dao-v2-contracts:
         //
