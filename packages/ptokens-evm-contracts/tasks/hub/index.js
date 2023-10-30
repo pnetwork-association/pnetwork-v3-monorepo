@@ -7,10 +7,11 @@ const protocolExecute = require('./execute.task')
 const getProperties = require('./properties.task')
 const userOperations = require('./user-send.task')
 const startChallenge = require('./start-challenge.task')
+const lightResume = require('./light-resume.task')
 const TASK_CONSTANTS = require('../constants')
 
 const setCommonOptionalParams = () =>
-  [protocolExecute, protocolQueue, protocolCancel].map(lib => {
+  [protocolExecute, protocolQueue, protocolCancel, slash, startChallenge, lightResume].map(lib => {
     task(lib['TASK_NAME'])
       .addOptionalParam(
         TASK_CONSTANTS.PARAM_NAME_GASPRICE,
@@ -37,4 +38,5 @@ module.exports = {
   ...startChallenge,
   ...protocolExecute,
   ...userOperations,
+  ...lightResume,
 }
