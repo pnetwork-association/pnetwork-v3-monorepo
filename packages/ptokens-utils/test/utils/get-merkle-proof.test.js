@@ -48,4 +48,29 @@ describe('Get Merkle path general tests', () => {
       assert(tree.verify(proof, myLeaf, root))
     })
   })
+
+  it('Should verify a proof', async () => {
+    const address = '0xdB30d31Ce9A22f36a44993B1079aD2D201e11788'
+    const type = 1
+    const actors = ['0xdB30d31Ce9A22f36a44993B1079aD2D201e11788']
+    const types = [1]
+
+    const epoch = 46
+
+    const proof = await getMerkleProof(epoch, actors, types, address)
+
+    const leaves = actors.map((_address, _index) =>
+      ethers.solidityPackedKeccak256(['address', 'uint8'], [_address, types[_index]])
+    )
+
+    const tree = new MerkleTree(leaves, ethers.keccak256, {
+      sortPairs: true,
+    })
+
+    const myLeaf = ethers.solidityPackedKeccak256(['address', 'uint8'], [address, type])
+
+    const root = tree.getHexRoot()
+
+    assert(tree.verify(proof, myLeaf, root))
+  })
 })
