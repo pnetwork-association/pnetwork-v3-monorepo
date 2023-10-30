@@ -31,24 +31,14 @@ contract MockRegistrationManager {
     }
 
     function addBorrowingSentinel(address sentinel, address owner, uint16 startEpoch, uint16 endEpoch) external {
-        _registrations[sentinel] = Registration({
-            owner: owner,
-            startEpoch: startEpoch,
-            endEpoch: endEpoch,
-            kind: 0x02
-        });
+        _registrations[sentinel] = Registration({owner: owner, startEpoch: startEpoch, endEpoch: endEpoch, kind: 0x02});
         for (uint16 epoch = startEpoch; epoch <= endEpoch; epoch++) {
             IMockLendingManager(lendingManager).increaseTotalBorrowedAmountByEpoch(200000, epoch);
         }
     }
 
     function addGuardian(address guardian, address owner, uint16 startEpoch, uint16 endEpoch) external {
-        _registrations[guardian] = Registration({
-            owner: owner,
-            startEpoch: startEpoch,
-            endEpoch: endEpoch,
-            kind: 0x03
-        });
+        _registrations[guardian] = Registration({owner: owner, startEpoch: startEpoch, endEpoch: endEpoch, kind: 0x03});
     }
 
     function addStakingSentinel(
@@ -58,12 +48,7 @@ contract MockRegistrationManager {
         uint16 endEpoch,
         uint24 amount
     ) external {
-        _registrations[sentinel] = Registration({
-            owner: owner,
-            startEpoch: startEpoch,
-            endEpoch: endEpoch,
-            kind: 0x01
-        });
+        _registrations[sentinel] = Registration({owner: owner, startEpoch: startEpoch, endEpoch: endEpoch, kind: 0x01});
 
         for (uint16 epoch = startEpoch; epoch <= endEpoch; epoch++) {
             _sentinelsEpochsTotalStakedAmount[epoch] += amount;
