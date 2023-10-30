@@ -481,7 +481,7 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
             IPReceiver(slasher).receiveUserData(
                 currentNetworkId,
                 Utils.addressToHexString(address(this)),
-                abi.encode(challenge.actor, challenge.challenger)
+                abi.encode(currentEpoch, challenge.actor, challenge.challenger)
             );
         } else {
             emit UserOperation(
