@@ -5,19 +5,19 @@ const constants = require('ptokens-constants')
 const chains = require('./chains')
 const { STATE_DB_CHALLENGES_KEY } = require('./constants')
 const { findSupportedChain } = require('./find-supported-chain')
-const { setInterval } = require('timers/promises')
 
 const slashByChallenge = R.curry(
   async (_challengesStorage, _privateKey, _supportedChains, _challengeObj, _dryRun, _networkId) => {
     const results = []
     const supportedChain = findSupportedChain(_supportedChains, _networkId)
-    const chainType = utils.getBlockchainTypeFromChainId(_networkId)
+    const chainType = utils.getBlockchainTypeFromChainIdSync(_networkId)
     const challenges = _challengeObj[_networkId]
 
     logger.info(`Performing slashing on '${chainType}'`)
+
     for (const challenge of challenges) {
       results.push(
-        await chains[chainType].slashActor(
+        await chains[R.toLower(chainType)].slashActor(
           _challengesStorage,
           _privateKey,
           supportedChain,
@@ -41,6 +41,7 @@ const buildChallengesObjectByNetworkId = _challenges =>
   )
 
 const getPendingChallenges = _challengesStorage =>
+  logger.debug('Checking for new pending challenges') ||
   db.findReports(
     _challengesStorage,
     {
@@ -69,7 +70,6 @@ const slashingLoop = _state =>
     })
 
 module.exports.maybeSlashInactiveActors = _state => {
-  setInterval(slashingLoop, 10000)
-
-  return Promise.resolve(_state)
+  logger.info('Starting slashing loop in 10s...')
+  setInterval(slashingLoop, 10000, _state)
 }

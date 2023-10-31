@@ -2,11 +2,11 @@ const R = require('ramda')
 const ethers = require('ethers')
 const { logger } = require('../../get-logger')
 const constants = require('ptokens-constants')
-const { db, utils } = require('ptokens-utils')
+const { utils } = require('ptokens-utils')
 const PNetworkHubAbi = require('./abi/PNetworkHub.json')
-const { Challenge } = constants.hub
 const { generalErrorHandler } = require('./general-error-handler')
-const dryRunPendingChallenge = require('../../dry-run-pending-challenge')
+const { insertChallengePending } = require('../../insert-challenge')
+const { extractChallengeFromReceipt } = require('./extract-challenge-from-receipt')
 
 module.exports.startChallenge = R.curry(
   (
@@ -32,24 +32,21 @@ module.exports.startChallenge = R.curry(
         const hub = new ethers.Contract(hubAddress, PNetworkHubAbi, wallet)
 
         const dryRunPrefix = _dryRun ? ' (dry-run)' : ''
-        logger.debug(`startChallenge(${_actorAddress}, ${_actorType}, [${_proof}])${dryRunPrefix}`)
+        logger.debug(
+          `${chainName}: startChallenge(${_actorAddress}, ${_actorType}, [${_proof}])${dryRunPrefix}`
+        )
         return _dryRun
           ? hub.startChallenge
               .staticCall(_actorAddress, _actorType, _proof, { value: _lockAmount })
-              .then(_ => db.insertReport(_challengesStorage, dryRunPendingChallenge))
-              .then(_ => logger.info('New challenge w/ nonce inserted!'))
-              .catch(generalErrorHandler(_actorAddress, wallet, hub))
+              .catch(generalErrorHandler(_actorAddress, chainName, wallet, hub))
           : hub
               .startChallenge(_actorAddress, _actorType, _proof, { value: _lockAmount })
               .then(_tx => _tx.wait(1))
               .then(
                 _receipt => logger.info(`Tx mined @ ${_receipt.hash}(${chainName})`) || _receipt
               )
-              .then(R.path(['logs', 0]))
-              .then(_log => hub.interface.parseLog(_log))
-              .then(_parsedLog => new Challenge(_parsedLog))
-              .then(R.assoc(constants.db.KEY_STATUS, constants.hub.challengeStatus.PENDING))
-              .then(db.insertReport(_challengesStorage))
-              .catch(generalErrorHandler(_actorAddress, wallet, hub))
+              .then(extractChallengeFromReceipt(hub))
+              .then(insertChallengePending(_challengesStorage))
+              .catch(generalErrorHandler(_actorAddress, chainName, wallet, hub))
       })
 )

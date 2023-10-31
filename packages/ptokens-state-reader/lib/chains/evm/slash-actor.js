@@ -17,7 +17,8 @@ const updateChallenge = R.curry((_challengesStorage, _challenge) =>
 module.exports.slashActor = R.curry(
   (_challengesStorage, _privateKey, _supportedChain, _challenge, _dryRun) =>
     new Promise(_ => {
-      logger.info('Slashing actor', _challenge.actor)
+      const challenge = new Challenge(_challenge)
+      logger.info('Slashing actor', challenge.actor)
       const chainName = _supportedChain[constants.config.KEY_CHAIN_NAME]
       const hubAddress = _supportedChain[constants.config.KEY_HUB_ADDRESS]
       const providerUrl = _supportedChain[constants.config.KEY_PROVIDER_URL]
@@ -26,21 +27,21 @@ module.exports.slashActor = R.curry(
       const hub = new ethers.Contract(hubAddress, PNetworkHubAbi, wallet)
       const dryRunPrefix = _dryRun ? ' (dry-run)' : ''
 
-      const challengeArg = _challenge.getArg()
-      logger.debug(`slashByChallenge(${challengeArg})${dryRunPrefix}`)
+      const challengeArgs = challenge.getArgs()
+      logger.debug(`${chainName}: slashByChallenge([${challengeArgs}])${dryRunPrefix}`)
 
       return _dryRun
         ? hub.slashByChallenge
-            .staticCall(challengeArg)
-            .catch(generalErrorHandler(_challenge.actor, wallet, hub))
+            .staticCall(challengeArgs)
+            .catch(generalErrorHandler(challenge.actor, chainName, wallet, hub))
         : hub
-            .slashByChallenge(challengeArg)
+            .slashByChallenge(challengeArgs)
             .then(_tx => _tx.wait(1))
             .then(_receipt => logger.info(`Tx mined @ ${_receipt.hash}(${chainName})`) || _receipt)
             .then(R.path(['logs', 0]))
             .then(_log => hub.interface.parseLog(_log))
-            .then(_parsedLog => new Challenge(_parsedLog))
+            .then(_parsedLog => Challenge.fromArgs(_parsedLog))
             .then(updateChallenge(_challengesStorage))
-            .catch(generalErrorHandler(_challenge.actor, wallet, hub))
+            .catch(generalErrorHandler(challenge.actor, chainName, wallet, hub))
     })
 )

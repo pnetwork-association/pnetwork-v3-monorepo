@@ -124,7 +124,6 @@ const startChallengeOnNetworkId = R.curry(
     _networkId
   ) =>
     new Promise((resolve, reject) => {
-      logger.info(`Challenging actor '${_actorAddress}' type ${_actorType} on '${_networkId}'...`)
       const lockAmount = _lockAmounts[_networkId]
       const chainType = utils.getBlockchainTypeFromChainIdSync(_networkId)
       const supportedChain = findSupportedChain(_supportedChains, _networkId)
@@ -164,6 +163,8 @@ const challengeActor = R.curry(
         const actorType = actorsTypes[actors.indexOf(actorAddress)]
         const proof = _proofsByActor[actorAddress]
         const inactiveNetworkIds = _actorElem[KEY_INACTIVE_NETWORK_IDS]
+
+        logger.info(`Challenging actor '${actorAddress}' (${actorType})`)
 
         return logic.mapAll(
           startChallengeOnNetworkId(
@@ -208,7 +209,7 @@ const challengeActors = R.curry(
             actor
           )
         )
-        await logic.sleepForXMilliseconds(2000)
+        await logic.sleepForXMilliseconds(10000)
       }
       return results
     })

@@ -5,10 +5,13 @@
   "engines": {
     "node": ">=16.0.0"
   },
-  "bin": "index.js",
+  "bin": [
+    "index.js",
+    "./scripts/get-challenge"
+  ],
   "scripts": {
     "lint": "eslint .",
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "jest --config test/jest.config.js",
     "docker-build": "PROJECT_ROOT=$(pwd) ./docker-build.sh",
     "clean": "rm -rf $(pwd)/build"
   },
@@ -20,6 +23,7 @@
   "author": "gitmp01",
   "license": "MIT",
   "dependencies": {
+    "commander": "^11.1.0",
     "ethers": "^6.8.0",
     "install": "^0.13.0",
     "log4js": "^6.9.1",
