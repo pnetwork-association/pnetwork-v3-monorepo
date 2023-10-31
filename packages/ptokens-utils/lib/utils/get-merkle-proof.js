@@ -24,6 +24,7 @@ const getMerkleProofSync = R.curry((_epoch, _actors, _actorsTypes, _myAddress) =
   const root = tree.getHexRoot()
 
   logger.debug('Merkle path computed successfully')
+  logger.debug(`  address: ${_myAddress}`)
   logger.debug(`  root: ${root}`)
   logger.debug(`  proof: [${proof}]`)
 
