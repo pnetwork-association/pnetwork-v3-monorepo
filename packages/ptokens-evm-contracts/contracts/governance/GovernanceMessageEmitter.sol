@@ -2,7 +2,8 @@
 pragma solidity ^0.8.20;
 
 import {IGovernanceMessageEmitter} from "../interfaces/IGovernanceMessageEmitter.sol";
-import {IRegistrationManager} from "@pnetwork-association/dao-v2-contracts/contracts/interfaces/IRegistrationManager.sol";
+// TODO: replace with interface from dao-v2 repository once stable
+import {IRegistrationManager} from "../interfaces/external/IRegistrationManager.sol";
 import {ILendingManager} from "@pnetwork-association/dao-v2-contracts/contracts/interfaces/ILendingManager.sol";
 import {IEpochsManager} from "@pnetwork-association/dao-v2-contracts/contracts/interfaces/IEpochsManager.sol";
 import {IPRegistry} from "../interfaces/IPRegistry.sol";
@@ -209,7 +210,7 @@ contract GovernanceMessageEmitter is IGovernanceMessageEmitter {
         // These sentinels will be filtered in the next step
         for (uint256 index; index < sentinels.length; ) {
             IRegistrationManager.Registration memory registration = IRegistrationManager(registrationManager)
-                .sentinelRegistration(sentinels[index]);
+                .registrationOf(sentinels[index]);
 
             bytes1 registrationKind = registration.kind;
             if (registrationKind == 0x01) {

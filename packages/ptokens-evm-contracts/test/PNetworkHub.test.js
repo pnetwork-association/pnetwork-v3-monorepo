@@ -4,6 +4,7 @@ const { time } = require('@nomicfoundation/hardhat-network-helpers')
 const { anyValue } = require('@nomicfoundation/hardhat-chai-matchers/withArgs')
 const { MerkleTree } = require('merkletreejs')
 const constants = require('ptokens-constants')
+const { networks } = require('../hardhat.config')
 
 const {
   BASE_CHALLENGE_PERIOD_DURATION,
@@ -195,7 +196,7 @@ describe('PNetworkHub', () => {
     })
 
     chainId = (await ethers.provider.getNetwork()).chainId
-    interimChainId = 0
+    interimChainId = chainId
     abiCoder = new ethers.utils.AbiCoder()
 
     const Slasher = await ethers.getContractFactory('Slasher')
@@ -241,6 +242,9 @@ describe('PNetworkHub', () => {
     )
     feesManager = await FeesManager.deploy()
 
+    // both hubs are deployed in Hardhat network, thus their network ID is technically the same!
+
+    // for interim hub set interimChainNetworkId to be PNETWORK_NETWORK_IDS.hardhat
     hubInterim = await PNetworkHub.deploy(
       // hub used to test the interim chain behavior
       pFactory.address,
@@ -259,6 +263,8 @@ describe('PNetworkHub', () => {
       CHALLENGE_DURATION,
       chainId
     )
+    // for non-interim hub set interimChainNetworkId to be different than Hardhat network, e.g. Ethereum Mainnet,
+    // otherwise it would behave as the interim hub
     hub = await PNetworkHub.deploy(
       // hub to test the non interim chain behavior
       pFactory.address,
@@ -278,7 +284,8 @@ describe('PNetworkHub', () => {
       chainId
     )
 
-    await pRegistry.connect(dao).protocolAddNetwork(chainId, hub.address)
+    // assume the non-interim hub is deployed on goerli
+    await pRegistry.connect(dao).protocolAddNetwork(networks.goerli.chainId, hub.address)
     await pRegistry.connect(dao).protocolAddNetwork(interimChainId, hubInterim.address)
 
     token = await StandardToken.deploy('Token', 'TKN', 18, ethers.utils.parseEther('100000000'))
@@ -1670,6 +1677,48 @@ describe('PNetworkHub', () => {
     expect(await hub.getChallengeStatus(challenge)).to.be.eq(CHALLENGE_STATUS.Unsolved)
   })
 
+  it('should be able to slash a sentinel from the interim chain', async () => {
+    const challengedSentinel = sentinels[2]
+    await mockRegistrationManager.addStakingSentinel(
+      challengedSentinel.address,
+      owner.address,
+      0,
+      10,
+      BigInt(200000)
+    )
+    const proof = getActorsMerkleProof({
+      actor: challengedSentinel,
+      type: constants.hub.actors.Sentinel,
+    })
+
+    let tx = await hubInterim
+      .connect(challenger)
+      .startChallenge(challengedSentinel.address, constants.hub.actors.Sentinel, proof, {
+        value: LOCKED_AMOUNT_START_CHALLENGE,
+      })
+    const challenge = Challenge.fromReceipt(await tx.wait(1))
+
+    await time.increase(CHALLENGE_DURATION)
+
+    const balancePre = await ethers.provider.getBalance(challenger.address)
+
+    tx = hubInterim.connect(challenger).slashByChallenge(challenge)
+    await expect(tx)
+      .to.emit(mockRegistrationManager, 'StakingSentinelSlashed')
+      .withArgs(challengedSentinel.address, SLASHING_QUANTITY)
+      .and.to.emit(hubInterim, 'ChallengeUnsolved')
+      .withArgs(challenge.serialize())
+    const receipt = await (await tx).wait(1)
+
+    const balancePost = await ethers.provider.getBalance(challenger.address)
+    expect(balancePost).to.be.eq(
+      balancePre
+        .add(LOCKED_AMOUNT_START_CHALLENGE)
+        .sub(receipt.gasUsed.mul(receipt.effectiveGasPrice))
+    )
+    expect(await hubInterim.getChallengeStatus(challenge)).to.be.eq(CHALLENGE_STATUS.Unsolved)
+  })
+
   it('should not be able to slash a sentinel if max challenge duration is not passed', async () => {
     const challengedSentinel = sentinels[2]
     const proof = getActorsMerkleProof({
@@ -2907,7 +2956,7 @@ describe('PNetworkHub', () => {
   //   }
   // })
 
-  it('should slash an actor(sentinel) successfully on the interim chain', async () => {
+  it('should generate a special user operation for slashing an actor(sentinel) when network != interim chain', async () => {
     const currentEpoch = await epochsManager.currentEpoch()
 
     const slashedSentinel = sentinels[0]
@@ -2944,7 +2993,7 @@ describe('PNetworkHub', () => {
       [currentEpoch, slashedSentinel.address, challenger.address]
     )
 
-    let nonce = anyValue // gasLeft
+    const nonce = anyValue // gasLeft
     const originAccount = hub.address.toLowerCase()
     const destinationAccount = slasher.address.toLowerCase()
     const destinationNetworkId = PNETWORK_NETWORK_IDS.ethereumMainnet // interim network id is set on Ethereum mainne
@@ -2987,14 +3036,42 @@ describe('PNetworkHub', () => {
     await expect(tx)
       .to.emit(hub, 'UserOperation')
       .withArgs(...expectedEvent)
+  })
 
-    const receipt = await tx.wait()
-    const event = receipt.events.find(({ event }) => event === 'UserOperation')
+  it('should slash an actor(sentinel) successfully on the interim chain', async () => {
+    const slashedSentinel = sentinels[0]
+    await mockRegistrationManager.addStakingSentinel(
+      sentinel.address,
+      owner.address,
+      0,
+      10,
+      BigInt(200000)
+    )
+    const encodedBytes = ethers.utils.defaultAbiCoder.encode(
+      ['uint16', 'address', 'address'],
+      [currentEpoch, slashedSentinel.address, challenger.address]
+    )
+    const nonce = 1 // gasLeft
+    const originAccount = hub.address.toLowerCase()
+    const destinationAccount = slasher.address.toLowerCase()
+    const destinationNetworkId = PNETWORK_NETWORK_IDS.ethereumMainnet // interim network id is set on Ethereum mainne
+    const underlyingAssetName = ''
+    const underlyingAssetSymbol = ''
+    const underlyingAssetDecimals = 0
+    const underlyingAssetTokenAddress = ZERO_ADDRESS
+    const underlyingAssetNetworkId = '0x00000000'
+    const assetTokenAddress = ZERO_ADDRESS
+    const assetAmount = 0
+    const userDataProtocolFeeAssetAmount = 0
+    const networkFeeAssetAmount = 0
+    const forwardNetworkFeeAssetAmount = 0
+    const forwardDestinationNetworkId = '0x00000000'
+    const userData = encodedBytes
+    const optionsMask = '0x0000000000000000000000000000000000000000000000000000000000000000'
+    const isForProtocol = true
+    const originTxHash = '0x0000000000000000000000000000000000000000000000000000000000000001'
+    const originBlockHash = '0x0000000000000000000000000000000000000000000000000000000000000002'
 
-    nonce = event.args[0]
-
-    const originTxHash = tx.hash
-    const originBlockHash = tx.blockHash
     const operation = new Operation({
       originTxHash,
       originBlockHash,
@@ -3016,9 +3093,10 @@ describe('PNetworkHub', () => {
       userData,
       optionsMask,
       isForProtocol,
+      originNetworkId: PNETWORK_NETWORK_IDS.goerli,
     })
 
-    tx = await hubInterim
+    let tx = await hubInterim
       .connect(relayer)
       .protocolQueueOperation(operation, { value: LOCKED_AMOUNT_CHALLENGE_PERIOD })
 
