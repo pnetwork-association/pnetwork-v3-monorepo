@@ -6,6 +6,7 @@ const { addSupportedChains } = require('./add-supported-chains')
 const { addProtocols } = require('./add-protocols')
 const { addIdentity } = require('./add-identity')
 const { getMongoUrlFromTaskArgs } = require('./get-mongo-url')
+const { FLAG_MONGO_LOCALHOST } = require('../constants')
 
 const PATH_TO_CHALLENGER_APP = path.join(__dirname, '../../../../apps/ptokens-challenger')
 
@@ -15,7 +16,7 @@ const addDb = R.curry((_taskArgs, _obj) =>
     [constants.config.KEY_DB]: {
       [constants.config.KEY_NAME]: 'challenger',
       [constants.config.KEY_TABLE_EVENTS]: 'toremove',
-      [constants.config.KEY_URL]: getMongoUrlFromTaskArgs(_taskArgs),
+      [constants.config.KEY_URL]: getMongoUrlFromTaskArgs({ [FLAG_MONGO_LOCALHOST]: true }),
     },
   })
 )
