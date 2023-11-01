@@ -1,9 +1,15 @@
 const R = require('ramda')
 class ActorsPropagated {
-  constructor({ args: [currentEpoch, actors, actorsTypes] }) {
-    this.actors = actors.map(R.toLower)
-    this.actorsTypes = actorsTypes.map(Number)
-    this.currentEpoch = Number(currentEpoch)
+  constructor(obj) {
+    obj && Object.assign(this, obj)
+  }
+
+  static fromArgs({ args: [currentEpoch, actors, actorsTypes] }) {
+    return new ActorsPropagated({
+      actors: actors.map(R.toLower),
+      actorsTypes: actorsTypes.map(Number),
+      currentEpoch: Number(currentEpoch),
+    })
   }
 }
 
