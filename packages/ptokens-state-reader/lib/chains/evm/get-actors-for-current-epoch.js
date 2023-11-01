@@ -50,9 +50,15 @@ const searchForLogBackwards = R.curry((_provider, _governanceMessageEmitter, _la
 )
 
 const checkEpoch = R.curry((_expectedEpoch, _parsedLog) =>
-  Promise.resolve(R.path(['args', 'currentEpoch'])).then(
-    utils.rejectIfNotEqual(`${ERROR_INVALID_EPOCH}, should be ${_expectedEpoch}`, _expectedEpoch)
-  )
+  Promise.resolve(R.path(['args', 0], _parsedLog))
+    .then(_actualEpoch =>
+      utils.rejectIfNotEqual(
+        `${ERROR_INVALID_EPOCH}, should be ${_expectedEpoch}, found ${_actualEpoch} instead`,
+        _expectedEpoch,
+        _actualEpoch
+      )
+    )
+    .then(_ => _parsedLog)
 )
 
 const getLastActorsPropagatedEvent = R.curry(
@@ -63,7 +69,7 @@ const getLastActorsPropagatedEvent = R.curry(
       .then(searchForLogBackwards(_provider, _governanceMessageEmitter))
       .then(_log => _governanceMessageEmitter.interface.parseLog(_log))
       .then(checkEpoch(_epoch))
-      .then(_parsedLog => new ActorsPropagated(_parsedLog))
+      .then(ActorsPropagated.fromArgs)
 )
 
 const updateActorsPropagatedEventInStorage = R.curry(
