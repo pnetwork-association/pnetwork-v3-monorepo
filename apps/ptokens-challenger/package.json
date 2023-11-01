@@ -1,0 +1,12 @@
+{
+  "name": "ptokens-challenger",
+  "version": "0.1.0",
+  "description": "Challenger project",
+  "keywords": [
+    "challenger",
+    "pnetwork",
+    "v3"
+  ],
+  "author": "gitmp01",
+  "license": "MIT"
+}
