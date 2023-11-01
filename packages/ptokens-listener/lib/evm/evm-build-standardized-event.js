@@ -38,11 +38,23 @@ const getEventWithAllRequiredSetToNull = _ => ({
 })
 
 const bigIntToNumber = R.tryCatch(_n => Number(_n) || null, R.always(null))
-const bitIntToString = R.tryCatch(_n => _n.toString(), R.always(null))
+const bigIntToString = R.tryCatch(_n => _n.toString(), R.always(null))
 
 const addEventName = _eventLog => R.assoc(constants.db.KEY_EVENT_NAME, _eventLog.name)
 
-const addEventArgs = _eventLog => R.assoc(constants.db.KEY_EVENT_ARGS, Array.from(_eventLog.args))
+const tryToStringify = _arg => R.tryCatch(_arg => _arg.toString(), R.always(_arg))(_arg)
+
+// Try to stringify log args so that they can be stored in db in a primitive type,
+// easilly loadable by ethers
+const maybeStringifyArgs = _arg =>
+  R.type(_arg) === 'Array'
+    ? _arg.map(maybeStringifyArgs)
+    : R.type(_arg) === 'Boolean'
+    ? _arg
+    : tryToStringify(_arg)
+
+const addEventArgs = _eventLog =>
+  R.assoc(constants.db.KEY_EVENT_ARGS, Array.from(_eventLog.args.map(maybeStringifyArgs)))
 
 const setCorrectStatus = R.curry((_parsedLog, _obj) =>
   _parsedLog.name === constants.db.eventNames.QUEUED_OPERATION
@@ -55,7 +67,7 @@ const addFieldFromEventArgs = (_eventValue, _destKey, _conversionFunction, _stan
   Promise.resolve(R.assoc(_destKey, _eventValue, _standardEvent))
 
 const getValueFromEventArgsByKey = R.curry((_eventArgs, _key) =>
-  typeof _eventArgs[0] === 'object' ? _eventArgs[0].getValue(_key) : _eventArgs.getValue(_key)
+  _eventArgs['operation'] ? _eventArgs['operation'][_key] : _eventArgs[_key]
 )
 
 const maybeAddFieldFromEventArgs = R.curry(
@@ -80,7 +92,7 @@ const addInfoFromParsedLog = (_parsedLog, _obj) =>
     .then(addEventName(_parsedLog))
     .then(addEventArgs(_parsedLog))
     .then(
-      maybeAddFieldFromEventArgs(_parsedLog.args, ['nonce'], constants.db.KEY_NONCE, bitIntToString)
+      maybeAddFieldFromEventArgs(_parsedLog.args, ['nonce'], constants.db.KEY_NONCE, bigIntToString)
     )
     .then(
       maybeAddFieldFromEventArgs(
@@ -159,7 +171,7 @@ const addInfoFromParsedLog = (_parsedLog, _obj) =>
         _parsedLog.args,
         ['assetAmount', 'amount', '_tokenAmount', 'value'],
         constants.db.KEY_ASSET_AMOUNT,
-        bitIntToString
+        bigIntToString
       )
     )
     .then(
@@ -167,7 +179,7 @@ const addInfoFromParsedLog = (_parsedLog, _obj) =>
         _parsedLog.args,
         ['userDataProtocolFeeAssetAmount'],
         constants.db.KEY_PROTOCOL_FEE_ASSET_AMOUNT,
-        bitIntToString
+        bigIntToString
       )
     )
     .then(
@@ -175,7 +187,7 @@ const addInfoFromParsedLog = (_parsedLog, _obj) =>
         _parsedLog.args,
         ['networkFeeAssetAmount'],
         constants.db.KEY_NETWORK_FEE_ASSET_AMOUNT,
-        bitIntToString
+        bigIntToString
       )
     )
     .then(
@@ -183,7 +195,7 @@ const addInfoFromParsedLog = (_parsedLog, _obj) =>
         _parsedLog.args,
         ['forwardNetworkFeeAssetAmount'],
         constants.db.KEY_FORWARD_NETWORK_FEE_ASSET_AMOUNT,
-        bitIntToString
+        bigIntToString
       )
     )
     .then(
@@ -199,7 +211,7 @@ const addInfoFromParsedLog = (_parsedLog, _obj) =>
         _parsedLog.args,
         ['optionsMask'],
         constants.db.KEY_OPTIONS_MASK,
-        bitIntToString
+        bigIntToString
       )
     )
     .then(
@@ -207,7 +219,7 @@ const addInfoFromParsedLog = (_parsedLog, _obj) =>
         _parsedLog.args,
         ['originBlockHash'],
         constants.db.KEY_ORIGINATING_BLOCK_HASH,
-        bitIntToString
+        bigIntToString
       )
     )
     .then(
@@ -215,7 +227,7 @@ const addInfoFromParsedLog = (_parsedLog, _obj) =>
         _parsedLog.args,
         ['originTransactionHash'],
         constants.db.KEY_ORIGINATING_TX_HASH,
-        bitIntToString
+        bigIntToString
       )
     )
     .then(
@@ -223,7 +235,7 @@ const addInfoFromParsedLog = (_parsedLog, _obj) =>
         _parsedLog.args,
         ['originNetworkId'],
         constants.db.KEY_ORIGINATING_NETWORK_ID,
-        bitIntToString
+        bigIntToString
       )
     )
     .then(
@@ -243,8 +255,9 @@ const addInfoFromParsedLog = (_parsedLog, _obj) =>
       )
     )
 
-const addFieldFromLog = (_eventLog, _originKey, _destKey) =>
-  R.assoc(_destKey, _eventLog[_originKey])
+const maybeAddFieldFromLog = R.curry((_eventLog, _originKey, _destKey, _obj) =>
+  R.isNil(R.prop(_destKey, _obj)) ? R.assoc(_destKey, _eventLog[_originKey], _obj) : _obj
+)
 
 const addWitnessedTimestamp = _obj =>
   Promise.resolve(new Date().toISOString()).then(_ts =>
@@ -267,6 +280,7 @@ const parseLog = (_interface, _log) =>
       _parsedLog
   )
 
+// secretlint-disable
 /**
  * Build an event based on the pNetwork schema from
  * an EVM one. The expected log is of the form
@@ -290,12 +304,14 @@ const parseLog = (_interface, _log) =>
  * @param  {object} _log [on chain event log]
  * @return {object}            [the standard event object]
  */
+// secretlint-enable
 const buildStandardizedEvmEventObjectFromLog = R.curry((_networkId, _interface, _log) =>
   Promise.all([getEventWithAllRequiredSetToNull(), parseLog(_interface, _log)])
     .then(([_obj, _parsedLog]) => addInfoFromParsedLog(_parsedLog, _obj))
     .then(R.assoc(constants.db.KEY_NETWORK_ID, _networkId))
-    .then(addFieldFromLog(_log, 'blockHash', constants.db.KEY_BLOCK_HASH))
-    .then(addFieldFromLog(_log, 'transactionHash', constants.db.KEY_TX_HASH))
+    .then(maybeAddFieldFromLog(_log, 'logIndex', constants.db.KEY_NONCE))
+    .then(maybeAddFieldFromLog(_log, 'blockHash', constants.db.KEY_BLOCK_HASH))
+    .then(maybeAddFieldFromLog(_log, 'transactionHash', constants.db.KEY_TX_HASH))
     .then(addWitnessedTimestamp)
     .then(setId)
 )

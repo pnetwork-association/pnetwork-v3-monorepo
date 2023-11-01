@@ -1,8 +1,8 @@
 const {
   KEY_DB,
-  KEY_NAME,
+  KEY_SIGNATURES,
   KEY_EVENTS,
-  KEY_CONTRACTS,
+  KEY_CONTRACT,
   KEY_CHAIN_NAME,
   KEY_CHAIN_TYPE,
   KEY_NETWORK_ID,
@@ -31,12 +31,12 @@ module.exports = {
       type: 'array',
       items: {
         type: 'object',
-        required: [KEY_NAME, KEY_CONTRACTS],
+        required: [KEY_SIGNATURES, KEY_CONTRACT],
         properties: {
-          [KEY_NAME]: {
+          [KEY_CONTRACT]: {
             type: 'string',
           },
-          [KEY_CONTRACTS]: {
+          [KEY_SIGNATURES]: {
             type: 'array',
             items: {
               type: 'string',
