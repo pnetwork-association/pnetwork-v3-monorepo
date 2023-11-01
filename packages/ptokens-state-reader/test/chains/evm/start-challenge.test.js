@@ -59,7 +59,7 @@ describe('Start challenge tests on EVM chains', () => {
       }
 
       const lockAmount = 2000
-      const actorAddress = '0x95143f61674dE69efB0F583DF5342E42CD17C028'
+      const actorAddress = '0x95143f61674de69efb0f583df5342e42cd17c028'
       const actorType = 2
       const proof = []
       const networkId = '0xf9b459a1'

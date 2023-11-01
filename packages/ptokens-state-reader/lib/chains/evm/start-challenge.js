@@ -38,7 +38,7 @@ module.exports.startChallenge = R.curry(
         return _dryRun
           ? hub.startChallenge
               .staticCall(_actorAddress, _actorType, _proof, { value: _lockAmount })
-              .catch(generalErrorHandler(_actorAddress, chainName, wallet, hub))
+              .catch(generalErrorHandler(_challengesStorage, _actorAddress, chainName, wallet, hub))
           : hub
               .startChallenge(_actorAddress, _actorType, _proof, { value: _lockAmount })
               .then(_tx => _tx.wait(1))
@@ -47,6 +47,8 @@ module.exports.startChallenge = R.curry(
               )
               .then(extractChallengeFromReceipt(hub))
               .then(insertChallengePending(_challengesStorage))
-              .catch(generalErrorHandler(_actorAddress, chainName, wallet, hub))
+              .catch(
+                generalErrorHandler(_challengesStorage, _actorAddress, _supportedChain, wallet, hub)
+              )
       })
 )

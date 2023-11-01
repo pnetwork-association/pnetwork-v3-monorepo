@@ -86,7 +86,7 @@ const getInactiveActorsAndNetworkIds = R.curry(
       return R.isNil(_actor) || inactiveNetworkIds.length > 0
         ? logger.info(`Inactive actor '${_actorAddress.slice(0, 10)}...'${maybeLogSuffix}`) ||
             Promise.resolve({
-              [KEY_ACTOR_ADDRESS]: _actorAddress,
+              [KEY_ACTOR_ADDRESS]: R.toLower(_actorAddress),
               [KEY_INACTIVE_NETWORK_IDS]: inactiveNetworkIds,
             })
         : Promise.resolve(null)
@@ -190,6 +190,7 @@ const challengeActors = R.curry(
     _privateKeyFile,
     _supportedChains,
     _lockAmounts,
+    _actorsToIgnore,
     _dryRun,
     _actorsList
   ) =>
@@ -197,6 +198,12 @@ const challengeActors = R.curry(
       logger.info(`Found ${_actorsList.length} inactive actors`)
       const results = []
       for (const actor of _actorsList) {
+        const address = actor[KEY_ACTOR_ADDRESS]
+        if (_actorsToIgnore.includes(address)) {
+          logger.info(`Skipping challenging ${address} ...`)
+          continue
+        }
+
         results.push(
           await challengeActor(
             _challengesStorage,
@@ -225,6 +232,7 @@ const startChallenger = _state =>
     const blockThresholds = _state[STATE_BLOCK_THRESHOLDS_KEY]
     const supportedChains = _state[constants.config.KEY_SUPPORTED_CHAINS]
     const proofsByActor = _state[STATE_PROOFS_KEY]
+    const actorsToIgnore = _state[constants.config.KEY_IGNORE_ACTORS]
     const dryRun = _state[constants.config.KEY_DRY_RUN]
 
     return getLatestBlockNumbersByNetworkId(supportedChains)
@@ -238,6 +246,7 @@ const startChallenger = _state =>
           privateKeyFile,
           supportedChains,
           lockAmounts,
+          actorsToIgnore,
           dryRun
         )
       )

@@ -4,19 +4,13 @@ const { logger } = require('../../get-logger')
 const constants = require('ptokens-constants')
 const PNetworkHubAbi = require('./abi/PNetworkHub.json')
 const { Challenge } = constants.hub
-const { db } = require('ptokens-utils')
+const { updateChallenge } = require('../../update-challenge')
 const { generalErrorHandler } = require('./general-error-handler')
+const { extractChallengeFromReceipt } = require('./extract-challenge-from-receipt')
 
-const updateChallenge = R.curry((_challengesStorage, _challenge) =>
-  db.updateReport(
-    _challengesStorage,
-    { $set: _challenge },
-    { nonce: _challenge.nonce, networkId: _challenge.networkId }
-  )
-)
 module.exports.slashActor = R.curry(
   (_challengesStorage, _privateKey, _supportedChain, _challenge, _dryRun) =>
-    new Promise(_ => {
+    new Promise(resolve => {
       const challenge = new Challenge(_challenge)
       logger.info('Slashing actor', challenge.actor)
       const chainName = _supportedChain[constants.config.KEY_CHAIN_NAME]
@@ -33,15 +27,17 @@ module.exports.slashActor = R.curry(
       return _dryRun
         ? hub.slashByChallenge
             .staticCall(challengeArgs)
-            .catch(generalErrorHandler(challenge.actor, chainName, wallet, hub))
+            .catch(generalErrorHandler(_challengesStorage, challenge.actor, chainName, wallet, hub))
         : hub
             .slashByChallenge(challengeArgs)
+            .then(resolve)
             .then(_tx => _tx.wait(1))
             .then(_receipt => logger.info(`Tx mined @ ${_receipt.hash}(${chainName})`) || _receipt)
-            .then(R.path(['logs', 0]))
-            .then(_log => hub.interface.parseLog(_log))
-            .then(_parsedLog => Challenge.fromArgs(_parsedLog))
-            .then(updateChallenge(_challengesStorage))
-            .catch(generalErrorHandler(challenge.actor, chainName, wallet, hub))
+            .then(extractChallengeFromReceipt(hub))
+            .then(updateChallenge(_challengesStorage, challenge.actor, challenge.networkId))
+            .catch(
+              generalErrorHandler(_challengesStorage, challenge.actor, _supportedChain, wallet, hub)
+            )
+            .then(resolve)
     })
 )

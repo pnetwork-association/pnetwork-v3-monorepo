@@ -7,7 +7,15 @@ const { STATE_DB_CHALLENGES_KEY } = require('./constants')
 const { findSupportedChain } = require('./find-supported-chain')
 
 const slashByChallenge = R.curry(
-  async (_challengesStorage, _privateKey, _supportedChains, _challengeObj, _dryRun, _networkId) => {
+  async (
+    _challengesStorage,
+    _privateKey,
+    _supportedChains,
+    _challengeObj,
+    _actorsToIgnore,
+    _dryRun,
+    _networkId
+  ) => {
     const results = []
     const supportedChain = findSupportedChain(_supportedChains, _networkId)
     const chainType = utils.getBlockchainTypeFromChainIdSync(_networkId)
@@ -16,6 +24,10 @@ const slashByChallenge = R.curry(
     logger.info(`Performing slashing on '${chainType}'`)
 
     for (const challenge of challenges) {
+      if (_actorsToIgnore.includes(challenge.actor)) {
+        logger.info(`Slashing for actor ${challenge.actor} skipped...`)
+        continue
+      }
       results.push(
         await chains[R.toLower(chainType)].slashActor(
           _challengesStorage,
@@ -59,11 +71,19 @@ const slashingLoop = _state =>
       const privateKeyFile = _state[constants.config.KEY_IDENTITY_GPG]
       const privateKey = utils.readIdentityFileSync(privateKeyFile)
       const supportedChains = _state[constants.config.KEY_SUPPORTED_CHAINS]
+      const actorsToIgnore = _state[constants.config.KEY_IGNORE_ACTORS]
       const dryRun = _state[constants.config.KEY_DRY_RUN]
 
       return buildChallengesObjectByNetworkId(_pendingChallenges).then(_challengeObj =>
         logic.mapAll(
-          slashByChallenge(challengesStorage, privateKey, supportedChains, _challengeObj, dryRun),
+          slashByChallenge(
+            challengesStorage,
+            privateKey,
+            supportedChains,
+            _challengeObj,
+            actorsToIgnore,
+            dryRun
+          ),
           R.keys(_challengeObj)
         )
       )
