@@ -42,18 +42,19 @@ const bigIntToString = R.tryCatch(_n => _n.toString(), R.always(null))
 
 const addEventName = _eventLog => R.assoc(constants.db.KEY_EVENT_NAME, _eventLog.name)
 
-const argsToString = _arg =>
+const tryToStringify = _arg => R.tryCatch(_arg => _arg.toString(), R.always(_arg))(_arg)
+
+// Try to stringify log args so that they can be stored in db in a primitive type,
+// easilly loadable by ethers
+const maybeStringifyArgs = _arg =>
   R.type(_arg) === 'Array'
-    ? _arg.map(argsToString)
+    ? _arg.map(maybeStringifyArgs)
     : R.type(_arg) === 'Boolean'
     ? _arg
-    : _arg.toString()
+    : tryToStringify(_arg)
 
 const addEventArgs = _eventLog =>
-  R.assoc(
-    constants.db.KEY_EVENT_ARGS,
-    Array.from(_eventLog.args.map(argsToString)) // .map(R.tryCatch(_arg => _arg.toString(), R.always(null)))
-  )
+  R.assoc(constants.db.KEY_EVENT_ARGS, Array.from(_eventLog.args.map(maybeStringifyArgs)))
 
 const setCorrectStatus = R.curry((_parsedLog, _obj) =>
   _parsedLog.name === constants.db.eventNames.QUEUED_OPERATION
