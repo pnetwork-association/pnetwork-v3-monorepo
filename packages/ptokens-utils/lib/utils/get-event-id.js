@@ -146,6 +146,9 @@ const getEventId = ({
             isForProtocol,
           })
         default:
+          // there might be multiple events in the same transaction,
+          // thus factor in a nonce, i.e. a nonce argument if present in the log args,
+          // or the log number otherwise
           return fallbackEventId(networkId, blockHash, transactionHash, nonce)
       }
     })
