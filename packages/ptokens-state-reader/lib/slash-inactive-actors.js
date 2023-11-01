@@ -3,12 +3,13 @@ const { db, utils, logic } = require('ptokens-utils')
 const { logger } = require('./get-logger')
 const constants = require('ptokens-constants')
 const chains = require('./chains')
-const { STATE_DB_CHALLENGES_KEY } = require('./constants')
+const { STATE_DB_CHALLENGES_KEY, STATE_CHALLENGE_DURATIONS_KEY } = require('./constants')
 const { findSupportedChain } = require('./find-supported-chain')
 
 const slashByChallenge = R.curry(
   async (
     _challengesStorage,
+    _challengeDurations,
     _privateKey,
     _supportedChains,
     _challengeObj,
@@ -24,19 +25,28 @@ const slashByChallenge = R.curry(
     logger.info(`Performing slashing on '${chainType}'`)
 
     for (const challenge of challenges) {
+      const now = new Date()
+      const challengeDuration = _challengeDurations[challenge.networkId]
+      const expiration = new Date(challenge.timestamp * 1000 + challengeDuration)
       if (_actorsToIgnore.includes(challenge.actor)) {
         logger.info(`Slashing for actor ${challenge.actor} skipped...`)
         continue
       }
-      results.push(
-        await chains[R.toLower(chainType)].slashActor(
-          _challengesStorage,
-          _privateKey,
-          supportedChain,
-          challenge,
-          _dryRun
+
+      if (now > expiration) {
+        results.push(
+          await chains[R.toLower(chainType)].slashActor(
+            _challengesStorage,
+            _privateKey,
+            supportedChain,
+            challenge,
+            _dryRun
+          )
         )
-      )
+      } else {
+        logger.info(`Skipping slashing, not the time yet ${now} < ${expiration}`)
+      }
+
       await logic.sleepForXMilliseconds(1000)
     }
   }
@@ -73,11 +83,13 @@ const slashingLoop = _state =>
       const supportedChains = _state[constants.config.KEY_SUPPORTED_CHAINS]
       const actorsToIgnore = _state[constants.config.KEY_IGNORE_ACTORS]
       const dryRun = _state[constants.config.KEY_DRY_RUN]
+      const challengeDurations = _state[STATE_CHALLENGE_DURATIONS_KEY]
 
       return buildChallengesObjectByNetworkId(_pendingChallenges).then(_challengeObj =>
         logic.mapAll(
           slashByChallenge(
             challengesStorage,
+            challengeDurations,
             privateKey,
             supportedChains,
             _challengeObj,

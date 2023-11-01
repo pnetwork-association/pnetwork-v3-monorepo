@@ -27,17 +27,44 @@ module.exports.slashActor = R.curry(
       return _dryRun
         ? hub.slashByChallenge
             .staticCall(challengeArgs)
-            .catch(generalErrorHandler(_challengesStorage, challenge.actor, chainName, wallet, hub))
+            .then(resolve)
+            .catch(_err =>
+              resolve(
+                generalErrorHandler(
+                  _challengesStorage,
+                  challenge.actor,
+                  chainName,
+                  wallet,
+                  hub,
+                  _err
+                )
+              )
+            )
         : hub
             .slashByChallenge(challengeArgs)
-            .then(resolve)
             .then(_tx => _tx.wait(1))
             .then(_receipt => logger.info(`Tx mined @ ${_receipt.hash}(${chainName})`) || _receipt)
             .then(extractChallengeFromReceipt(hub))
-            .then(updateChallenge(_challengesStorage, challenge.actor, challenge.networkId))
-            .catch(
-              generalErrorHandler(_challengesStorage, challenge.actor, _supportedChain, wallet, hub)
+            .then(_ =>
+              updateChallenge(
+                _challengesStorage,
+                challenge.actor,
+                challenge.networkId,
+                constants.hub.challengeStatus.UNSOLVED
+              )
             )
             .then(resolve)
+            .catch(_err =>
+              resolve(
+                generalErrorHandler(
+                  _challengesStorage,
+                  challenge.actor,
+                  _supportedChain,
+                  wallet,
+                  hub,
+                  _err
+                )
+              )
+            )
     })
 )
