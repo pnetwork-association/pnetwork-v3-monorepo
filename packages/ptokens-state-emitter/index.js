@@ -22,7 +22,7 @@ const cycle = _config =>
 
 const main = _config =>
   setupExitEventListeners().then(_ =>
-    setInterval(cycle, _config[constants.config.KEY_INTERVAL] || 4000, _config)
+    setInterval(cycle, _config[constants.config.KEY_INTERVAL] * 1000 || 4000, _config)
   )
 
 main(config)
