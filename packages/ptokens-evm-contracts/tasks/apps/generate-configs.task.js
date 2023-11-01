@@ -9,19 +9,20 @@ const {
 } = require('../lib/configuration-manager')
 const { maybeSaveConfiguration } = require('./save-configuration')
 const { saveStateEmitterConfiguration } = require('./save-state-emitter-config')
-const { FLAG_SHOW, FLAG_SHOW_DESC } = require('../constants')
-
-const TASK_FLAG_MONGO_LOCALHOST = 'localhost'
-const TASK_FLAG_MONGO_LOCALHOST_DESC = 'Set localhost into the mongo url (good for testing)'
+const { saveStateReaderConfiguration } = require('./save-state-reader-config')
+const { getMongoUrlFromTaskArgs } = require('./get-mongo-url')
+const {
+  FLAG_SHOW,
+  FLAG_SHOW_DESC,
+  FLAG_MONGO_LOCALHOST,
+  FLAG_MONGO_LOCALHOST_DESC,
+} = require('../constants')
 const TASK_NAME_APPS_GENERATE_CONFIGURATIONS = 'apps:generate-configs'
 const TASK_DESC_APPS_GENERATE_CONFIGURATIONS =
   'Generate Relayer & Guardian configurations from the given network name.'
 
 const PATH_TO_RELAYER_APP = path.join(__dirname, '../../../../apps/ptokens-relayer')
 const PATH_TO_GUARDIAN_APP = path.join(__dirname, '../../../../apps/ptokens-guardian')
-
-const getMongoUrlFromTaskArgs = taskArgs =>
-  taskArgs[TASK_FLAG_MONGO_LOCALHOST] ? 'mongodb://localhost:27017' : 'mongodb://mongodb:27017'
 
 const addActorsPropagatedEvent = R.curry((_config, _governanceMessageEmitterAddress) => {
   const obj = {
@@ -137,6 +138,7 @@ const generateConfigurationTask = (taskArgs, hre) =>
       saveGuardianListenerConfiguration(taskArgs, hre, _networkId, _hubAddress),
       saveGuardianProcessorConfiguration(taskArgs, hre, _networkId, _hubAddress),
       saveStateEmitterConfiguration(taskArgs, hre),
+      saveStateReaderConfiguration(taskArgs, hre),
     ])
   )
 
@@ -146,4 +148,4 @@ task(
   generateConfigurationTask
 )
   .addFlag(FLAG_SHOW, FLAG_SHOW_DESC)
-  .addFlag(TASK_FLAG_MONGO_LOCALHOST, TASK_FLAG_MONGO_LOCALHOST_DESC)
+  .addFlag(FLAG_MONGO_LOCALHOST, FLAG_MONGO_LOCALHOST_DESC)

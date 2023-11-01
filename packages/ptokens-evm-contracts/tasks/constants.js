@@ -99,4 +99,6 @@ module.exports = {
   FLAG_NAME_DRY: 'dry',
   FLAG_SHOW: 'show',
   FLAG_SHOW_DESC: 'Show result instead of saving it to a file',
+  FLAG_MONGO_LOCALHOST: 'localhost',
+  FLAG_MONGO_LOCALHOST_DESC: 'Set localhost into the mongo url (good for testing)',
 }
