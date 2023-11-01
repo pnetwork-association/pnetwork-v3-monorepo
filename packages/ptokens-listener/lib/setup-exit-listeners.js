@@ -16,7 +16,7 @@ const exitCleanly = _exitCode =>
 
 const setupExitEventListeners = () =>
   Promise.all(
-    ['SIGINT', 'SIGTERM', 'unhandledRejection'].map(_signal => {
+    ['SIGINT', 'SIGTERM'].map(_signal => {
       process.on(_signal, () => {
         logger.info(`${_signal} caught! Exiting...`)
         return exitCleanly(0)
