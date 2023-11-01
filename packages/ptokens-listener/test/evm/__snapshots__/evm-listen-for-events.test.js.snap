@@ -1,0 +1,131 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`EVM listen for events listenForEvmEvents Should call callback with the standardized event 1`] = `
+[
+  [
+    {
+      "address": "0xdac17f958d2ee523a2206206994597c13d831ec7",
+      "topics": [
+        [
+          "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef",
+        ],
+      ],
+    },
+    [Function],
+  ],
+  [
+    {
+      "address": "0xd2bac275fffdbdd23ecea72f4b161b3af90300a3",
+      "topics": [
+        [
+          "0x71d1a48fb10648c4ca31c3abd9a916f0f6545176b2387214ed134a71c924e79f",
+          "0xe7bf22971bde3dd8a6a3bf8434e8b7a7c7554dad8328f741da1484d67b445c19",
+        ],
+      ],
+    },
+    [Function],
+  ],
+]
+`;
+
+exports[`EVM listen for events listenForEvmEvents Should call callback with the standardized event 2`] = `
+[
+  [
+    {
+      "_id": "transfer_0xdce97cc6701b7781884f4554fe8213acfbccbeec69456440ce88e0e6060e52fe",
+      "assetAmount": "200000000",
+      "assetTokenAddress": null,
+      "blockHash": "0x460635ecc1efa7230644fe6c2c01635f873663e81afc8c727947da5560ed12e5",
+      "destinationAccount": "0x31c43E2be5BCd4EDb512aD47A0F1A93aA22941b9",
+      "destinationNetworkId": null,
+      "eventArgs": [
+        "0xd8a7346Ffef357542857aB5fCF7ed1baED08680f",
+        "0x31c43E2be5BCd4EDb512aD47A0F1A93aA22941b9",
+        "200000000",
+      ],
+      "eventName": "Transfer",
+      "finalTransactionHash": null,
+      "finalTransactionTimestamp": null,
+      "forwardDestinationNetworkId": null,
+      "forwardNetworkFeeAssetAmount": null,
+      "isForProtocol": null,
+      "networkFeeAssetAmount": null,
+      "networkId": "0xf9b459a1",
+      "nonce": 191,
+      "optionsMask": null,
+      "originatingAddress": "0xd8a7346Ffef357542857aB5fCF7ed1baED08680f",
+      "originatingBlockHash": null,
+      "originatingNetworkId": null,
+      "originatingTransactionHash": null,
+      "proposedTransactionHash": null,
+      "proposedTransactionTimestamp": null,
+      "status": "detected",
+      "transactionHash": "0x37eeb55eab329c73aeac6a172faa6c77e7013cd0cda0fc472274c5faf0df7003",
+      "underlyingAssetDecimals": null,
+      "underlyingAssetName": null,
+      "underlyingAssetNetworkId": null,
+      "underlyingAssetSymbol": null,
+      "underlyingAssetTokenAddress": null,
+      "userData": null,
+      "userDataProtocolFeeAssetAmount": null,
+      "witnessedTimestamp": "2023-05-18T07:35:54.575Z",
+    },
+  ],
+  [
+    {
+      "_id": "useroperation_0x22e7253e862e3e1d4b59570bd796c3ff8c56e773f991529795605d6db8999fc0",
+      "assetAmount": "100000000000",
+      "assetTokenAddress": "0xB6bcae6468760bc0CDFb9C8ef4Ee75C9dd23e1Ed",
+      "blockHash": "0xf23f2167fa252212acddad3c7e0d292c59dab1e0f7deca2b8f98b1a9383b53e2",
+      "destinationAccount": "0xa41657bf225F8Ec7E2010C89c3F084172948264D",
+      "destinationNetworkId": "0xf9b459a1",
+      "eventArgs": [
+        "88418",
+        "0xa41657bf225f8ec7e2010c89c3f084172948264d",
+        "0xa41657bf225F8Ec7E2010C89c3F084172948264D",
+        "0xf9b459a1",
+        "pTokens PNT",
+        "PNT",
+        "18",
+        "0xB6bcae6468760bc0CDFb9C8ef4Ee75C9dd23e1Ed",
+        "0xf9b459a1",
+        "0xB6bcae6468760bc0CDFb9C8ef4Ee75C9dd23e1Ed",
+        "100000000000",
+        "0",
+        "100",
+        "100",
+        "0x5aca268b",
+        "0x",
+        "0x0000000000000000000000000000000000000000000000000000000000000000",
+        false,
+      ],
+      "eventName": "UserOperation",
+      "finalTransactionHash": null,
+      "finalTransactionTimestamp": null,
+      "forwardDestinationNetworkId": "0x5aca268b",
+      "forwardNetworkFeeAssetAmount": "100",
+      "isForProtocol": false,
+      "networkFeeAssetAmount": "100",
+      "networkId": "0xf9b459a1",
+      "nonce": "88418",
+      "optionsMask": "0x0000000000000000000000000000000000000000000000000000000000000000",
+      "originatingAddress": "0xa41657bf225f8ec7e2010c89c3f084172948264d",
+      "originatingBlockHash": null,
+      "originatingNetworkId": null,
+      "originatingTransactionHash": null,
+      "proposedTransactionHash": null,
+      "proposedTransactionTimestamp": null,
+      "status": "detected",
+      "transactionHash": "0xec42da425ecce69f5417b76822723289fe1f6bca3734fc2cbef1f1a0fd1a6445",
+      "underlyingAssetDecimals": 18,
+      "underlyingAssetName": "pTokens PNT",
+      "underlyingAssetNetworkId": "0xf9b459a1",
+      "underlyingAssetSymbol": "PNT",
+      "underlyingAssetTokenAddress": "0xB6bcae6468760bc0CDFb9C8ef4Ee75C9dd23e1Ed",
+      "userData": "0x",
+      "userDataProtocolFeeAssetAmount": "0",
+      "witnessedTimestamp": "2023-05-18T07:35:54.575Z",
+    },
+  ],
+]
+`;
