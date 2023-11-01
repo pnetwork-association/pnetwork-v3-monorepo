@@ -13,7 +13,7 @@
     "async-mutex": "^0.4.0",
     "dotenv": "^16.3.1",
     "lodash": "^4.17.21",
-    "merkletreejs": "^0.3.10",
+    "merkletreejs": "^0.3.11",
     "moment": "^2.29.4",
     "mongodb": "^6.1.0",
     "viem": "^1.10.14",
