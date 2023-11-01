@@ -40,7 +40,7 @@
     "hardhat-log-remover": "^2.0.2",
     "hardhat-spdx-license-identifier": "^2.1.0",
     "hardhat-tracer": "^2.3.2",
-    "merkletreejs": "^0.3.10",
+    "merkletreejs": "^0.3.11",
     "ptokens-constants": "1.6.2-beta.0",
     "ptokens-request-processor": "1.9.3-beta.0",
     "ptokens-utils": "4.6.2-beta.0",

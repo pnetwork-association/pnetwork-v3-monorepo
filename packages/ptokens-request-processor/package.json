@@ -26,7 +26,7 @@
     "commander": "10.0.1",
     "ethers": "6.7.1",
     "log4js": "6.9.1",
-    "merkletreejs": "^0.3.10",
+    "merkletreejs": "^0.3.11",
     "ptokens-constants": "1.6.2-beta.0",
     "ptokens-utils": "4.6.2-beta.0",
     "ramda": "0.29.0",
