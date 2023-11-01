@@ -35,4 +35,5 @@ module.exports = {
   KEY_SIGNATURE: 'signature',
   KEY_DRY_RUN: 'dry-run',
   KEY_IGNORE_ACTORS: 'ignore-actors',
+  KEY_INTERVAL: 'interval',
 }

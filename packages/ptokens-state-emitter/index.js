@@ -21,6 +21,8 @@ const cycle = _config =>
     .catch(_err => logger.error(_err) || process.exit(1))
 
 const main = _config =>
-  setupExitEventListeners().then(_ => setInterval(cycle, _config.interval || 4000, _config))
+  setupExitEventListeners().then(_ =>
+    setInterval(cycle, _config[constants.config.KEY_INTERVAL] || 4000, _config)
+  )
 
 main(config)
