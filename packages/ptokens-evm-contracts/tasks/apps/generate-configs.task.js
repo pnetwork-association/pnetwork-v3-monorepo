@@ -1,6 +1,5 @@
 const R = require('ramda')
 const path = require('path')
-const fs = require('node:fs/promises')
 const constants = require('ptokens-constants')
 const pTokensUtils = require('ptokens-utils')
 const {
@@ -8,9 +7,10 @@ const {
   getHubAddress,
   getGovernanceMessageEmitterAddress,
 } = require('../lib/configuration-manager')
+const { maybeSaveConfiguration } = require('./save-configuration')
+const { saveStateEmitterConfiguration } = require('./save-state-emitter-config')
+const { FLAG_SHOW, FLAG_SHOW_DESC } = require('../constants')
 
-const TASK_FLAG_SHOW = 'show'
-const TASK_FLAG_SHOW_DESC = 'Show result instead of saving it to a file'
 const TASK_FLAG_MONGO_LOCALHOST = 'localhost'
 const TASK_FLAG_MONGO_LOCALHOST_DESC = 'Set localhost into the mongo url (good for testing)'
 const TASK_NAME_APPS_GENERATE_CONFIGURATIONS = 'apps:generate-configs'
@@ -19,23 +19,6 @@ const TASK_DESC_APPS_GENERATE_CONFIGURATIONS =
 
 const PATH_TO_RELAYER_APP = path.join(__dirname, '../../../../apps/ptokens-relayer')
 const PATH_TO_GUARDIAN_APP = path.join(__dirname, '../../../../apps/ptokens-guardian')
-
-const prettyStringify = _object => JSON.stringify(_object, null, 2)
-
-const saveConfiguration = R.curry((_what, _path, _configuration) =>
-  fs
-    .writeFile(_path, prettyStringify(_configuration))
-    .then(_ => console.info(`${_what} configuration saved to ${_path}`))
-)
-
-const showConfiguration = (_what, _configuration) =>
-  console.info(`# ${_what} configuration`) || console.info(prettyStringify(_configuration))
-
-const maybeSaveConfiguration = R.curry((taskArgs, _what, _path, _configuration) =>
-  taskArgs[TASK_FLAG_SHOW]
-    ? showConfiguration(_what, _configuration)
-    : saveConfiguration(_what, _path, _configuration)
-)
 
 const getMongoUrlFromTaskArgs = taskArgs =>
   taskArgs[TASK_FLAG_MONGO_LOCALHOST] ? 'mongodb://localhost:27017' : 'mongodb://mongodb:27017'
@@ -153,6 +136,7 @@ const generateConfigurationTask = (taskArgs, hre) =>
       saveRelayerProcessorConfiguration(taskArgs, hre, _networkId, _hubAddress),
       saveGuardianListenerConfiguration(taskArgs, hre, _networkId, _hubAddress),
       saveGuardianProcessorConfiguration(taskArgs, hre, _networkId, _hubAddress),
+      saveStateEmitterConfiguration(taskArgs, hre),
     ])
   )
 
@@ -161,5 +145,5 @@ task(
   TASK_DESC_APPS_GENERATE_CONFIGURATIONS,
   generateConfigurationTask
 )
-  .addFlag(TASK_FLAG_SHOW, TASK_FLAG_SHOW_DESC)
+  .addFlag(FLAG_SHOW, FLAG_SHOW_DESC)
   .addFlag(TASK_FLAG_MONGO_LOCALHOST, TASK_FLAG_MONGO_LOCALHOST_DESC)

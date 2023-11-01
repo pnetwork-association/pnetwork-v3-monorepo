@@ -97,4 +97,6 @@ module.exports = {
   FLAG_DESC_APPROVE: 'Approve the amount before transfering...',
   FLAG_NAME_FORCE: 'force',
   FLAG_NAME_DRY: 'dry',
+  FLAG_SHOW: 'show',
+  FLAG_SHOW_DESC: 'Show result instead of saving it to a file',
 }
