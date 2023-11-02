@@ -47,6 +47,7 @@ const isLastBlockNumberOverThreshold = R.curry(
     // Means the actors doesn't support that chain
     // which isn't allowed
     if (R.isNil(_syncState[_networkId])) {
+      logger.info(`  ${_networkId}: not defined`)
       return true
     }
 
@@ -56,7 +57,7 @@ const isLastBlockNumberOverThreshold = R.curry(
     const diff = latestBlockNumber - lastBlockSynced
     const isOverThreshold = diff > threshold
     const logSuffix = isOverThreshold ? `${diff} > ${threshold} <= challenge!` : 'fine'
-    logger.debug(`  ${_networkId}: ${logSuffix}`)
+    logger.info(`  ${_networkId}: ${logSuffix}`)
     return isOverThreshold
   }
 )
