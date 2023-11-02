@@ -74,10 +74,11 @@ const errorHandler = (_resolve, _reject, _contract, _report, _err) => {
   }
 }
 
-const checkNetworkFee = _networkFee =>
-  _networkFee > 0
+const checkNetworkFee = R.curry((_isForProtocol, _networkFee) =>
+  _networkFee > 0 || _isForProtocol
     ? Promise.resolve()
     : Promise.reject(new Error(`${errors.ERROR_NETWORK_FEE_NOT_ACCEPTED} (${_networkFee})`))
+)
 
 const makeProposalContractCall = R.curry(
   (_wallet, _hubAddress, _txTimeout, _amountToLock, _report) =>
@@ -87,9 +88,10 @@ const makeProposalContractCall = R.curry(
       const args = parseUserOperationFromReport(_report)
       const contract = new ethers.Contract(_hubAddress, abi, _wallet)
       const networkFee = _report[constants.db.KEY_NETWORK_FEE_ASSET_AMOUNT]
+      const isForProtocol = _report[constants.db.KEY_IS_FOR_PROTOCOL]
 
       logger.info(`Queueing _id: ${id.slice(0, 30)}... w/ locked amount ${_amountToLock}`)
-      return checkNetworkFee(networkFee)
+      return checkNetworkFee(isForProtocol, networkFee)
         .then(_ => checkEventName(eventName))
         .then(_ => contract.protocolQueueOperation(...args, { value: _amountToLock }))
         .then(_tx => logger.debug('protocolQueue called, awaiting...') || _tx.wait())
