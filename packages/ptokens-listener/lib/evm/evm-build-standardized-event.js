@@ -37,7 +37,7 @@ const getEventWithAllRequiredSetToNull = _ => ({
   [constants.db.KEY_IS_FOR_PROTOCOL]: null,
 })
 
-const bigIntToNumber = R.tryCatch(_n => Number(_n) || null, R.always(null))
+const bigIntToNumber = R.tryCatch(_n => Number(_n), R.always(null))
 const bigIntToString = R.tryCatch(_n => _n.toString(), R.always(null))
 
 const addEventName = _eventLog => R.assoc(constants.db.KEY_EVENT_NAME, _eventLog.name)
