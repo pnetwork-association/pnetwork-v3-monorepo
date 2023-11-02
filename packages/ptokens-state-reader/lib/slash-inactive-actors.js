@@ -56,7 +56,7 @@ const buildChallengesObjectByNetworkId = _challenges =>
   Promise.resolve(
     _challenges.reduce((_result, _challenge) => {
       const networkId = _challenge.networkId
-      const elem = R.has(networkId, _result) ? _result[networkId].push(_challenge) : [_challenge]
+      const elem = R.has(networkId, _result) ? _result[networkId].concat(_challenge) : [_challenge]
       _result = { ..._result, [networkId]: elem }
       return _result
     }, {})
