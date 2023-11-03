@@ -35,7 +35,7 @@ const errorDescriptionHandler = (
     const formattedMsg = formatErrorDescription(_errDescription)
     if (formattedMsg.includes('InvalidActorStatus(1, 0)')) {
       logger.warn(`${_actorAddress} already challenged on ${chainName}!`)
-    } else if (formattedMsg.includes('InvalidActorStatus(2, 0)')) {
+    } else if (formattedMsg.includes('InvalidChallengeStatus(2, 1)')) {
       logger.warn(`${_actorAddress} solved the challenge on ${chainName}!`)
       return resolve(
         updateChallenge(
@@ -45,7 +45,10 @@ const errorDescriptionHandler = (
           constants.hub.challengeStatus.SOLVED
         )
       )
-    } else if (formattedMsg.includes('InvalidChallengeStatus(3, 1)')) {
+    } else if (
+      formattedMsg.includes('InvalidActorStatus(2, 0)') ||
+      formattedMsg.includes('InvalidChallengeStatus(3, 1)')
+    ) {
       logger.warn(`${_actorAddress} already slashed on ${chainName}!`)
       return resolve(
         updateChallenge(
