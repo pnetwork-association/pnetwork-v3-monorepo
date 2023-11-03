@@ -35,6 +35,14 @@ const errorDescriptionHandler = (
     const formattedMsg = formatErrorDescription(_errDescription)
     if (formattedMsg.includes('InvalidActorStatus(1, 0)')) {
       logger.warn(`${_actorAddress} already challenged on ${chainName}!`)
+      return resolve(
+        updateChallenge(
+          _challengeStorage,
+          _actorAddress,
+          networkId,
+          constants.hub.challengeStatus.PENDING
+        )
+      )
     } else if (formattedMsg.includes('InvalidChallengeStatus(2, 1)')) {
       logger.warn(`${_actorAddress} solved the challenge on ${chainName}!`)
       return resolve(
@@ -100,7 +108,8 @@ module.exports.generalErrorHandler = R.curry(
         return resolve(null)
       }
       if (msg.includes(constants.evm.ethers.ERROR_INSUFFICIENT_FUNDS)) {
-        logger.warn('The account does not have enough funds! ')
+        const networkId = _supportedChain[constants.config.KEY_CHAIN_NAME]
+        logger.warn(`The account does not have enough funds! (${networkId}) `)
         logger.warn(`  ${_wallet.address}`)
         return resolve(null)
       }
