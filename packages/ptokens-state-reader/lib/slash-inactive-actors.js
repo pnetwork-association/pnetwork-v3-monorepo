@@ -34,6 +34,7 @@ const slashByChallenge = R.curry(
       }
 
       if (now > expiration) {
+        logger.info(`${now} > ${expiration} <= ready to be slashed!`)
         results.push(
           await chains[R.toLower(chainType)].slashActor(
             _challengesStorage,
