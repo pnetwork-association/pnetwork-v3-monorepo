@@ -32,6 +32,7 @@ const addFinalizedTxHashToEvent = R.curry((_event, _finalizedTxHash) => {
 
 const estimateGasErrorHandler = (_resolve, _reject, _report, _err) => {
   if (_err.message.includes(errors.ERROR_OPERATION_ALREADY_EXECUTED)) {
+    logger.info('Operation already executed!')
     return _resolve(addFinalizedTxHashToEvent(_report, '0x'))
   } else if (
     _err.message.includes(errors.ERROR_LOCKDOWN_MODE) ||
