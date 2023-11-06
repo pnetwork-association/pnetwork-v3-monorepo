@@ -32,9 +32,9 @@ const onMessageHandler = R.curry((_state, _message) =>
     .then(async _statusObj => {
       logger.info('Received new status object:', JSON.stringify(_statusObj))
       const actorsStorage = _state[STATE_DB_ACTORS_KEY]
-      const actorAddress = _statusObj[constants.config.KEY_SIGNER_ADDRESS]
-      const signature = _statusObj[constants.config.KEY_SIGNATURE]
-      const syncState = _statusObj[constants.config.KEY_SYNC_STATE]
+      const actorAddress = _statusObj[constants.statusObject.KEY_SIGNER_ADDRESS]
+      const signature = _statusObj[constants.statusObject.KEY_SIGNATURE]
+      const syncState = _statusObj[constants.statusObject.KEY_SYNC_STATE]
       const actorsPropagated = await db.findReportById(
         _state[STATE_DB_ACTORS_PROPAGATED_KEY],
         ID_ACTORS_PROPAGATED

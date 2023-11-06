@@ -5,6 +5,7 @@ const state = require('./lib/state')
 const config = require('./lib/config')
 const interim = require('./lib/interim')
 const networkIds = require('./lib/network-ids')
+const statusObject = require('./lib/status-object')
 const blockchainType = require('./lib/blockchain-type')
 const governanceMessageEmitter = require('./lib/governance-message-emitter')
 
@@ -16,6 +17,7 @@ module.exports = {
   config,
   interim,
   networkIds,
+  statusObject,
   blockchainType,
   governanceMessageEmitter,
 }

@@ -8,7 +8,7 @@ const signStatusObject = R.curry((_obj, _wallet) =>
   Promise.resolve(utils.sortKeysAlphabetically(_obj))
     .then(JSON.stringify)
     .then(_message => _wallet.signMessage(_message))
-    .then(_signature => R.assoc(constants.config.KEY_SIGNATURE, _signature, _obj))
+    .then(_signature => R.assoc(constants.statusObject.KEY_SIGNATURE, _signature, _obj))
 )
 
 const signStatusObjectAndAddToState = _state =>

@@ -51,7 +51,7 @@ const isLastBlockNumberOverThreshold = R.curry(
       return true
     }
 
-    const lastBlockSynced = _syncState[_networkId][constants.config.KEY_LATEST_BLOCK_NUMBER]
+    const lastBlockSynced = _syncState[_networkId][constants.statusObject.KEY_LATEST_BLOCK_NUMBER]
     const latestBlockNumber = _latestBlockNumbersObj[_networkId]
     const threshold = _blockThresholds[_networkId]
     const diff = latestBlockNumber - lastBlockSynced

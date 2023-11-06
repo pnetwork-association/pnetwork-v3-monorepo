@@ -24,11 +24,11 @@ const {
 const SUPPORTED_ACTOR_TYPE = 'guardian'
 const maybeGetActorTypeAndAddToStatus = _state =>
   logger.debug(
-    `Status: Adding ${SUPPORTED_ACTOR_TYPE} under '${constants.config.KEY_ACTOR_TYPE}' key`
+    `Status: Adding ${SUPPORTED_ACTOR_TYPE} under '${constants.statusObject.KEY_ACTOR_TYPE}' key`
   ) ||
   Promise.resolve(
     R.assocPath(
-      [STATE_STATUS_OBJ_KEY, constants.config.KEY_ACTOR_TYPE],
+      [STATE_STATUS_OBJ_KEY, constants.statusObject.KEY_ACTOR_TYPE],
       SUPPORTED_ACTOR_TYPE,
       _state
     )
@@ -41,10 +41,10 @@ const maybeGetSignerAddressAndAddToStatus = _state =>
     .then(
       _wallet =>
         logger.debug(
-          `Status - adding ${_wallet.address} under '${constants.config.KEY_SIGNER_ADDRESS}' key`
+          `Status - adding ${_wallet.address} under '${constants.statusObject.KEY_SIGNER_ADDRESS}' key`
         ) ||
         R.assocPath(
-          [STATE_STATUS_OBJ_KEY, constants.config.KEY_SIGNER_ADDRESS],
+          [STATE_STATUS_OBJ_KEY, constants.statusObject.KEY_SIGNER_ADDRESS],
           _wallet.address,
           _state
         )
@@ -55,13 +55,13 @@ const maybeGetSoftwareVersionsAndAddToStatus = _state =>
   logger.debug('Status: Adding software versions...') ||
   Promise.resolve(
     R.assocPath(
-      [STATE_STATUS_OBJ_KEY, constants.config.KEY_SW_VERSIONS, KEY_SW_VERSIONS_LISTENER],
+      [STATE_STATUS_OBJ_KEY, constants.statusObject.KEY_SW_VERSIONS, KEY_SW_VERSIONS_LISTENER],
       versionListener,
       _state
     )
   ).then(
     R.assocPath(
-      [STATE_STATUS_OBJ_KEY, constants.config.KEY_SW_VERSIONS, KEY_SW_VERSIONS_PROCESSOR],
+      [STATE_STATUS_OBJ_KEY, constants.statusObject.KEY_SW_VERSIONS, KEY_SW_VERSIONS_PROCESSOR],
       versionProcessor
     )
   )
@@ -70,7 +70,7 @@ const getUTCTimestampAndAddToStatus = _state =>
   logger.debug('Status: Adding timestamp...') ||
   Promise.resolve(
     R.assocPath(
-      [STATE_STATUS_OBJ_KEY, constants.config.KEY_TIMESTAMP],
+      [STATE_STATUS_OBJ_KEY, constants.statusObject.KEY_TIMESTAMP],
       Math.floor(Date.now() / 1000),
       _state
     )
@@ -93,7 +93,11 @@ const maybeGetSyncStateAndAddToStatus = _state =>
     return Promise.all(supportedChains.map(maybeGetSyncStateByNetworkId))
       .then(R.mergeAll) // from [{ '0x1234': {}}, { '0x4567': {}}] to {'0x1234': {}, '0x4567': {}}
       .then(_syncStates =>
-        R.assocPath([STATE_STATUS_OBJ_KEY, constants.config.KEY_SYNC_STATE], _syncStates, _state)
+        R.assocPath(
+          [STATE_STATUS_OBJ_KEY, constants.statusObject.KEY_SYNC_STATE],
+          _syncStates,
+          _state
+        )
       )
       .then(resolve)
       .catch(reject)
