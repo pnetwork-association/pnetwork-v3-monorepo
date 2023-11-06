@@ -9,7 +9,7 @@ const {
 
 module.exports = {
   type: 'object',
-  required: [KEY_CHAIN_TYPE, KEY_CHAIN_NAME, KEY_NETWORK_ID, KEY_PROVIDER_URL],
+  required: [KEY_HUB_ADDRESS, KEY_CHAIN_TYPE, KEY_CHAIN_NAME, KEY_NETWORK_ID, KEY_PROVIDER_URL],
   properties: {
     [KEY_CHAIN_TYPE]: {
       type: 'string',
