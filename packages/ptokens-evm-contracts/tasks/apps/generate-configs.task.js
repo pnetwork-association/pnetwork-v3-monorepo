@@ -1,7 +1,6 @@
 const R = require('ramda')
 const path = require('path')
 const constants = require('ptokens-constants')
-const pTokensUtils = require('ptokens-utils')
 const {
   getNetworkId,
   getHubAddress,
@@ -41,7 +40,7 @@ const addGovernanceMessageEmitterEvent = R.curry((taskArgs, hre, _networkId, _co
 )
 
 const maybeAddGovernanceMessageEmitterEvents = R.curry((taskArgs, hre, _networkId, _config) =>
-  _networkId === pTokensUtils.constants.networkIds.POLYGON_MAINNET
+  _networkId === constants.networkIds.POLYGON_MAINNET
     ? addGovernanceMessageEmitterEvent(taskArgs, hre, _networkId, _config)
     : Promise.resolve(_config)
 )

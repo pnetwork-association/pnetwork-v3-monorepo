@@ -1,6 +1,5 @@
 const ethers = require('ethers')
 const constants = require('ptokens-constants')
-const utils = require('ptokens-utils')
 const { receipts } = require('../mock/evm-receipts')
 
 describe('Get EVM event reports', () => {
@@ -27,7 +26,7 @@ describe('Get EVM event reports', () => {
         getEvmEventReportsFromTransaction,
       } = require('../../lib/evm/evm-get-event-reports-from-transaction')
       const provider = 'polygon-provider-url-1'
-      const networkId = utils.constants.networkIds.POLYGON_MAINNET
+      const networkId = constants.networkIds.POLYGON_MAINNET
       const txHash = '0xa5c5838123aa37d2efd69285f7b6bd8c2e93d4cf243d45926169502c13b23a49' // secretlint-disable-line
       const ret = await getEvmEventReportsFromTransaction(
         provider,

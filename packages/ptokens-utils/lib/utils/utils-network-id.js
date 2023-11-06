@@ -1,17 +1,16 @@
 const R = require('ramda')
-const { networkIds } = require('../constants')
 const constants = require('ptokens-constants')
 
 const getBlockchainTypeFromChainIdSync = _networkId => {
   switch (_networkId) {
-    case networkIds.HARDHAT1:
-    case networkIds.HARDHAT2:
-    case networkIds.BSC_MAINNET:
-    case networkIds.GNOSIS_MAINNET:
-    case networkIds.POLYGON_MAINNET:
-    case networkIds.ARBITRUM_MAINNET:
-    case networkIds.ETHEREUM_MAINNET:
-    case networkIds.ETHEREUM_GOERLI:
+    case constants.networkIds.HARDHAT1:
+    case constants.networkIds.HARDHAT2:
+    case constants.networkIds.BSC_MAINNET:
+    case constants.networkIds.GNOSIS_MAINNET:
+    case constants.networkIds.POLYGON_MAINNET:
+    case constants.networkIds.ARBITRUM_MAINNET:
+    case constants.networkIds.ETHEREUM_MAINNET:
+    case constants.networkIds.ETHEREUM_GOERLI:
       return constants.blockchainType.EVM
     default:
       return null

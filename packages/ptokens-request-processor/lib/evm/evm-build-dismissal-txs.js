@@ -8,7 +8,7 @@ const { HubError } = require('./evm-hub-error')
 const { getMerkleProof } = require('./get-merkle-proof')
 const { checkEventName } = require('../check-event-name')
 const { addErrorToReport } = require('../add-error-to-event')
-const { constants: ptokensUtilsConstants, logic, utils } = require('ptokens-utils')
+const { logic, utils } = require('ptokens-utils')
 const { addDismissedReportsToState } = require('../state/state-operations.js')
 const { STATE_TO_BE_DISMISSED_REQUESTS } = require('../state/constants')
 const { parseUserOperationFromReport } = require('./evm-parse-user-operation')
@@ -131,9 +131,7 @@ const maybeBuildDismissalTxsAndPutInState = _state =>
   new Promise(resolve => {
     logger.info('Maybe building cancel transactions...')
     const networkId = _state[constants.state.KEY_NETWORK_ID]
-    const blockChainName = utils.flipObjectPropertiesSync(ptokensUtilsConstants.networkIds)[
-      networkId
-    ]
+    const blockChainName = utils.flipObjectPropertiesSync(constants.networkIds)[networkId]
     const invalidRequests = _state[STATE_TO_BE_DISMISSED_REQUESTS] || []
 
     return invalidRequests.length > 0
