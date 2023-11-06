@@ -29,7 +29,7 @@
     "install": "^0.13.0",
     "log4js": "^6.9.1",
     "lokijs": "^1.5.12",
-    "merkletreejs": "^0.3.10",
+    "merkletreejs": "^0.3.11",
     "npm": "^10.2.1",
     "ptokens-constants": "*",
     "ptokens-utils": "*",
