@@ -11,10 +11,10 @@ const { saveStateEmitterConfiguration } = require('./save-state-emitter-config')
 const { saveStateReaderConfiguration } = require('./save-state-reader-config')
 const { getMongoUrlFromTaskArgs } = require('./get-mongo-url')
 const {
-  FLAG_SHOW,
-  FLAG_SHOW_DESC,
-  FLAG_MONGO_LOCALHOST,
-  FLAG_MONGO_LOCALHOST_DESC,
+  FLAG_NAME_SHOW,
+  FLAG_DESC_SHOW,
+  FLAG_NAME_MONGO_LOCALHOST,
+  FLAG_DESC_MONGO_LOCALHOST,
 } = require('../constants')
 const TASK_NAME_APPS_GENERATE_CONFIGURATIONS = 'apps:generate-configs'
 const TASK_DESC_APPS_GENERATE_CONFIGURATIONS =
@@ -102,7 +102,6 @@ const saveRelayerProcessorConfiguration = (taskArgs, hre, _networkId, _hubAddres
   )
 
 const saveGuardianListenerConfiguration = (taskArgs, hre, _networkId, _hubAddress) =>
-  console.info('_hubAddress', _hubAddress) ||
   generateListenerConfiguration(taskArgs, hre, _networkId, [
     {
       contracts: _hubAddress,
@@ -146,5 +145,5 @@ task(
   TASK_DESC_APPS_GENERATE_CONFIGURATIONS,
   generateConfigurationTask
 )
-  .addFlag(FLAG_SHOW, FLAG_SHOW_DESC)
-  .addFlag(FLAG_MONGO_LOCALHOST, FLAG_MONGO_LOCALHOST_DESC)
+  .addFlag(FLAG_NAME_SHOW, FLAG_DESC_SHOW)
+  .addFlag(FLAG_NAME_MONGO_LOCALHOST, FLAG_DESC_MONGO_LOCALHOST)

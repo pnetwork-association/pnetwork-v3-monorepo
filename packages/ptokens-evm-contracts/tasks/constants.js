@@ -97,8 +97,8 @@ module.exports = {
   FLAG_DESC_APPROVE: 'Approve the amount before transfering...',
   FLAG_NAME_FORCE: 'force',
   FLAG_NAME_DRY: 'dry',
-  FLAG_SHOW: 'show',
-  FLAG_SHOW_DESC: 'Show result instead of saving it to a file',
-  FLAG_MONGO_LOCALHOST: 'localhost',
-  FLAG_MONGO_LOCALHOST_DESC: 'Set localhost into the mongo url (good for testing)',
+  FLAG_NAME_SHOW: 'show',
+  FLAG_DESC_SHOW: 'Show result instead of saving it to a file',
+  FLAG_NAME_MONGO_LOCALHOST: 'localhost',
+  FLAG_DESC_MONGO_LOCALHOST: 'Set localhost into the mongo url (good for testing)',
 }
