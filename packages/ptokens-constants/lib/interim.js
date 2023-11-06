@@ -1,4 +1,6 @@
+const networkIds = require('./network-ids')
+
 module.exports = {
   name: 'polygon',
-  networkId: '0xf9b459a1',
+  networkId: networkIds.POLYGON_MAINNET,
 }
