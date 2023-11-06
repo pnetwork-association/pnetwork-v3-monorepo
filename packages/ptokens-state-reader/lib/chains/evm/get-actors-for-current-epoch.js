@@ -80,7 +80,7 @@ const updateActorsPropagatedEventInStorage = R.curry(
 
 module.exports.storeActorsForCurrentEpoch = _state =>
   getSupportedChainsFromState(_state)
-    .then(R.find(R.propEq('polygon', constants.config.KEY_CHAIN_NAME)))
+    .then(R.find(R.propEq(constants.interim.name, constants.config.KEY_CHAIN_NAME)))
     .then(utils.rejectIfNil(ERROR_FAILED_TO_GET_SUPPORTED_CHAIN))
     .then(_polygonSupportedChain => {
       const actorsPropagatedStorage = _state[STATE_DB_ACTORS_PROPAGATED_KEY]
