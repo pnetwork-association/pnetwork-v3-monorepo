@@ -28,9 +28,6 @@ describe('Start challenge tests on EVM chains', () => {
 
     beforeEach(async () => {
       jest.restoreAllMocks()
-    })
-
-    afterEach(async () => {
       await actorsStorage.deleteMany({})
       await challengesStorage.deleteMany({})
     })

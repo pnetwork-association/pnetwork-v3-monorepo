@@ -33,9 +33,6 @@ describe('Test for slashing an actor', () => {
 
     beforeEach(async () => {
       jest.restoreAllMocks()
-    })
-
-    afterEach(async () => {
       await actorsStorage.deleteMany({})
       await challengesStorage.deleteMany({})
     })
