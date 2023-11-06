@@ -9,11 +9,12 @@ const getMerkleProofSync = R.curry((_epoch, _actors, _actorsTypes, _myAddress) =
     throw new Error('Actors and actorTypes length do not match!')
   }
 
-  const leaves = _actors.map((_address, _index) =>
+  const lowerCasedActors = _actors.map(R.toLower)
+  const leaves = lowerCasedActors.map((_address, _index) =>
     ethers.solidityPackedKeccak256(['address', 'uint8'], [_address, _actorsTypes[_index]])
   )
   const tree = new MerkleTree(leaves, ethers.keccak256, { sortPairs: true })
-  const myIndex = _actors.indexOf(_myAddress)
+  const myIndex = lowerCasedActors.indexOf(_myAddress.toLowerCase())
   if (myIndex === -1) {
     throw new Error(`${errors.ERROR_ADDRESS_NOT_FOUND} in ${_actors}`)
   }
