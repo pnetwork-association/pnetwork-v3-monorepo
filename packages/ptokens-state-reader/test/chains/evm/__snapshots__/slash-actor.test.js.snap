@@ -1,0 +1,27 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Test for slashing an actor slashActor Should handle the "ChallengeNotFound" error as expected 1`] = `
+{
+  "_id": "0x5aca268b-16",
+  "actor": "0x7cdabc0ec492753ef724478a444914de9995d333",
+  "actorType": 2,
+  "challenger": "0xe5de26b691d615353a03285405b6ee08c7974926",
+  "networkId": "0x5aca268b",
+  "nonce": 16,
+  "status": "Null",
+  "timestamp": 1698744585,
+}
+`;
+
+exports[`Test for slashing an actor slashActor Should set the challenge to unsolved accordingly in the db after a slash 1`] = `
+{
+  "_id": "0x5aca268b-16",
+  "actor": "0x7cdabc0ec492753ef724478a444914de9995d333",
+  "actorType": 2,
+  "challenger": "0xe5de26b691d615353a03285405b6ee08c7974926",
+  "networkId": "0x5aca268b",
+  "nonce": 16,
+  "status": "Unsolved",
+  "timestamp": 1698744585,
+}
+`;

@@ -77,16 +77,7 @@ describe('Start challenge tests on EVM chains', () => {
       const reports = await db.findReports(challengesStorage, {}, {})
 
       expect(reports).toHaveLength(1)
-      expect(reports[0]).toMatchObject({
-        _id: expect.stringMatching(`${networkId}`),
-        nonce: expect.any(Number),
-        actor: actorAddress,
-        challenger: expect.any(String),
-        actorType: constants.hub.actors.Sentinel,
-        timestamp: expect.any(Number),
-        networkId: networkId,
-        status: constants.hub.challengeStatus.PENDING,
-      })
+      expect(reports[0]).toMatchSnapshot()
     })
   })
 })

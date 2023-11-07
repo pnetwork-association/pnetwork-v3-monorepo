@@ -1,0 +1,14 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Start challenge tests on EVM chains startChallenge Should start a challenge and update the relative report in the db 1`] = `
+{
+  "_id": "0xf9b459a1-18",
+  "actor": "0x95143f61674de69efb0f583df5342e42cd17c028",
+  "actorType": 2,
+  "challenger": "0xe5de26b691d615353a03285405b6ee08c7974926",
+  "networkId": "0xf9b459a1",
+  "nonce": 18,
+  "status": "Pending",
+  "timestamp": 1698744793,
+}
+`;

@@ -75,10 +75,7 @@ describe('Test for slashing an actor', () => {
       const result = await db.findReports(challengesStorage, {})
 
       expect(result).toHaveLength(1)
-      expect(result[0]).toMatchObject({
-        ...challenge,
-        [constants.db.KEY_STATUS]: constants.hub.challengeStatus.NULL,
-      })
+      expect(result[0]).toMatchSnapshot()
     })
 
     it('Should handle when an actor has been slashed already', async () => {
@@ -159,10 +156,7 @@ describe('Test for slashing an actor', () => {
       const result = await db.findReports(challengesStorage, {})
 
       expect(result).toHaveLength(1)
-      expect(result[0]).toMatchObject({
-        ...challenge,
-        [constants.db.KEY_STATUS]: constants.hub.challengeStatus.UNSOLVED,
-      })
+      expect(result[0]).toMatchSnapshot()
     })
   })
 })
