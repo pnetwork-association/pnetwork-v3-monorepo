@@ -33,7 +33,7 @@ const errorDescriptionHandler = (
     const chainName = _supportedChain[constants.config.KEY_CHAIN_NAME]
     const networkId = _supportedChain[constants.config.KEY_NETWORK_ID]
     const formattedMsg = formatErrorDescription(_errDescription)
-    if (formattedMsg.includes('InvalidActorStatus(1, 0)')) {
+    if (formattedMsg.includes(constants.hub.errors.ACTOR_CHALLENGED)) {
       logger.warn(`${_actorAddress} already challenged on ${chainName}!`)
       return resolve(
         updateChallenge(
@@ -43,7 +43,7 @@ const errorDescriptionHandler = (
           constants.hub.challengeStatus.PENDING
         )
       )
-    } else if (formattedMsg.includes('InvalidChallengeStatus(2, 1)')) {
+    } else if (formattedMsg.includes(constants.hub.errors.CHALLENGE_SOLVED)) {
       logger.warn(`${_actorAddress} solved the challenge on ${chainName}!`)
       return resolve(
         updateChallenge(
@@ -54,8 +54,8 @@ const errorDescriptionHandler = (
         )
       )
     } else if (
-      formattedMsg.includes('InvalidActorStatus(2, 0)') ||
-      formattedMsg.includes('InvalidChallengeStatus(3, 1)')
+      formattedMsg.includes(constants.hub.errors.ACTOR_INACTIVE) ||
+      formattedMsg.includes(constants.hub.errors.CHALLENGE_UNSOLVED)
     ) {
       logger.warn(`${_actorAddress} already slashed on ${chainName}!`)
       return resolve(
