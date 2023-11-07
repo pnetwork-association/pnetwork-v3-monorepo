@@ -24,47 +24,32 @@ module.exports.slashActor = R.curry(
       const challengeArgs = challenge.getArgs()
       logger.debug(`${chainName}: slashByChallenge([${challengeArgs}])${dryRunPrefix}`)
 
-      return _dryRun
-        ? hub.slashByChallenge
-            .staticCall(challengeArgs)
-            .then(resolve)
-            .catch(_err =>
-              resolve(
-                generalErrorHandler(
-                  _challengesStorage,
-                  challenge.actor,
-                  chainName,
-                  wallet,
-                  hub,
-                  _err
-                )
-              )
+      const hubSlashByChallenge = _dryRun ? hub.slashByChallenge.staticCall : hub.slashByChallenge
+
+      return hubSlashByChallenge(challengeArgs)
+        .then(_tx => (_dryRun ? Promise.resolve() : _tx.wait(1)))
+        .then(_receipt => logger.info(`Tx mined @ ${_receipt.hash}(${chainName})`) || _receipt)
+        .then(extractChallengeFromReceipt(hub))
+        .then(_ =>
+          updateChallenge(
+            _challengesStorage,
+            challenge.actor,
+            challenge.networkId,
+            constants.hub.challengeStatus.UNSOLVED
+          )
+        )
+        .then(resolve)
+        .catch(_err =>
+          resolve(
+            generalErrorHandler(
+              _challengesStorage,
+              challenge.actor,
+              _supportedChain,
+              wallet,
+              hub,
+              _err
             )
-        : hub
-            .slashByChallenge(challengeArgs)
-            .then(_tx => _tx.wait(1))
-            .then(_receipt => logger.info(`Tx mined @ ${_receipt.hash}(${chainName})`) || _receipt)
-            .then(extractChallengeFromReceipt(hub))
-            .then(_ =>
-              updateChallenge(
-                _challengesStorage,
-                challenge.actor,
-                challenge.networkId,
-                constants.hub.challengeStatus.UNSOLVED
-              )
-            )
-            .then(resolve)
-            .catch(_err =>
-              resolve(
-                generalErrorHandler(
-                  _challengesStorage,
-                  challenge.actor,
-                  _supportedChain,
-                  wallet,
-                  hub,
-                  _err
-                )
-              )
-            )
+          )
+        )
     })
 )

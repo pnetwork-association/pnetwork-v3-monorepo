@@ -35,20 +35,16 @@ module.exports.startChallenge = R.curry(
         logger.debug(
           `${chainName}: startChallenge(${_actorAddress}, ${_actorType}, [${_proof}])${dryRunPrefix}`
         )
-        return _dryRun
-          ? hub.startChallenge
-              .staticCall(_actorAddress, _actorType, _proof, { value: _lockAmount })
-              .catch(generalErrorHandler(_challengesStorage, _actorAddress, chainName, wallet, hub))
-          : hub
-              .startChallenge(_actorAddress, _actorType, _proof, { value: _lockAmount })
-              .then(_tx => _tx.wait(1))
-              .then(
-                _receipt => logger.info(`Tx mined @ ${_receipt.hash}(${chainName})`) || _receipt
-              )
-              .then(extractChallengeFromReceipt(hub))
-              .then(insertChallengePending(_challengesStorage))
-              .catch(
-                generalErrorHandler(_challengesStorage, _actorAddress, _supportedChain, wallet, hub)
-              )
+
+        const hubStartChallenge = _dryRun ? hub.startChallenge.staticCall : hub.startChallenge
+
+        return hubStartChallenge(_actorAddress, _actorType, _proof, { value: _lockAmount })
+          .then(_tx => (_dryRun ? Promise.resolve() : _tx.wait(1)))
+          .then(_receipt => logger.info(`Tx mined @ ${_receipt.hash}(${chainName})`) || _receipt)
+          .then(extractChallengeFromReceipt(hub))
+          .then(insertChallengePending(_challengesStorage))
+          .catch(
+            generalErrorHandler(_challengesStorage, _actorAddress, _supportedChain, wallet, hub)
+          )
       })
 )
