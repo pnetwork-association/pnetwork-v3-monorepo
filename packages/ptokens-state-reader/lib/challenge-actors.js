@@ -114,6 +114,7 @@ const filterForInactiveActors = R.curry(
 
 const startChallengeOnNetworkId = R.curry(
   (
+    _actorsStorage,
     _challengesStorage,
     _supportedChains,
     _privateKey,
@@ -131,6 +132,7 @@ const startChallengeOnNetworkId = R.curry(
 
       return chains[R.toLower(chainType)]
         .startChallenge(
+          _actorsStorage,
           _challengesStorage,
           supportedChain,
           _privateKey,
@@ -148,6 +150,7 @@ const startChallengeOnNetworkId = R.curry(
 
 const challengeActor = R.curry(
   (
+    _actorsStorage,
     _challengesStorage,
     _actorsPropagatedStorage,
     _proofsByActor,
@@ -169,6 +172,7 @@ const challengeActor = R.curry(
 
         return logic.mapAll(
           startChallengeOnNetworkId(
+            _actorsStorage,
             _challengesStorage,
             _supportedChains,
             _privateKey,
@@ -185,6 +189,7 @@ const challengeActor = R.curry(
 
 const challengeActors = R.curry(
   (
+    _actorsStorage,
     _challengesStorage,
     _actorsPropagatedStorage,
     _proofsByActor,
@@ -207,6 +212,7 @@ const challengeActors = R.curry(
 
         results.push(
           await challengeActor(
+            _actorsStorage,
             _challengesStorage,
             _actorsPropagatedStorage,
             _proofsByActor,
@@ -241,6 +247,7 @@ const startChallenger = _state =>
       .then(filterForInactiveActors(actorsStorage, actorsPropagatedStorage, blockThresholds))
       .then(
         challengeActors(
+          actorsStorage,
           challengesStorage,
           actorsPropagatedStorage,
           proofsByActor,

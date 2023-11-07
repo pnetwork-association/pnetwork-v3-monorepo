@@ -2,7 +2,7 @@ const ethers = require('ethers')
 const constants = require('ptokens-constants')
 const { db } = require('ptokens-utils')
 const { MEM_ACTORS_PROPAGATED, MEM_ACTORS, MEM_CHALLENGES } = require('../../../lib/constants')
-const { startChallenge } = require('../../../lib/chains/evm/start-challenge')
+const getActorStatusModule = require('../../../lib/get-actor-status')
 const startChallengeReceipt = require('./mock/start-challenge-receipt')
 const actorsPropagatedSample = require('./mock/actors-propagated-sample')
 const PNetworkHubAbi = require('../../../lib/chains/evm/abi/PNetworkHub.json')
@@ -36,13 +36,14 @@ describe('Start challenge tests on EVM chains', () => {
       await db.closeConnection(uri)
     })
 
-    it('Should start a challenge and update the relative report in the db', async () => {
+    it('Should start a challenge and update the relative report in the db if the actor is Active', async () => {
       const hubAddress = '0xf28910cc8f21e9314eD50627c11De36bC0B7338F'
       const hub = new ethers.Contract(hubAddress, PNetworkHubAbi, null)
       const mockStartChallenge = jest.fn().mockResolvedValue({
         wait: jest.fn().mockResolvedValue(startChallengeReceipt),
       })
 
+      jest.spyOn(getActorStatusModule, 'isActorStatusActive').mockResolvedValue(true)
       jest.spyOn(ethers, 'JsonRpcProvider').mockReturnValue()
       jest.spyOn(ethers, 'Contract').mockImplementation(() => ({
         startChallenge: mockStartChallenge,
@@ -62,7 +63,9 @@ describe('Start challenge tests on EVM chains', () => {
       const networkId = '0xf9b459a1'
       const dryRun = false
 
+      const { startChallenge } = require('../../../lib/chains/evm/start-challenge')
       await startChallenge(
+        actorsStorage,
         challengesStorage,
         supportedChain,
         privateKey,

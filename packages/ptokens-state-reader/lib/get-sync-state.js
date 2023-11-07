@@ -5,16 +5,13 @@ const { logger } = require('./get-logger')
 const { db, utils, errors, validation } = require('ptokens-utils')
 const { verifySignature } = require('./verify-signature')
 const {
-  MEM_EPOCH,
-  MEM_ACTOR,
-  MEM_TIMESTAMP,
-  MEM_SYNC_STATE,
   STATE_DB_ACTORS_KEY,
   STATE_DB_ACTORS_PROPAGATED_KEY,
   ID_ACTORS_PROPAGATED,
 } = require('./constants')
 const { getActorsReportId } = require('./get-actors-report-id')
 const { ERROR_UNSUPPORTED_PROTOCOL, ERROR_UNABLE_TO_FIND_ACTOR_FOR_EPOCH } = require('./errors')
+const { insertActor } = require('./insert-actor')
 
 const errorHandler = _err => {
   if (_err.message.includes(errors.ERROR_FAILED_TO_PARSE_JSON)) {
@@ -28,7 +25,7 @@ const errorHandler = _err => {
 const onMessageHandler = R.curry((_state, _message) =>
   utils
     .parseJsonAsync(_message)
-    .then(validation.validateJson(constants.config.schemas.statusObject))
+    .then(validation.validateJson(constants.statusObject.schemas.statusObject))
     .then(async _statusObj => {
       logger.info('Received new status object:', JSON.stringify(_statusObj))
       const actorsStorage = _state[STATE_DB_ACTORS_KEY]
@@ -50,12 +47,13 @@ const onMessageHandler = R.curry((_state, _message) =>
       if (verifySignature(_statusObj, signature)) {
         logger.info(`Valid signature for ${actorAddress}!`)
         const id = getActorsReportId(actorAddress)
-        const report = {
-          [MEM_EPOCH]: actorsPropagated.currentEpoch,
-          [MEM_ACTOR]: R.toLower(actorAddress),
-          [MEM_TIMESTAMP]: Date.now(),
-          [MEM_SYNC_STATE]: syncState,
-        }
+        const report = await insertActor(
+          actorsStorage,
+          actorsPropagated.currentEpoch,
+          actorAddress,
+          constants.hub.actorsStatus.Active,
+          syncState
+        )
         await db.updateReportById(actorsStorage, { $set: report }, id)
       } else {
         logger.info('Invalid signature, ignoring...')

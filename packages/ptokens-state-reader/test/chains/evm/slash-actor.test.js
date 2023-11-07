@@ -1,15 +1,21 @@
 const ethers = require('ethers')
 const constants = require('ptokens-constants')
 const { db } = require('ptokens-utils')
-const { slashActor } = require('../../../lib/chains/evm')
 const { Challenge } = require('ptokens-constants/lib/hub')
 const { insertChallengePending } = require('../../../lib/insert-challenge')
+const getActorStatusModule = require('../../../lib/get-actor-status')
 const PNetworkHubAbi = require('../../../lib/chains/evm/abi/PNetworkHub')
 const actorsPropagatedSample = require('./mock/actors-propagated-sample')
 const challengeUnsolvedSample = require('./mock/challenge-unsolved-event-sample')
 const errorChallengeNotFoundSample = require('./mock/error-challenge-not-found-sample')
 const errorActorSlashAlreadySample = require('./mock/error-actor-slashed-already-sample')
-const { MEM_ACTORS, MEM_CHALLENGES, MEM_ACTORS_PROPAGATED } = require('../../../lib/constants')
+const {
+  MEM_ACTORS,
+  MEM_CHALLENGES,
+  MEM_ACTORS_PROPAGATED,
+  MEM_ACTOR_STATUS,
+} = require('../../../lib/constants')
+const { insertActor } = require('../../../lib/insert-actor')
 
 describe('Test for slashing an actor', () => {
   describe('slashActor', () => {
@@ -23,6 +29,25 @@ describe('Test for slashing an actor', () => {
     // secretlint-disable-next-line
     const privateKey = '0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80'
     const dryRun = false
+    const currentEpoch = 1
+    const hubAddress = '0x393ad7Bd0B94788b3B9EB15303E3845B4828E7Fb'
+    const actorAddress = '0x7cdabc0ec492753ef724478a444914de9995d333'
+    const challengerAddress = '0xe5de26b691d615353a03285405b6ee08c7974926'
+    const supportedChain = {
+      [constants.config.KEY_CHAIN_NAME]: 'bsc',
+      [constants.config.KEY_NETWORK_ID]: '0x5aca268b',
+      [constants.config.KEY_CHAIN_TYPE]: 'EVM',
+      [constants.config.KEY_PROVIDER_URL]: 'https://localhost:8545',
+      [constants.config.KEY_HUB_ADDRESS]: hubAddress,
+    }
+    const challenge = new Challenge({
+      nonce: 16,
+      actor: actorAddress,
+      challenger: challengerAddress,
+      actorType: 2,
+      timestamp: 1698744585,
+      networkId: '0x5aca268b',
+    })
 
     beforeAll(async () => {
       actorsStorage = await db.getCollection(uri, dbName, MEM_ACTORS)
@@ -35,6 +60,15 @@ describe('Test for slashing an actor', () => {
       jest.restoreAllMocks()
       await actorsStorage.deleteMany({})
       await challengesStorage.deleteMany({})
+      await insertActor(
+        actorsStorage,
+        currentEpoch,
+        actorAddress,
+        constants.hub.actorsStatus.Active,
+        []
+      )
+
+      await insertChallengePending(challengesStorage, challenge)
     })
 
     afterAll(async () => {
@@ -42,7 +76,6 @@ describe('Test for slashing an actor', () => {
     })
 
     it('Should handle the "ChallengeNotFound" error as expected', async () => {
-      const hubAddress = '0x393ad7Bd0B94788b3B9EB15303E3845B4828E7Fb'
       const hub = new ethers.Contract(hubAddress, PNetworkHubAbi, null)
       const error = Object.assign(new Error(), errorChallengeNotFoundSample)
 
@@ -52,30 +85,25 @@ describe('Test for slashing an actor', () => {
         slashByChallenge: mockSlashActor,
         interface: hub.interface,
       }))
-      const supportedChain = {
-        [constants.config.KEY_CHAIN_NAME]: 'bsc',
-        [constants.config.KEY_NETWORK_ID]: '0x5aca268b',
-        [constants.config.KEY_CHAIN_TYPE]: 'EVM',
-        [constants.config.KEY_PROVIDER_URL]: 'https://localhost:8545',
-        [constants.config.KEY_HUB_ADDRESS]: hubAddress,
-      }
+      jest.spyOn(getActorStatusModule, 'isActorStatusChallenged').mockResolvedValue(true)
 
-      const challenge = new Challenge({
-        nonce: 16,
-        actor: '0x7cdabc0ec492753ef724478a444914de9995d333',
-        challenger: '0xe5de26b691d615353a03285405b6ee08c7974926',
-        actorType: 2,
-        timestamp: 1698744585,
-        networkId: '0x5aca268b',
-      })
+      const { slashActor } = require('../../../lib/chains/evm')
 
-      await insertChallengePending(challengesStorage, challenge)
-      await slashActor(challengesStorage, privateKey, supportedChain, challenge, dryRun)
+      await slashActor(
+        actorsStorage,
+        challengesStorage,
+        privateKey,
+        supportedChain,
+        challenge,
+        dryRun
+      )
 
-      const result = await db.findReports(challengesStorage, {})
+      const newActor = await db.findReportById(actorsStorage, actorAddress)
+      const newChallenge = await db.findReports(challengesStorage, {})
 
-      expect(result).toHaveLength(1)
-      expect(result[0]).toMatchSnapshot()
+      expect(newActor).toHaveProperty(MEM_ACTOR_STATUS, constants.hub.actorsStatus.Active)
+      expect(newChallenge).toHaveLength(1)
+      expect(newChallenge[0]).toMatchSnapshot()
     })
 
     it('Should handle when an actor has been slashed already', async () => {
@@ -89,31 +117,24 @@ describe('Test for slashing an actor', () => {
         slashByChallenge: mockSlashActor,
         interface: hub.interface,
       }))
-      const supportedChain = {
-        [constants.config.KEY_CHAIN_NAME]: 'bsc',
-        [constants.config.KEY_NETWORK_ID]: '0x5aca268b',
-        [constants.config.KEY_CHAIN_TYPE]: 'EVM',
-        [constants.config.KEY_PROVIDER_URL]: 'https://localhost:8545',
-        [constants.config.KEY_HUB_ADDRESS]: hubAddress,
-      }
+      jest.spyOn(getActorStatusModule, 'isActorStatusChallenged').mockResolvedValue(true)
 
-      const challenge = new Challenge({
-        nonce: 16,
-        actor: '0x7cdabc0ec492753ef724478a444914de9995d333',
-        challenger: '0xe5de26b691d615353a03285405b6ee08c7974926',
-        actorType: 2,
-        timestamp: 1698744585,
-        networkId: '0x5aca268b',
-      })
+      const { slashActor } = require('../../../lib/chains/evm')
+      await slashActor(
+        actorsStorage,
+        challengesStorage,
+        privateKey,
+        supportedChain,
+        challenge,
+        dryRun
+      )
 
-      await insertChallengePending(challengesStorage, challenge)
+      const newActor = await db.findReportById(actorsStorage, actorAddress)
+      const newChallenge = await db.findReports(challengesStorage, {})
 
-      await slashActor(challengesStorage, privateKey, supportedChain, challenge, dryRun)
-
-      const result = await db.findReports(challengesStorage, {})
-
-      expect(result).toHaveLength(1)
-      expect(result[0]).toMatchObject({
+      expect(newActor).toHaveProperty(MEM_ACTOR_STATUS, constants.hub.actorsStatus.Inactive)
+      expect(newChallenge).toHaveLength(1)
+      expect(newChallenge[0]).toMatchObject({
         ...challenge,
         [constants.db.KEY_STATUS]: constants.hub.challengeStatus.UNSOLVED,
       })
@@ -132,18 +153,12 @@ describe('Test for slashing an actor', () => {
         slashByChallenge: mockSlashActor,
         interface: hub.interface,
       }))
-      const supportedChain = {
-        [constants.config.KEY_CHAIN_NAME]: 'bsc',
-        [constants.config.KEY_NETWORK_ID]: '0x5aca268b',
-        [constants.config.KEY_CHAIN_TYPE]: 'EVM',
-        [constants.config.KEY_PROVIDER_URL]: 'https://localhost:8545',
-        [constants.config.KEY_HUB_ADDRESS]: hubAddress,
-      }
+      jest.spyOn(getActorStatusModule, 'isActorStatusChallenged').mockResolvedValue(true)
 
       const challenge = new Challenge({
         nonce: 16,
-        actor: '0x7cdabc0ec492753ef724478a444914de9995d333',
-        challenger: '0xe5de26b691d615353a03285405b6ee08c7974926',
+        actor: actorAddress,
+        challenger: challengerAddress,
         actorType: 2,
         timestamp: 1698744585,
         networkId: '0x5aca268b',
@@ -151,12 +166,22 @@ describe('Test for slashing an actor', () => {
 
       await insertChallengePending(challengesStorage, challenge)
 
-      await slashActor(challengesStorage, privateKey, supportedChain, challenge, dryRun)
+      const { slashActor } = require('../../../lib/chains/evm')
+      await slashActor(
+        actorsStorage,
+        challengesStorage,
+        privateKey,
+        supportedChain,
+        challenge,
+        dryRun
+      )
 
-      const result = await db.findReports(challengesStorage, {})
+      const newActor = await db.findReportById(actorsStorage, actorAddress)
+      const newChallenge = await db.findReports(challengesStorage, {})
 
-      expect(result).toHaveLength(1)
-      expect(result[0]).toMatchSnapshot()
+      expect(newActor).toHaveProperty(MEM_ACTOR_STATUS, constants.hub.actorsStatus.Inactive)
+      expect(newChallenge).toHaveLength(1)
+      expect(newChallenge[0]).toMatchSnapshot()
     })
   })
 })

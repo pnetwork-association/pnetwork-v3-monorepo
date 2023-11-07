@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`Start challenge tests on EVM chains startChallenge Should start a challenge and update the relative report in the db 1`] = `
+exports[`Start challenge tests on EVM chains startChallenge Should start a challenge and update the relative report in the db if the actor is Active 1`] = `
 {
   "_id": "0xf9b459a1-18",
   "actor": "0x95143f61674de69efb0f583df5342e42cd17c028",
