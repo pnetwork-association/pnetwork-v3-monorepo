@@ -11,7 +11,7 @@ const readStatus = R.curry((_protocolData, _onMessageHandler) =>
     .then(_sub => {
       _sub.on('message', _onMessageHandler)
       _sub.on('error', errorHandler)
-      _sub.on('close', errorHandler) // Fired when the IFPS daemon is shutted down
+      _sub.on('close', errorHandler) // Fired when the IFPS daemon is shut down
 
       logger.info('Currently listening for new IPFS pubsub events...')
 
