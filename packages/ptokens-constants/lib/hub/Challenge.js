@@ -1,4 +1,5 @@
 const R = require('ramda')
+const { ZERO_ADDRESS } = require('../evm')
 
 class Challenge {
   constructor(obj) {
@@ -14,6 +15,15 @@ class Challenge {
       timestamp: args[0].timestamp,
       networkId: args[0].networkId,
     })
+  }
+
+  static empty({ nonce, actor, challenger, actorType, timestamp, networkId }) {
+    this.nonce = nonce || -1
+    this.actor = actor || ZERO_ADDRESS
+    this.challenger = challenger || ZERO_ADDRESS
+    this.actorType = actorType || 1
+    this.timestamp = timestamp || Date.now()
+    this.networkId = networkId || 0x000000
   }
 
   getArgs() {

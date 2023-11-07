@@ -1,5 +1,5 @@
+const constants = require('ptokens-constants')
 const { getSlasherAddress } = require('../lib/configuration-manager')
-const { ZERO_ADDRESS } = require('../../test/constants')
 const TASK_DESC = 'Resume a guardian'
 const TASK_NAME = 'hub:light-resume'
 const registrationManagerAbi = require('../abi/RegistrationManager.json')
@@ -27,7 +27,7 @@ const lightResume = async (_args, _hre) => {
 
   const registration = await registrationManager.registrationOf(actor.address)
 
-  if (registration[0] === ZERO_ADDRESS) {
+  if (registration[0] === constants.evm.ZERO_ADDRESS) {
     console.log('Actor not registered! Aborting...')
     console.log('registration:', registration)
   }
