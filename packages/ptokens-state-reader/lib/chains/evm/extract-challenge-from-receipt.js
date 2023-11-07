@@ -4,6 +4,11 @@ const { utils } = require('ptokens-utils')
 const { Challenge } = constants.hub
 const { ERROR_NO_CHALLENGE_FOUND } = require('../../errors')
 
+// A challenge event can be
+//   ChallengeSolved
+//   ChallengePending
+//   ChallengeUnsolved
+// the following would match any of those
 const filterForChallengeEvents = R.filter(
   R.compose(R.equals(1), R.length, R.match(/Challenge/), R.prop('name'))
 )
