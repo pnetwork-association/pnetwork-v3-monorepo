@@ -17,6 +17,7 @@ import {Utils} from "../libraries/Utils.sol";
 import {Network} from "../libraries/Network.sol";
 
 error InvalidOperationStatus(IPNetworkHub.OperationStatus status, IPNetworkHub.OperationStatus expectedStatus);
+error ActorAlreadyChallenged();
 error ActorAlreadyCancelledOperation(
     IPNetworkHub.Operation operation,
     address actor,
@@ -481,7 +482,7 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
             IPReceiver(slasher).receiveUserData(
                 currentNetworkId,
                 Utils.addressToHexString(address(this)),
-                abi.encode(currentEpoch, challenge.actor, challenge.challenger)
+                abi.encode(currentEpoch, challenge.actor, challenge.challenger, block.timestamp)
             );
         } else {
             emit UserOperation(
@@ -500,7 +501,7 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
                 0,
                 0,
                 0,
-                abi.encode(currentEpoch, challenge.actor, challenge.challenger),
+                abi.encode(currentEpoch, challenge.actor, challenge.challenger, block.timestamp),
                 bytes32(0),
                 true // isForProtocol
             );
@@ -898,8 +899,8 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
         }
 
         ActorStatus actorStatus = _epochsActorsStatus[currentEpoch][actor];
-        if (actorStatus != ActorStatus.Active) {
-            revert InvalidActorStatus(actorStatus, ActorStatus.Active);
+        if (actorStatus == ActorStatus.Challenged) {
+            revert ActorAlreadyChallenged();
         }
 
         Challenge memory challenge = Challenge({

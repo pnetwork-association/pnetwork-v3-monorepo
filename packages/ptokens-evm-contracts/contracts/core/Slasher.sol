@@ -12,12 +12,15 @@ import {IRegistrationManager} from "../interfaces/external/IRegistrationManager.
 error NotHub(address hub);
 error NotSupportedNetworkId(bytes4 originNetworkId);
 error InvalidEpoch(uint16 epoch, uint16 expectedEpoch);
+error ActorAlreadySlashed(uint64 lastSlashTimestamp, uint64 slashTimestamp);
 
 contract Slasher is ISlasher {
     address public immutable pRegistry;
     address public immutable epochsManager;
     address public immutable registrationManager;
     uint256 public immutable stakingSentinelAmountToSlash;
+
+    mapping(address => uint64) private _lastSlashTimestamp;
 
     constructor(
         address epochsManager_,
@@ -44,9 +47,17 @@ contract Slasher is ISlasher {
         address registeredHub = IPRegistry(pRegistry).getHubByNetworkId(originNetworkId);
         if (originAccountAddress != registeredHub) revert NotHub(originAccountAddress);
 
-        (uint16 epoch, address actor, address challenger) = abi.decode(userData, (uint16, address, address));
+        (uint16 epoch, address actor, address challenger, uint64 slashTimestamp) = abi.decode(
+            userData,
+            (uint16, address, address, uint64)
+        );
 
         if (epoch != currentEpoch) revert InvalidEpoch(epoch, currentEpoch);
+
+        if (_lastSlashTimestamp[actor] != uint64(0) && slashTimestamp < _lastSlashTimestamp[actor] + 1 hours)
+            revert ActorAlreadySlashed(_lastSlashTimestamp[actor], slashTimestamp);
+
+        _lastSlashTimestamp[actor] = slashTimestamp;
 
         IRegistrationManager.Registration memory registration = IRegistrationManager(registrationManager)
             .registrationOf(actor);
