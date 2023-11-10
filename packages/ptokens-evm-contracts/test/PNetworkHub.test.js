@@ -3221,8 +3221,10 @@ describe('PNetworkHub', () => {
     await expect(tx)
       .to.emit(hubInterim, 'OperationExecuted')
       .withArgs(operation2.serialize())
-      .and.not.to.emit(mockRegistrationManager, 'StakingSentinelSlashed')
-      .and.not.to.emit(governanceMessageEmitter, 'GovernanceMessage')
+      .and.to.emit(mockRegistrationManager, 'StakingSentinelSlashed')
+      .withArgs(sentinel.address, SLASHING_QUANTITY)
+      .and.to.emit(governanceMessageEmitter, 'GovernanceMessage')
+      .withArgs(expectedGovernanceMessageArgs)
   })
 
   it('should slash an actor(sentinel) successfully on the interim chain twice', async () => {
