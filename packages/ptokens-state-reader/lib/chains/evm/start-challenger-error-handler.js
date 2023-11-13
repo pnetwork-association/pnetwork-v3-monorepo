@@ -13,10 +13,10 @@ const errorDescriptionHandler = R.curry(
     const formattedMsg = formatErrorDescription(_errDescription)
     if (formattedMsg.includes(constants.hub.errors.ACTOR_CHALLENGED)) {
       logger.warn(`${_actorAddress} already challenged on '${chainName}'`)
-      return updateActorStatus(_actorsStorage, _actorAddress, constants.hub.actorsStatus.Challenged)
+      return updateActorStatus(_actorsStorage, constants.hub.actorsStatus.Challenged, _actorAddress)
     } else if (formattedMsg.includes(constants.hub.errors.ACTOR_INACTIVE)) {
       logger.warn(`${_actorAddress} is inactive on '${chainName}'`)
-      return updateActorStatus(_actorsStorage, constants.hub.actorsStatus.Inactive)
+      return updateActorStatus(_actorsStorage, constants.hub.actorsStatus.Inactive, _actorAddress)
     } else {
       logger.error('Error description not handled when starting a challenge:')
       logger.error(formattedMsg)

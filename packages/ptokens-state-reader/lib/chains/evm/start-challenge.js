@@ -45,6 +45,7 @@ const challengeActor = R.curry(
             reject,
             _actorsStorage,
             _challengesStorage,
+            _hub,
             _actorAddress,
             _supportedChain
           )

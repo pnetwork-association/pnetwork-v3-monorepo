@@ -40,6 +40,7 @@ describe('Test for slashing an actor', () => {
       [constants.config.KEY_PROVIDER_URL]: 'https://localhost:8545',
       [constants.config.KEY_HUB_ADDRESS]: hubAddress,
     }
+
     const challenge = new Challenge({
       nonce: 16,
       actor: actorAddress,
