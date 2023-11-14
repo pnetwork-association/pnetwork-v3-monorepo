@@ -35,7 +35,7 @@ const getKeyFromObjThroughPath = R.curry((_path, _object) =>
 
 const getKeyFromObjThroughPossiblePaths = R.curry((_paths, _object) =>
   Promise.all(_paths.map(_path => R.path(_path, _object)))
-    .then(_possibleValues => _possibleValues.filter(isNotNil))
+    .then(R.filter(isNotNil))
     .then(_filteredValues =>
       _filteredValues.length === 0
         ? Promise.reject(new Error(`${ERROR_UNABLE_TO_FIND_PATHS} ${JSON.stringify(_object)}`))

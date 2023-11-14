@@ -31,8 +31,19 @@ const rejectIfNotEqual = R.curry((_errMsg, _this, _that) =>
   isNotEqual(_this, _that) ? Promise.reject(new Error(_errMsg)) : Promise.resolve()
 )
 
-const rejectIfNil = R.curry((_errMsg, _thing) =>
-  R.isNil(_thing) ? Promise.reject(new Error(_errMsg)) : Promise.resolve(_thing)
+const createErrorFromAnything = _anything => {
+  switch (R.type(_anything)) {
+    case 'Error':
+      return _anything
+    case 'String':
+      return new Error(_anything)
+    default:
+      return new Error(JSON.stringify(_anything))
+  }
+}
+
+const rejectIfNil = R.curry((_err, _thing) =>
+  R.isNil(_thing) ? Promise.reject(createErrorFromAnything(_err)) : Promise.resolve(_thing)
 )
 
 module.exports = {
