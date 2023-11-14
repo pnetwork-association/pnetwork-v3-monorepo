@@ -9,7 +9,6 @@ const {
   STATE_DB_ACTORS_PROPAGATED_KEY,
   ID_ACTORS_PROPAGATED,
 } = require('./constants')
-const { getActorsReportId } = require('./get-actors-report-id')
 const { ERROR_UNSUPPORTED_PROTOCOL, ERROR_UNABLE_TO_FIND_ACTOR_FOR_EPOCH } = require('./errors')
 const { insertActor } = require('./insert-actor')
 
@@ -46,15 +45,13 @@ const onMessageHandler = R.curry((_state, _message) =>
 
       if (verifySignature(_statusObj, signature)) {
         logger.info(`Valid signature for ${actorAddress}!`)
-        const id = getActorsReportId(actorAddress)
-        const report = await insertActor(
+        await insertActor(
           actorsStorage,
           actorsPropagated.currentEpoch,
           actorAddress,
           constants.hub.actorsStatus.Active,
           syncState
         )
-        await db.updateReportById(actorsStorage, { $set: report }, id)
       } else {
         logger.info('Invalid signature, ignoring...')
       }

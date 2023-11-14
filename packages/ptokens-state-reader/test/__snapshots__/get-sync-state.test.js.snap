@@ -1,0 +1,28 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Get syncing status general tests Should insert a new actor after receiving the state for the first time 1`] = `
+{
+  "_id": "0xdB30d31Ce9A22f36a44993B1079aD2D201e11788",
+  "actor": "0xdb30d31ce9a22f36a44993b1079ad2d201e11788",
+  "actorStatus": "Active",
+  "epoch": 41,
+  "syncState": {
+    "0x5aca268b": {
+      "latestBlockHash": "0x02cda5236e6c43c32f2cf3427c86c48a48802c90b0f040dd0054e5f37ffbf7ed",
+      "latestBlockNumber": 33483580,
+      "latestBlockTimestamp": 1699958718,
+    },
+    "0xb9286154": {
+      "latestBlockHash": "0xb19e0b149a9eaafa64234f94f1036e89b3150d29a004ab2d78a5723510a58e82",
+      "latestBlockNumber": 10041664,
+      "latestBlockTimestamp": 1699958712,
+    },
+    "0xf9b459a1": {
+      "latestBlockHash": "0x84b021894c8456aff1054a41955554f862a5102b415ac14c5d2aa0e95c14cf66",
+      "latestBlockNumber": 49930328,
+      "latestBlockTimestamp": 1699958718,
+    },
+  },
+  "timestamp": Any<Number>,
+}
+`;

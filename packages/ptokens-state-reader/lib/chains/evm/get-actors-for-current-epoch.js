@@ -78,7 +78,7 @@ const updateActorsPropagatedEventInStorage = R.curry(
     logger.info(`Actors for epoch ${_actorsPropagatedEvent.currentEpoch} inserted in memory!`)
 )
 
-module.exports.storeActorsForCurrentEpoch = _state =>
+const storeActorsForCurrentEpoch = _state =>
   getSupportedChainsFromState(_state)
     .then(R.find(R.propEq(constants.interim.name, constants.config.KEY_CHAIN_NAME)))
     .then(utils.rejectIfNil(ERROR_FAILED_TO_GET_SUPPORTED_CHAIN))
@@ -109,3 +109,8 @@ module.exports.storeActorsForCurrentEpoch = _state =>
         .then(updateActorsPropagatedEventInStorage(actorsPropagatedStorage))
         .then(_ => _state)
     })
+
+module.exports = {
+  storeActorsForCurrentEpoch,
+  updateActorsPropagatedEventInStorage,
+}
