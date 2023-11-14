@@ -15,7 +15,7 @@ const {
   MEM_ACTORS_PROPAGATED,
   MEM_ACTOR_STATUS,
 } = require('../../../lib/constants')
-const { insertActor } = require('../../../lib/insert-actor')
+const { refreshActorStatus } = require('../../../lib/refresh-actor-status')
 
 describe('Test for slashing an actor', () => {
   describe('slashActor', () => {
@@ -61,13 +61,10 @@ describe('Test for slashing an actor', () => {
       jest.restoreAllMocks()
       await actorsStorage.deleteMany({})
       await challengesStorage.deleteMany({})
-      await insertActor(
-        actorsStorage,
-        currentEpoch,
-        actorAddress,
-        constants.hub.actorsStatus.Active,
-        []
-      )
+      await refreshActorStatus(actorsStorage, currentEpoch, actorAddress, {
+        [constants.networkIds.BSC_MAINNET]: {},
+        [constants.networkIds.POLYGON_MAINNET]: {},
+      })
 
       await insertChallengePending(challengesStorage, challenge)
     })
@@ -102,7 +99,10 @@ describe('Test for slashing an actor', () => {
       const newActor = await db.findReportById(actorsStorage, actorAddress)
       const newChallenge = await db.findReports(challengesStorage, {})
 
-      expect(newActor).toHaveProperty(MEM_ACTOR_STATUS, constants.hub.actorsStatus.Active)
+      expect(newActor).toHaveProperty(
+        [MEM_ACTOR_STATUS, constants.networkIds.BSC_MAINNET],
+        constants.hub.actorsStatus.Active
+      )
       expect(newChallenge).toHaveLength(1)
       expect(newChallenge[0]).toMatchSnapshot()
     })
@@ -133,7 +133,10 @@ describe('Test for slashing an actor', () => {
       const newActor = await db.findReportById(actorsStorage, actorAddress)
       const newChallenge = await db.findReports(challengesStorage, {})
 
-      expect(newActor).toHaveProperty(MEM_ACTOR_STATUS, constants.hub.actorsStatus.Inactive)
+      expect(newActor).toHaveProperty(
+        [MEM_ACTOR_STATUS, constants.networkIds.BSC_MAINNET],
+        constants.hub.actorsStatus.Inactive
+      )
       expect(newChallenge).toHaveLength(1)
       expect(newChallenge[0]).toMatchObject({
         ...challenge,
@@ -180,7 +183,10 @@ describe('Test for slashing an actor', () => {
       const newActor = await db.findReportById(actorsStorage, actorAddress)
       const newChallenge = await db.findReports(challengesStorage, {})
 
-      expect(newActor).toHaveProperty(MEM_ACTOR_STATUS, constants.hub.actorsStatus.Inactive)
+      expect(newActor).toHaveProperty(
+        [MEM_ACTOR_STATUS, constants.networkIds.BSC_MAINNET],
+        constants.hub.actorsStatus.Inactive
+      )
       expect(newChallenge).toHaveLength(1)
       expect(newChallenge[0]).toMatchSnapshot()
     })

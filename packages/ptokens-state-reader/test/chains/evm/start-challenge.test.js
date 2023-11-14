@@ -7,7 +7,7 @@ const {
   MEM_CHALLENGES,
   MEM_ACTOR_STATUS,
 } = require('../../../lib/constants')
-const { insertActor } = require('../../../lib/insert-actor')
+const { refreshActorStatus } = require('../../../lib/refresh-actor-status')
 const getActorStatusModule = require('../../../lib/get-actor-status')
 const startChallengeReceipt = require('./mock/start-challenge-receipt')
 const actorsPropagatedSample = require('./mock/actors-propagated-sample')
@@ -32,6 +32,7 @@ describe('Start challenge tests on EVM chains', () => {
     const dryRun = false
 
     const supportedChain = {
+      [constants.config.KEY_NETWORK_ID]: networkId,
       [constants.config.KEY_CHAIN_NAME]: 'polygon',
       [constants.config.KEY_PROVIDER_URL]: 'https://localhost:8545',
       [constants.config.KEY_HUB_ADDRESS]: hubAddress,
@@ -51,13 +52,10 @@ describe('Start challenge tests on EVM chains', () => {
       jest.restoreAllMocks()
       await actorsStorage.deleteMany({})
       await challengesStorage.deleteMany({})
-      await insertActor(
-        actorsStorage,
-        currentEpoch,
-        actorAddress,
-        constants.hub.actorsStatus.Active,
-        []
-      )
+      await refreshActorStatus(actorsStorage, currentEpoch, actorAddress, {
+        [constants.networkIds.BSC_MAINNET]: {},
+        [constants.networkIds.POLYGON_MAINNET]: {},
+      })
     })
 
     afterAll(async () => {
@@ -94,7 +92,10 @@ describe('Start challenge tests on EVM chains', () => {
       const newActor = await db.findReportById(actorsStorage, actorAddress, {})
       const newChallenge = await db.findReports(challengesStorage, {}, {})
 
-      expect(newActor).toHaveProperty(MEM_ACTOR_STATUS, constants.hub.actorsStatus.Active)
+      expect(newActor).toHaveProperty(
+        [MEM_ACTOR_STATUS, constants.networkIds.POLYGON_MAINNET],
+        constants.hub.actorsStatus.Active
+      )
       expect(newChallenge).toHaveLength(1)
       expect(newChallenge[0]).toMatchSnapshot()
     })
@@ -126,7 +127,10 @@ describe('Start challenge tests on EVM chains', () => {
       )
 
       const newActor = await db.findReportById(actorsStorage, actorAddress, {})
-      expect(newActor).toHaveProperty(MEM_ACTOR_STATUS, constants.hub.actorsStatus.Challenged)
+      expect(newActor).toHaveProperty(
+        [MEM_ACTOR_STATUS, constants.networkIds.POLYGON_MAINNET],
+        constants.hub.actorsStatus.Challenged
+      )
     })
   })
 })

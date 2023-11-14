@@ -10,7 +10,7 @@ const {
   ID_ACTORS_PROPAGATED,
 } = require('./constants')
 const { ERROR_UNSUPPORTED_PROTOCOL, ERROR_UNABLE_TO_FIND_ACTOR_FOR_EPOCH } = require('./errors')
-const { insertActor } = require('./insert-actor')
+const { refreshActorStatus } = require('./refresh-actor-status')
 
 const errorHandler = _err => {
   if (_err.message.includes(errors.ERROR_FAILED_TO_PARSE_JSON)) {
@@ -45,11 +45,10 @@ const onMessageHandler = R.curry((_state, _message) =>
 
       if (verifySignature(_statusObj, signature)) {
         logger.info(`Valid signature for ${actorAddress}!`)
-        await insertActor(
+        await refreshActorStatus(
           actorsStorage,
           actorsPropagated.currentEpoch,
           actorAddress,
-          constants.hub.actorsStatus.Active,
           syncState
         )
       } else {

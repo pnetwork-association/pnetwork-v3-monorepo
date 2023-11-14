@@ -4,7 +4,7 @@ const { logger } = require('../../get-logger')
 const constants = require('ptokens-constants')
 const { utils } = require('ptokens-utils')
 const PNetworkHubAbi = require('./abi/PNetworkHub.json')
-const { getDryRunSuffix } = require('../../ger-dry-run-suffix')
+const { getDryRunSuffix } = require('../../get-dry-run-suffix')
 const { isActorStatusActive } = require('../../get-actor-status')
 const { generalErrorHandler } = require('./general-error-handler')
 const { insertChallengePending } = require('../../insert-challenge')
@@ -65,20 +65,22 @@ const maybeChallengeActor = R.curry(
     _lockAmount,
     _dryRun
   ) =>
-    isActorStatusActive(_actorsStorage, _actorAddress).then(_isActive =>
-      _isActive
-        ? challengeActor(
-            _actorsStorage,
-            _challengesStorage,
-            _supportedChain,
-            _hub,
-            _actorAddress,
-            _actorType,
-            _proof,
-            _lockAmount,
-            _dryRun
-          )
-        : Promise.resolve()
+    Promise.resolve(_supportedChain[constants.config.KEY_NETWORK_ID]).then(_networkId =>
+      isActorStatusActive(_actorsStorage, _actorAddress, _networkId).then(_isActive =>
+        _isActive
+          ? challengeActor(
+              _actorsStorage,
+              _challengesStorage,
+              _supportedChain,
+              _hub,
+              _actorAddress,
+              _actorType,
+              _proof,
+              _lockAmount,
+              _dryRun
+            )
+          : Promise.resolve()
+      )
     )
 )
 

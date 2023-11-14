@@ -5,7 +5,7 @@ const constants = require('ptokens-constants')
 const PNetworkHubAbi = require('./abi/PNetworkHub.json')
 const { Challenge } = constants.hub
 const { updateChallengeStatus } = require('../../update-challenge')
-const { getDryRunSuffix } = require('../../ger-dry-run-suffix')
+const { getDryRunSuffix } = require('../../get-dry-run-suffix')
 const { generalErrorHandler } = require('./general-error-handler')
 const { isActorStatusChallenged } = require('../../get-actor-status')
 const { slashActorErrorHandler } = require('./slash-actor-error-handler')
@@ -31,7 +31,12 @@ const slashActorByChallenge = R.curry(
           )
         )
         .then(_ =>
-          updateActorStatus(_actorsStorage, constants.hub.actorsStatus.Inactive, _challenge.actor)
+          updateActorStatus(
+            _actorsStorage,
+            constants.hub.actorsStatus.Inactive,
+            _challenge.actor,
+            _challenge.networkId
+          )
         )
         .then(resolve)
         .catch(
@@ -50,17 +55,18 @@ const slashActorByChallenge = R.curry(
 
 const maybeSlashActorByChallenge = R.curry(
   (_actorsStorage, _challengesStorage, _supportedChain, _hub, _challenge, _dryRun) =>
-    isActorStatusChallenged(_actorsStorage, _challenge.actor).then(_isChallenged =>
-      _isChallenged
-        ? slashActorByChallenge(
-            _actorsStorage,
-            _challengesStorage,
-            _supportedChain,
-            _hub,
-            _challenge,
-            _dryRun
-          )
-        : Promise.resolve()
+    isActorStatusChallenged(_actorsStorage, _challenge.actor, _challenge.networkId).then(
+      _isChallenged =>
+        _isChallenged
+          ? slashActorByChallenge(
+              _actorsStorage,
+              _challengesStorage,
+              _supportedChain,
+              _hub,
+              _challenge,
+              _dryRun
+            )
+          : Promise.resolve()
     )
 )
 

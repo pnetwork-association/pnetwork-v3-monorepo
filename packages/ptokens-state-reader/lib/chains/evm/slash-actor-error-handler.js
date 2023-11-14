@@ -11,7 +11,7 @@ const formatErrorDescription = _parsedError =>
 const updateChallengeAndActorStatus = R.curry(
   (_actorsStorage, _challengesStorage, _challenge, _challengeStatus, _actorStatus) =>
     updateChallengeStatus(_challengesStorage, _challenge, _challengeStatus).then(_ =>
-      updateActorStatus(_actorsStorage, _actorStatus, _challenge.actor)
+      updateActorStatus(_actorsStorage, _actorStatus, _challenge.actor, _challenge.networkId)
     )
 )
 
