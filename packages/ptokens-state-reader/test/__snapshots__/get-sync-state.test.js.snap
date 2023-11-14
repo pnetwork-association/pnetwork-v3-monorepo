@@ -2,7 +2,7 @@
 
 exports[`Get syncing status general tests Should insert a new actor after receiving the state for the first time 1`] = `
 {
-  "_id": "0xdB30d31Ce9A22f36a44993B1079aD2D201e11788",
+  "_id": "0xdb30d31ce9a22f36a44993b1079ad2d201e11788",
   "actor": "0xdb30d31ce9a22f36a44993b1079ad2d201e11788",
   "actorStatus": {
     "0x5aca268b": "Active",

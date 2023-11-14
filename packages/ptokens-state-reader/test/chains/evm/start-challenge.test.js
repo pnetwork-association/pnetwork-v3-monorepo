@@ -1,4 +1,5 @@
 const ethers = require('ethers')
+const assert = require('assert')
 const constants = require('ptokens-constants')
 const { db } = require('ptokens-utils')
 const {
@@ -131,6 +132,39 @@ describe('Start challenge tests on EVM chains', () => {
         [MEM_ACTOR_STATUS, constants.networkIds.POLYGON_MAINNET],
         constants.hub.actorsStatus.Challenged
       )
+    })
+
+    it('Should catch and reject an error correctly', async () => {
+      const hub = new ethers.Contract(hubAddress, PNetworkHubAbi, null)
+      const errMsg = 'An unknown error'
+      const error = new Error(errMsg)
+      const mockStartChallenge = jest.fn().mockRejectedValue(error)
+
+      jest.spyOn(getActorStatusModule, 'isActorStatusActive').mockResolvedValue(true)
+      jest.spyOn(ethers, 'JsonRpcProvider').mockReturnValue()
+      jest.spyOn(ethers, 'Contract').mockImplementation(() => ({
+        startChallenge: mockStartChallenge,
+        interface: hub.interface,
+      }))
+
+      const { startChallenge } = require('../../../lib/chains/evm/start-challenge')
+      try {
+        await startChallenge(
+          actorsStorage,
+          challengesStorage,
+          supportedChain,
+          privateKey,
+          lockAmount,
+          actorAddress,
+          actorType,
+          proof,
+          networkId,
+          dryRun
+        )
+        assert.fail('Should never reach here')
+      } catch (e) {
+        expect(e.message).toStrictEqual(errMsg)
+      }
     })
   })
 })

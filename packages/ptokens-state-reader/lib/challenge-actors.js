@@ -266,6 +266,7 @@ const maybeChallengeEachActor = _state =>
   new Promise((resolve, _) => {
     const inactivityCheckInterval = _state[constants.config.KEY_CHECK_INACTIVITY_INTERVAL]
     logger.info('Challenger started...')
+    startChallenger(_state)
     setInterval(startChallenger, inactivityCheckInterval * 1000, _state)
     return resolve()
   })

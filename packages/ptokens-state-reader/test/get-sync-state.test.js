@@ -1,3 +1,4 @@
+const R = require('ramda')
 const constants = require('ptokens-constants')
 const { db, logic } = require('ptokens-utils')
 const { EventEmitter } = require('stream')
@@ -66,7 +67,7 @@ describe('Get syncing status general tests', () => {
     return Promise.resolve(logic.sleepForXMilliseconds(100))
       .then(_ => eventEmitter.emit('message', JSON.stringify(guardianStatusSample)))
       .then(_ => logic.sleepForXMilliseconds(100))
-      .then(_ => db.findReportById(actorsStorage, actorAddress, {}))
+      .then(_ => db.findReportById(actorsStorage, R.toLower(actorAddress), {}))
       .then(_result =>
         expect(_result).toMatchSnapshot({
           [MEM_TIMESTAMP]: expect.any(Number),

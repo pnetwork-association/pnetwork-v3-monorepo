@@ -33,7 +33,7 @@ module.exports.refreshActorStatus = R.curry((_actorsStorage, _epoch, _actorAddre
       _actorsStorage,
       {
         $set: {
-          _id: _actorAddress,
+          _id: R.toLower(_actorAddress),
           [MEM_EPOCH]: _epoch,
           [MEM_ACTOR]: R.toLower(_actorAddress),
           [MEM_ACTOR_STATUS]: _statuses,
