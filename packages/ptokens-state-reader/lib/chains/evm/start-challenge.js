@@ -11,6 +11,7 @@ const { insertChallengePending } = require('../../insert-challenge')
 const { startChallengeErrorHandler } = require('./start-challenger-error-handler')
 const { extractChallengeFromReceipt } = require('./extract-challenge-from-receipt')
 const { ERROR_DRY_RUN, ERROR_UNDEFINED_ACTOR_STATUS } = require('../../errors')
+const { updateActorStatus } = require('../../update-actor-status')
 
 const challengeActor = R.curry(
   (
@@ -26,8 +27,9 @@ const challengeActor = R.curry(
   ) =>
     new Promise((resolve, reject) => {
       const chainName = _supportedChain[constants.config.KEY_CHAIN_NAME]
-      logger.debug(
-        `${chainName}: startChallenge(${_actorAddress}, ${_actorType}, [${_proof}])${getDryRunSuffix(
+      const networkId = _supportedChain[constants.config.KEY_NETWORK_ID]
+      logger.info(
+        `Challenging '${_actorAddress.slice(0, 10)}...' on '${chainName}' ${getDryRunSuffix(
           _dryRun
         )}`
       )
@@ -39,6 +41,14 @@ const challengeActor = R.curry(
         .then(_receipt => logger.info(`Tx mined @ ${_receipt.hash}(${chainName})`) || _receipt)
         .then(extractChallengeFromReceipt(_hub))
         .then(insertChallengePending(_challengesStorage))
+        .then(_ =>
+          updateActorStatus(
+            _actorsStorage,
+            constants.hub.actorsStatus.Challenged,
+            _actorAddress,
+            networkId
+          )
+        )
         .then(resolve)
         .catch(
           startChallengeErrorHandler(
@@ -70,13 +80,7 @@ const maybeChallengeActor = R.curry(
       isActorStatusActive(_actorsStorage, _actorAddress, _networkId)
         .then(_isActive =>
           _isActive
-            ? logger.info(
-                `Wrong status (Active) for actor '${_actorAddress.slice(
-                  0,
-                  10
-                )}...' on ${_networkId} in the db, correcting...`
-              ) ||
-              challengeActor(
+            ? challengeActor(
                 _actorsStorage,
                 _challengesStorage,
                 _supportedChain,
@@ -87,7 +91,12 @@ const maybeChallengeActor = R.curry(
                 _lockAmount,
                 _dryRun
               )
-            : Promise.resolve()
+            : logger.info(
+                `Actor status '${_actorAddress.slice(
+                  0,
+                  10
+                )}...' is not active on '${_networkId}', skipping challenge...`
+              ) || Promise.resolve()
         )
         .catch(_err =>
           _err.message.includes(ERROR_UNDEFINED_ACTOR_STATUS)

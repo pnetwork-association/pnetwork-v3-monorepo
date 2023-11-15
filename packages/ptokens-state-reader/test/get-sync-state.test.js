@@ -1,4 +1,3 @@
-const R = require('ramda')
 const constants = require('ptokens-constants')
 const { db, logic } = require('ptokens-utils')
 const { EventEmitter } = require('stream')
@@ -14,6 +13,7 @@ const {
 } = require('../lib/constants')
 const guardianStatusSample = require('./mock/guardian-status-sample.json')
 const actorsPropagatedSample = require('./chains/evm/mock/actors-propagated-sample.json')
+const { getActorFromStorage } = require('../lib/get-actor-from-storage')
 
 describe('Get syncing status general tests', () => {
   let actorsStorage = null
@@ -67,7 +67,7 @@ describe('Get syncing status general tests', () => {
     return Promise.resolve(logic.sleepForXMilliseconds(100))
       .then(_ => eventEmitter.emit('message', JSON.stringify(guardianStatusSample)))
       .then(_ => logic.sleepForXMilliseconds(100))
-      .then(_ => db.findReportById(actorsStorage, R.toLower(actorAddress), {}))
+      .then(_ => getActorFromStorage(actorsStorage, actorAddress))
       .then(_result =>
         expect(_result).toMatchSnapshot({
           [MEM_TIMESTAMP]: expect.any(Number),

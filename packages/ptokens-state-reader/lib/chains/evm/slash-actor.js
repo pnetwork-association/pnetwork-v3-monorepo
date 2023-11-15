@@ -10,14 +10,17 @@ const { generalErrorHandler } = require('./general-error-handler')
 const { isActorStatusChallenged } = require('../../get-actor-status')
 const { slashActorErrorHandler } = require('./slash-actor-error-handler')
 const { updateActorStatus } = require('../../update-actor-status')
-const { ERROR_DRY_RUN } = require('../../errors')
+const { ERROR_DRY_RUN, ERROR_UNDEFINED_ACTOR_STATUS } = require('../../errors')
 
 const slashActorByChallenge = R.curry(
   (_actorsStorage, _challengesStorage, _supportedChain, _hub, _challenge, _dryRun) =>
     new Promise((resolve, reject) => {
       const chainName = _supportedChain[constants.config.KEY_CHAIN_NAME]
-      const challengeArgs = _challenge.getArgs()
-      logger.debug(`${chainName}: slashByChallenge([${challengeArgs}])${getDryRunSuffix()}`)
+      const challengeArgs = new Challenge(_challenge).getArgs()
+      const actorAddress = _challenge.actor
+      logger.info(
+        `Slashing '${actorAddress.slice(0, 10)}...' on '${chainName}' ${getDryRunSuffix(_dryRun)}`
+      )
 
       const hubSlashByChallenge = _dryRun ? _hub.slashByChallenge.staticCall : _hub.slashByChallenge
 
@@ -56,8 +59,8 @@ const slashActorByChallenge = R.curry(
 
 const maybeSlashActorByChallenge = R.curry(
   (_actorsStorage, _challengesStorage, _supportedChain, _hub, _challenge, _dryRun) =>
-    isActorStatusChallenged(_actorsStorage, _challenge.actor, _challenge.networkId).then(
-      _isChallenged =>
+    isActorStatusChallenged(_actorsStorage, _challenge.actor, _challenge.networkId)
+      .then(_isChallenged =>
         _isChallenged
           ? slashActorByChallenge(
               _actorsStorage,
@@ -68,7 +71,20 @@ const maybeSlashActorByChallenge = R.curry(
               _dryRun
             )
           : Promise.resolve()
-    )
+      )
+      .catch(_err =>
+        _err.message.includes(ERROR_UNDEFINED_ACTOR_STATUS)
+          ? logger.info(`Status for actor '${_challenge.actor}' not stored, slashing...`) ||
+            slashActorByChallenge(
+              _actorsStorage,
+              _challengesStorage,
+              _supportedChain,
+              _hub,
+              _challenge,
+              _dryRun
+            )
+          : Promise.reject(_err)
+      )
 )
 
 module.exports.slashActor = R.curry(

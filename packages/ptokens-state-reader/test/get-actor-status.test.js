@@ -6,7 +6,6 @@ const { refreshActorStatus } = require('../lib/refresh-actor-status')
 
 describe('Get actor status tests', () => {
   let actorsStorage = null
-  const currentEpoch = 1
   const actorAddress = '0xdB30d31Ce9A22f36a44993B1079aD2D201e11788'
   const uri = global.__MONGO_URI__
   const dbName = global.__MONGO_DB_NAME__
@@ -18,7 +17,7 @@ describe('Get actor status tests', () => {
   beforeEach(async () => {
     jest.restoreAllMocks()
     await actorsStorage.deleteMany({})
-    await refreshActorStatus(actorsStorage, currentEpoch, actorAddress, {
+    await refreshActorStatus(actorsStorage, actorAddress, {
       [constants.networkIds.BSC_MAINNET]: 'something',
       [constants.networkIds.POLYGON_MAINNET]: 'something',
     })

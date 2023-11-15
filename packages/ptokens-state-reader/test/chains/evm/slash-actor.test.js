@@ -5,10 +5,13 @@ const { Challenge } = require('ptokens-constants/lib/hub')
 const { insertChallengePending } = require('../../../lib/insert-challenge')
 const getActorStatusModule = require('../../../lib/get-actor-status')
 const PNetworkHubAbi = require('../../../lib/chains/evm/abi/PNetworkHub')
-const actorsPropagatedSample = require('./mock/actors-propagated-sample')
+const actorsPropagatedSample = require('./mock/actors-propagated-sample.json')
 const challengeUnsolvedSample = require('./mock/challenge-unsolved-event-sample')
 const errorChallengeNotFoundSample = require('./mock/error-challenge-not-found-sample')
 const errorActorSlashAlreadySample = require('./mock/error-actor-slashed-already-sample')
+const {
+  updateActorsPropagatedEventInStorage,
+} = require('../../../lib/update-actors-propagated-event')
 const {
   MEM_ACTORS,
   MEM_CHALLENGES,
@@ -16,6 +19,7 @@ const {
   MEM_ACTOR_STATUS,
 } = require('../../../lib/constants')
 const { refreshActorStatus } = require('../../../lib/refresh-actor-status')
+const { getActorFromStorage } = require('../../../lib/get-actor-from-storage')
 
 describe('Test for slashing an actor', () => {
   describe('slashActor', () => {
@@ -29,7 +33,6 @@ describe('Test for slashing an actor', () => {
     // secretlint-disable-next-line
     const privateKey = '0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80'
     const dryRun = false
-    const currentEpoch = 1
     const hubAddress = '0x393ad7Bd0B94788b3B9EB15303E3845B4828E7Fb'
     const actorAddress = '0x7cdabc0ec492753ef724478a444914de9995d333'
     const challengerAddress = '0xe5de26b691d615353a03285405b6ee08c7974926'
@@ -54,14 +57,14 @@ describe('Test for slashing an actor', () => {
       actorsStorage = await db.getCollection(uri, dbName, MEM_ACTORS)
       challengesStorage = await db.getCollection(uri, dbName, MEM_CHALLENGES)
       actorsPropagatedStorage = await db.getCollection(uri, dbName, MEM_ACTORS_PROPAGATED)
-      await db.insertReport(actorsPropagatedStorage, actorsPropagatedSample)
+      await updateActorsPropagatedEventInStorage(actorsPropagatedStorage, actorsPropagatedSample)
     })
 
     beforeEach(async () => {
       jest.restoreAllMocks()
       await actorsStorage.deleteMany({})
       await challengesStorage.deleteMany({})
-      await refreshActorStatus(actorsStorage, currentEpoch, actorAddress, {
+      await refreshActorStatus(actorsStorage, actorAddress, {
         [constants.networkIds.BSC_MAINNET]: 'something',
         [constants.networkIds.POLYGON_MAINNET]: 'something',
       })
@@ -96,7 +99,7 @@ describe('Test for slashing an actor', () => {
         dryRun
       )
 
-      const newActor = await db.findReportById(actorsStorage, actorAddress)
+      const newActor = await getActorFromStorage(actorsStorage, actorAddress)
       const newChallenge = await db.findReports(challengesStorage, {})
 
       expect(newActor).toHaveProperty(
@@ -130,7 +133,7 @@ describe('Test for slashing an actor', () => {
         dryRun
       )
 
-      const newActor = await db.findReportById(actorsStorage, actorAddress)
+      const newActor = await getActorFromStorage(actorsStorage, actorAddress)
       const newChallenge = await db.findReports(challengesStorage, {})
 
       expect(newActor).toHaveProperty(
@@ -180,7 +183,7 @@ describe('Test for slashing an actor', () => {
         dryRun
       )
 
-      const newActor = await db.findReportById(actorsStorage, actorAddress)
+      const newActor = await getActorFromStorage(actorsStorage, actorAddress)
       const newChallenge = await db.findReports(challengesStorage, {})
 
       expect(newActor).toHaveProperty(

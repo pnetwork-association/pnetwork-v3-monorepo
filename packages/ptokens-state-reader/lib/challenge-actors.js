@@ -16,6 +16,7 @@ const {
 const { db, utils, logic } = require('ptokens-utils')
 const chains = require('./chains')
 const { findSupportedChain } = require('./find-supported-chain')
+const { getActorFromStorage } = require('./get-actor-from-storage')
 
 const KEY_ACTOR_ADDRESS = 'actorAddress'
 const KEY_INACTIVE_NETWORK_IDS = 'inactiveNetworkIds'
@@ -64,17 +65,17 @@ const isLastBlockNumberOverThreshold = R.curry(
 
 const getInactiveActorsAndNetworkIds = R.curry(
   (_actorsStorage, _blockThresholds, _latestBlockNumbersObj, _actorAddress) =>
-    db.findReport(_actorsStorage, { actor: R.toLower(_actorAddress) }).then(_actor => {
+    getActorFromStorage(_actorsStorage, _actorAddress).then(_actor => {
       // Gently reminder
       // _blockThresholds = { '0x1234': 500, '0x4566': 6000 }
       const supportedNetworkIds = R.keys(_blockThresholds)
+      const actorSyncState = R.prop(MEM_SYNC_STATE, _actor)
       let inactiveNetworkIds = []
-      if (utils.isNotNil(_actor)) {
-        const syncState = _actor[MEM_SYNC_STATE]
+      if (utils.isNotNil(actorSyncState)) {
         logger.info(`Checking actor ${_actor[MEM_ACTOR]} sync state...`)
 
         inactiveNetworkIds = supportedNetworkIds.filter(
-          isLastBlockNumberOverThreshold(syncState, _blockThresholds, _latestBlockNumbersObj)
+          isLastBlockNumberOverThreshold(actorSyncState, _blockThresholds, _latestBlockNumbersObj)
         )
       } else {
         // Means we've never received any state update

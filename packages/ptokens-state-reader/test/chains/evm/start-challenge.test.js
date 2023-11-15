@@ -14,6 +14,10 @@ const startChallengeReceipt = require('./mock/start-challenge-receipt')
 const actorsPropagatedSample = require('./mock/actors-propagated-sample')
 const PNetworkHubAbi = require('../../../lib/chains/evm/abi/PNetworkHub.json')
 const alreadyChallengedErrorSample = require('./mock/error-already-challenged-sample.json')
+const { getActorFromStorage } = require('../../../lib/get-actor-from-storage')
+const {
+  updateActorsPropagatedEventInStorage,
+} = require('../../../lib/update-actors-propagated-event')
 
 describe('Start challenge tests on EVM chains', () => {
   describe('startChallenge', () => {
@@ -23,7 +27,6 @@ describe('Start challenge tests on EVM chains', () => {
 
     const uri = global.__MONGO_URI__
     const dbName = global.__MONGO_DB_NAME__
-    const currentEpoch = 1
     const actorAddress = '0x95143f61674de69efb0f583df5342e42cd17c028'
     const hubAddress = '0xf28910cc8f21e9314eD50627c11De36bC0B7338F'
     const lockAmount = 2000
@@ -46,14 +49,14 @@ describe('Start challenge tests on EVM chains', () => {
       actorsStorage = await db.getCollection(uri, dbName, MEM_ACTORS)
       challengesStorage = await db.getCollection(uri, dbName, MEM_CHALLENGES)
       actorsPropagatedStorage = await db.getCollection(uri, dbName, MEM_ACTORS_PROPAGATED)
-      await db.insertReport(actorsPropagatedStorage, actorsPropagatedSample)
+      await updateActorsPropagatedEventInStorage(actorsPropagatedStorage, actorsPropagatedSample)
     })
 
     beforeEach(async () => {
       jest.restoreAllMocks()
       await actorsStorage.deleteMany({})
       await challengesStorage.deleteMany({})
-      await refreshActorStatus(actorsStorage, currentEpoch, actorAddress, {
+      await refreshActorStatus(actorsStorage, actorAddress, {
         [constants.networkIds.BSC_MAINNET]: 'something',
         [constants.networkIds.POLYGON_MAINNET]: 'something',
       })
@@ -90,7 +93,7 @@ describe('Start challenge tests on EVM chains', () => {
         dryRun
       )
 
-      const newActor = await db.findReportById(actorsStorage, actorAddress, {})
+      const newActor = await getActorFromStorage(actorsStorage, actorAddress)
       const newChallenge = await db.findReports(challengesStorage, {}, {})
 
       expect(newActor).toHaveProperty(
@@ -127,7 +130,7 @@ describe('Start challenge tests on EVM chains', () => {
         dryRun
       )
 
-      const newActor = await db.findReportById(actorsStorage, actorAddress, {})
+      const newActor = await getActorFromStorage(actorsStorage, actorAddress)
       expect(newActor).toHaveProperty(
         [MEM_ACTOR_STATUS, constants.networkIds.POLYGON_MAINNET],
         constants.hub.actorsStatus.Challenged

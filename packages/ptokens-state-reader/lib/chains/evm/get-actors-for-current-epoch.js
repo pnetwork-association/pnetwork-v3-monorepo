@@ -1,16 +1,18 @@
 const R = require('ramda')
 const ethers = require('ethers')
-const { db, utils, logic } = require('ptokens-utils')
 const { logger } = require('../../get-logger')
 const constants = require('ptokens-constants')
-const { STATE_DB_ACTORS_PROPAGATED_KEY, ID_ACTORS_PROPAGATED } = require('../../constants')
+const { utils, logic } = require('ptokens-utils')
+const { STATE_DB_ACTORS_PROPAGATED_KEY, STATE_DB_ACTORS_KEY } = require('../../constants')
 const {
   ERROR_INVALID_EPOCH,
   ERROR_FAILED_TO_GET_SUPPORTED_CHAIN,
   ERROR_GOVERNANCE_MESSAGE_EMITTER_NOT_FOUND,
 } = require('../../errors')
 const { ActorsPropagated } = constants.governanceMessageEmitter
+const { dropActorsStorage } = require('../../drop-actors-storage')
 const { getSupportedChainsFromState } = require('../get-supported-chains')
+const { updateActorsPropagatedEventInStorage } = require('../../update-actors-propagated-event')
 const GovernanceMessageEmitterAbi = require('./abi/GovernanceMessageEmitter.json')
 const EpochsManagerAbi = require('./abi/EpochsManager.json')
 
@@ -72,17 +74,12 @@ const getLastActorsPropagatedEvent = R.curry(
       .then(ActorsPropagated.fromArgs)
 )
 
-const updateActorsPropagatedEventInStorage = R.curry(
-  (_storage, _actorsPropagatedEvent) =>
-    db.updateReportById(_storage, { $set: _actorsPropagatedEvent }, ID_ACTORS_PROPAGATED) ||
-    logger.info(`Actors for epoch ${_actorsPropagatedEvent.currentEpoch} inserted in memory!`)
-)
-
 const storeActorsForCurrentEpoch = _state =>
   getSupportedChainsFromState(_state)
     .then(R.find(R.propEq(constants.interim.name, constants.config.KEY_CHAIN_NAME)))
     .then(utils.rejectIfNil(ERROR_FAILED_TO_GET_SUPPORTED_CHAIN))
     .then(_polygonSupportedChain => {
+      const actorsStorage = _state[STATE_DB_ACTORS_KEY]
       const actorsPropagatedStorage = _state[STATE_DB_ACTORS_PROPAGATED_KEY]
       const provider = new ethers.JsonRpcProvider(
         _polygonSupportedChain[constants.config.KEY_PROVIDER_URL]
@@ -103,11 +100,16 @@ const storeActorsForCurrentEpoch = _state =>
 
       const epochsManager = new ethers.Contract(epochsManagerAddress, EpochsManagerAbi, provider)
 
-      return epochsManager
-        .currentEpoch()
-        .then(getLastActorsPropagatedEvent(provider, governanceMessageEmitter))
-        .then(updateActorsPropagatedEventInStorage(actorsPropagatedStorage))
-        .then(_ => _state)
+      return (
+        epochsManager
+          .currentEpoch()
+          .then(getLastActorsPropagatedEvent(provider, governanceMessageEmitter))
+          .then(updateActorsPropagatedEventInStorage(actorsPropagatedStorage))
+          // We drop the previous state in case we
+          // have a new set of actors for the detected epoch
+          .then(_ => dropActorsStorage(actorsStorage))
+          .then(_ => _state)
+      )
     })
 
 module.exports = {

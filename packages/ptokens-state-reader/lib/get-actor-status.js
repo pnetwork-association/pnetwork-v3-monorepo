@@ -1,12 +1,12 @@
 const R = require('ramda')
-const { db, utils } = require('ptokens-utils')
+const { utils } = require('ptokens-utils')
 const constants = require('ptokens-constants')
 const { MEM_ACTOR_STATUS } = require('./constants')
 const { ERROR_UNDEFINED_ACTOR_STATUS } = require('./errors')
+const { getActorFromStorage } = require('./get-actor-from-storage')
 
 const getActorStatus = R.curry((_actorsStorage, _actorAddress, _networkId) =>
-  db
-    .findReportById(_actorsStorage, R.toLower(_actorAddress))
+  getActorFromStorage(_actorsStorage, _actorAddress)
     .then(R.path([MEM_ACTOR_STATUS, _networkId]))
     .then(utils.rejectIfNil(ERROR_UNDEFINED_ACTOR_STATUS))
 )

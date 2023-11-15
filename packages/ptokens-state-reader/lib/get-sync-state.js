@@ -44,12 +44,7 @@ const onMessageHandler = R.curry((_state, _message) =>
 
       if (verifySignature(_statusObj, signature)) {
         logger.info(`Valid signature for ${actorAddress}!`)
-        await refreshActorStatus(
-          actorsStorage,
-          actorsPropagated.currentEpoch,
-          actorAddress,
-          syncState
-        )
+        await refreshActorStatus(actorsStorage, actorAddress, syncState)
       } else {
         logger.info('Invalid signature, ignoring...')
       }

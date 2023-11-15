@@ -3,11 +3,16 @@ const { db, utils, logic } = require('ptokens-utils')
 const { logger } = require('./get-logger')
 const constants = require('ptokens-constants')
 const chains = require('./chains')
-const { STATE_DB_CHALLENGES_KEY, STATE_CHALLENGE_DURATIONS_KEY } = require('./constants')
+const {
+  STATE_DB_CHALLENGES_KEY,
+  STATE_CHALLENGE_DURATIONS_KEY,
+  STATE_DB_ACTORS_KEY,
+} = require('./constants')
 const { findSupportedChain } = require('./find-supported-chain')
 
 const slashByChallenge = R.curry(
   async (
+    _actorsStorage,
     _challengesStorage,
     _challengeDurations,
     _privateKey,
@@ -27,16 +32,20 @@ const slashByChallenge = R.curry(
     for (const challenge of challenges) {
       const now = new Date()
       const challengeDuration = _challengeDurations[challenge.networkId]
-      const expiration = new Date(challenge.timestamp * 1000 + challengeDuration)
+      const expiration = new Date((challenge.timestamp + challengeDuration) * 1000)
       if (_actorsToIgnore.includes(challenge.actor)) {
         logger.info(`Slashing for actor ${challenge.actor} skipped...`)
         continue
       }
 
+      const logMsgSuffix =
+        now > expiration ? '<= ready to be slashed!' : 'not ready to be slashed...'
+      const logMsg = `${now.toISOString()} > ${expiration.toISOString()} ? ${logMsgSuffix}`
+      logger.info(logMsg)
       if (now > expiration) {
-        logger.info(`${now} > ${expiration} <= ready to be slashed!`)
         results.push(
           await chains[R.toLower(chainType)].slashActor(
+            _actorsStorage,
             _challengesStorage,
             _privateKey,
             supportedChain,
@@ -44,8 +53,6 @@ const slashByChallenge = R.curry(
             _dryRun
           )
         )
-      } else {
-        logger.info(`Skipping slashing, not the time yet ${now} < ${expiration}`)
       }
 
       await logic.sleepForXMilliseconds(1000)
@@ -78,6 +85,7 @@ const slashingLoop = _state =>
     .then(getPendingChallenges)
     .then(_pendingChallenges => {
       logger.info(`Found ${_pendingChallenges.length} pending challenges...`)
+      const actorsStorage = _state[STATE_DB_ACTORS_KEY]
       const challengesStorage = _state[STATE_DB_CHALLENGES_KEY]
       const privateKeyFile = _state[constants.config.KEY_IDENTITY_GPG]
       const privateKey = utils.readIdentityFileSync(privateKeyFile)
@@ -89,6 +97,7 @@ const slashingLoop = _state =>
       return buildChallengesObjectByNetworkId(_pendingChallenges).then(_challengeObj =>
         logic.mapAll(
           slashByChallenge(
+            actorsStorage,
             challengesStorage,
             challengeDurations,
             privateKey,
