@@ -19,8 +19,8 @@ describe('Get actor status tests', () => {
     jest.restoreAllMocks()
     await actorsStorage.deleteMany({})
     await refreshActorStatus(actorsStorage, currentEpoch, actorAddress, {
-      [constants.networkIds.BSC_MAINNET]: {},
-      [constants.networkIds.POLYGON_MAINNET]: {},
+      [constants.networkIds.BSC_MAINNET]: 'something',
+      [constants.networkIds.POLYGON_MAINNET]: 'something',
     })
   })
 

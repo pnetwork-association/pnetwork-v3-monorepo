@@ -29,19 +29,21 @@ module.exports.refreshActorStatus = R.curry((_actorsStorage, _epoch, _actorAddre
       {}
     )
   ).then(_statuses =>
-    db.updateReport(
+    db.updateReportById(
       _actorsStorage,
-      {
-        $set: {
-          _id: R.toLower(_actorAddress),
-          [MEM_EPOCH]: _epoch,
-          [MEM_ACTOR]: R.toLower(_actorAddress),
-          [MEM_ACTOR_STATUS]: _statuses,
-          [MEM_TIMESTAMP]: Date.now(),
-          [MEM_SYNC_STATE]: _syncState,
+      [
+        {
+          $set: {
+            // Every new field gets appended to the current stored object
+            [MEM_EPOCH]: _epoch,
+            [MEM_ACTOR]: R.toLower(_actorAddress),
+            [MEM_ACTOR_STATUS]: _statuses,
+            [MEM_TIMESTAMP]: Date.now(),
+            [MEM_SYNC_STATE]: _syncState,
+          },
         },
-      },
-      {}
+      ],
+      R.toLower(_actorAddress)
     )
   )
 )
