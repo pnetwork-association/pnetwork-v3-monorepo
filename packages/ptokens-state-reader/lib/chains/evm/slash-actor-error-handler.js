@@ -40,8 +40,14 @@ const errorDescriptionHandler = R.curry(
         constants.hub.challengeStatus.UNSOLVED,
         constants.hub.actorsStatus.Inactive
       )
-    }
-    if (formattedMsg.includes(constants.hub.errors.CHALLENGE_NOT_FOUND)) {
+    } else if (formattedMsg.includes(constants.hub.errors.CHALLENGE_CANCELLED)) {
+      logger.info(`Challenge has been canceled on ${chainName}, skipping`)
+      return updateChallengeStatus(
+        _challengesStorage,
+        _challenge,
+        constants.hub.challengeStatus.CANCELLED
+      )
+    } else if (formattedMsg.includes(constants.hub.errors.CHALLENGE_NOT_FOUND)) {
       logger.warn(`Challenge not found on '${chainName}' in the current epoch, skipping...`)
       return updateChallengeAndActorStatus(
         _actorsStorage,

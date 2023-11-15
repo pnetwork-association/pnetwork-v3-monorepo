@@ -70,7 +70,11 @@ const maybeSlashActorByChallenge = R.curry(
               _challenge,
               _dryRun
             )
-          : Promise.resolve()
+          : logger.info(
+              `Actor '${_challenge.actor.slice(0, 10)}' status is not Challenged on '${
+                _challenge.networkId
+              }', skipping slashing...`
+            ) || Promise.resolve()
       )
       .catch(_err =>
         _err.message.includes(ERROR_UNDEFINED_ACTOR_STATUS)

@@ -71,7 +71,7 @@ const buildChallengesObjectByNetworkId = _challenges =>
   )
 
 const getPendingChallenges = _challengesStorage =>
-  logger.debug('Checking for new pending challenges') ||
+  logger.info('Checking for new pending challenges') ||
   db.findReports(
     _challengesStorage,
     {
@@ -112,6 +112,6 @@ const slashingLoop = _state =>
     })
 
 module.exports.maybeSlashInactiveActors = _state => {
-  logger.info('Starting slashing loop in 10s...')
+  logger.info('Will start the slashing loop in 10s...')
   setInterval(slashingLoop, 10000, _state)
 }
