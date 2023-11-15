@@ -1,6 +1,7 @@
 const R = require('ramda')
 const constants = require('ptokens-constants')
 const { logger } = require('../../get-logger')
+const { ERROR_DRY_RUN } = require('../../errors')
 
 const errorLog = R.curry((_function, _errKey, _err) => {
   const value = _err[_errKey]
@@ -24,11 +25,13 @@ module.exports.generalErrorHandler = R.curry(
       errorLog(logInvocation, 'invocation', _err)
       logger.debug(_err.message)
       return resolve()
-    }
-    if (msg.includes(constants.evm.ethers.ERROR_INSUFFICIENT_FUNDS)) {
+    } else if (msg.includes(constants.evm.ethers.ERROR_INSUFFICIENT_FUNDS)) {
       const networkId = _supportedChain[constants.config.KEY_CHAIN_NAME]
       logger.warn(`The account does not have enough funds! (${networkId}) `)
       logger.warn(`  ${_challengerAddress}`)
+      return resolve()
+    } else if (msg.includes(ERROR_DRY_RUN)) {
+      logger.debug('Skipping computation as dry-run mode is enabled')
       return resolve()
     }
 

@@ -10,6 +10,7 @@ const { generalErrorHandler } = require('./general-error-handler')
 const { isActorStatusChallenged } = require('../../get-actor-status')
 const { slashActorErrorHandler } = require('./slash-actor-error-handler')
 const { updateActorStatus } = require('../../update-actor-status')
+const { ERROR_DRY_RUN } = require('../../errors')
 
 const slashActorByChallenge = R.curry(
   (_actorsStorage, _challengesStorage, _supportedChain, _hub, _challenge, _dryRun) =>
@@ -21,7 +22,7 @@ const slashActorByChallenge = R.curry(
       const hubSlashByChallenge = _dryRun ? _hub.slashByChallenge.staticCall : _hub.slashByChallenge
 
       return hubSlashByChallenge(challengeArgs)
-        .then(_tx => (_dryRun ? Promise.resolve() : _tx.wait(1)))
+        .then(_tx => (_dryRun ? Promise.reject(ERROR_DRY_RUN) : _tx.wait(1)))
         .then(_receipt => logger.info(`Tx mined @ ${_receipt.hash}(${chainName})`) || _receipt)
         .then(_ =>
           updateChallengeStatus(

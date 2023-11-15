@@ -1,4 +1,5 @@
 module.exports = {
+  ERROR_DRY_RUN: 'Dry run',
   ERROR_INVALID_EPOCH: 'Invalid epoch',
   ERROR_UNDEFINED_ACTOR_STATUS: 'Undefined actor status',
   ERROR_NO_CHALLENGE_FOUND: 'No challenge found in receipt',

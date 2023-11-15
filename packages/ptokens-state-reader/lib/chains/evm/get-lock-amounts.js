@@ -15,26 +15,20 @@ const getLockAmount = _supportedChain =>
     const provider = new ethers.JsonRpcProvider(providerUrl)
     const hub = new ethers.Contract(hubAddress, PNetworkHubAbi, provider)
 
-    logger.info(`Getting challenger locked amount for '${chainName}'...`)
     return hub
       .lockedAmountStartChallenge()
-      .then(_lockedAmount => ({ [networkId]: Number(_lockedAmount) }))
+      .then(
+        _lockedAmount =>
+          logger.info(`  ${chainName}: ${_lockedAmount}`) || { [networkId]: Number(_lockedAmount) }
+      )
       .then(resolve)
       .catch(reject)
   })
 
 const buildLockAmountsObjectPerNetworkId = _supportedChains =>
-  logger.info('Building locked amounts object...') ||
+  logger.info('Getting locked amounts:') ||
   Promise.all(_supportedChains.map(getLockAmount)).then(
-    _array =>
-      logger.info('Locked amounts successfully retrieved, polishing...') ||
-      _array.reduce(
-        (_lockAmountsObject, _element) => ({
-          ..._lockAmountsObject,
-          ..._element,
-        }),
-        {}
-      )
+    R.reduce((_result, _element) => ({ ..._result, ..._element }), {})
   )
 
 const addLockAmountsObjectToState = R.curry((_state, _lockAmountsObj) =>

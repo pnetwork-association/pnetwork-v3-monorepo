@@ -206,7 +206,7 @@ const challengeActors = R.curry(
       for (const actor of _actorsList) {
         const address = actor[KEY_ACTOR_ADDRESS]
         if (_actorsToIgnore.includes(address)) {
-          logger.info(`Skipping challenging ${address} ...`)
+          logger.info(`'${address.slice(0, 10)}...' belongs to ignored actors, skipping...`)
           continue
         }
 

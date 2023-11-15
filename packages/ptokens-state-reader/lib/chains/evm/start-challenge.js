@@ -10,7 +10,7 @@ const { generalErrorHandler } = require('./general-error-handler')
 const { insertChallengePending } = require('../../insert-challenge')
 const { startChallengeErrorHandler } = require('./start-challenger-error-handler')
 const { extractChallengeFromReceipt } = require('./extract-challenge-from-receipt')
-const { ERROR_UNDEFINED_ACTOR_STATUS } = require('../../errors')
+const { ERROR_DRY_RUN, ERROR_UNDEFINED_ACTOR_STATUS } = require('../../errors')
 
 const challengeActor = R.curry(
   (
@@ -35,7 +35,7 @@ const challengeActor = R.curry(
       const hubStartChallenge = _dryRun ? _hub.startChallenge.staticCall : _hub.startChallenge
 
       return hubStartChallenge(_actorAddress, _actorType, _proof, { value: _lockAmount })
-        .then(_tx => (_dryRun ? Promise.resolve() : _tx.wait(1)))
+        .then(_tx => (_dryRun ? Promise.reject(ERROR_DRY_RUN) : _tx.wait(1)))
         .then(_receipt => logger.info(`Tx mined @ ${_receipt.hash}(${chainName})`) || _receipt)
         .then(extractChallengeFromReceipt(_hub))
         .then(insertChallengePending(_challengesStorage))

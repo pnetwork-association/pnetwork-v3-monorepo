@@ -10,7 +10,6 @@ const getDurationForEachSupportedChain = R.curry((_supportedChains, _hubs) =>
     _supportedChains.map((_supportedChain, _index) => {
       const chainName = _supportedChain[constants.config.KEY_CHAIN_NAME]
       const networkId = _supportedChain[constants.config.KEY_NETWORK_ID]
-      logger.debug(`Getting challenge durations for ${chainName}...`)
       return _hubs[_index]
         .challengeDuration()
         .then(
@@ -46,7 +45,7 @@ module.exports.getChallengeDurationsAndAddToState = _state =>
       (_address, _index) => new ethers.Contract(_address, PNetworkHubAbi, providers[_index])
     )
 
-    logger.info('Getting challenge durations...')
+    logger.info('Getting challenge durations:')
     return getDurationForEachSupportedChain(supportedChains, hubs)
       .then(buildDurationsObject)
       .then(addDurationsObjectToState(_state))

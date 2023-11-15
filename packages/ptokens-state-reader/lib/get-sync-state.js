@@ -38,9 +38,8 @@ const onMessageHandler = R.curry((_state, _message) =>
 
       if (!R.find(R.equals(R.toLower(actorAddress)), actorsPropagated.actors)) {
         // TODO: check actor's type too
-        return Promise.reject(
-          new Error(`${ERROR_UNABLE_TO_FIND_ACTOR_FOR_EPOCH}: '${actorAddress}'`)
-        )
+        logger.info(`${ERROR_UNABLE_TO_FIND_ACTOR_FOR_EPOCH}: '${actorAddress}'`)
+        return
       }
 
       if (verifySignature(_statusObj, signature)) {
