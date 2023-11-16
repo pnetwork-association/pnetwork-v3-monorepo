@@ -98,7 +98,7 @@ describe('Start challenge tests on EVM chains', () => {
 
       expect(newActor).toHaveProperty(
         [MEM_ACTOR_STATUS, constants.networkIds.POLYGON_MAINNET],
-        constants.hub.actorsStatus.Active
+        constants.hub.actorsStatus.Challenged
       )
       expect(newChallenge).toHaveLength(1)
       expect(newChallenge[0]).toMatchSnapshot()

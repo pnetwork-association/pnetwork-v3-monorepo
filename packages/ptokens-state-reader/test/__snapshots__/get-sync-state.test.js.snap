@@ -9,7 +9,6 @@ exports[`Get syncing status general tests Should insert a new actor after receiv
     "0xb9286154": "Active",
     "0xf9b459a1": "Active",
   },
-  "epoch": 41,
   "syncState": {
     "0x5aca268b": {
       "latestBlockHash": "0x02cda5236e6c43c32f2cf3427c86c48a48802c90b0f040dd0054e5f37ffbf7ed",
