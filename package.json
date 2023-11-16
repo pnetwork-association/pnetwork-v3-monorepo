@@ -40,5 +40,8 @@
   },
   "workspaces": [
     "packages/*"
-  ]
+  ],
+  "overrides": {
+    "axios": "1.6.0"
+  }
 }
