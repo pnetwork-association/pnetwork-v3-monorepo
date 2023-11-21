@@ -11,6 +11,7 @@ services:
       - --migrate=true
       - --enable-pubsub-experiment
       - --agent-version-suffix=docker
+      - --init-profile=server # avoids port scanning
 
   challenger:
     image: ${IMAGE_STATE_READER}:${VERSION_STATE_READER}
