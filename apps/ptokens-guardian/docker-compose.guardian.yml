@@ -24,6 +24,7 @@ services:
       - --migrate=true
       - --enable-pubsub-experiment
       - --agent-version-suffix=docker
+      - --init-profile=server # avoids port scanning
 
   state-emitter:
     image: ${IMAGE_STATE_EMITTER}:${VERSION_STATE_EMITTER}
@@ -92,3 +93,4 @@ services:
 
 volumes:
   ipfs:
+    name: ipfs_daemon
