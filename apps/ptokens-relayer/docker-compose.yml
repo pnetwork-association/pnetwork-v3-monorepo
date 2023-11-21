@@ -13,8 +13,8 @@ services:
     restart: unless-stopped
     command:
       - --quiet
-      - --logpath /dev/null
-      - --bind_ip 127.0.0.1 # prevent connections from the internet
+      - --logpath=/dev/null
+      - --bind_ip=127.0.0.1 # prevent connections from the internet
 
 volumes:
   database:
