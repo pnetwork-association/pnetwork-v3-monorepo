@@ -839,6 +839,8 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
             ++_operationsTotalCancelActions[operationId];
         }
 
+        // finalize cancel operation if the challenge period has expired and just one actor has requested cancellation (to ease queue clean up), or
+        // in the case of a cancellation requests coming from two actors of different classes (multi-prover approach)
         if (uint64(block.timestamp) >= endTimestamp || _operationsTotalCancelActions[operationId] == 2) {
             unchecked {
                 --numberOfOperationsInQueue;
