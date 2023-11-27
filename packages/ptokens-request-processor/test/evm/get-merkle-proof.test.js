@@ -35,11 +35,13 @@ describe('Get Merkle path general tests', () => {
       const actors = eventArgs[1]
       const actorsTypes = eventArgs[2]
 
+      // secretlint-disable
       expect(proof).toStrictEqual([
         '0x9b4b8693def1b0d3a79263f50433d948d5295d3e84219adb5ab3a1eb133d03b9',
         '0x086da0408e2daaf3925bab95aa569df91aff43abdd66bb87025511ef461207f0',
         '0x4e90f2b7b9467dc452efa5192c93ec3d85b15e6afc697a05154e689dda1e4d67',
       ])
+      // secretlint-enable
 
       const leaves = actors.map((_address, _index) =>
         keccak256(encodePacked(['address', 'uint8'], [_address, actorsTypes[_index]]))
@@ -67,7 +69,7 @@ describe('Get Merkle path general tests', () => {
       db.insertReport(collection, sampleWithEmptyArgs)
 
       return expect(getMerkleProof(collection, guardianAddress)).rejects.toThrowError(
-        errors.ERROR_NIL_ARGUMENTS
+        errors.ERROR_NO_ACTORS_PROPAGATED_EVENT_FOUND
       )
     })
   })

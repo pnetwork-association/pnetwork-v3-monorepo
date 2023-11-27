@@ -1,0 +1,13 @@
+{
+  "actors": [
+    "0x20fa4d3b5124caa8bcd8b88c5e9293ddfa439efb",
+    "0x0ef13b2668dbe1b3edfe9ffb7cbc398363b50f79",
+    "0xdb30d31ce9a22f36a44993b1079ad2d201e11788",
+    "0x7cdabc0ec492753ef724478a444914de9995d333",
+    "0x95143f61674de69efb0f583df5342e42cd17c028",
+    "0x8ebca32bd42d86ee51f762e968667e40b612b6f1",
+    "0x73659a0f105905121edbf44fb476b97c785688ec"
+  ],
+  "actorsTypes": [1, 1, 1, 2, 2, 2, 2],
+  "currentEpoch": 41
+}

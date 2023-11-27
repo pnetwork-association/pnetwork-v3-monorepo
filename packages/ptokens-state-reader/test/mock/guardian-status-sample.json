@@ -1,0 +1,27 @@
+{
+  "actorType": "guardian",
+  "signerAddress": "0xdB30d31Ce9A22f36a44993B1079aD2D201e11788",
+  "softwareVersions": {
+    "listener": "1.0.0",
+    "processor": "1.0.0"
+  },
+  "timestamp": 1699958718,
+  "syncState": {
+    "0xf9b459a1": {
+      "latestBlockHash": "0x84b021894c8456aff1054a41955554f862a5102b415ac14c5d2aa0e95c14cf66",
+      "latestBlockNumber": 49930328,
+      "latestBlockTimestamp": 1699958718
+    },
+    "0xb9286154": {
+      "latestBlockHash": "0xb19e0b149a9eaafa64234f94f1036e89b3150d29a004ab2d78a5723510a58e82",
+      "latestBlockNumber": 10041664,
+      "latestBlockTimestamp": 1699958712
+    },
+    "0x5aca268b": {
+      "latestBlockHash": "0x02cda5236e6c43c32f2cf3427c86c48a48802c90b0f040dd0054e5f37ffbf7ed",
+      "latestBlockNumber": 33483580,
+      "latestBlockTimestamp": 1699958718
+    }
+  },
+  "signature": "0x35f8c44e0e4c4a337d3a563498025dad0f1cd47c07abe63a3031dc338ecfa0b90f087403ad968b57666d67363e5bd141b14e9c53ecff163df0f55fdb4f7efeee1c"
+}

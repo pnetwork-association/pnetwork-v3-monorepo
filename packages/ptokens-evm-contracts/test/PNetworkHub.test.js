@@ -17,7 +17,6 @@ const {
   PNETWORK_NETWORK_IDS,
   SLASHING_QUANTITY,
   TELEPATHY_ROUTER_ADDRESS,
-  ZERO_ADDRESS,
   REGISTRATION_KINDS,
 } = require('./constants')
 const { deployPToken, getOptionMaskWithOptionEnabledForBit } = require('./utils')
@@ -771,7 +770,7 @@ describe('PNetworkHub', () => {
       .to.emit(hub, 'OperationExecuted')
       .withArgs(operation.serialize())
       .and.to.emit(pToken, 'Transfer')
-      .withArgs(ZERO_ADDRESS, operation.destinationAccount, operation.assetAmount)
+      .withArgs(constants.evm.ZERO_ADDRESS, operation.destinationAccount, operation.assetAmount)
     const receipt2 = await (await tx).wait(1)
 
     const relayerEthBalancePost = await ethers.provider.getBalance(relayer.address)
@@ -830,7 +829,7 @@ describe('PNetworkHub', () => {
       //   operation.underlyingAssetNetworkId,
       //   pTokenAddress,
       //   operation.assetAmountWithoutProtocolFee,
-      //   ZERO_ADDRESS,
+      //   constants.evm.ZERO_ADDRESS,
       //   '0',
       //   '0',
       //   '0',
@@ -839,7 +838,7 @@ describe('PNetworkHub', () => {
       //   operation.optionsMask
       // )
       .and.to.emit(pTokenInterim, 'Transfer')
-      .withArgs(ZERO_ADDRESS, hubInterim.address, protocolFee)
+      .withArgs(constants.evm.ZERO_ADDRESS, hubInterim.address, protocolFee)
       .and.to.emit(hubInterim, 'OperationExecuted')
       .withArgs(operation.serialize())
     const receipt2 = await (await tx).wait(1)
@@ -883,9 +882,13 @@ describe('PNetworkHub', () => {
     await expect(tx).to.not.emit(hubInterim, 'UserOperation')
     await expect(tx)
       .to.emit(pTokenInterim, 'Transfer')
-      .withArgs(ZERO_ADDRESS, hubInterim.address, protocolFee)
+      .withArgs(constants.evm.ZERO_ADDRESS, hubInterim.address, protocolFee)
       .and.to.emit(pTokenInterim, 'Transfer')
-      .withArgs(ZERO_ADDRESS, operation.destinationAccount, operation.assetAmountWithoutProtocolFee)
+      .withArgs(
+        constants.evm.ZERO_ADDRESS,
+        operation.destinationAccount,
+        operation.assetAmountWithoutProtocolFee
+      )
       .and.to.emit(hubInterim, 'OperationExecuted')
       .withArgs(operation.serialize())
     const receipt2 = await (await tx).wait(1)
@@ -918,9 +921,9 @@ describe('PNetworkHub', () => {
       .to.emit(hub, 'OperationExecuted')
       .withArgs(operation.serialize())
       .and.to.emit(pToken, 'Transfer')
-      .withArgs(ZERO_ADDRESS, operation.destinationAccount, operation.assetAmount)
+      .withArgs(constants.evm.ZERO_ADDRESS, operation.destinationAccount, operation.assetAmount)
       .and.to.emit(pToken, 'Transfer')
-      .withArgs(operation.destinationAccount, ZERO_ADDRESS, operation.assetAmount)
+      .withArgs(operation.destinationAccount, constants.evm.ZERO_ADDRESS, operation.assetAmount)
       .and.to.emit(token, 'Transfer')
       .withArgs(pToken.address, operation.destinationAccount, operation.assetAmount)
   })
@@ -1166,7 +1169,7 @@ describe('PNetworkHub', () => {
       underlyingAssetDecimals: await token.decimals(),
       underlyingAssetTokenAddress: token.address,
       underlyingAssetNetworkId: PNETWORK_NETWORK_IDS.hardhat,
-      assetTokenAddress: ZERO_ADDRESS,
+      assetTokenAddress: constants.evm.ZERO_ADDRESS,
       assetAmount: '0',
       networkFeeAssetAmount: '0',
       forwardNetworkFeeAssetAmount: '0',
@@ -1198,9 +1201,13 @@ describe('PNetworkHub', () => {
       .to.emit(hub, 'OperationExecuted')
       .withArgs(operation.serialize())
       .and.to.emit(pToken, 'Transfer')
-      .withArgs(ZERO_ADDRESS, operation.destinationAccount, operation.assetAmountWithoutNetworkFee)
+      .withArgs(
+        constants.evm.ZERO_ADDRESS,
+        operation.destinationAccount,
+        operation.assetAmountWithoutNetworkFee
+      )
       .and.to.emit(pToken, 'Transfer')
-      .withArgs(ZERO_ADDRESS, relayer.address, operation.networkFeeAssetAmount)
+      .withArgs(constants.evm.ZERO_ADDRESS, relayer.address, operation.networkFeeAssetAmount)
     const receipt2 = await (await tx).wait(1)
 
     const relayerEthBalancePost = await ethers.provider.getBalance(relayer.address)
@@ -1247,12 +1254,12 @@ describe('PNetworkHub', () => {
       .withArgs(operation.serialize())
       .and.to.emit(pTokenInterim, 'Transfer')
       .withArgs(
-        ZERO_ADDRESS,
+        constants.evm.ZERO_ADDRESS,
         operation.destinationAccount,
         operation.assetAmountWithoutProtocolFeeAndNetworkFee
       )
       .and.to.emit(pTokenInterim, 'Transfer')
-      .withArgs(ZERO_ADDRESS, relayer.address, operation.networkFeeAssetAmount)
+      .withArgs(constants.evm.ZERO_ADDRESS, relayer.address, operation.networkFeeAssetAmount)
     const receipt2 = await (await tx).wait(1)
 
     const relayerEthBalancePost = await ethers.provider.getBalance(relayer.address)
@@ -1301,14 +1308,22 @@ describe('PNetworkHub', () => {
       .withArgs(operation.serialize())
       .and.to.emit(pTokenInterim, 'Transfer')
       .withArgs(
-        ZERO_ADDRESS,
+        constants.evm.ZERO_ADDRESS,
         operation.destinationAccount,
         operation.assetAmountWithoutProtocolFeeAndNetworkFee
       )
       .and.to.emit(pTokenInterim, 'Transfer')
-      .withArgs(ZERO_ADDRESS, relayer.address, operation.queueRelayerNetworkFeeAssetAmount)
+      .withArgs(
+        constants.evm.ZERO_ADDRESS,
+        relayer.address,
+        operation.queueRelayerNetworkFeeAssetAmount
+      )
       .and.to.emit(pTokenInterim, 'Transfer')
-      .withArgs(ZERO_ADDRESS, relayer2.address, operation.executeRelayerNetworkFeeAssetAmount)
+      .withArgs(
+        constants.evm.ZERO_ADDRESS,
+        relayer2.address,
+        operation.executeRelayerNetworkFeeAssetAmount
+      )
       .and.to.not.emit(hub, 'UserOperation')
 
     const relayerEthBalancePost = await ethers.provider.getBalance(relayer.address)
@@ -1352,11 +1367,23 @@ describe('PNetworkHub', () => {
       .to.emit(hub, 'OperationExecuted')
       .withArgs(operation.serialize())
       .and.to.emit(pToken, 'Transfer')
-      .withArgs(ZERO_ADDRESS, operation.destinationAccount, operation.assetAmountWithoutNetworkFee)
+      .withArgs(
+        constants.evm.ZERO_ADDRESS,
+        operation.destinationAccount,
+        operation.assetAmountWithoutNetworkFee
+      )
       .and.to.emit(pToken, 'Transfer')
-      .withArgs(ZERO_ADDRESS, relayer.address, operation.queueRelayerNetworkFeeAssetAmount)
+      .withArgs(
+        constants.evm.ZERO_ADDRESS,
+        relayer.address,
+        operation.queueRelayerNetworkFeeAssetAmount
+      )
       .and.to.emit(pToken, 'Transfer')
-      .withArgs(ZERO_ADDRESS, relayer2.address, operation.executeRelayerNetworkFeeAssetAmount)
+      .withArgs(
+        constants.evm.ZERO_ADDRESS,
+        relayer2.address,
+        operation.executeRelayerNetworkFeeAssetAmount
+      )
       .and.to.not.emit(hub, 'UserOperation')
 
     const relayerEthBalancePost = await ethers.provider.getBalance(relayer.address)
@@ -1437,9 +1464,9 @@ describe('PNetworkHub', () => {
         operation.isForProtocol
       )
       .and.to.emit(pTokenInterim, 'Transfer')
-      .withArgs(ZERO_ADDRESS, hubInterim.address, protocolFee)
+      .withArgs(constants.evm.ZERO_ADDRESS, hubInterim.address, protocolFee)
       .and.to.emit(pTokenInterim, 'Transfer')
-      .withArgs(ZERO_ADDRESS, relayer.address, operation.networkFeeAssetAmount)
+      .withArgs(constants.evm.ZERO_ADDRESS, relayer.address, operation.networkFeeAssetAmount)
       .and.to.emit(hubInterim, 'OperationExecuted')
       .withArgs(operation.serialize())
       .and.to.emit(feesManager, 'FeeDeposited')
@@ -3000,9 +3027,9 @@ describe('PNetworkHub', () => {
     const underlyingAssetName = ''
     const underlyingAssetSymbol = ''
     const underlyingAssetDecimals = 0
-    const underlyingAssetTokenAddress = ZERO_ADDRESS
+    const underlyingAssetTokenAddress = constants.evm.ZERO_ADDRESS
     const underlyingAssetNetworkId = '0x00000000'
-    const assetTokenAddress = ZERO_ADDRESS
+    const assetTokenAddress = constants.evm.ZERO_ADDRESS
     const assetAmount = 0
     const userDataProtocolFeeAssetAmount = 0
     const networkFeeAssetAmount = 0
@@ -3058,9 +3085,9 @@ describe('PNetworkHub', () => {
     const underlyingAssetName = ''
     const underlyingAssetSymbol = ''
     const underlyingAssetDecimals = 0
-    const underlyingAssetTokenAddress = ZERO_ADDRESS
+    const underlyingAssetTokenAddress = constants.evm.ZERO_ADDRESS
     const underlyingAssetNetworkId = '0x00000000'
-    const assetTokenAddress = ZERO_ADDRESS
+    const assetTokenAddress = constants.evm.ZERO_ADDRESS
     const assetAmount = 0
     const userDataProtocolFeeAssetAmount = 0
     const networkFeeAssetAmount = 0

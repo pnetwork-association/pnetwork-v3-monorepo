@@ -11,5 +11,8 @@
     "docker-build": "PROJECT_ROOT=$(pwd) ./docker-build.sh"
   },
   "author": "oliviera9",
-  "license": "MIT"
+  "license": "MIT",
+  "dependencies": {
+    "ramda": "^0.29.1"
+  }
 }

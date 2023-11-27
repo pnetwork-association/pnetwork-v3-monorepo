@@ -16,9 +16,11 @@ module.exports = {
   ERROR_WEBSOCKET_CONNECTION_FAILURE: 'Failed to connect to Websocket!',
   ERROR_DB_CLIENT: 'Failed connecting to the db client, is it running?',
   ERROR_UNABLE_TO_FIND_PATHS: 'Unable to find the given paths in object',
-  ERROR_NO_UPDATE_FOR_REPORT: 'No report was updated for the defined query',
   ERROR_JSON_RESPONSE_EXTRACTION: 'Failed to extract the json from the response:',
   ERROR_INVALID_SYMBOL_FOR_BRIDGE_TYPE: 'Invalid symbol for the given bridge type',
   ERROR_FILE_NOT_EXISTS: 'The specified file does not exist',
   ERROR_GPG_DECRYPTION_FAILED: 'Failed to decrypt file',
+  ERROR_FAILED_TO_PARSE_JSON: 'Failed to parse JSON!',
+  ERROR_INVALID_ARG: 'Invalid argument',
+  ERROR_ADDRESS_NOT_FOUND: 'Address not found',
 }

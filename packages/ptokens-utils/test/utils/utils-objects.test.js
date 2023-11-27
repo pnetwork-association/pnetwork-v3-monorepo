@@ -86,8 +86,7 @@ describe('Utils object testing', () => {
         await utils.parseJsonAsync('not a json')
         assert.fail('Should never reach here')
       } catch (err) {
-        assert(err instanceof SyntaxError)
-        assert(err.message.includes('Unexpected token'))
+        assert(err.message.includes(errors.ERROR_FAILED_TO_PARSE_JSON))
       }
     })
     it('Should parse the json correctly', async () => {

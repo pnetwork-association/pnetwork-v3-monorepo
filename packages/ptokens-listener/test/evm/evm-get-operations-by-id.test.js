@@ -1,5 +1,5 @@
 const ethers = require('ethers')
-const utils = require('ptokens-utils')
+const constants = require('ptokens-constants')
 const { logs } = require('../mock/evm-logs')
 
 describe('Get EVM operations by Operation ID', () => {
@@ -21,7 +21,7 @@ describe('Get EVM operations by Operation ID', () => {
 
       const { getEvmOperationsById } = require('../../lib/evm/evm-get-operations-by-id')
       const provider = 'polygon-provider-url-1'
-      const networkId = utils.constants.networkIds.POLYGON_MAINNET
+      const networkId = constants.networkIds.POLYGON_MAINNET
       const operationId = '0xd9feb6e60cd73c396cbaeb3e5fa55c774c03a274c54f5bc53a62a59855ec7cc4' // secretlint-disable-line
       const hubAddress = '0xd2bac275fffdbdd23ecea72f4b161b3af90300a3'
       const fromBlock = 45583400
@@ -65,7 +65,7 @@ describe('Get EVM operations by Operation ID', () => {
 
       const { getEvmOperationsById } = require('../../lib/evm/evm-get-operations-by-id')
       const provider = 'polygon-provider-url-2'
-      const networkId = utils.constants.networkIds.POLYGON_MAINNET
+      const networkId = constants.networkIds.POLYGON_MAINNET
       const operationId = '0x2eff067a18db079a26a9f26e22c404dd6f68c5f377935db0afd913a59a1ede02' // secretlint-disable-line
       const hubAddress = '0xd2bac275fffdbdd23ecea72f4b161b3af90300a3'
       const fromBlock = 34923840

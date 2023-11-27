@@ -19,4 +19,12 @@ module.exports = {
   KEY_SUPPORTED_CHAINS: 'supported-chains',
   KEY_TYPE: 'type',
   KEY_DATA: 'data',
+  KEY_WARMUP_TIME: 'warmup-time',
+  KEY_CHECK_INACTIVITY_INTERVAL: 'check-inactivity-interval',
+  KEY_FIRE_CHALLENGE_THRESHOLD: 'fire-challenge-threshold',
+  KEY_INTERVAL: 'interval',
+  KEY_DRY_RUN: 'dry-run',
+  KEY_IGNORE_ACTORS: 'ignore-actors',
+  KEY_EPOCHS_MANAGER_ADDRESS: 'epochs-manager',
+  KEY_GOVERNANCE_MESSAGE_EMITTER_ADDRESS: 'governance-message-emitter',
 }

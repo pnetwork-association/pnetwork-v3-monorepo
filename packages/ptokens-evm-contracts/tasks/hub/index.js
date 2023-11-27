@@ -1,14 +1,17 @@
 const { types } = require('hardhat/config')
+const slash = require('./slash.task')
 const statusOf = require('./status-of.task')
 const protocolQueue = require('./queue.task')
 const protocolCancel = require('./cancel.task')
 const protocolExecute = require('./execute.task')
 const getProperties = require('./properties.task')
 const userOperations = require('./user-send.task')
+const startChallenge = require('./start-challenge.task')
+const lightResume = require('./light-resume.task')
 const TASK_CONSTANTS = require('../constants')
 
 const setCommonOptionalParams = () =>
-  [protocolExecute, protocolQueue, protocolCancel].map(lib => {
+  [protocolExecute, protocolQueue, protocolCancel, slash, startChallenge, lightResume].map(lib => {
     task(lib['TASK_NAME'])
       .addOptionalParam(
         TASK_CONSTANTS.PARAM_NAME_GASPRICE,
@@ -27,10 +30,13 @@ const setCommonOptionalParams = () =>
 setCommonOptionalParams()
 
 module.exports = {
+  ...slash,
   ...statusOf,
   ...getProperties,
   ...protocolQueue,
   ...protocolCancel,
+  ...startChallenge,
   ...protocolExecute,
   ...userOperations,
+  ...lightResume,
 }

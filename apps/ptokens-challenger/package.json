@@ -1,26 +1,12 @@
 {
-  "author": "allemanfredi",
+  "name": "ptokens-challenger",
+  "version": "0.1.0",
   "description": "Challenger project",
   "keywords": [
-    "challenger"
+    "challenger",
+    "pnetwork",
+    "v3"
   ],
-  "license": "MIT",
-  "main": "index.js",
-  "name": "ptokens-challenger",
-  "type": "module",
-  "version": "1.0.1",
-  "dependencies": {
-    "async-mutex": "^0.4.0",
-    "dotenv": "^16.3.1",
-    "lodash": "^4.17.21",
-    "merkletreejs": "^0.3.11",
-    "moment": "^2.29.4",
-    "mongodb": "^6.1.0",
-    "viem": "^1.10.14",
-    "winston": "^3.10.0"
-  },
-  "devDependencies": {
-    "@babel/eslint-parser": "^7.22.15",
-    "@babel/plugin-syntax-import-assertions": "^7.22.5"
-  }
+  "author": "gitmp01",
+  "license": "MIT"
 }

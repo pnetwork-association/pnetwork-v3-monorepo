@@ -1,6 +1,10 @@
 const { checkType } = require('../validation')
 const { isNotNil } = require('./utils-ramda-ext')
-const { ERROR_KEY_NOT_FOUND, ERROR_UNABLE_TO_FIND_PATHS } = require('../errors')
+const {
+  ERROR_KEY_NOT_FOUND,
+  ERROR_UNABLE_TO_FIND_PATHS,
+  ERROR_FAILED_TO_PARSE_JSON,
+} = require('../errors')
 const R = require('ramda')
 
 const getKeyFromObj = R.curry(
@@ -31,7 +35,7 @@ const getKeyFromObjThroughPath = R.curry((_path, _object) =>
 
 const getKeyFromObjThroughPossiblePaths = R.curry((_paths, _object) =>
   Promise.all(_paths.map(_path => R.path(_path, _object)))
-    .then(_possibleValues => _possibleValues.filter(isNotNil))
+    .then(R.filter(isNotNil))
     .then(_filteredValues =>
       _filteredValues.length === 0
         ? Promise.reject(new Error(`${ERROR_UNABLE_TO_FIND_PATHS} ${JSON.stringify(_object)}`))
@@ -44,7 +48,7 @@ const parseJsonAsync = _jsonStr =>
     try {
       return resolve(JSON.parse(_jsonStr))
     } catch (err) {
-      return reject(err)
+      return reject(new Error(ERROR_FAILED_TO_PARSE_JSON))
     }
   })
 

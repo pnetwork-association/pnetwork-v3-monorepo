@@ -1,5 +1,5 @@
 const { logger } = require('../logger')
-const { ERROR_DB_CLIENT, ERROR_NO_UPDATE_FOR_REPORT } = require('../errors')
+const { ERROR_DB_CLIENT } = require('../errors')
 const { MongoClient, MongoServerError } = require('mongodb')
 const R = require('ramda')
 
@@ -69,21 +69,10 @@ const deleteReport = R.curry((_collection, _reportId) =>
     .catch(handleDatabaseError)
 )
 
-const updateReportOrReject = R.curry((_collection, _operations, _query) =>
-  updateReport(_collection, _operations, _query)
-    .then(R.prop('modifiedCount'))
-    .then(R.equals(0))
-    .then(_equalsZero =>
-      _equalsZero
-        ? Promise.reject(new Error(`${ERROR_NO_UPDATE_FOR_REPORT}: ${JSON.stringify(_query)}`))
-        : Promise.resolve()
-    )
-)
-
 const updateReport = R.curry(
   (_collection, _operations, _query) =>
-    logger.debug(`Updating report with query ${_query}...`) ||
-    _collection.updateOne(_query, _operations).catch(handleDatabaseError)
+    logger.debug('Updating report with query', _query) ||
+    _collection.updateOne(_query, _operations, { upsert: true }).catch(handleDatabaseError)
 )
 
 const updateReportById = R.curry((_collection, _operations, _id) =>
@@ -141,7 +130,6 @@ module.exports = {
   insertReports,
   updateReport,
   updateReportById,
-  updateReportOrReject,
   getCollection,
   findReportById,
   closeConnection,

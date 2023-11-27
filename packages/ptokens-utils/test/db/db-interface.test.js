@@ -1,6 +1,5 @@
 const rewire = require('rewire')
 const assert = require('assert')
-const { errors } = require('../..')
 const { MongoMemoryServer } = require('mongodb-memory-server')
 
 describe('Database interface tests', () => {
@@ -77,6 +76,23 @@ describe('Database interface tests', () => {
     })
   })
 
+  describe('getCollection', () => {
+    it('Should get different collection in a Promise.all and terminate', () => {
+      const { db } = require('../..')
+      const uri = mongod.getUri()
+      const name = 'adatabase'
+
+      const promiseAllCollections = () =>
+        Promise.all([
+          db.getCollection(uri, name, 'collection1'),
+          db.getCollection(uri, name, 'collection2'),
+          db.getCollection(uri, name, 'collection3'),
+        ])
+
+      assert.doesNotReject(promiseAllCollections())
+    })
+  })
+
   describe('insertReport', () => {
     const { db } = require('../..')
     let collection
@@ -138,28 +154,6 @@ describe('Database interface tests', () => {
     })
   })
 
-  describe('updateReportOrReject', () => {
-    let collection
-    const { db } = require('../..')
-
-    before(async () => {
-      collection = await db.getCollection(mongod.getUri(), DATABASE_NAME, COLLECTION_NAME)
-    })
-
-    it('Should reject when no report is updated', async () => {
-      try {
-        await db.updateReportOrReject(
-          collection,
-          { $set: { user: 'foo' } },
-          { notExistingKey: 'newValue' }
-        )
-        assert.fail('Should never reach here!')
-      } catch (e) {
-        assert(e.message.includes(errors.ERROR_NO_UPDATE_FOR_REPORT))
-      }
-    })
-  })
-
   describe('updateReportById', () => {
     let collection
     const { db } = require('../..')
@@ -214,6 +208,7 @@ describe('Database interface tests', () => {
       await db.deleteReportByQuery(collection, { ciao: 'mondo' })
 
       const results = await db.findReports(collection, {})
+
       assert.equal(results.length, 1)
       assert.deepStrictEqual(results, [reports[0]])
     })

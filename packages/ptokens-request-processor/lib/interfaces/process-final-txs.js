@@ -1,4 +1,3 @@
-const { constants: ptokensUtilsConstants } = require('ptokens-utils')
 const constants = require('ptokens-constants')
 const {
   processFinalTransactionsLoop: evmProcessFinalTransactionsLoop,
@@ -6,8 +5,8 @@ const {
 const { getImplementationFromChainId } = require('../get-implementation-from-chainid')
 
 const blockchainTypeImplementationMapping = {
-  [ptokensUtilsConstants.blockchainType.EVM]: evmProcessFinalTransactionsLoop,
-  // [ptokensUtilsConstants.blockchainType.ALGORAND]: evmprocessFinalTransactionsLoop
+  [constants.blockchainType.EVM]: evmProcessFinalTransactionsLoop,
+  // [constants.blockchainType.ALGORAND]: evmprocessFinalTransactionsLoop
 }
 
 const processFinalTransactions = _state =>
