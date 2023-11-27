@@ -11,8 +11,8 @@ const { saveStateEmitterConfiguration } = require('./save-state-emitter-config')
 const { saveStateReaderConfiguration } = require('./save-state-reader-config')
 const { getMongoUrlFromTaskArgs } = require('./get-mongo-url')
 const {
-  FLAG_NAME_SHOW,
-  FLAG_DESC_SHOW,
+  FLAG_NAME_DRY,
+  FLAG_DESC_DRY,
   FLAG_NAME_MONGO_LOCALHOST,
   FLAG_DESC_MONGO_LOCALHOST,
 } = require('../constants')
@@ -145,5 +145,5 @@ task(
   TASK_DESC_APPS_GENERATE_CONFIGURATIONS,
   generateConfigurationTask
 )
-  .addFlag(FLAG_NAME_SHOW, FLAG_DESC_SHOW)
+  .addFlag(FLAG_NAME_DRY, FLAG_DESC_DRY)
   .addFlag(FLAG_NAME_MONGO_LOCALHOST, FLAG_DESC_MONGO_LOCALHOST)

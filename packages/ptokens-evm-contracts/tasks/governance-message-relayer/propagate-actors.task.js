@@ -6,20 +6,22 @@ const { getLogs } = require('../lib/evm-utils')
 const {
   FLAG_NAME_FORCE,
   FLAG_NAME_DRY,
+  FLAG_DESC_DRY,
   PARAM_NAME_GOVERNANCE_MESSAGE_EMITTER,
   PARAM_DESC_GOVERNANCE_MESSAGE_EMITTER,
 } = require('../constants')
 const registrationManagerAbi = require('./abi/registration-manager.json')
 
 const FLAG_DESC_FORCE = 'Force propagation for current epoch'
-const FLAG_DESC_DRY = 'Do not push transaction'
 
+// secretlint-disable
 const GUARDIAN_REGISTRATION_UPDATED_TOPIC =
   '0xafb67f2df87eac9d09ceb6895eb788a32942fe447f270883a9cc0d8cdcda6c8f'
 const SENTINEL_REGISTRATION_UPDATED_TOPIC =
   '0x32916106661bfd30613f1610cbfe60c88d0cd21bede41ff71b2e48ccede4cf3a'
 const INITIALIZED_TOPIC = '0x7f26b83ff96e1f2b6a682f133852f6798a09c465da95921460cefb3847402498'
 const ACTORS_PROPAGATED_TOPIC = '0x7d394dea630b3e42246f284e4e4b75cff4f959869b3d753639ba8ae6120c67c3'
+// secretlint-enable
 
 const decodeRegistrationLog = _log => getRegistrationManagerInterface().parseLog(_log)
 
