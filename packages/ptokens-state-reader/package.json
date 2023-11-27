@@ -11,7 +11,6 @@
   ],
   "scripts": {
     "lint": "eslint .",
-    "hello": "echo hello",
     "test": "jest --config test/jest.config.js",
     "docker-build": "PROJECT_ROOT=$(pwd) ./docker-build.sh",
     "clean": "rm -rf $(pwd)/build"
