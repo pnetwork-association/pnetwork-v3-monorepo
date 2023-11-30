@@ -48,7 +48,7 @@ const addIgnoredActors = _obj =>
 module.exports.saveStateReaderConfiguration = (_taskArgs, _hre) =>
   Promise.resolve({})
     .then(addSupportedChains)
-    .then(addProtocols)
+    .then(addProtocols(_taskArgs))
     .then(addIdentity)
     .then(addDb(_taskArgs))
     .then(addIgnoredActors)

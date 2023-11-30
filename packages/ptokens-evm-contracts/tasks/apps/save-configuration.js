@@ -1,6 +1,6 @@
 const R = require('ramda')
 const fs = require('node:fs/promises')
-const { FLAG_SHOW } = require('../constants')
+const { FLAG_NAME_DRY } = require('../constants')
 
 const prettyStringify = _object => JSON.stringify(_object, null, 2)
 
@@ -14,7 +14,7 @@ const showConfiguration = (_what, _configuration) =>
   console.info(`# ${_what} configuration`) || console.info(prettyStringify(_configuration))
 
 module.exports.maybeSaveConfiguration = R.curry((taskArgs, _what, _path, _configuration) =>
-  taskArgs[FLAG_SHOW]
+  taskArgs[FLAG_NAME_DRY]
     ? showConfiguration(_what, _configuration)
     : saveConfiguration(_what, _path, _configuration)
 )

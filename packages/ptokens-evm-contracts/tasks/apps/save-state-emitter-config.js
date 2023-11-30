@@ -15,7 +15,7 @@ const addInterval = _obj =>
 module.exports.saveStateEmitterConfiguration = (_taskArgs, _hre) =>
   Promise.resolve({})
     .then(addSupportedChains)
-    .then(addProtocols)
+    .then(addProtocols(_taskArgs))
     .then(addIdentity)
     .then(addInterval)
     .then(
