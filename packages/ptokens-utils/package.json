@@ -25,6 +25,7 @@
     "jsonrpc-lite": "2.2.0",
     "merkletreejs": "^0.3.11",
     "mongodb": "5.8.0",
+    "multibase": "^4.0.6",
     "node-fetch": "2.6.11",
     "ptokens-constants": "1.7.0-beta.2",
     "ramda": "0.29.0",
