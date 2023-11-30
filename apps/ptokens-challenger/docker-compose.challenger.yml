@@ -3,9 +3,12 @@ services:
   ipfs:
     image: ipfs/kubo:${VERSION_IPFS}
     volumes:
-      - ipfs:/data/ipfs
+      - ipfs-challenger:/data/ipfs
+    ports:
+      - '${HOST_IPFS_PORT}:4001'
+    networks:
+      - net-challenger
     restart: unless-stopped
-    network_mode: host
     command:
       - daemon
       - --migrate=true
@@ -17,17 +20,17 @@ services:
     image: ${IMAGE_STATE_READER}:${VERSION_STATE_READER}
     env_file: .env
     volumes:
-      - ipfs:/home/node/.ipfs
+      - ipfs-challenger:/home/node/.ipfs
       - ./challenger.config.json:${APP_CONFIG_JSON}
       - ./private-key:${PRIVATE_KEY_FILE}
       - ./logs:/usr/src/app/logs
+    networks:
+      - net-challenger
     restart: unless-stopped
     depends_on:
       - ipfs
       - mongodb
-    network_mode: host
 
 # Spin up the ipfs-daemon app first
 volumes:
-  ipfs:
-    name: ipfs_daemon
+  ipfs-challenger:
