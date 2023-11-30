@@ -897,6 +897,11 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
             revert InvalidLockedAmountStartChallenge(msg.value, lockedAmountStartChallenge);
         }
 
+        // We allow challenges also against inactive actors since
+        // they will earn protocol fees until they are hard-slashed
+        // (that is when a minimum amount of slashes is reached).
+        // This is why here we revert only if there is a pending
+        // challenge, while other statuses are fine to be challenged.
         ActorStatus actorStatus = _epochsActorsStatus[currentEpoch][actor];
         if (actorStatus == ActorStatus.Challenged) {
             revert ActorAlreadyChallenged();
