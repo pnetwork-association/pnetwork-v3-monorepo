@@ -474,6 +474,10 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
             ++_epochsTotalNumberOfInactiveActors[currentEpoch][challenge.actorType];
         }
 
+        // Encode block.timestamp in userData because slashing requests may arrive at
+        // the RegistrationManager at different times (due to propagation time),
+        // and from different hubs, so it needs to filter out multiple requests (max 1 per hour),
+        // or discard them if the actor has already resumed in the meantime.
         bytes4 currentNetworkId = Network.getCurrentNetworkId();
         if (currentNetworkId == interimChainNetworkId) {
             // NOTE: If a slash happens on the interim chain we can avoid to emit the UserOperation
