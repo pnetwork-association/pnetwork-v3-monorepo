@@ -11,14 +11,12 @@ services:
   ipfs:
     image: ipfs/kubo:${VERSION_IPFS}
     volumes:
-      - ipfs:/data/ipfs
+      - ipfs-guardian:/data/ipfs
     restart: unless-stopped
     ports:
       - 4001:4001
-      - 4001:4001/udp
-      - 127.0.0.1:8080:8080
-      - 127.0.0.1:5001:5001
-    network_mode: host
+    networks:
+      - net-guardian
     command:
       - daemon
       - --migrate=true
@@ -29,19 +27,21 @@ services:
   state-emitter:
     image: ${IMAGE_STATE_EMITTER}:${VERSION_STATE_EMITTER}
     volumes:
-      - ipfs:/home/node/.ipfs
+      - ipfs-guardian:/home/node/.ipfs
       - ./state-emitter.config.json:${APP_CONFIG_JSON}
       - './private-key:${PRIVATE_KEY_FILE}'
+    networks:
+      - net-guardian
     restart: unless-stopped
-    depends_on:
-      - ipfs
-    network_mode: host
+    depends_on: ['ipfs']
 
   goerli-listener:
     image: ${IMAGE_EVM_LISTENER}:${VERSION_LISTENER:-latest}
     volumes:
       - './goerli.listener.config.json:${APP_CONFIG_JSON}'
       - './logs:${APP_FOLDER_LOGS}'
+    networks:
+      - net-guardian
     restart: unless-stopped
     depends_on: ['mongodb']
 
@@ -51,6 +51,8 @@ services:
       - './private-key:${PRIVATE_KEY_FILE}'
       - './goerli.processor.config.json:${APP_CONFIG_JSON}'
       - './logs:${APP_FOLDER_LOGS}'
+    networks:
+      - net-guardian
     restart: unless-stopped
     command: ./index.js pollForRequestsAndDismiss
     depends_on: ['mongodb']
@@ -60,6 +62,8 @@ services:
     volumes:
       - './polygon.listener.config.json:${APP_CONFIG_JSON}'
       - './logs:${APP_FOLDER_LOGS}'
+    networks:
+      - net-guardian
     restart: unless-stopped
     depends_on: ['mongodb']
 
@@ -69,6 +73,8 @@ services:
       - './private-key:${PRIVATE_KEY_FILE}'
       - './polygon.processor.config.json:${APP_CONFIG_JSON}'
       - './logs:${APP_FOLDER_LOGS}'
+    networks:
+      - net-guardian
     restart: unless-stopped
     command: ./index.js pollForRequestsAndDismiss
     depends_on: ['mongodb']
@@ -78,6 +84,8 @@ services:
     volumes:
       - './bsc.listener.config.json:${APP_CONFIG_JSON}'
       - './logs:${APP_FOLDER_LOGS}'
+    networks:
+      - net-guardian
     restart: unless-stopped
     depends_on: ['mongodb']
 
@@ -87,10 +95,11 @@ services:
       - './private-key:${PRIVATE_KEY_FILE}'
       - './bsc.processor.config.json:${APP_CONFIG_JSON}'
       - './logs:${APP_FOLDER_LOGS}'
+    networks:
+      - net-guardian
     restart: unless-stopped
     command: ./index.js pollForRequestsAndDismiss
     depends_on: ['mongodb']
 
 volumes:
-  ipfs:
-    name: ipfs_daemon
+  ipfs-guardian:
