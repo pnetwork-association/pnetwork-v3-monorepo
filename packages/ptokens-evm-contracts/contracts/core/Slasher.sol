@@ -19,8 +19,6 @@ contract Slasher is ISlasher {
     address public immutable registrationManager;
     uint256 public immutable stakingSentinelAmountToSlash;
 
-    mapping(address => uint64) private _lastSlashTimestamp;
-
     constructor(
         address epochsManager_,
         address pRegistry_,
