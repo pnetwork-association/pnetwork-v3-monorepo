@@ -39,7 +39,6 @@ error QueueFull();
 error InvalidNetworkFeeAssetAmount();
 error InvalidActor(address actor, IPNetworkHub.ActorTypes actorType);
 error InvalidLockedAmountStartChallenge(uint256 lockedAmountStartChallenge, uint256 expectedLockedAmountStartChallenge);
-error InvalidActorStatus(IPNetworkHub.ActorStatus status, IPNetworkHub.ActorStatus expectedStatus);
 error InvalidChallengeStatus(IPNetworkHub.ChallengeStatus status, IPNetworkHub.ChallengeStatus expectedStatus);
 error NearToEpochEnd();
 error ChallengeDurationPassed();
