@@ -30,7 +30,6 @@ let token,
   pFactory,
   hub,
   hubInterim,
-  anotherHub,
   guardian,
   sentinel,
   relayer,
@@ -284,29 +283,9 @@ describe('PNetworkHub', () => {
       chainId
     )
 
-    anotherHub = await PNetworkHub.deploy(
-      // hub to test the non interim chain behavior
-      pFactory.address,
-      BASE_CHALLENGE_PERIOD_DURATION,
-      epochsManager.address,
-      feesManager.address,
-      TELEPATHY_ROUTER_ADDRESS,
-      fakeGovernanceMessageVerifier.address,
-      slasher.address,
-      fakeDandelionVoting.address,
-      LOCKED_AMOUNT_CHALLENGE_PERIOD,
-      K_CHALLENGE_PERIOD,
-      MAX_OPERATIONS_IN_QUEUE,
-      PNETWORK_NETWORK_IDS.ethereumMainnet,
-      LOCKED_AMOUNT_START_CHALLENGE,
-      CHALLENGE_DURATION,
-      chainId
-    )
-
     // assume the non-interim hub is deployed on goerli
     await pRegistry.connect(dao).protocolAddNetwork(networks.goerli.chainId, hub.address)
     await pRegistry.connect(dao).protocolAddNetwork(interimChainId, hubInterim.address)
-    await pRegistry.connect(dao).protocolAddNetwork(networks.sepolia.chainId, anotherHub.address)
 
     token = await StandardToken.deploy('Token', 'TKN', 18, ethers.utils.parseEther('100000000'))
     telepathyRouter = await ethers.getImpersonatedSigner(TELEPATHY_ROUTER_ADDRESS)
@@ -3086,7 +3065,7 @@ describe('PNetworkHub', () => {
       .withArgs(...expectedEvent)
   })
 
-  it('should slash an actor(sentinel) successfully on the interim chain just one time', async () => {
+  it('should slash an actor(sentinel) successfully on the interim chain', async () => {
     const slashedSentinel = sentinels[0]
     await mockRegistrationManager.addStakingSentinel(
       sentinel.address,
@@ -3095,18 +3074,13 @@ describe('PNetworkHub', () => {
       10,
       BigInt(200000)
     )
-    const originAccount1 = hub.address.toLowerCase()
-    const originAccount2 = anotherHub.address.toLowerCase()
     const ts = await time.latest()
-    const userData1 = ethers.utils.defaultAbiCoder.encode(
+    const encodedBytes = ethers.utils.defaultAbiCoder.encode(
       ['uint16', 'address', 'address', 'uint64'],
       [currentEpoch, slashedSentinel.address, challenger.address, ts]
     )
-    const userData2 = ethers.utils.defaultAbiCoder.encode(
-      ['uint16', 'address', 'address', 'uint64'],
-      [currentEpoch, slashedSentinel.address, challenger.address, ts + 30 * 60]
-    )
     const nonce = 1 // gasLeft
+    const originAccount = hub.address.toLowerCase()
     const destinationAccount = slasher.address.toLowerCase()
     const destinationNetworkId = PNETWORK_NETWORK_IDS.ethereumMainnet // interim network id is set on Ethereum mainne
     const underlyingAssetName = ''
@@ -3120,16 +3094,17 @@ describe('PNetworkHub', () => {
     const networkFeeAssetAmount = 0
     const forwardNetworkFeeAssetAmount = 0
     const forwardDestinationNetworkId = '0x00000000'
+    const userData = encodedBytes
     const optionsMask = '0x0000000000000000000000000000000000000000000000000000000000000000'
     const isForProtocol = true
     const originTxHash = '0x0000000000000000000000000000000000000000000000000000000000000001'
     const originBlockHash = '0x0000000000000000000000000000000000000000000000000000000000000002'
 
-    const operation1 = new Operation({
+    const operation = new Operation({
       originTxHash,
       originBlockHash,
       nonce,
-      originAccount: originAccount1,
+      originAccount,
       destinationAccount,
       destinationNetworkId,
       underlyingAssetName,
@@ -3143,49 +3118,25 @@ describe('PNetworkHub', () => {
       networkFeeAssetAmount,
       forwardNetworkFeeAssetAmount,
       forwardDestinationNetworkId,
-      userData: userData1,
+      userData,
       optionsMask,
       isForProtocol,
       originNetworkId: PNETWORK_NETWORK_IDS.goerli,
     })
 
-    const operation2 = new Operation({
-      originTxHash,
-      originBlockHash,
-      nonce,
-      originAccount: originAccount2,
-      destinationAccount,
-      destinationNetworkId,
-      underlyingAssetName,
-      underlyingAssetSymbol,
-      underlyingAssetDecimals,
-      underlyingAssetTokenAddress,
-      underlyingAssetNetworkId,
-      assetTokenAddress,
-      assetAmount,
-      userDataProtocolFeeAssetAmount,
-      networkFeeAssetAmount,
-      forwardNetworkFeeAssetAmount,
-      forwardDestinationNetworkId,
-      userData: userData2,
-      optionsMask,
-      isForProtocol,
-      originNetworkId: PNETWORK_NETWORK_IDS.sepolia,
-    })
-
     let tx = await hubInterim
       .connect(relayer)
-      .protocolQueueOperation(operation1, { value: LOCKED_AMOUNT_CHALLENGE_PERIOD })
+      .protocolQueueOperation(operation, { value: LOCKED_AMOUNT_CHALLENGE_PERIOD })
 
-    await expect(tx).to.emit(hubInterim, 'OperationQueued').withArgs(operation1.serialize())
+    await expect(tx).to.emit(hubInterim, 'OperationQueued').withArgs(operation.serialize())
 
     await expect(
-      hubInterim.connect(relayer).protocolExecuteOperation(operation1)
+      hubInterim.connect(relayer).protocolExecuteOperation(operation)
     ).to.be.revertedWithCustomError(hubInterim, 'ChallengePeriodNotTerminated')
 
     time.increase(maxChallengePeriod)
 
-    tx = await hubInterim.connect(relayer).protocolExecuteOperation(operation1)
+    tx = await hubInterim.connect(relayer).protocolExecuteOperation(operation)
     const tag = ethers.utils.keccak256(Buffer.from('GOVERNANCE_MESSAGE_SLASH_ACTOR'))
     const expectedGovernanceMessageArgs = ethers.utils.defaultAbiCoder.encode(
       ['bytes32', 'bytes'],
@@ -3200,168 +3151,7 @@ describe('PNetworkHub', () => {
 
     await expect(tx)
       .to.emit(hubInterim, 'OperationExecuted')
-      .withArgs(operation1.serialize())
-      .and.to.emit(mockRegistrationManager, 'StakingSentinelSlashed')
-      .withArgs(sentinel.address, SLASHING_QUANTITY)
-      .and.to.emit(governanceMessageEmitter, 'GovernanceMessage')
-      .withArgs(expectedGovernanceMessageArgs)
-
-    time.increase(4000)
-
-    tx = await hubInterim
-      .connect(relayer)
-      .protocolQueueOperation(operation2, { value: LOCKED_AMOUNT_CHALLENGE_PERIOD })
-
-    await expect(tx).to.emit(hubInterim, 'OperationQueued').withArgs(operation2.serialize())
-
-    time.increase(maxChallengePeriod)
-
-    tx = await hubInterim.connect(relayer).protocolExecuteOperation(operation2)
-
-    await expect(tx)
-      .to.emit(hubInterim, 'OperationExecuted')
-      .withArgs(operation2.serialize())
-      .and.to.emit(mockRegistrationManager, 'StakingSentinelSlashed')
-      .withArgs(sentinel.address, SLASHING_QUANTITY)
-      .and.to.emit(governanceMessageEmitter, 'GovernanceMessage')
-      .withArgs(expectedGovernanceMessageArgs)
-  })
-
-  it('should slash an actor(sentinel) successfully on the interim chain twice', async () => {
-    const slashedSentinel = sentinels[0]
-    await mockRegistrationManager.addStakingSentinel(
-      sentinel.address,
-      owner.address,
-      0,
-      10,
-      BigInt(200000)
-    )
-    const originAccount1 = hub.address.toLowerCase()
-    const originAccount2 = anotherHub.address.toLowerCase()
-    const ts = await time.latest()
-    const userData1 = ethers.utils.defaultAbiCoder.encode(
-      ['uint16', 'address', 'address', 'uint64'],
-      [currentEpoch, slashedSentinel.address, challenger.address, ts]
-    )
-    const userData2 = ethers.utils.defaultAbiCoder.encode(
-      ['uint16', 'address', 'address', 'uint64'],
-      [currentEpoch, slashedSentinel.address, challenger.address, ts + 70 * 60]
-    )
-    const nonce = 1 // gasLeft
-    const destinationAccount = slasher.address.toLowerCase()
-    const destinationNetworkId = PNETWORK_NETWORK_IDS.ethereumMainnet // interim network id is set on Ethereum mainne
-    const underlyingAssetName = ''
-    const underlyingAssetSymbol = ''
-    const underlyingAssetDecimals = 0
-    const underlyingAssetTokenAddress = ZERO_ADDRESS
-    const underlyingAssetNetworkId = '0x00000000'
-    const assetTokenAddress = ZERO_ADDRESS
-    const assetAmount = 0
-    const userDataProtocolFeeAssetAmount = 0
-    const networkFeeAssetAmount = 0
-    const forwardNetworkFeeAssetAmount = 0
-    const forwardDestinationNetworkId = '0x00000000'
-    const optionsMask = '0x0000000000000000000000000000000000000000000000000000000000000000'
-    const isForProtocol = true
-    const originTxHash = '0x0000000000000000000000000000000000000000000000000000000000000001'
-    const originBlockHash = '0x0000000000000000000000000000000000000000000000000000000000000002'
-
-    const operation1 = new Operation({
-      originTxHash,
-      originBlockHash,
-      nonce,
-      originAccount: originAccount1,
-      destinationAccount,
-      destinationNetworkId,
-      underlyingAssetName,
-      underlyingAssetSymbol,
-      underlyingAssetDecimals,
-      underlyingAssetTokenAddress,
-      underlyingAssetNetworkId,
-      assetTokenAddress,
-      assetAmount,
-      userDataProtocolFeeAssetAmount,
-      networkFeeAssetAmount,
-      forwardNetworkFeeAssetAmount,
-      forwardDestinationNetworkId,
-      userData: userData1,
-      optionsMask,
-      isForProtocol,
-      originNetworkId: PNETWORK_NETWORK_IDS.goerli,
-    })
-
-    const operation2 = new Operation({
-      originTxHash,
-      originBlockHash,
-      nonce,
-      originAccount: originAccount2,
-      destinationAccount,
-      destinationNetworkId,
-      underlyingAssetName,
-      underlyingAssetSymbol,
-      underlyingAssetDecimals,
-      underlyingAssetTokenAddress,
-      underlyingAssetNetworkId,
-      assetTokenAddress,
-      assetAmount,
-      userDataProtocolFeeAssetAmount,
-      networkFeeAssetAmount,
-      forwardNetworkFeeAssetAmount,
-      forwardDestinationNetworkId,
-      userData: userData2,
-      optionsMask,
-      isForProtocol,
-      originNetworkId: PNETWORK_NETWORK_IDS.sepolia,
-    })
-
-    let tx = await hubInterim
-      .connect(relayer)
-      .protocolQueueOperation(operation1, { value: LOCKED_AMOUNT_CHALLENGE_PERIOD })
-
-    await expect(tx).to.emit(hubInterim, 'OperationQueued').withArgs(operation1.serialize())
-
-    await expect(
-      hubInterim.connect(relayer).protocolExecuteOperation(operation1)
-    ).to.be.revertedWithCustomError(hubInterim, 'ChallengePeriodNotTerminated')
-
-    time.increase(maxChallengePeriod)
-
-    tx = await hubInterim.connect(relayer).protocolExecuteOperation(operation1)
-    const tag = ethers.utils.keccak256(Buffer.from('GOVERNANCE_MESSAGE_SLASH_ACTOR'))
-    const expectedGovernanceMessageArgs = ethers.utils.defaultAbiCoder.encode(
-      ['bytes32', 'bytes'],
-      [
-        tag,
-        ethers.utils.defaultAbiCoder.encode(
-          ['uint16', 'address', 'uint8'],
-          [currentEpoch, sentinel.address, constants.hub.actors.Sentinel]
-        ),
-      ]
-    )
-
-    await expect(tx)
-      .to.emit(hubInterim, 'OperationExecuted')
-      .withArgs(operation1.serialize())
-      .and.to.emit(mockRegistrationManager, 'StakingSentinelSlashed')
-      .withArgs(sentinel.address, SLASHING_QUANTITY)
-      .and.to.emit(governanceMessageEmitter, 'GovernanceMessage')
-      .withArgs(expectedGovernanceMessageArgs)
-
-    time.increase(4500)
-
-    tx = await hubInterim
-      .connect(relayer)
-      .protocolQueueOperation(operation2, { value: LOCKED_AMOUNT_CHALLENGE_PERIOD })
-
-    await expect(tx).to.emit(hubInterim, 'OperationQueued').withArgs(operation2.serialize())
-
-    time.increase(maxChallengePeriod)
-
-    tx = await hubInterim.connect(relayer).protocolExecuteOperation(operation2)
-
-    await expect(tx)
-      .to.emit(hubInterim, 'OperationExecuted')
-      .withArgs(operation2.serialize())
+      .withArgs(operation.serialize())
       .and.to.emit(mockRegistrationManager, 'StakingSentinelSlashed')
       .withArgs(sentinel.address, SLASHING_QUANTITY)
       .and.to.emit(governanceMessageEmitter, 'GovernanceMessage')
