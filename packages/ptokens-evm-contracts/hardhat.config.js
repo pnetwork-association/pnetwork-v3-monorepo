@@ -9,12 +9,22 @@ require('solidity-coverage')
 require('@nomicfoundation/hardhat-toolbox')
 require('hardhat-change-network')
 
+const { execSync } = require('child_process')
+const getEnvironmentVariable = _envVar => process.env[_envVar] || ''
+const maybeGetAccounts = _envVar => (process.env[_envVar] ? [process.env[_envVar]] : undefined)
+
 const fork1Config = require('./hardhat.config.fork1')
 const fork2Config = require('./hardhat.config.fork2')
 const fork3Config = require('./hardhat.config.fork3')
 
-const getEnvironmentVariable = _envVar => process.env[_envVar] || ''
-const maybeGetAccounts = _envVar => (process.env[_envVar] ? [process.env[_envVar]] : undefined)
+const decodeGpgFile = _file =>
+  execSync(`gpg --decrypt -q ${_file}`, {
+    encoding: 'utf-8',
+  }).trim()
+
+const maybeGetAccountsFromGpgFile = _file => (_file ? [decodeGpgFile(_file)] : undefined)
+
+const accounts = maybeGetAccountsFromGpgFile(getEnvironmentVariable('PK'))
 
 /**
  * @type import('hardhat/config').HardhatUserConfig
@@ -52,47 +62,47 @@ module.exports = {
     mainnet: {
       chainId: 0x01,
       url: getEnvironmentVariable('MAINNET_NODE'),
-      accounts: maybeGetAccounts('PK'),
+      accounts,
       gasPrice: 20e9,
     },
     polygon: {
       chainId: 0x89,
       url: getEnvironmentVariable('POLYGON_NODE'),
-      accounts: maybeGetAccounts('PK'),
+      accounts,
       gasPrice: 400e9,
     },
     mumbai: {
       chainId: 80001,
       url: getEnvironmentVariable('MUMBAI_NODE'),
-      accounts: maybeGetAccounts('PK'),
+      accounts,
       gasPrice: 400e9,
     },
     bsc: {
       chainId: 0x38,
       url: getEnvironmentVariable('BSC_NODE'),
-      accounts: maybeGetAccounts('PK'),
+      accounts,
       gasPrice: 5e9,
     },
     sepolia: {
       chainId: 0xaa36a7,
       url: getEnvironmentVariable('SEPOLIA_NODE'),
-      accounts: maybeGetAccounts('PK'),
+      accounts,
     },
     goerli: {
       chainId: 0x05,
       url: getEnvironmentVariable('GOERLI_NODE'),
-      accounts: maybeGetAccounts('PK'),
+      accounts,
     },
     arbitrum: {
       chainId: 0xa4b1,
       url: getEnvironmentVariable('ARBITRUM_NODE'),
-      accounts: maybeGetAccounts('PK'),
+      accounts,
       gasPrice: 0.1e9,
     },
     gnosis: {
       chainId: 0x64,
       url: getEnvironmentVariable('GNOSIS_CHAIN_NODE'),
-      accounts: maybeGetAccounts('PK'),
+      accounts,
       gasPrice: 5e9,
     },
   },
