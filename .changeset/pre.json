@@ -8,18 +8,30 @@
     "ptokens-listener": "1.8.2",
     "ptokens-request-processor": "1.9.2",
     "ptokens-state-emitter": "1.0.1",
-    "ptokens-utils": "4.6.1"
+    "ptokens-utils": "4.6.1",
+    "ptokens-state-reader": "1.0.0"
   },
   "changesets": [
     "blue-squids-marry",
     "chilled-peas-explode",
     "eleven-dancers-type",
     "few-tomatoes-rest",
+    "five-buckets-burn",
+    "flat-carrots-appear",
+    "fresh-dancers-wink",
     "gentle-badgers-juggle",
+    "heavy-radios-dream",
+    "mean-cars-travel",
     "mighty-bikes-add",
     "nasty-hats-sell",
+    "silver-games-divide",
     "slimy-pianos-accept",
+    "small-pugs-train",
     "tall-clocks-care",
+    "wet-hairs-train",
+    "wicked-cars-cross",
+    "wild-meals-yawn",
+    "witty-brooms-camp",
     "witty-lamps-wait"
   ]
 }

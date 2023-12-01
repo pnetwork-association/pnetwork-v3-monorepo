@@ -1,5 +1,19 @@
 # ptokens-state-emitter
 
+## 1.1.0-beta.1
+
+### Minor Changes
+
+- 9dc8031: Use `statusObject` schema from ptokens-constants
+
+### Patch Changes
+
+- Updated dependencies [9dc8031]
+- Updated dependencies [9dc8031]
+- Updated dependencies [60f6976]
+  - ptokens-constants@1.7.0-beta.1
+  - ptokens-utils@4.7.0-beta.1
+
 ## 1.0.2-beta.0
 
 ### Patch Changes
