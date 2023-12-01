@@ -17,6 +17,7 @@ import {Utils} from "../libraries/Utils.sol";
 import {Network} from "../libraries/Network.sol";
 
 error InvalidOperationStatus(IPNetworkHub.OperationStatus status, IPNetworkHub.OperationStatus expectedStatus);
+error ActorAlreadyChallenged();
 error ActorAlreadyCancelledOperation(
     IPNetworkHub.Operation operation,
     address actor,
@@ -38,7 +39,6 @@ error QueueFull();
 error InvalidNetworkFeeAssetAmount();
 error InvalidActor(address actor, IPNetworkHub.ActorTypes actorType);
 error InvalidLockedAmountStartChallenge(uint256 lockedAmountStartChallenge, uint256 expectedLockedAmountStartChallenge);
-error InvalidActorStatus(IPNetworkHub.ActorStatus status, IPNetworkHub.ActorStatus expectedStatus);
 error InvalidChallengeStatus(IPNetworkHub.ChallengeStatus status, IPNetworkHub.ChallengeStatus expectedStatus);
 error NearToEpochEnd();
 error ChallengeDurationPassed();
@@ -474,6 +474,10 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
             ++_epochsTotalNumberOfInactiveActors[currentEpoch][challenge.actorType];
         }
 
+        // Encode block.timestamp in userData because slashing requests may arrive at
+        // the RegistrationManager at different times (due to propagation time),
+        // and from different hubs, so it needs to filter out multiple requests (max 1 per hour),
+        // or discard them if the actor has already resumed in the meantime.
         bytes4 currentNetworkId = Network.getCurrentNetworkId();
         if (currentNetworkId == interimChainNetworkId) {
             // NOTE: If a slash happens on the interim chain we can avoid to emit the UserOperation
@@ -481,7 +485,7 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
             IPReceiver(slasher).receiveUserData(
                 currentNetworkId,
                 Utils.addressToHexString(address(this)),
-                abi.encode(currentEpoch, challenge.actor, challenge.challenger)
+                abi.encode(currentEpoch, challenge.actor, challenge.challenger, block.timestamp)
             );
         } else {
             emit UserOperation(
@@ -500,7 +504,7 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
                 0,
                 0,
                 0,
-                abi.encode(currentEpoch, challenge.actor, challenge.challenger),
+                abi.encode(currentEpoch, challenge.actor, challenge.challenger, block.timestamp),
                 bytes32(0),
                 true // isForProtocol
             );
@@ -897,9 +901,14 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
             revert InvalidLockedAmountStartChallenge(msg.value, lockedAmountStartChallenge);
         }
 
+        // We allow challenges also against inactive actors since
+        // they will earn protocol fees until they are hard-slashed
+        // (that is when a minimum amount of slashes is reached).
+        // This is why here we revert only if there is a pending
+        // challenge, while other statuses are fine to be challenged.
         ActorStatus actorStatus = _epochsActorsStatus[currentEpoch][actor];
-        if (actorStatus != ActorStatus.Active) {
-            revert InvalidActorStatus(actorStatus, ActorStatus.Active);
+        if (actorStatus == ActorStatus.Challenged) {
+            revert ActorAlreadyChallenged();
         }
 
         Challenge memory challenge = Challenge({

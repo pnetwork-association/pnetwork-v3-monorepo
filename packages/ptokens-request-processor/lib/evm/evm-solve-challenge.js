@@ -7,7 +7,7 @@ const { ERROR_INVALID_PRIVATE_KEY } = require('../errors')
 const { STATE_PENDING_CHALLENGES, STATE_DISMISSED_DB_REPORTS } = require('../state/constants')
 const { logger } = require('../get-logger')
 
-const abi = require('./abi/PNetworkHub').abi
+const abi = require('./abi/PNetworkHub')
 
 const parseChallengeEventArgs = _report => _report[constants.db.KEY_EVENT_ARGS][0]
 

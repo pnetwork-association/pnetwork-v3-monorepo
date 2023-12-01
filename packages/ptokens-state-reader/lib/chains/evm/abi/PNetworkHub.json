@@ -205,6 +205,11 @@
   },
   {
     "inputs": [],
+    "name": "ActorAlreadyChallenged",
+    "type": "error"
+  },
+  {
+    "inputs": [],
     "name": "CallFailed",
     "type": "error"
   },
@@ -334,22 +339,6 @@
       }
     ],
     "name": "InvalidActor",
-    "type": "error"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "enum IPNetworkHub.ActorStatus",
-        "name": "status",
-        "type": "uint8"
-      },
-      {
-        "internalType": "enum IPNetworkHub.ActorStatus",
-        "name": "expectedStatus",
-        "type": "uint8"
-      }
-    ],
-    "name": "InvalidActorStatus",
     "type": "error"
   },
   {

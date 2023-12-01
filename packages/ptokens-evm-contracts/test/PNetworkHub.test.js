@@ -1521,7 +1521,7 @@ describe('PNetworkHub', () => {
         .startChallenge(challengedSentinel.address, constants.hub.actors.Sentinel, proof, {
           value: LOCKED_AMOUNT_START_CHALLENGE,
         })
-    ).to.be.revertedWithCustomError(hub, 'InvalidActorStatus')
+    ).to.be.revertedWithCustomError(hub, 'ActorAlreadyChallenged')
   })
 
   it('should not be able to open a challenge with a wrong locked amount for the same sentinel', async () => {
@@ -1572,7 +1572,7 @@ describe('PNetworkHub', () => {
         .startChallenge(challengedGuardian.address, constants.hub.actors.Guardian, proof, {
           value: LOCKED_AMOUNT_START_CHALLENGE,
         })
-    ).to.be.revertedWithCustomError(hub, 'InvalidActorStatus')
+    ).to.be.revertedWithCustomError(hub, 'ActorAlreadyChallenged')
   })
 
   it('should not be able to open a challenge with a wrong locked amount for the same guardian', async () => {
@@ -3013,11 +3013,11 @@ describe('PNetworkHub', () => {
     )
 
     // Increase time
-    time.increase(CHALLENGE_DURATION)
+    const newTimestamp = await time.increase(CHALLENGE_DURATION)
 
     const encodedBytes = ethers.utils.defaultAbiCoder.encode(
-      ['uint16', 'address', 'address'],
-      [currentEpoch, slashedSentinel.address, challenger.address]
+      ['uint16', 'address', 'address', 'uint64'],
+      [currentEpoch, slashedSentinel.address, challenger.address, newTimestamp + 1]
     )
 
     const nonce = anyValue // gasLeft
@@ -3074,9 +3074,10 @@ describe('PNetworkHub', () => {
       10,
       BigInt(200000)
     )
+    const ts = await time.latest()
     const encodedBytes = ethers.utils.defaultAbiCoder.encode(
-      ['uint16', 'address', 'address'],
-      [currentEpoch, slashedSentinel.address, challenger.address]
+      ['uint16', 'address', 'address', 'uint64'],
+      [currentEpoch, slashedSentinel.address, challenger.address, ts]
     )
     const nonce = 1 // gasLeft
     const originAccount = hub.address.toLowerCase()

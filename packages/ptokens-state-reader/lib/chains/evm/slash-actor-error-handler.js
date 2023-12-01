@@ -28,10 +28,7 @@ const errorDescriptionHandler = R.curry(
         constants.hub.challengeStatus.SOLVED,
         constants.hub.actorsStatus.Active
       )
-    } else if (
-      formattedMsg.includes(constants.hub.errors.ACTOR_INACTIVE) ||
-      formattedMsg.includes(constants.hub.errors.CHALLENGE_UNSOLVED)
-    ) {
+    } else if (formattedMsg.includes(constants.hub.errors.CHALLENGE_UNSOLVED)) {
       logger.warn(`${_challenge.actor} already slashed on '${chainName}'!`)
       return updateChallengeAndActorStatus(
         _actorsStorage,

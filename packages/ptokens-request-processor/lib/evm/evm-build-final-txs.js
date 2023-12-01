@@ -1,7 +1,7 @@
 const R = require('ramda')
 const ethers = require('ethers')
 const errors = require('../errors')
-const abi = require('./abi/PNetworkHub').abi
+const abi = require('./abi/PNetworkHub')
 const constants = require('ptokens-constants')
 const { logger } = require('../get-logger')
 const { HubError } = require('./evm-hub-error')

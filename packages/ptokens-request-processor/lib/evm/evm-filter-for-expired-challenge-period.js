@@ -1,6 +1,6 @@
 const R = require('ramda')
 const ethers = require('ethers')
-const abi = require('./abi/PNetworkHub').abi
+const abi = require('./abi/PNetworkHub')
 const constants = require('ptokens-constants')
 const { utils } = require('ptokens-utils')
 const { logger } = require('../get-logger')

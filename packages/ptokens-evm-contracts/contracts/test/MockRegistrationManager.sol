@@ -68,7 +68,7 @@ contract MockRegistrationManager {
         governanceMessageEmitter = governanceMessageEmitter_;
     }
 
-    function slash(address actor, uint256 amount, address challenger) external {
+    function slash(address actor, uint256 amount, address, uint256) external {
         Registration memory regitration = _registrations[actor];
 
         if (regitration.kind == 0x01) {

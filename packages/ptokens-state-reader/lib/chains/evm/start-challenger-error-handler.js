@@ -20,14 +20,6 @@ const errorDescriptionHandler = R.curry(
         _actorAddress,
         networkId
       )
-    } else if (formattedMsg.includes(constants.hub.errors.ACTOR_INACTIVE)) {
-      logger.warn(`${_actorAddress} is inactive on '${chainName}'`)
-      return updateActorStatus(
-        _actorsStorage,
-        constants.hub.actorsStatus.Inactive,
-        _actorAddress,
-        networkId
-      )
     } else {
       logger.error('Error description not handled when starting a challenge:')
       logger.error(formattedMsg)

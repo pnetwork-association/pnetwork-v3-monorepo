@@ -3,6 +3,7 @@ const { ethers } = require('hardhat')
 const constants = require('ptokens-constants')
 const { SLASHING_QUANTITY } = require('./constants')
 const { MerkleTree } = require('merkletreejs')
+const { time } = require('@nomicfoundation/hardhat-network-helpers')
 
 let governanceMessageEmitter,
   epochsManager,
@@ -282,7 +283,14 @@ describe('GovernanceMessageEmitter', () => {
       ]
     )
 
-    await expect(registrationManager.slash(slashedSentinel, SLASHING_QUANTITY, challenger.address))
+    await expect(
+      registrationManager.slash(
+        slashedSentinel,
+        SLASHING_QUANTITY,
+        challenger.address,
+        await time.latest()
+      )
+    )
       .to.emit(governanceMessageEmitter, 'GovernanceMessage')
       .withArgs(message)
 

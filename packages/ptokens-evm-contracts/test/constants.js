@@ -19,7 +19,7 @@ const constants = {
     hardhat: '0x244ebbfe',
     interim: '0xffffffff',
     polygonMainnet: '0x0075dd4c',
-    sepolia: '0x953835d9',
+    sepolia: '0xe15503e4',
     goerli: '0xb9286154',
   },
   REGISTRATION_KINDS: {
