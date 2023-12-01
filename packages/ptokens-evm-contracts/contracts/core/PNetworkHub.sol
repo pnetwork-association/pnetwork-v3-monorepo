@@ -317,7 +317,8 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
         uint256 effectiveOperationAssetAmount = operation.assetAmount;
 
         // NOTE: if we are on the interim chain we must take the fee
-        if (interimChainNetworkId == Network.getCurrentNetworkId()) {
+        bytes4 currentNetworkId = Network.getCurrentNetworkId();
+        if (interimChainNetworkId == currentNetworkId) {
             effectiveOperationAssetAmount = _takeProtocolFee(operation, pTokenAddress);
 
             // NOTE: if we are on interim chain but the effective destination chain (forwardDestinationNetworkId) is another one
@@ -351,6 +352,7 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
                     operation.forwardNetworkFeeAssetAmount,
                     0,
                     bytes4(0),
+                    currentNetworkId,
                     operation.userData,
                     operation.optionsMask,
                     operation.isForProtocol
@@ -504,6 +506,7 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
                 0,
                 0,
                 0,
+                currentNetworkId,
                 abi.encode(currentEpoch, challenge.actor, challenge.challenger, block.timestamp),
                 bytes32(0),
                 true // isForProtocol
@@ -657,6 +660,7 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
                 underlyingAssetNetworkId
             ),
             destinationNetworkId,
+            Network.getCurrentNetworkId(),
             userData,
             optionsMask,
             false // isForProtocol

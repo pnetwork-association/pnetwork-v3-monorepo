@@ -1459,6 +1459,7 @@ describe('PNetworkHub', () => {
         forwardNetworkFeeAssetAmount,
         '0',
         '0x00000000',
+        operation.originNetworkId,
         operation.userData,
         operation.optionsMask,
         operation.isForProtocol
@@ -3035,6 +3036,7 @@ describe('PNetworkHub', () => {
     const networkFeeAssetAmount = 0
     const forwardNetworkFeeAssetAmount = 0
     const forwardDestinationNetworkId = '0x00000000'
+    const originNetworkId = PNETWORK_NETWORK_IDS.hardhat
     const userData = encodedBytes
     const optionsMask = '0x0000000000000000000000000000000000000000000000000000000000000000'
     const isForProtocol = true
@@ -3054,6 +3056,7 @@ describe('PNetworkHub', () => {
       networkFeeAssetAmount,
       forwardNetworkFeeAssetAmount,
       forwardDestinationNetworkId,
+      originNetworkId,
       userData,
       optionsMask,
       isForProtocol,
