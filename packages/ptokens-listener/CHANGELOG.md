@@ -1,5 +1,23 @@
 # ptokens-listener
 
+## 1.9.0-beta.1
+
+### Minor Changes
+
+- 9dc8031: Reflect ptokens-constants changes
+
+  Plus:
+
+  - Remove `unhandledrejection` catcher since it was sucking up all the errors
+
+### Patch Changes
+
+- Updated dependencies [9dc8031]
+- Updated dependencies [9dc8031]
+- Updated dependencies [60f6976]
+  - ptokens-constants@1.7.0-beta.1
+  - ptokens-utils@4.7.0-beta.1
+
 ## 1.8.3-beta.0
 
 ### Patch Changes

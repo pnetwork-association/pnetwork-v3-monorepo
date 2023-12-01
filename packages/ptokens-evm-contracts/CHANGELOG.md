@@ -1,5 +1,32 @@
 # ptokens-evm-contracts
 
+## 0.6.0-beta.1
+
+### Minor Changes
+
+- 9dc8031: Minor improvements and add state-emitter/reader config generation
+
+  Plus:
+
+  - Fix axios vulnerability through override
+  - Factor out generate-configs function into separate modules
+  - Add state-emitter & state-reader config generation on `app:generate-configs` task
+  - Add `start-challenge` `slash` & `light-resume` tasks
+  - Use ptokens-constants `ZERO_ADDRESS` plus other factored out struct
+
+### Patch Changes
+
+- d51841d: avoid multiple slashes close together for the same actor
+- df669a2: update vulnerable merkletreejs
+- Updated dependencies [9dc8031]
+- Updated dependencies [9dc8031]
+- Updated dependencies [9dc8031]
+- Updated dependencies [60f6976]
+- Updated dependencies [df669a2]
+  - ptokens-constants@1.7.0-beta.1
+  - ptokens-request-processor@1.10.0-beta.1
+  - ptokens-utils@4.7.0-beta.1
+
 ## 0.5.2-beta.0
 
 ### Patch Changes

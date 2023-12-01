@@ -1,6 +1,6 @@
 {
   "name": "ptokens-constants",
-  "version": "1.6.2-beta.0",
+  "version": "1.7.0-beta.1",
   "description": "Group all the shared constants for the pTokens libraries'",
   "engines": {
     "node": ">=16.0.0"
