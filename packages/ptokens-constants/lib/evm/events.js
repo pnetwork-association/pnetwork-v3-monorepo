@@ -14,7 +14,7 @@ const ACTORS_PROPAGATED_SIGNATURE =
   'ActorsPropagated(uint16 indexed epoch, address[] actors, uint8[] actorsType)'
 
 const USER_OPERATION_SIGNATURE =
-  'UserOperation(uint256 nonce,string originAccount,string destinationAccount,bytes4 destinationNetworkId,string underlyingAssetName,string underlyingAssetSymbol,uint256 underlyingAssetDecimals,address underlyingAssetTokenAddress,bytes4 underlyingAssetNetworkId,address assetTokenAddress,uint256 assetAmount,uint256 userDataProtocolFeeAssetAmount,uint256 networkFeeAssetAmount,uint256 forwardNetworkFeeAssetAmount,bytes4 forwardDestinationNetworkId,bytes userData,bytes32 optionsMask,bool isForProtocol)'
+  'UserOperation(uint256 nonce,string originAccount,string destinationAccount,bytes4 destinationNetworkId,string underlyingAssetName,string underlyingAssetSymbol,uint256 underlyingAssetDecimals,address underlyingAssetTokenAddress,bytes4 underlyingAssetNetworkId,address assetTokenAddress,uint256 assetAmount,uint256 userDataProtocolFeeAssetAmount,uint256 networkFeeAssetAmount,uint256 forwardNetworkFeeAssetAmount,bytes4 forwardDestinationNetworkId,bytes4 originNetworkId,bytes userData,bytes32 optionsMask,bool isForProtocol)'
 
 const CHALLENGE_PENDING_SIGNATURE = `ChallengePending(${CHALLENGE_TUPLE} challenge)`
 

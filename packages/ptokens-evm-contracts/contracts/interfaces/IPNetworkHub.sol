@@ -194,6 +194,7 @@ interface IPNetworkHub is IGovernanceMessageHandler {
         uint256 networkFeeAssetAmount,
         uint256 forwardNetworkFeeAssetAmount,
         bytes4 forwardDestinationNetworkId,
+        bytes4 originNetworkId,
         bytes userData,
         bytes32 optionsMask,
         bool isForProtocol
