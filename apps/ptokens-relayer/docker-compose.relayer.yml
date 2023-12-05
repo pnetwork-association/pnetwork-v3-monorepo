@@ -91,3 +91,31 @@ services:
     restart: unless-stopped
     command: ./index.js processFinalTransactions
     depends_on: ['mongodb']
+
+  gnosis-listener:
+    image: ${IMAGE_EVM_LISTENER}:${VERSION_LISTENER:-latest}
+    volumes:
+      - './gnosis.listener.config.json:${APP_CONFIG_JSON}'
+      - './logs:${APP_FOLDER_LOGS}'
+    restart: unless-stopped
+    depends_on: ['mongodb']
+
+  gnosis-proposer:
+    image: ${IMAGE_EVM_PROCESSOR}:${VERSION_PROCESSOR:-latest}
+    volumes:
+      - './private-key:${PRIVATE_KEY_FILE}'
+      - './gnosis.processor.config.json:${APP_CONFIG_JSON}'
+      - './logs:${APP_FOLDER_LOGS}'
+    restart: unless-stopped
+    command: ./index.js pollForRequestsAndPropose
+    depends_on: ['mongodb']
+
+  gnosis-finalizer:
+    image: ${IMAGE_EVM_PROCESSOR}:${VERSION_PROCESSOR:-latest}
+    volumes:
+      - './private-key:${PRIVATE_KEY_FILE}'
+      - './gnosis.processor.config.json:${APP_CONFIG_JSON}'
+      - './logs:${APP_FOLDER_LOGS}'
+    restart: unless-stopped
+    command: ./index.js processFinalTransactions
+    depends_on: ['mongodb']
