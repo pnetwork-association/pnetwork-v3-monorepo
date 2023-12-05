@@ -2,12 +2,15 @@ const { Trie } = require('@ethereumjs/trie')
 const { RLP } = require('@ethereumjs/rlp')
 const { bufferToHex } = require('@ethereumjs/util')
 const { types } = require('hardhat/config')
+const constants = require('ptokens-constants')
 const fs = require('fs')
 
 const MerkleTree = require('./utils/MerkleTree')
 const { ROOT_CHAIN_CONTRACT_ABI, getBytesBlockHash, getBytesEncodedReceipt } = require('./utils')
 
+// secretlint-disable
 const TOPIC = '0x85aab78efe4e39fd3b313a465f645990e6a1b923f5f5b979957c176e632c5a07' // keccak256(GovernanceMessage(bytes))
+// secretlint-enable
 
 /* eslint-disable no-console */
 const main = async (
@@ -24,7 +27,7 @@ const main = async (
   const { ethers } = _hre
 
   try {
-    await _hre.changeNetwork('polygon')
+    await _hre.changeNetwork(constants.interim.name)
 
     // check if in the corresponding tx there is an event that we want to verify on Ethereum
     console.log(`Checking if ${transactionHash} exists ...`)
@@ -68,7 +71,7 @@ const main = async (
     }
 
     console.log('Fetching blocks ...')
-    await _hre.changeNetwork('polygon')
+    await _hre.changeNetwork(constants.interim.name)
     const blocks = []
     // NOTE: Promise.all causes in many cases a timeout error
     for (let blockNumber = start.toNumber(); blockNumber <= end.toNumber(); blockNumber++) {
