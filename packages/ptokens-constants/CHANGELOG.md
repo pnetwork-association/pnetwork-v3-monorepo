@@ -1,5 +1,11 @@
 # ptokens-constants
 
+## 1.7.0-beta.2
+
+### Minor Changes
+
+- fc97b83: add originNetworkId to UserOperation event signature
+
 ## 1.7.0-beta.1
 
 ### Minor Changes
