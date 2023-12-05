@@ -5,8 +5,6 @@ services:
     container_name: mongodb-challenger
     volumes:
       - database-challenger:/data/db
-    networks:
-      - net-challenger
     env_file:
       - .env
     environment:
@@ -17,6 +15,3 @@ services:
 
 volumes:
   database-challenger:
-
-networks:
-  net-challenger:

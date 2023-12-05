@@ -5,9 +5,7 @@ services:
     volumes:
       - ipfs-challenger:/data/ipfs
     ports:
-      - '${HOST_IPFS_PORT}:4001'
-    networks:
-      - net-challenger
+      - ${HOST_IPFS_PORT}:4001
     restart: unless-stopped
     command:
       - daemon
@@ -24,8 +22,6 @@ services:
       - ./challenger.config.json:${APP_CONFIG_JSON}
       - ./private-key:${PRIVATE_KEY_FILE}
       - ./logs:/usr/src/app/logs
-    networks:
-      - net-challenger
     restart: unless-stopped
     depends_on:
       - ipfs
