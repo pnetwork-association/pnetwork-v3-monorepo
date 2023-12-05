@@ -1,5 +1,18 @@
 # ptokens-evm-contracts
 
+## 0.6.0-beta.2
+
+### Minor Changes
+
+- fc97b83: add originNetworkId field to UserOperationEvent
+
+### Patch Changes
+
+- Updated dependencies [fc97b83]
+  - ptokens-constants@1.7.0-beta.2
+  - ptokens-request-processor@1.10.0-beta.2
+  - ptokens-utils@4.7.0-beta.2
+
 ## 0.6.0-beta.1
 
 ### Minor Changes
