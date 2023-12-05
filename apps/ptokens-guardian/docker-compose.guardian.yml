@@ -15,8 +15,6 @@ services:
     restart: unless-stopped
     ports:
       - 4001:4001
-    networks:
-      - net-guardian
     command:
       - daemon
       - --migrate=true
@@ -30,8 +28,6 @@ services:
       - ipfs-guardian:/home/node/.ipfs
       - ./state-emitter.config.json:${APP_CONFIG_JSON}
       - './private-key:${PRIVATE_KEY_FILE}'
-    networks:
-      - net-guardian
     restart: unless-stopped
     depends_on: ['ipfs']
 
@@ -40,8 +36,6 @@ services:
     volumes:
       - './goerli.listener.config.json:${APP_CONFIG_JSON}'
       - './logs:${APP_FOLDER_LOGS}'
-    networks:
-      - net-guardian
     restart: unless-stopped
     depends_on: ['mongodb']
 
@@ -51,8 +45,6 @@ services:
       - './private-key:${PRIVATE_KEY_FILE}'
       - './goerli.processor.config.json:${APP_CONFIG_JSON}'
       - './logs:${APP_FOLDER_LOGS}'
-    networks:
-      - net-guardian
     restart: unless-stopped
     command: ./index.js pollForRequestsAndDismiss
     depends_on: ['mongodb']
@@ -62,8 +54,6 @@ services:
     volumes:
       - './polygon.listener.config.json:${APP_CONFIG_JSON}'
       - './logs:${APP_FOLDER_LOGS}'
-    networks:
-      - net-guardian
     restart: unless-stopped
     depends_on: ['mongodb']
 
@@ -73,8 +63,6 @@ services:
       - './private-key:${PRIVATE_KEY_FILE}'
       - './polygon.processor.config.json:${APP_CONFIG_JSON}'
       - './logs:${APP_FOLDER_LOGS}'
-    networks:
-      - net-guardian
     restart: unless-stopped
     command: ./index.js pollForRequestsAndDismiss
     depends_on: ['mongodb']
@@ -84,8 +72,6 @@ services:
     volumes:
       - './bsc.listener.config.json:${APP_CONFIG_JSON}'
       - './logs:${APP_FOLDER_LOGS}'
-    networks:
-      - net-guardian
     restart: unless-stopped
     depends_on: ['mongodb']
 
@@ -95,8 +81,24 @@ services:
       - './private-key:${PRIVATE_KEY_FILE}'
       - './bsc.processor.config.json:${APP_CONFIG_JSON}'
       - './logs:${APP_FOLDER_LOGS}'
-    networks:
-      - net-guardian
+    restart: unless-stopped
+    command: ./index.js pollForRequestsAndDismiss
+    depends_on: ['mongodb']
+
+  gnosis-listener:
+    image: ${IMAGE_EVM_LISTENER}:${VERSION_LISTENER:-latest}
+    volumes:
+      - './gnosis.listener.config.json:${APP_CONFIG_JSON}'
+      - './logs:${APP_FOLDER_LOGS}'
+    restart: unless-stopped
+    depends_on: ['mongodb']
+
+  gnosis-processor:
+    image: ${IMAGE_EVM_PROCESSOR}:${VERSION_PROCESSOR:-latest}
+    volumes:
+      - './private-key:${PRIVATE_KEY_FILE}'
+      - './gnosis.processor.config.json:${APP_CONFIG_JSON}'
+      - './logs:${APP_FOLDER_LOGS}'
     restart: unless-stopped
     command: ./index.js pollForRequestsAndDismiss
     depends_on: ['mongodb']
