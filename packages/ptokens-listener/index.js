@@ -34,16 +34,17 @@ Example calls:
 
 `
 
+// secretlint-disable
 const GET_EVENT_REPORTS_FROM_TRANSACTION_HELP_MESSAGE =
   EXAMPLE_CALLS +
-  `$ node index.js ${GET_EVENT_REPORTS_FROM_TRANSACTION_CMD} 0x2d300f8aeed6cee69f50dde84d0a6e991d0836b2a1a3b3a6737b3ae3493f710f 'UserOperation(uint256 nonce, string destinationAccount, bytes4 destinationNetworkId, string underlyingAssetName, string underlyingAssetSymbol, uint256 underlyingAssetDecimals, address underlyingAssetTokenAddress, bytes4 underlyingAssetNetworkId, address assetTokenAddress, uint256 assetAmount, address protocolFeeAssetTokenAddress, uint256 userDataProtocolFeeAssetAmount, uint256 networkFeeAssetAmount, uint256 forwardNetworkFeeAssetAmount, bytes4 forwardDestinationNetworkId, bytes userData, bytes32 optionsMask)'
+  `$ node index.js ${GET_EVENT_REPORTS_FROM_TRANSACTION_CMD} 0x2d300f8aeed6cee69f50dde84d0a6e991d0836b2a1a3b3a6737b3ae3493f710f 'UserOperation(uint256 nonce, string destinationAccount, bytes4 destinationNetworkId, string underlyingAssetName, string underlyingAssetSymbol, uint256 underlyingAssetDecimals, address underlyingAssetTokenAddress, bytes4 underlyingAssetNetworkId, address assetTokenAddress, uint256 assetAmount, address protocolFeeAssetTokenAddress, uint256 userDataProtocolFeeAssetAmount, uint256 networkFeeAssetAmount, uint256 forwardNetworkFeeAssetAmount, bytes4 forwardDestinationNetworkId, bytes4 originNetworkId, bytes userData, bytes32 optionsMask)'
 `
 
 const GET_EVENT_LOGS_FROM_TRANSACTION_HELP_MESSAGE =
   EXAMPLE_CALLS +
   `$ node index.js ${GET_EVENT_LOGS_FROM_TRANSACTION_CMD} 0x2d300f8aeed6cee69f50dde84d0a6e991d0836b2a1a3b3a6737b3ae3493f710f
 
-$ node index.js ${GET_EVENT_LOGS_FROM_TRANSACTION_CMD} 0x2d300f8aeed6cee69f50dde84d0a6e991d0836b2a1a3b3a6737b3ae3493f710f 'UserOperation(uint256 nonce, string destinationAccount, bytes4 destinationNetworkId, string underlyingAssetName, string underlyingAssetSymbol, uint256 underlyingAssetDecimals, address underlyingAssetTokenAddress, bytes4 underlyingAssetNetworkId, address assetTokenAddress, uint256 assetAmount, address protocolFeeAssetTokenAddress, uint256 userDataProtocolFeeAssetAmount, uint256 networkFeeAssetAmount, uint256 forwardNetworkFeeAssetAmount, bytes4 forwardDestinationNetworkId, bytes userData, bytes32 optionsMask)'
+$ node index.js ${GET_EVENT_LOGS_FROM_TRANSACTION_CMD} 0x2d300f8aeed6cee69f50dde84d0a6e991d0836b2a1a3b3a6737b3ae3493f710f 'UserOperation(uint256 nonce, string destinationAccount, bytes4 destinationNetworkId, string underlyingAssetName, string underlyingAssetSymbol, uint256 underlyingAssetDecimals, address underlyingAssetTokenAddress, bytes4 underlyingAssetNetworkId, address assetTokenAddress, uint256 assetAmount, address protocolFeeAssetTokenAddress, uint256 userDataProtocolFeeAssetAmount, uint256 networkFeeAssetAmount, uint256 forwardNetworkFeeAssetAmount, bytes4 forwardDestinationNetworkId, bytes4 originNetworkId, bytes userData, bytes32 optionsMask)'
 `
 
 const GET_ACTORS_PROPAGATED_HELP_MESSAGE =
@@ -75,6 +76,7 @@ const GET_OPERATIONS_HELP_MESSAGE =
   EXAMPLE_CALLS +
   `$ node index.js ${GET_OPERATIONS_CMD} 0x46840d7667c567d8ae702801c296d9cb19535d7c77f8e132c79f06c25df79600 0x565033350582f4Ad298fDD8d59b7c36D0cAC1712 --fromBlock 34923840
 `
+// secretlint-enable
 
 const addMainCommand = _program =>
   _program
