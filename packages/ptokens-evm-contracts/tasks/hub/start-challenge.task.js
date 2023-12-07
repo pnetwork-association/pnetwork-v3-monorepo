@@ -1,7 +1,14 @@
+const { utils } = require('ptokens-utils')
 const { types } = require('hardhat/config')
-const { MerkleTree } = require('merkletreejs')
 const { getHubAddress } = require('../lib/configuration-manager')
-const { PARAM_NAME_GASPRICE, PARAM_NAME_GAS } = require('../constants')
+const {
+  OPT_NAME_PROOF,
+  OPT_DESC_PROOF,
+  PARAM_NAME_GAS,
+  PARAM_NAME_GASPRICE,
+  PARAM_ACTORS_PROPAGATED_JSON,
+  PARAM_ACTORS_PROPAGATED_JSON_DESC,
+} = require('../constants')
 const constants = require('ptokens-constants')
 const TASK_DESC = 'Starts a new challenge'
 const TASK_NAME = 'hub:start-challenge'
@@ -9,19 +16,6 @@ const PARAM_NAME_ACTOR_ADDRESS = 'sentinelAddress'
 const PARAM_DESC_ACTOR_ADDRESS = 'The sentinel address'
 const PARAM_NAME_ACTOR_TYPE = 'actorType'
 const PARAM_DESC_ACTOR_TYPE = 'The type of the actor (sentinel or guardian)'
-const OPT_NAME_PROOF = 'proof'
-const OPT_DESC_PROOF = 'The merkle path as an array of hex-strings'
-const OPT_NAME_ACTORS_PROPAGATED_EVENT = 'actorsPropagatedJson'
-const OPT_DESC_ACTORS_PROPAGATED_EVENT =
-  'JSON given by the listener when getting the ActorsPropagated event'
-
-const getActorsMerkleProof = ({ actors, actor, types, type }) => {
-  const leaves = actors.map((address, _index) =>
-    ethers.utils.solidityKeccak256(['address', 'uint8'], [address, types[_index]])
-  )
-  const merkleTree = new MerkleTree(leaves, ethers.utils.keccak256, { sortPairs: true })
-  return merkleTree.getHexProof(ethers.utils.solidityKeccak256(['address', 'uint8'], [actor, type]))
-}
 
 const startChallenge = async (_args, _hre) => {
   const challenger = await _hre.ethers.getSigner()
@@ -37,7 +31,7 @@ const startChallenge = async (_args, _hre) => {
   const gasLimit = _args[PARAM_NAME_GAS]
   const gasPrice = _args[PARAM_NAME_GASPRICE]
   const proofArg = _args[OPT_NAME_PROOF]
-  const actorsPropagatedEvent = _args[OPT_NAME_ACTORS_PROPAGATED_EVENT]
+  const actorsPropagatedEvent = _args[PARAM_ACTORS_PROPAGATED_JSON_DESC]
 
   let proof = null
   if (proofArg) {
@@ -45,15 +39,10 @@ const startChallenge = async (_args, _hre) => {
   } else if (actorsPropagatedEvent) {
     const actors = actorsPropagatedEvent[constants.db.KEY_EVENT_ARGS][1]
     const actorsTypes = actorsPropagatedEvent[constants.db.KEY_EVENT_ARGS][2]
-    proof = getActorsMerkleProof({
-      actors,
-      actor: actorAddress,
-      types: actorsTypes,
-      type: actorType,
-    })
+    proof = await utils.getMerkleProof(0, actors, actorsTypes, actorAddress)
   } else {
     throw Error(
-      `Either one of --${OPT_NAME_PROOF} or --${OPT_NAME_ACTORS_PROPAGATED_EVENT} is required!`
+      `Either one of --${OPT_NAME_PROOF} or --${PARAM_ACTORS_PROPAGATED_JSON} is required!`
     )
   }
 
@@ -80,8 +69,8 @@ task(TASK_NAME, TASK_DESC)
   .addPositionalParam(PARAM_NAME_ACTOR_ADDRESS, PARAM_DESC_ACTOR_ADDRESS, undefined, types.string)
   .addPositionalParam(PARAM_NAME_ACTOR_TYPE, PARAM_DESC_ACTOR_TYPE, undefined, types.int)
   .addOptionalParam(
-    OPT_NAME_ACTORS_PROPAGATED_EVENT,
-    OPT_DESC_ACTORS_PROPAGATED_EVENT,
+    PARAM_ACTORS_PROPAGATED_JSON,
+    PARAM_ACTORS_PROPAGATED_JSON_DESC,
     undefined,
     types.json
   )
