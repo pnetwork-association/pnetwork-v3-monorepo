@@ -1,6 +1,7 @@
 const deployAsset = require('./deploy-asset.task')
 const deployInit = require('./deploy-init.task')
 const deployPToken = require('./deploy-ptoken.task')
+const deployReceiver = require('./deploy-receiver.task')
 const deployContract = require('./deploy-contract.task')
 const deployPFactory = require('./deploy-pfactory.task')
 const deployPRegistry = require('./deploy-registry.task')
@@ -16,6 +17,7 @@ module.exports = {
   deployInit,
   deployAsset,
   deployPToken,
+  deployReceiver,
   deployPFactory,
   deployPRegistry,
   deploySlasher,
