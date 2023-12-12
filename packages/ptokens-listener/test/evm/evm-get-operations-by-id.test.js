@@ -22,8 +22,8 @@ describe('Get EVM operations by Operation ID', () => {
       const { getEvmOperationsById } = require('../../lib/evm/evm-get-operations-by-id')
       const provider = 'polygon-provider-url-1'
       const networkId = constants.networkIds.POLYGON_MAINNET
-      const operationId = '0xd9feb6e60cd73c396cbaeb3e5fa55c774c03a274c54f5bc53a62a59855ec7cc4' // secretlint-disable-line
-      const hubAddress = '0xd2bac275fffdbdd23ecea72f4b161b3af90300a3'
+      const operationId = '0x73d96bb1831f73f4f47269f312b2131ca7a3becc4ccf8f53d5352575013c9378' // secretlint-disable-line
+      const hubAddress = '0xD64363f98aBf755f92D5cA89C57CDbc8d3D05F9c'
       const fromBlock = 45583400
       const ret = await getEvmOperationsById(
         provider,
@@ -44,12 +44,7 @@ describe('Get EVM operations by Operation ID', () => {
           ],
         ],
       })
-      expect(ret).toStrictEqual([
-        {
-          eventName: 'OperationExecuted',
-          txHash: '0xa5c5838123aa37d2efd69285f7b6bd8c2e93d4cf243d45926169502c13b23a49', // secretlint-disable-line
-        },
-      ])
+      expect(ret).toMatchSnapshot()
     })
 
     it('Should get an empty array of operations when there are no logs', async () => {

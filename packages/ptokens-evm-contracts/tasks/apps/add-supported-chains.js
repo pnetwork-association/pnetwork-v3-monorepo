@@ -37,6 +37,11 @@ const buildSupportedChainObject = R.curry(
         [constants.config.KEY_PROVIDER_URL]: providerUrl,
       }
 
+      if (R.isNil(epochManager)) return reject(new Error(`Invalid epochManager for ${_chainName}`))
+
+      if (R.isNil(governanceMessageEmitter) && _chainName === constants.interim.name)
+        return reject(new Error(`Invalid governanceMessageEmitter for ${_chainName}`))
+
       return _chainName === constants.interim.name
         ? resolve({
             ...obj,

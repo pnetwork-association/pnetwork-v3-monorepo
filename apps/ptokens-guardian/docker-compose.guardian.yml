@@ -10,15 +10,9 @@ version: '3'
 services:
   ipfs:
     image: ipfs/kubo:${VERSION_IPFS}
-    volumes:
-      - ipfs:/data/ipfs
     restart: unless-stopped
     ports:
       - 4001:4001
-      - 4001:4001/udp
-      - 127.0.0.1:8080:8080
-      - 127.0.0.1:5001:5001
-    network_mode: host
     command:
       - daemon
       - --migrate=true
@@ -29,13 +23,10 @@ services:
   state-emitter:
     image: ${IMAGE_STATE_EMITTER}:${VERSION_STATE_EMITTER}
     volumes:
-      - ipfs:/home/node/.ipfs
       - ./state-emitter.config.json:${APP_CONFIG_JSON}
       - './private-key:${PRIVATE_KEY_FILE}'
     restart: unless-stopped
-    depends_on:
-      - ipfs
-    network_mode: host
+    depends_on: ['ipfs']
 
   goerli-listener:
     image: ${IMAGE_EVM_LISTENER}:${VERSION_LISTENER:-latest}
@@ -91,6 +82,38 @@ services:
     command: ./index.js pollForRequestsAndDismiss
     depends_on: ['mongodb']
 
-volumes:
-  ipfs:
-    name: ipfs_daemon
+  gnosis-listener:
+    image: ${IMAGE_EVM_LISTENER}:${VERSION_LISTENER:-latest}
+    volumes:
+      - './gnosis.listener.config.json:${APP_CONFIG_JSON}'
+      - './logs:${APP_FOLDER_LOGS}'
+    restart: unless-stopped
+    depends_on: ['mongodb']
+
+  gnosis-processor:
+    image: ${IMAGE_EVM_PROCESSOR}:${VERSION_PROCESSOR:-latest}
+    volumes:
+      - './private-key:${PRIVATE_KEY_FILE}'
+      - './gnosis.processor.config.json:${APP_CONFIG_JSON}'
+      - './logs:${APP_FOLDER_LOGS}'
+    restart: unless-stopped
+    command: ./index.js pollForRequestsAndDismiss
+    depends_on: ['mongodb']
+
+  mainnet-listener:
+    image: ${IMAGE_EVM_LISTENER}:${VERSION_LISTENER:-latest}
+    volumes:
+      - './mainnet.listener.config.json:${APP_CONFIG_JSON}'
+      - './logs:${APP_FOLDER_LOGS}'
+    restart: unless-stopped
+    depends_on: ['mongodb']
+
+  mainnet-processor:
+    image: ${IMAGE_EVM_PROCESSOR}:${VERSION_PROCESSOR:-latest}
+    volumes:
+      - './private-key:${PRIVATE_KEY_FILE}'
+      - './mainnet.processor.config.json:${APP_CONFIG_JSON}'
+      - './logs:${APP_FOLDER_LOGS}'
+    restart: unless-stopped
+    command: ./index.js pollForRequestsAndDismiss
+    depends_on: ['mongodb']

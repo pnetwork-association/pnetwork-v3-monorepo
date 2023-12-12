@@ -36,7 +36,7 @@ const challengeActor = R.curry(
 
       const hubStartChallenge = _dryRun ? _hub.startChallenge.staticCall : _hub.startChallenge
 
-      return hubStartChallenge(_actorAddress, _actorType, _proof, { value: _lockAmount })
+      return hubStartChallenge(_actorAddress, _actorType, _proof, { value: BigInt(_lockAmount) })
         .then(_tx => (_dryRun ? Promise.reject(ERROR_DRY_RUN) : _tx.wait(1)))
         .then(_receipt => logger.info(`Tx mined @ ${_receipt.hash}(${chainName})`) || _receipt)
         .then(extractChallengeFromReceipt(_hub))

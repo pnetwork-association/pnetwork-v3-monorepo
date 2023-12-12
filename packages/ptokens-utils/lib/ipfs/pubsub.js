@@ -1,93 +1,146 @@
 const R = require('ramda')
-const { logger } = require('../logger')
 const EventEmitter = require('events')
-const constants = require('./constants')
-const { spawn } = require('node:child_process')
-const { checkDaemon } = require('./check-daemon')
+const http = require('node:http')
+const errors = require('../errors')
+const multibase = require('multibase')
 
-/**
- * Usage:
- *
- * const { ipfs } = require('ptokens-utils')
- * ...
- * try {
- *   await ipfs.pubsub.pub('topic', 'content')
- * } catch(e) {
- *   console.error(e)
- * }
- *
- **/
-const pub = R.curry(
-  (_topic, _content) =>
-    new Promise((resolve, reject) => {
-      // NOTE: we don't check the daemon is running
-      // here as it'll be detected on stderr
-      const args = constants.IPFS_PUBSUB_PUB_ARGS.slice()
-      args.push(_topic)
+class PubSub {
+  constructor(ipfsProvider) {
+    this.provider = ipfsProvider
+  }
 
-      const pub = spawn(constants.IPFS_EXEC, args)
+  writeBinaryPostData(req, data) {
+    // This is the only way found by the author
+    // to send multipart/form-data to the IPFS
+    // node (node-fetch was not working)
+    const crlf = '\r\n'
+    const boundaryKey = Math.random().toString(16)
+    const boundary = `--${boundaryKey}`
+    const delimeter = `${crlf}--${boundary}`
+    const closeDelimeter = `${delimeter}--`
+    const headers = ['Content-Disposition: form-data; name="file";' + crlf]
 
-      const stderr = []
-      const stdout = []
+    const multipartBody = Buffer.concat([
+      Buffer.from(delimeter + crlf + headers.join('') + crlf),
+      Buffer.from(data),
+      Buffer.from(closeDelimeter),
+    ])
 
-      logger.trace(`topic: '${_topic}'`)
-      logger.trace('content:', _content)
+    req.setHeader('Content-Type', 'multipart/form-data; boundary=' + boundary)
+    req.setHeader('Content-Length', multipartBody.length)
+    req.write(multipartBody)
+    req.end()
+  }
 
-      pub.stdin.write(_content + '\n')
-      pub.stdin.end()
-
-      pub.stdout.on('data', data => {
-        stdout.push(data.toString())
+  httpMultipartFormData(_url, _opts, _content) {
+    return new Promise((resolve, reject) => {
+      const request = http.request(_url, _opts, _resp => {
+        const data = ''
+        _resp.setEncoding('utf-8')
+        _resp.on('data', R.concat(data))
+        _resp.on('end', () => resolve(data))
       })
-      pub.stderr.on('data', data => {
-        stderr.push(data.toString())
-      })
 
-      pub.on('close', () => {
-        if (stderr.length !== 0) reject(new Error(stderr.join('')))
-        else resolve(stdout.join(''))
-      })
+      request.on('error', reject)
+      this.writeBinaryPostData(request, _content)
+      request.end()
     })
-)
+  }
 
-/**
- * Usage:
- *
- * const { ipfs } = require('ptokens-utils')
- * ...
- * const subscriber = await ipfs.pubsub.sub('topic')
- * subscriber.on('message', (message) => { console.log(`[${topic}]:`, message) })
- * subscriver.on('error', errorHandler)
- * subscriber.on('close', closeHandler) // Fired when the IFPS daemon is shutted down
- * ...
- **/
-const sub = _topic =>
-  checkDaemon().then(_ => {
-    const args = constants.IPFS_PUBSUB_SUB_ARGS.slice()
-    args.push(_topic)
-    const sub = spawn(constants.IPFS_EXEC, args)
+  base64UrlEncode(_topic) {
+    const encodedTopic = multibase.encode('base64url', Buffer.from(_topic))
+    return Buffer.from(encodedTopic).toString('utf-8')
+  }
 
+  /**
+   * Usage:
+   *
+   * const { ipfs } = require('ptokens-utils')
+   * ...
+   * try {
+   *   const provider = new ipfs.IPFSProvider(url)
+   *   const pubSub = new ipfs.PubSub(provider)
+   *
+   *   await pubSub.pub('topic', 'content')
+   * } catch(e) {
+   *   console.error(e)
+   * }
+   *
+   **/
+  pub(_topic, _content) {
+    return this.provider.checkDaemon().then(_ => {
+      const encodedTopic = this.base64UrlEncode(_topic)
+      const url = `${this.provider.url}/api/v0/pubsub/pub?arg=${encodedTopic}`
+      const method = 'POST'
+      const headers = {
+        'Content-Type': 'text/plain',
+        'Content-Length': Buffer.byteLength(_content),
+      }
+      return this.httpMultipartFormData(url, { method, headers }, _content)
+    })
+  }
+
+  base64UrlDecode(_data) {
+    return Buffer.from(multibase.decode(_data)).toString('utf-8')
+  }
+
+  // Custom curry
+  maybeEmitDataProperty(_eventEmitter) {
+    return _data => {
+      const json = JSON.parse(_data)
+      try {
+        return R.isNotNil(json) && R.has('data', json)
+          ? _eventEmitter.emit('message', this.base64UrlDecode(json['data']))
+          : _eventEmitter.emit(
+              'error',
+              new Error(`${errors.ERROR_IPFS_PUBSUB_DATA_PARSING}: ${_data}`)
+            )
+      } catch (_err) {
+        _eventEmitter.emit(
+          'error',
+          new Error(`${errors.ERROR_IPFS_PUBSUB_DATA_PARSING}: ${_err} - ${_data}`)
+        )
+      }
+    }
+  }
+
+  /**
+   * Usage:
+   *
+   * const { ipfs } = require('ptokens-utils')
+   * ...
+   * const provider = new ipfs.IPFSProvider(url)
+   * const pubSub = new ipfs.PubSub(provider)
+   * const subscriber = await pubSub.sub('topic')
+   * subscriber.on('message', (message) => { console.log(`[${topic}]:`, message) })
+   * subscriber.on('error', errorHandler)
+   * subscriber.on('close', closeHandler) // Fired when the IFPS daemon is shutted down
+   * ...
+   **/
+  sub(_topic) {
+    const encodedTopic = this.base64UrlEncode(_topic)
+    const url = `${this.provider.url}/api/v0/pubsub/sub?arg=${encodedTopic}`
+    const method = 'POST'
+    const headers = { 'Content-Type': 'text/plain' }
     const eventEmitter = new EventEmitter()
-
-    const stderr = []
-    sub.stdout.on('data', data => {
-      eventEmitter.emit('message', data.toString())
+    const request = http.request(url, { method, headers }, _resp => {
+      // We expect something like
+      // {
+      //   "from": "12D3...",
+      //   "data": "ueyJ...",
+      //   "seqno": "uF5l...",
+      //   "topicIDs": [ "ucG5..." ]
+      // }
+      _resp.setEncoding('utf-8')
+      _resp.on('data', this.maybeEmitDataProperty(eventEmitter))
+      _resp.on('end', () => eventEmitter.emit('close'))
     })
 
-    sub.stderr.on('data', data => {
-      eventEmitter.emit('error', data.toString())
-    })
+    request.on('error', _err => eventEmitter.emit('error', _err))
+    request.end()
 
-    sub.on('close', () => {
-      eventEmitter.emit('close')
-    })
-
-    return stderr.length
-      ? Promise.reject(new Error(stderr.join('')))
-      : Promise.resolve(eventEmitter)
-  })
-
-module.exports = {
-  pub,
-  sub,
+    return Promise.resolve(eventEmitter)
+  }
 }
+
+module.exports = PubSub

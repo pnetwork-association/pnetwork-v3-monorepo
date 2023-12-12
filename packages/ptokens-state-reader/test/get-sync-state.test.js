@@ -14,6 +14,7 @@ const {
 const guardianStatusSample = require('./mock/guardian-status-sample.json')
 const actorsPropagatedSample = require('./chains/evm/mock/actors-propagated-sample.json')
 const { getActorFromStorage } = require('../lib/get-actor-from-storage')
+const { ipfs } = require('ptokens-utils')
 
 describe('Get syncing status general tests', () => {
   let actorsStorage = null
@@ -50,16 +51,17 @@ describe('Get syncing status general tests', () => {
       [constants.config.KEY_PROTOCOLS]: [
         {
           [constants.config.KEY_TYPE]: 'ipfs',
-          [constants.config.KEY_DATA]: { topic: 'pnetwork-v3' },
+          [constants.config.KEY_DATA]: {
+            url: 'http://127.0.0.1:5001',
+            topic: 'pnetwork-v3',
+          },
         },
       ],
     }
 
-    const pubsubModule = require('ptokens-utils').ipfs.pubsub
-
     const eventEmitter = new EventEmitter()
-
-    jest.spyOn(pubsubModule, 'sub').mockResolvedValue(eventEmitter)
+    const subMock = jest.fn().mockResolvedValue(eventEmitter)
+    jest.spyOn(ipfs, 'PubSub').mockImplementation(() => ({ sub: subMock }))
 
     const { getSyncStateAndUpdateTimestamps } = require('../lib/get-sync-state')
     getSyncStateAndUpdateTimestamps(state)

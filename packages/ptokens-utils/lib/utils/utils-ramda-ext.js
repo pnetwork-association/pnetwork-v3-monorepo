@@ -27,6 +27,10 @@ const sortKeysAlphabetically = obj => {
   return sortedObj
 }
 
+const rejectIfEqual = R.curry((_errMsg, _this, _that) =>
+  R.equals(_this, _that) ? Promise.reject(new Error(_errMsg)) : Promise.resolve()
+)
+
 const rejectIfNotEqual = R.curry((_errMsg, _this, _that) =>
   isNotEqual(_this, _that) ? Promise.reject(new Error(_errMsg)) : Promise.resolve()
 )
@@ -52,6 +56,7 @@ module.exports = {
   isNotEqual,
   isNotEmpty,
   rejectIfNil,
+  rejectIfEqual,
   doesNotInclude,
   rejectIfNotEqual,
   removeNilsFromList,

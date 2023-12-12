@@ -100,4 +100,8 @@ module.exports = {
   FLAG_DESC_DRY: 'Dry run',
   FLAG_NAME_MONGO_LOCALHOST: 'localhost',
   FLAG_DESC_MONGO_LOCALHOST: 'Set localhost into the mongo url (good for testing)',
+  PARAM_ACTORS_PROPAGATED_JSON: 'actorsPropagatedJson',
+  PARAM_ACTORS_PROPAGATED_JSON_DESC: 'JSON of the actors propagated event',
+  OPT_NAME_PROOF: 'proof',
+  OPT_DESC_PROOF: 'The merkle path as an array of hex-strings',
 }

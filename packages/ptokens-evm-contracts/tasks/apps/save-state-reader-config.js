@@ -6,7 +6,6 @@ const { addSupportedChains } = require('./add-supported-chains')
 const { addProtocols } = require('./add-protocols')
 const { addIdentity } = require('./add-identity')
 const { getMongoUrlFromTaskArgs } = require('./get-mongo-url')
-const { FLAG_MONGO_LOCALHOST } = require('../constants')
 
 const PATH_TO_CHALLENGER_APP = path.join(__dirname, '../../../../apps/ptokens-challenger')
 
@@ -16,7 +15,7 @@ const addDb = R.curry((_taskArgs, _obj) =>
     [constants.config.KEY_DB]: {
       [constants.config.KEY_NAME]: 'challenger',
       [constants.config.KEY_TABLE_EVENTS]: 'toremove',
-      [constants.config.KEY_URL]: getMongoUrlFromTaskArgs({ [FLAG_MONGO_LOCALHOST]: true }),
+      [constants.config.KEY_URL]: getMongoUrlFromTaskArgs(_taskArgs),
     },
   })
 )
@@ -48,7 +47,7 @@ const addIgnoredActors = _obj =>
 module.exports.saveStateReaderConfiguration = (_taskArgs, _hre) =>
   Promise.resolve({})
     .then(addSupportedChains)
-    .then(addProtocols)
+    .then(addProtocols(_taskArgs))
     .then(addIdentity)
     .then(addDb(_taskArgs))
     .then(addIgnoredActors)
