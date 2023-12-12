@@ -7,6 +7,7 @@ const TASK_DESC_ERC20_APPROVE =
 const TASK_PARAM_TOKEN_ADDRESS = 'tokenAddress'
 const TASK_PARAM_SPENDER = 'spenderAddress'
 const TASK_PARAM_AMOUNT = 'amount'
+const TASK_PARAM_DECIMALS = 'decimals'
 
 const approve = R.invoker(2, 'approve')
 const attachToAddress = R.invoker(1, 'attach')
@@ -16,7 +17,12 @@ const printTxHash = _tx => console.info(`Tx mined @ ${_tx.transactionHash}`)
 const erc20Approve = (taskArgs, hre) =>
   Promise.resolve(hre.ethers.getContractFactory('ERC20'))
     .then(attachToAddress(taskArgs[TASK_PARAM_TOKEN_ADDRESS]))
-    .then(approve(taskArgs[TASK_PARAM_SPENDER], taskArgs[TASK_PARAM_AMOUNT]))
+    .then(
+      approve(
+        taskArgs[TASK_PARAM_SPENDER],
+        hre.ethers.utils.parseUnits(taskArgs[TASK_PARAM_AMOUNT], taskArgs[TASK_PARAM_DECIMALS])
+      )
+    )
     .then(waitTxReceipt)
     .then(printTxHash)
 
@@ -28,4 +34,5 @@ task(TASK_NAME_ERC20_APPROVE, TASK_DESC_ERC20_APPROVE, erc20Approve)
     undefined,
     types.string
   )
-  .addPositionalParam(TASK_PARAM_AMOUNT, 'Value to transfer', undefined, types.int)
+  .addPositionalParam(TASK_PARAM_AMOUNT, 'Value to transfer', undefined, types.string)
+  .addPositionalParam(TASK_PARAM_DECIMALS, 'Token decimals', 18, types.int)
