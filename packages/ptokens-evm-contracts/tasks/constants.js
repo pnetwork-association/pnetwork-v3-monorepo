@@ -29,6 +29,10 @@ module.exports = {
   CONTRACT_NAME_GOVERNANCE_MESSAGE_VERIFIER: 'GovernanceMessageVerifier',
 
   // Params names and descriptions
+  PARAM_NAME_DAI_ADDRESS: 'daiAddress',
+  PARAM_DESC_DAI_ADDRESS: 'DAI token (or pToken) address',
+  PARAM_NAME_USERDATA: 'userData',
+  PARAM_DESC_USERDATA: 'Data to send to the receiving contract',
   PARAM_NAME_DEST_CHAIN: 'destinationChainName',
   PARAM_DESC_DEST_CHAIN: 'Destination chain name (ex. mainnet, mumbai ...)',
   PARAM_NAME_DEST_ADDRESS: 'destinationAddress',
