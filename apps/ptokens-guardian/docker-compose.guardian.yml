@@ -99,3 +99,21 @@ services:
     restart: unless-stopped
     command: ./index.js pollForRequestsAndDismiss
     depends_on: ['mongodb']
+
+  mainnet-listener:
+    image: ${IMAGE_EVM_LISTENER}:${VERSION_LISTENER:-latest}
+    volumes:
+      - './mainnet.listener.config.json:${APP_CONFIG_JSON}'
+      - './logs:${APP_FOLDER_LOGS}'
+    restart: unless-stopped
+    depends_on: ['mongodb']
+
+  mainnet-processor:
+    image: ${IMAGE_EVM_PROCESSOR}:${VERSION_PROCESSOR:-latest}
+    volumes:
+      - './private-key:${PRIVATE_KEY_FILE}'
+      - './mainnet.processor.config.json:${APP_CONFIG_JSON}'
+      - './logs:${APP_FOLDER_LOGS}'
+    restart: unless-stopped
+    command: ./index.js pollForRequestsAndDismiss
+    depends_on: ['mongodb']
