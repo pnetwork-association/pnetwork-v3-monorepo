@@ -8,7 +8,8 @@ WORKDIR $FOLDER_APP
 COPY package.json .
 
 RUN npm install ../ptokens-constants ../ptokens-utils && \
-    echo '{}' > $FOLDER_APP/config.json
+    echo '{}' > $FOLDER_APP/config.json && \
+    chown -R node:node $FOLDER_APP
 
 COPY --chown=node:node lib $FOLDER_APP/lib
 COPY --chown=node:node index.js $FOLDER_APP/
