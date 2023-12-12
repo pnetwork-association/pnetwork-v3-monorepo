@@ -2,8 +2,6 @@ version: '3'
 services:
   ipfs:
     image: ipfs/kubo:${VERSION_IPFS}
-    volumes:
-      - ipfs-challenger:/data/ipfs
     ports:
       - ${HOST_IPFS_PORT}:4001
     restart: unless-stopped
@@ -18,7 +16,6 @@ services:
     image: ${IMAGE_STATE_READER}:${VERSION_STATE_READER}
     env_file: .env
     volumes:
-      - ipfs-challenger:/home/node/.ipfs
       - ./challenger.config.json:${APP_CONFIG_JSON}
       - ./private-key:${PRIVATE_KEY_FILE}
       - ./logs:/usr/src/app/logs
@@ -26,7 +23,3 @@ services:
     depends_on:
       - ipfs
       - mongodb
-
-# Spin up the ipfs-daemon app first
-volumes:
-  ipfs-challenger:

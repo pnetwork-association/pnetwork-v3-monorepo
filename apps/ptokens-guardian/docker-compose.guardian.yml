@@ -10,8 +10,6 @@ version: '3'
 services:
   ipfs:
     image: ipfs/kubo:${VERSION_IPFS}
-    volumes:
-      - ipfs-guardian:/data/ipfs
     restart: unless-stopped
     ports:
       - 4001:4001
@@ -25,7 +23,6 @@ services:
   state-emitter:
     image: ${IMAGE_STATE_EMITTER}:${VERSION_STATE_EMITTER}
     volumes:
-      - ipfs-guardian:/home/node/.ipfs
       - ./state-emitter.config.json:${APP_CONFIG_JSON}
       - './private-key:${PRIVATE_KEY_FILE}'
     restart: unless-stopped
@@ -102,6 +99,3 @@ services:
     restart: unless-stopped
     command: ./index.js pollForRequestsAndDismiss
     depends_on: ['mongodb']
-
-volumes:
-  ipfs-guardian:
