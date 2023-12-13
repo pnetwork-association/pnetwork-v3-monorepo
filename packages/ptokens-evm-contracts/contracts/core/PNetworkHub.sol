@@ -461,17 +461,14 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
         }
 
         _epochsChallengesStatus[currentEpoch][challengeId] = ChallengeStatus.Unsolved;
-        // set the inactive bit
-        _epochsActorsStatus[currentEpoch][challenge.actor] |= STATUS_INACTIVE;
-        // reset the challenged bit
-        _epochsActorsStatus[currentEpoch][challenge.actor] &= ~STATUS_CHALLENGED;
         delete _epochsActorsPendingChallengeId[currentEpoch][challenge.actor];
 
         Utils.sendEther(challenge.challenger, lockedAmountStartChallenge);
 
-        unchecked {
-            ++_epochsTotalNumberOfInactiveActors[currentEpoch][challenge.actorType];
-        }
+        _setActorInactive(currentEpoch, challenge.actor, challenge.actorType);
+
+        // reset the challenged bit
+        _epochsActorsStatus[currentEpoch][challenge.actor] &= ~STATUS_CHALLENGED;
 
         // Encode block.timestamp in userData because slashing requests may arrive at
         // the RegistrationManager at different times (due to propagation time),
@@ -763,15 +760,7 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
             // - send to the challenger the bond
             // - slash it
             _maybeCancelPendingChallenge(epoch, actor);
-
-            if ((_epochsActorsStatus[epoch][actor] & STATUS_INACTIVE) == 0) {
-                unchecked {
-                    ++_epochsTotalNumberOfInactiveActors[epoch][actorType];
-                }
-                // set the inactive bit
-                _epochsActorsStatus[epoch][actor] |= STATUS_INACTIVE;
-                emit ActorSlashed(epoch, actor);
-            }
+            _setActorInactive(epoch, actor, actorType);
             return;
         }
 
@@ -780,15 +769,7 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
                 messageData,
                 (uint16, address, ActorTypes)
             );
-            if ((_epochsActorsStatus[epoch][actor] & STATUS_INACTIVE) != 0) {
-                unchecked {
-                    --_epochsTotalNumberOfInactiveActors[epoch][actorType];
-                }
-                // reset the inactive bit
-                _epochsActorsStatus[epoch][actor] &= ~STATUS_INACTIVE;
-                emit ActorResumed(epoch, actor);
-            }
-
+            _setActorActive(epoch, actor, actorType);
             return;
         }
 
@@ -871,6 +852,28 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
         }
     }
 
+    function _setActorInactive(uint16 epoch, address actor, ActorTypes actorType) internal {
+        if ((_epochsActorsStatus[epoch][actor] & STATUS_INACTIVE) == 0) {
+            unchecked {
+                ++_epochsTotalNumberOfInactiveActors[epoch][actorType];
+            }
+            // set the inactive bit
+            _epochsActorsStatus[epoch][actor] |= STATUS_INACTIVE;
+            emit ActorSlashed(epoch, actor);
+        }
+    }
+
+    function _setActorActive(uint16 epoch, address actor, ActorTypes actorType) internal {
+        if ((_epochsActorsStatus[epoch][actor] & STATUS_INACTIVE) != 0) {
+            unchecked {
+                --_epochsTotalNumberOfInactiveActors[epoch][actorType];
+            }
+            // reset the inactive bit
+            _epochsActorsStatus[epoch][actor] &= ~STATUS_INACTIVE;
+            emit ActorResumed(epoch, actor);
+        }
+    }
+
     function _solveChallenge(Challenge calldata challenge, bytes32 challengeId) internal {
         uint16 currentEpoch = IEpochsManager(epochsManager).currentEpoch();
         ChallengeStatus challengeStatus = _epochsChallengesStatus[currentEpoch][challengeId];
@@ -891,8 +894,7 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
         Utils.sendEther(address(0), lockedAmountStartChallenge);
 
         _epochsChallengesStatus[currentEpoch][challengeId] = ChallengeStatus.Solved;
-        // reset the inactive bit
-        _epochsActorsStatus[currentEpoch][challenge.actor] &= ~STATUS_INACTIVE;
+        _setActorActive(currentEpoch, challenge.actor, challenge.actorType);
         // reset the challenged bit
         _epochsActorsStatus[currentEpoch][challenge.actor] &= ~STATUS_CHALLENGED;
         delete _epochsActorsPendingChallengeId[currentEpoch][challenge.actor];
