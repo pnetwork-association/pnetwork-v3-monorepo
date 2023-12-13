@@ -1,5 +1,12 @@
 # ptokens-request-processor
 
+## 1.10.0-beta.3
+
+### Patch Changes
+
+- Updated dependencies [e748897]
+  - ptokens-utils@4.7.0-beta.3
+
 ## 1.10.0-beta.2
 
 ### Patch Changes

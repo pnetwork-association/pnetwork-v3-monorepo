@@ -1,5 +1,16 @@
 # ptokens-evm-contracts
 
+## 0.6.0-beta.3
+
+### Patch Changes
+
+- e748897: fix `hub:cancel` task + `apps:generate-configs` task'
+- eb3d51e: fix inactive actors counter
+- e8fa52b: refactor actor status tracking
+- Updated dependencies [e748897]
+  - ptokens-utils@4.7.0-beta.3
+  - ptokens-request-processor@1.10.0-beta.3
+
 ## 0.6.0-beta.2
 
 ### Minor Changes

@@ -1,5 +1,16 @@
 # ptokens-state-reader
 
+## 1.1.0-beta.2
+
+### Minor Changes
+
+- e748897: use IPFS JSONRPC instead of the binary
+
+### Patch Changes
+
+- Updated dependencies [e748897]
+  - ptokens-utils@4.7.0-beta.3
+
 ## 1.1.0-beta.1
 
 ### Patch Changes

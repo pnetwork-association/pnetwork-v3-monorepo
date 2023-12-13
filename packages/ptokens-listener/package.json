@@ -1,6 +1,6 @@
 {
   "name": "ptokens-listener",
-  "version": "1.9.0-beta.2",
+  "version": "1.9.0-beta.3",
   "description": "Node.js implementation of the v3 pTokens Listener.",
   "bin": "./index.js",
   "scripts": {
@@ -17,7 +17,7 @@
     "commander": "10.0.1",
     "log4js": "6.9.1",
     "ptokens-constants": "1.7.0-beta.2",
-    "ptokens-utils": "4.7.0-beta.2",
+    "ptokens-utils": "4.7.0-beta.3",
     "ramda": "0.29.0"
   },
   "nx": {

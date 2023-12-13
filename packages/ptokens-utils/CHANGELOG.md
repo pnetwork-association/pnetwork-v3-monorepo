@@ -1,5 +1,11 @@
 # ptokens-utils
 
+## 4.7.0-beta.3
+
+### Minor Changes
+
+- e748897: replace with IPFS JSONRPC api'
+
 ## 4.7.0-beta.2
 
 ### Patch Changes
