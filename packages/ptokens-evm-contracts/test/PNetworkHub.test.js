@@ -1006,7 +1006,6 @@ describe('PNetworkHub', () => {
   })
 
   it('should not be able to queue an operation because is missing less than 1 hour plus max challenge period', async () => {
-    const currentEpoch = await epochsManager.currentEpoch()
     const startFirstEpochTimestamp = (await epochsManager.startFirstEpochTimestamp()).toNumber()
     const currentEpochEndTimestamp = startFirstEpochTimestamp + (currentEpoch + 1) * epochDuration
     expect(await hub.isLockedDown()).to.be.false
@@ -1026,7 +1025,6 @@ describe('PNetworkHub', () => {
       .connect(relayer)
       .protocolQueueOperation(operation, { value: LOCKED_AMOUNT_CHALLENGE_PERIOD })
 
-    const currentEpoch = await epochsManager.currentEpoch()
     const startFirstEpochTimestamp = (await epochsManager.startFirstEpochTimestamp()).toNumber()
     const currentEpochEndTimestamp = startFirstEpochTimestamp + (currentEpoch + 1) * epochDuration
     expect(await hub.isLockedDown()).to.be.false
@@ -1679,23 +1677,41 @@ describe('PNetworkHub', () => {
       actor: challengedSentinel,
       type: constants.hub.actors.Sentinel,
     })
+
+    expect(
+      await hub.getTotalNumberOfInactiveActorsByEpochAndType(
+        currentEpoch,
+        constants.hub.actors.Sentinel
+      )
+    ).to.be.eq(0)
     let tx = await hub
       .connect(challenger)
       .startChallenge(challengedSentinel.address, constants.hub.actors.Sentinel, proof, {
         value: LOCKED_AMOUNT_START_CHALLENGE,
       })
-    const challenge = Challenge.fromReceipt(await tx.wait(1))
+    let challenge = Challenge.fromReceipt(await tx.wait(1))
+    expect(
+      await hub.getTotalNumberOfInactiveActorsByEpochAndType(
+        currentEpoch,
+        constants.hub.actors.Sentinel
+      )
+    ).to.be.eq(0)
+
     await time.increase(CHALLENGE_DURATION)
 
     const balancePre = await ethers.provider.getBalance(challenger.address)
-
     tx = hub.connect(challenger).slashByChallenge(challenge)
     await expect(tx)
       .to.emit(hub, 'UserOperation')
       .and.to.emit(hub, 'ChallengeUnsolved')
       .withArgs(challenge.serialize())
     const receipt = await (await tx).wait(1)
-
+    expect(
+      await hub.getTotalNumberOfInactiveActorsByEpochAndType(
+        currentEpoch,
+        constants.hub.actors.Sentinel
+      )
+    ).to.be.eq(1)
     const balancePost = await ethers.provider.getBalance(challenger.address)
     expect(balancePost).to.be.eq(
       balancePre
@@ -1703,6 +1719,29 @@ describe('PNetworkHub', () => {
         .sub(receipt.gasUsed.mul(receipt.effectiveGasPrice))
     )
     expect(await hub.getChallengeStatus(challenge)).to.be.eq(CHALLENGE_STATUS.Unsolved)
+
+    // slash again the inactive actor
+    tx = await hub
+      .connect(challenger)
+      .startChallenge(challengedSentinel.address, constants.hub.actors.Sentinel, proof, {
+        value: LOCKED_AMOUNT_START_CHALLENGE,
+      })
+    challenge = Challenge.fromReceipt(await tx.wait(1))
+    expect(
+      await hub.getTotalNumberOfInactiveActorsByEpochAndType(
+        currentEpoch,
+        constants.hub.actors.Sentinel
+      )
+    ).to.be.eq(1)
+    await time.increase(CHALLENGE_DURATION)
+
+    await hub.connect(challenger).slashByChallenge(challenge)
+    expect(
+      await hub.getTotalNumberOfInactiveActorsByEpochAndType(
+        currentEpoch,
+        constants.hub.actors.Sentinel
+      )
+    ).to.be.eq(1)
   })
 
   it('should be able to slash a sentinel from the interim chain', async () => {
@@ -1719,17 +1758,29 @@ describe('PNetworkHub', () => {
       type: constants.hub.actors.Sentinel,
     })
 
+    expect(
+      await hubInterim.getTotalNumberOfInactiveActorsByEpochAndType(
+        currentEpoch,
+        constants.hub.actors.Sentinel
+      )
+    ).to.be.eq(0)
+
     let tx = await hubInterim
       .connect(challenger)
       .startChallenge(challengedSentinel.address, constants.hub.actors.Sentinel, proof, {
         value: LOCKED_AMOUNT_START_CHALLENGE,
       })
-    const challenge = Challenge.fromReceipt(await tx.wait(1))
+    let challenge = Challenge.fromReceipt(await tx.wait(1))
+    expect(
+      await hubInterim.getTotalNumberOfInactiveActorsByEpochAndType(
+        currentEpoch,
+        constants.hub.actors.Sentinel
+      )
+    ).to.be.eq(0)
 
     await time.increase(CHALLENGE_DURATION)
 
     const balancePre = await ethers.provider.getBalance(challenger.address)
-
     tx = hubInterim.connect(challenger).slashByChallenge(challenge)
     await expect(tx)
       .to.emit(mockRegistrationManager, 'StakingSentinelSlashed')
@@ -1737,7 +1788,12 @@ describe('PNetworkHub', () => {
       .and.to.emit(hubInterim, 'ChallengeUnsolved')
       .withArgs(challenge.serialize())
     const receipt = await (await tx).wait(1)
-
+    expect(
+      await hubInterim.getTotalNumberOfInactiveActorsByEpochAndType(
+        currentEpoch,
+        constants.hub.actors.Sentinel
+      )
+    ).to.be.eq(1)
     const balancePost = await ethers.provider.getBalance(challenger.address)
     expect(balancePost).to.be.eq(
       balancePre
@@ -1745,6 +1801,29 @@ describe('PNetworkHub', () => {
         .sub(receipt.gasUsed.mul(receipt.effectiveGasPrice))
     )
     expect(await hubInterim.getChallengeStatus(challenge)).to.be.eq(CHALLENGE_STATUS.Unsolved)
+
+    // slash again the inactive actor
+    tx = await hubInterim
+      .connect(challenger)
+      .startChallenge(challengedSentinel.address, constants.hub.actors.Sentinel, proof, {
+        value: LOCKED_AMOUNT_START_CHALLENGE,
+      })
+    challenge = Challenge.fromReceipt(await tx.wait(1))
+    expect(
+      await hubInterim.getTotalNumberOfInactiveActorsByEpochAndType(
+        currentEpoch,
+        constants.hub.actors.Sentinel
+      )
+    ).to.be.eq(1)
+    await time.increase(CHALLENGE_DURATION)
+
+    await hubInterim.connect(challenger).slashByChallenge(challenge)
+    expect(
+      await hubInterim.getTotalNumberOfInactiveActorsByEpochAndType(
+        currentEpoch,
+        constants.hub.actors.Sentinel
+      )
+    ).to.be.eq(1)
   })
 
   it('should not be able to slash a sentinel if max challenge duration is not passed', async () => {
@@ -1911,28 +1990,47 @@ describe('PNetworkHub', () => {
       .withArgs(wrongGuardian.address, constants.hub.actors.Guardian)
   })
 
-  it('should be able to slash a sentinel', async () => {
+  it('should be able to slash a guardian', async () => {
     const challengedGuardian = guardians[2]
     const proof = getActorsMerkleProof({
       actor: challengedGuardian,
       type: constants.hub.actors.Guardian,
     })
+
+    expect(
+      await hub.getTotalNumberOfInactiveActorsByEpochAndType(
+        currentEpoch,
+        constants.hub.actors.Guardian
+      )
+    ).to.be.eq(0)
     let tx = await hub
       .connect(challenger)
       .startChallenge(challengedGuardian.address, constants.hub.actors.Guardian, proof, {
         value: LOCKED_AMOUNT_START_CHALLENGE,
       })
-    const challenge = Challenge.fromReceipt(await tx.wait(1))
+    let challenge = Challenge.fromReceipt(await tx.wait(1))
+    expect(
+      await hub.getTotalNumberOfInactiveActorsByEpochAndType(
+        currentEpoch,
+        constants.hub.actors.Guardian
+      )
+    ).to.be.eq(0)
+
     await time.increase(CHALLENGE_DURATION)
 
     const balancePre = await ethers.provider.getBalance(challenger.address)
-
     tx = hub.connect(challenger).slashByChallenge(challenge)
     await expect(tx)
       .to.emit(hub, 'UserOperation')
       .and.to.emit(hub, 'ChallengeUnsolved')
       .withArgs(challenge.serialize())
     const receipt = await (await tx).wait(1)
+    expect(
+      await hub.getTotalNumberOfInactiveActorsByEpochAndType(
+        currentEpoch,
+        constants.hub.actors.Guardian
+      )
+    ).to.be.eq(1)
     const balancePost = await ethers.provider.getBalance(challenger.address)
     expect(balancePost).to.be.eq(
       balancePre
@@ -1940,9 +2038,32 @@ describe('PNetworkHub', () => {
         .sub(receipt.gasUsed.mul(receipt.effectiveGasPrice))
     )
     expect(await hub.getChallengeStatus(challenge)).to.be.eq(CHALLENGE_STATUS.Unsolved)
+
+    // slash again the inactive actor
+    tx = await hub
+      .connect(challenger)
+      .startChallenge(challengedGuardian.address, constants.hub.actors.Guardian, proof, {
+        value: LOCKED_AMOUNT_START_CHALLENGE,
+      })
+    challenge = Challenge.fromReceipt(await tx.wait(1))
+    expect(
+      await hub.getTotalNumberOfInactiveActorsByEpochAndType(
+        currentEpoch,
+        constants.hub.actors.Guardian
+      )
+    ).to.be.eq(1)
+    await time.increase(CHALLENGE_DURATION)
+
+    await hub.connect(challenger).slashByChallenge(challenge)
+    expect(
+      await hub.getTotalNumberOfInactiveActorsByEpochAndType(
+        currentEpoch,
+        constants.hub.actors.Guardian
+      )
+    ).to.be.eq(1)
   })
 
-  it('should not be able to slash a sentinel if max challenge duration is not passed', async () => {
+  it('should not be able to slash a guardian if max challenge duration is not passed', async () => {
     const challengedGuardian = guardians[2]
     const proof = getActorsMerkleProof({
       actor: challengedGuardian,
@@ -1960,7 +2081,7 @@ describe('PNetworkHub', () => {
     )
   })
 
-  it('should be able to resume a sentinel after slashing', async () => {
+  it('should be able to resume a guardian after slashing', async () => {
     const challengedGuardian = guardians[2]
     const proof = getActorsMerkleProof({
       actor: challengedGuardian,
@@ -2004,7 +2125,7 @@ describe('PNetworkHub', () => {
     )
   })
 
-  it('should be able to slash a sentinel twice for the same challenge', async () => {
+  it('should not be able to slash a guardian twice for the same challenge', async () => {
     const challengedGuardian = guardians[2]
     const proof = getActorsMerkleProof({
       actor: challengedGuardian,
@@ -2902,6 +3023,66 @@ describe('PNetworkHub', () => {
       .withArgs(CHALLENGE_STATUS.Cancelled, CHALLENGE_STATUS.Pending)
   })
 
+  it('should permit an inactive actor to resume after a challenge', async () => {
+    const slashedSentinel = sentinels[0]
+    const proof = getActorsMerkleProof({
+      actor: slashedSentinel,
+      type: constants.hub.actors.Sentinel,
+    })
+
+    expect(
+      await hub.getTotalNumberOfInactiveActorsByEpochAndType(
+        currentEpoch,
+        constants.hub.actors.Sentinel
+      )
+    ).to.be.eq(0)
+
+    // slash by cross-chain message
+    let tx = await governanceMessageEmitter.slashActor(
+      slashedSentinel.address,
+      REGISTRATION_KINDS.StakingSentinel
+    )
+    const receipt = await tx.wait(1)
+    const message = receipt.events.find(({ event }) => event === 'GovernanceMessage')
+    await hub
+      .connect(telepathyRouter)
+      .handleTelepathy(
+        chainId,
+        fakeGovernanceMessageVerifier.address,
+        abiCoder.decode(['bytes'], message.data)[0]
+      )
+    expect(
+      await hub.getTotalNumberOfInactiveActorsByEpochAndType(
+        currentEpoch,
+        constants.hub.actors.Sentinel
+      )
+    ).to.be.eq(1)
+
+    // start challenge
+    tx = await hub
+      .connect(challenger)
+      .startChallenge(slashedSentinel.address, constants.hub.actors.Sentinel, proof, {
+        value: LOCKED_AMOUNT_START_CHALLENGE,
+      })
+    const challenge = Challenge.fromReceipt(await tx.wait(1))
+
+    // solve challenge
+    await hub
+      .connect(broadcaster)
+      .solveChallenge(
+        challenge,
+        constants.hub.actors.Sentinel,
+        proof,
+        await slashedSentinel.signMessage(ethers.utils.arrayify(challenge.id))
+      )
+    expect(
+      await hub.getTotalNumberOfInactiveActorsByEpochAndType(
+        currentEpoch,
+        constants.hub.actors.Sentinel
+      )
+    ).to.be.eq(0)
+  })
+
   // it('should adjust the challenge period based on the number of current active defaultActors', async () => {
   //   const operation = await generateOperation()
   //   await hub
@@ -2985,8 +3166,6 @@ describe('PNetworkHub', () => {
   // })
 
   it('should generate a special user operation for slashing an actor(sentinel) when network != interim chain', async () => {
-    const currentEpoch = await epochsManager.currentEpoch()
-
     const slashedSentinel = sentinels[0]
     await mockRegistrationManager.addStakingSentinel(
       sentinel.address,
