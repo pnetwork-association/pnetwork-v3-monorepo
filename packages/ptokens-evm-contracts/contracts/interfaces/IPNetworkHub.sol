@@ -17,12 +17,6 @@ interface IPNetworkHub is IGovernanceMessageHandler {
         Sentinel
     }
 
-    enum ActorStatus {
-        Active,
-        Challenged,
-        Inactive
-    }
-
     enum ChallengeStatus {
         Null,
         Pending,
