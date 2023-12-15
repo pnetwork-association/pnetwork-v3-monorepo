@@ -114,9 +114,9 @@ describe('PNetworkHub', () => {
 
   const generateOperation = async (_opts = {}, _hub = hub) => {
     const {
-      originAccount = owner.address,
       destinationAccount = owner.address,
-      destinationNetworkId = PNETWORK_NETWORK_IDS.hardhat,
+      // hub is already deployed on hardhat, thus set a different chain
+      destinationNetworkId = PNETWORK_NETWORK_IDS.ethereumMainnet,
       underlyingAssetName = await token.name(),
       underlyingAssetSymbol = await token.symbol(),
       underlyingAssetDecimals = await token.decimals(),
@@ -124,11 +124,9 @@ describe('PNetworkHub', () => {
       underlyingAssetNetworkId = PNETWORK_NETWORK_IDS.hardhat,
       assetTokenAddress = token.address,
       assetAmount = ethers.utils.parseEther('1000'),
-      userDataProtocolFeeAssetAmount = '0',
       networkFeeAssetAmount = '0',
       userData = '0x',
       optionsMask = '0x'.padEnd(66, '0'),
-      forwardDestinationNetworkId = PNETWORK_NETWORK_IDS.hardhat,
       forwardNetworkFeeAssetAmount = '0',
     } = _opts
 
@@ -162,29 +160,13 @@ describe('PNetworkHub', () => {
     )
     await expect(transaction).to.emit(_hub, 'UserOperation')
 
-    const nonce = 1
-    const { blockHash, transactionHash } = await (await transaction).wait()
-
+    const receipt = await (await transaction).wait()
+    const userOperationLog = _hub.interface.parseLog(receipt.logs.at(-1))
+    expect(userOperationLog.name).to.be.eq('UserOperation')
     return new Operation({
-      assetAmount,
-      destinationAccount,
-      destinationNetworkId,
-      forwardDestinationNetworkId,
-      forwardNetworkFeeAssetAmount,
-      networkFeeAssetAmount,
-      nonce,
-      optionsMask,
-      originAccount,
-      originBlockHash: blockHash,
-      originNetworkId: PNETWORK_NETWORK_IDS.hardhat,
-      originTransactionHash: transactionHash,
-      userDataProtocolFeeAssetAmount,
-      underlyingAssetDecimals,
-      underlyingAssetName,
-      underlyingAssetNetworkId,
-      underlyingAssetSymbol,
-      underlyingAssetTokenAddress: token.address,
-      userData,
+      ...userOperationLog.args,
+      originBlockHash: receipt.blockHash,
+      originTransactionHash: receipt.transactionHash,
     })
   }
 
@@ -752,9 +734,7 @@ describe('PNetworkHub', () => {
   })
 
   it('should be able to execute an operation on the destination chain when network fee is 0', async () => {
-    const operation = await generateOperation({
-      forwardDestinationNetworkId: PNETWORK_NETWORK_IDS.hardhat,
-    })
+    const operation = await generateOperation()
     const relayerEthBalancePre = await ethers.provider.getBalance(relayer.address)
     const destinationAccountbalancePre = await pToken.balanceOf(operation.destinationAccount)
 
@@ -791,8 +771,7 @@ describe('PNetworkHub', () => {
     await pFactory.setHub(hubInterim.address)
     const operation = await generateOperation(
       {
-        forwardDestinationNetworkId: PNETWORK_NETWORK_IDS.ethereumMainnet,
-        destinationNetworkId: PNETWORK_NETWORK_IDS.hardhat,
+        destinationNetworkId: PNETWORK_NETWORK_IDS.ethereumMainnet,
       },
       hubInterim
     )
@@ -861,13 +840,11 @@ describe('PNetworkHub', () => {
     await pFactory.setHub(hubInterim.address)
     const operation = await generateOperation(
       {
-        destinationNetworkId: PNETWORK_NETWORK_IDS.hardhat,
-        forwardDestinationNetworkId: PNETWORK_NETWORK_IDS.hardhat,
+        destinationNetworkId: PNETWORK_NETWORK_IDS.ethereumMainnet,
       },
       hubInterim
     )
     const relayerEthBalancePre = await ethers.provider.getBalance(relayer.address)
-    const destinationAccountbalancePre = await pTokenInterim.balanceOf(operation.destinationAccount)
 
     let tx = await hubInterim
       .connect(relayer)
@@ -879,29 +856,16 @@ describe('PNetworkHub', () => {
     const protocolFee = operation.getProtocolFee()
 
     tx = hubInterim.connect(relayer).protocolExecuteOperation(operation)
-    await expect(tx).to.not.emit(hubInterim, 'UserOperation')
+    await expect(tx).to.emit(hubInterim, 'UserOperation')
     await expect(tx)
       .to.emit(pTokenInterim, 'Transfer')
       .withArgs(constants.evm.ZERO_ADDRESS, hubInterim.address, protocolFee)
       .and.to.emit(pTokenInterim, 'Transfer')
-      .withArgs(
-        constants.evm.ZERO_ADDRESS,
-        operation.destinationAccount,
-        operation.assetAmountWithoutProtocolFee
-      )
       .and.to.emit(hubInterim, 'OperationExecuted')
       .withArgs(operation.serialize())
     const receipt2 = await (await tx).wait(1)
 
     const relayerEthBalancePost = await ethers.provider.getBalance(relayer.address)
-    const destinationAccountbalancePost = await pTokenInterim.balanceOf(
-      operation.destinationAccount
-    )
-
-    expect(destinationAccountbalancePost).to.be.eq(
-      destinationAccountbalancePre.add(operation.assetAmountWithoutProtocolFee)
-    )
-
     expect(relayerEthBalancePost).to.be.eq(
       relayerEthBalancePre
         .sub(receipt1.gasUsed.mul(receipt1.effectiveGasPrice))
@@ -944,9 +908,8 @@ describe('PNetworkHub', () => {
   })
 
   it('should be able to execute an operation that contains user data', async () => {
-    const expectedUserData = '0x01'
+    const expectedUserData = '0xc0ffee'
     const operation = await generateOperation({
-      originAccount: relayer.address,
       userData: expectedUserData,
       destinationAccount: testReceiver.address,
       destinationNetworkId: PNETWORK_NETWORK_IDS.ethereumMainnet,
@@ -959,7 +922,7 @@ describe('PNetworkHub', () => {
       .to.emit(hub, 'OperationExecuted')
       .withArgs(operation.serialize())
       .and.to.emit(testReceiver, 'UserDataReceived')
-      .withArgs(PNETWORK_NETWORK_IDS.hardhat, relayer.address, expectedUserData)
+      .withArgs(PNETWORK_NETWORK_IDS.hardhat, owner.address.toLowerCase(), expectedUserData)
   })
 
   // TODO: tests for testing user data fees
@@ -1266,8 +1229,7 @@ describe('PNetworkHub', () => {
 
     const operation = await generateOperation(
       {
-        forwardDestinationNetworkId: '0x00000000',
-        destinationNetworkId: PNETWORK_NETWORK_IDS.hardhat,
+        destinationNetworkId: PNETWORK_NETWORK_IDS.ethereumMainnet,
         networkFeeAssetAmount: ethers.utils.parseEther('1'),
         forwardNetworkFeeAssetAmount: '0',
       },
@@ -1275,7 +1237,6 @@ describe('PNetworkHub', () => {
     )
     const relayerEthBalancePre = await ethers.provider.getBalance(relayer.address)
     const relayerBalancePre = await pTokenInterim.balanceOf(relayer.address)
-    const destinationAccountbalancePre = await pTokenInterim.balanceOf(operation.destinationAccount)
 
     let tx = await hubInterim
       .connect(relayer)
@@ -1289,24 +1250,11 @@ describe('PNetworkHub', () => {
       .to.emit(hubInterim, 'OperationExecuted')
       .withArgs(operation.serialize())
       .and.to.emit(pTokenInterim, 'Transfer')
-      .withArgs(
-        constants.evm.ZERO_ADDRESS,
-        operation.destinationAccount,
-        operation.assetAmountWithoutProtocolFeeAndNetworkFee
-      )
-      .and.to.emit(pTokenInterim, 'Transfer')
       .withArgs(constants.evm.ZERO_ADDRESS, relayer.address, operation.networkFeeAssetAmount)
     const receipt2 = await (await tx).wait(1)
 
     const relayerEthBalancePost = await ethers.provider.getBalance(relayer.address)
     const relayerBalancePost = await pTokenInterim.balanceOf(relayer.address)
-    const destinationAccountbalancePost = await pTokenInterim.balanceOf(
-      operation.destinationAccount
-    )
-
-    expect(destinationAccountbalancePost).to.be.eq(
-      destinationAccountbalancePre.add(operation.assetAmountWithoutProtocolFeeAndNetworkFee)
-    )
     expect(relayerBalancePost).to.be.eq(relayerBalancePre.add(operation.networkFeeAssetAmount))
     expect(relayerEthBalancePost).to.be.eq(
       relayerEthBalancePre
@@ -1320,8 +1268,7 @@ describe('PNetworkHub', () => {
 
     const operation = await generateOperation(
       {
-        forwardDestinationNetworkId: '0x00000000',
-        destinationNetworkId: PNETWORK_NETWORK_IDS.hardhat,
+        destinationNetworkId: PNETWORK_NETWORK_IDS.ethereumMainnet,
         networkFeeAssetAmount: ethers.utils.parseEther('1'),
         forwardNetworkFeeAssetAmount: '0',
       },
@@ -1330,7 +1277,6 @@ describe('PNetworkHub', () => {
     const relayerEthBalancePre = await ethers.provider.getBalance(relayer.address)
     const relayerBalancePre = await pTokenInterim.balanceOf(relayer.address)
     const relayer2BalancePre = await pTokenInterim.balanceOf(relayer2.address)
-    const destinationAccountbalancePre = await pTokenInterim.balanceOf(operation.destinationAccount)
 
     const tx = await hubInterim
       .connect(relayer)
@@ -1342,12 +1288,6 @@ describe('PNetworkHub', () => {
     await expect(hubInterim.connect(relayer2).protocolExecuteOperation(operation))
       .to.emit(hubInterim, 'OperationExecuted')
       .withArgs(operation.serialize())
-      .and.to.emit(pTokenInterim, 'Transfer')
-      .withArgs(
-        constants.evm.ZERO_ADDRESS,
-        operation.destinationAccount,
-        operation.assetAmountWithoutProtocolFeeAndNetworkFee
-      )
       .and.to.emit(pTokenInterim, 'Transfer')
       .withArgs(
         constants.evm.ZERO_ADDRESS,
@@ -1365,13 +1305,6 @@ describe('PNetworkHub', () => {
     const relayerEthBalancePost = await ethers.provider.getBalance(relayer.address)
     const relayerBalancePost = await pTokenInterim.balanceOf(relayer.address)
     const relayer2BalancePost = await pTokenInterim.balanceOf(relayer2.address)
-    const destinationAccountbalancePost = await pTokenInterim.balanceOf(
-      operation.destinationAccount
-    )
-
-    expect(destinationAccountbalancePost).to.be.eq(
-      destinationAccountbalancePre.add(operation.assetAmountWithoutProtocolFeeAndNetworkFee)
-    )
     expect(relayerBalancePost).to.be.eq(
       relayerBalancePre.add(operation.queueRelayerNetworkFeeAssetAmount)
     )
@@ -1448,8 +1381,7 @@ describe('PNetworkHub', () => {
     const forwardNetworkFeeAssetAmount = ethers.utils.parseEther('2')
     const operation = await generateOperation(
       {
-        forwardDestinationNetworkId: PNETWORK_NETWORK_IDS.ethereumMainnet,
-        destinationNetworkId: PNETWORK_NETWORK_IDS.hardhat,
+        destinationNetworkId: PNETWORK_NETWORK_IDS.ethereumMainnet,
         networkFeeAssetAmount,
         forwardNetworkFeeAssetAmount,
       },
