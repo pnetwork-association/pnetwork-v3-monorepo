@@ -63,25 +63,21 @@ module.exports = {
       chainId: 0x01,
       url: getEnvironmentVariable('MAINNET_NODE'),
       accounts,
-      gasPrice: 20e9,
     },
     polygon: {
       chainId: 0x89,
       url: getEnvironmentVariable('POLYGON_NODE'),
       accounts,
-      gasPrice: 400e9,
     },
     mumbai: {
       chainId: 80001,
       url: getEnvironmentVariable('MUMBAI_NODE'),
       accounts,
-      gasPrice: 400e9,
     },
     bsc: {
       chainId: 0x38,
       url: getEnvironmentVariable('BSC_NODE'),
       accounts,
-      gasPrice: 5e9,
     },
     sepolia: {
       chainId: 0xaa36a7,
@@ -97,13 +93,11 @@ module.exports = {
       chainId: 0xa4b1,
       url: getEnvironmentVariable('ARBITRUM_NODE'),
       accounts,
-      gasPrice: 0.1e9,
     },
     gnosis: {
       chainId: 0x64,
       url: getEnvironmentVariable('GNOSIS_CHAIN_NODE'),
       accounts,
-      gasPrice: 5e9,
     },
   },
   etherscan: {
