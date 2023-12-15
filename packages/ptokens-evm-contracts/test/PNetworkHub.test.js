@@ -1136,9 +1136,13 @@ describe('PNetworkHub', () => {
 
   it('should be able to call userSend to wrap only tokens', async () => {
     const assetAmount = ethers.utils.parseEther('1000')
+    const balanceAssetPre = await token.balanceOf(owner.address)
+    expect(balanceAssetPre.toString()).to.be.eq('100000000000000000000000000')
+    const balancePTokenPre = await pToken.balanceOf(owner.address)
+    expect(balancePTokenPre.toString()).to.be.eq('0')
     const data = {
       destinationAccount: owner.address,
-      destinationNetworkId: PNETWORK_NETWORK_IDS.ethereumMainnet,
+      destinationNetworkId: PNETWORK_NETWORK_IDS.hardhat,
       underlyingAssetName: await token.name(),
       underlyingAssetSymbol: await token.symbol(),
       underlyingAssetDecimals: await token.decimals(),
@@ -1153,7 +1157,41 @@ describe('PNetworkHub', () => {
     }
 
     await token.approve(pToken.address, assetAmount)
-    await expect(hub.userSend(...Object.values(data))).to.emit(hub, 'UserOperation')
+    await expect(hub.userSend(...Object.values(data))).to.not.emit(hub, 'UserOperation')
+
+    const balanceAssetPost = await token.balanceOf(owner.address)
+    expect(balanceAssetPost.toString()).to.be.eq('99999000000000000000000000')
+    const balancePTokenPost = await pToken.balanceOf(owner.address)
+    expect(balancePTokenPost.toString()).to.be.eq('1000000000000000000000')
+  })
+
+  it('should revert when calliing userSend to wrap tokens with user data', async () => {
+    const assetAmount = ethers.utils.parseEther('1000')
+    const balanceAssetPre = await token.balanceOf(owner.address)
+    expect(balanceAssetPre.toString()).to.be.eq('100000000000000000000000000')
+    const balancePTokenPre = await pToken.balanceOf(owner.address)
+    expect(balancePTokenPre.toString()).to.be.eq('0')
+    const data = {
+      destinationAccount: owner.address,
+      destinationNetworkId: PNETWORK_NETWORK_IDS.hardhat,
+      underlyingAssetName: await token.name(),
+      underlyingAssetSymbol: await token.symbol(),
+      underlyingAssetDecimals: await token.decimals(),
+      underlyingAssetTokenAddress: token.address,
+      underlyingAssetNetworkId: PNETWORK_NETWORK_IDS.hardhat,
+      assetTokenAddress: token.address,
+      assetAmount,
+      networkFeeAssetAmount: '0',
+      forwardNetworkFeeAssetAmount: '0',
+      userData: '0xc0ffee',
+      optionsMask: '0x'.padEnd(66, '0'),
+    }
+
+    await token.approve(pToken.address, assetAmount)
+    await expect(hub.userSend(...Object.values(data))).to.revertedWithCustomError(
+      hub,
+      'InvalidUserOperation'
+    )
   })
 
   it('should be able to call userSend to send userData', async () => {
