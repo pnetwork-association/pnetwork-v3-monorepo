@@ -11,6 +11,4 @@ import {ITelepathyHandler} from "../interfaces/external/ITelepathyHandler.sol";
  * @notice
  */
 
-interface IGovernanceMessageHandler is ITelepathyHandler {
-
-}
+interface IGovernanceMessageHandler is ITelepathyHandler {}
