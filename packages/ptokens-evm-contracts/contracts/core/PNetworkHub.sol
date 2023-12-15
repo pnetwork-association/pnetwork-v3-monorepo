@@ -583,8 +583,11 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
                 revert PTokenNotCreated(pTokenAddress);
             }
 
-            if (underlyingAssetTokenAddress == assetTokenAddress && isSendingOnCurrentNetwork) {
+            if (underlyingAssetTokenAddress == assetTokenAddress && isSendingOnCurrentNetwork && userData.length == 0) {
+                // mint new tokens and return as we do not want a new UserOperation in this case,
+                // otherwise it will be processed in the interim chain as usual, resulting in a double minting
                 IPToken(pTokenAddress).userMint(msgSender, assetAmount);
+                return;
             } else if (underlyingAssetTokenAddress == assetTokenAddress && !isSendingOnCurrentNetwork) {
                 IPToken(pTokenAddress).userMintAndBurn(msgSender, assetAmount);
             } else if (pTokenAddress == assetTokenAddress && !isSendingOnCurrentNetwork) {
