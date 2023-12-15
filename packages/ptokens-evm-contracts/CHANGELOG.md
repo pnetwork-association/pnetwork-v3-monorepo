@@ -1,5 +1,11 @@
 # ptokens-evm-contracts
 
+## 0.6.0-beta.4
+
+### Patch Changes
+
+- aeebea8: fix double minting when swapping toward the same chain
+
 ## 0.6.0-beta.3
 
 ### Patch Changes
