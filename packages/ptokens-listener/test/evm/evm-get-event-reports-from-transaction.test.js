@@ -36,68 +36,7 @@ describe('Get EVM event reports', () => {
       )
       expect(getDefaultProviderSpy).toHaveBeenNthCalledWith(1, provider)
       expect(getTransactionReceiptSpy).toHaveBeenNthCalledWith(1, txHash)
-      expect(ret).toStrictEqual([
-        {
-          _id: 'operationexecuted_0xd9feb6e60cd73c396cbaeb3e5fa55c774c03a274c54f5bc53a62a59855ec7cc4', // secretlint-disable-line
-          status: 'detected',
-          eventName: 'OperationExecuted',
-          nonce: '98322',
-          eventArgs: [
-            [
-              '0x05cf0e83408207704ee0ea2a4a6ea87905fc0d2038dbb610a0ca64f2cf47b134', // secretlint-disable-line
-              '0xb1bb8b6502edc17fdd0cc83505289a6d429a6381ffe5dbf4fe31a88dd236d643', // secretlint-disable-line
-              '0x0000000000000000000000000000000000000000000000000000000000000000',
-              '98322',
-              '18',
-              '200000',
-              '0',
-              '1000',
-              '2000',
-              '0xdaacB0Ab6Fb34d24E8a67BfA14BF4D95D4C7aF92',
-              '0x5aca268b',
-              '0xf9b459a1',
-              '0xb9286154',
-              '0x5aca268b',
-              '0xddb5f4535123daa5ae343c24006f4075abaf5f7b',
-              '0xdDb5f4535123DAa5aE343c24006F4075aBAF5F7B',
-              'pNetwork Token',
-              'PNT',
-              '0x',
-              false,
-            ],
-          ],
-          destinationAccount: '0xdDb5f4535123DAa5aE343c24006F4075aBAF5F7B',
-          destinationNetworkId: '0xf9b459a1',
-          underlyingAssetName: 'pNetwork Token',
-          underlyingAssetSymbol: 'PNT',
-          underlyingAssetDecimals: 18,
-          underlyingAssetTokenAddress: '0xdaacB0Ab6Fb34d24E8a67BfA14BF4D95D4C7aF92',
-          underlyingAssetNetworkId: '0x5aca268b',
-          assetTokenAddress: null,
-          assetAmount: '200000',
-          userData: '0x',
-          optionsMask: '0x0000000000000000000000000000000000000000000000000000000000000000',
-          originatingBlockHash:
-            '0x05cf0e83408207704ee0ea2a4a6ea87905fc0d2038dbb610a0ca64f2cf47b134', // secretlint-disable-line
-          originatingAddress: '0xddb5f4535123daa5ae343c24006f4075abaf5f7b',
-          originatingNetworkId: '0x5aca268b',
-          originatingTransactionHash:
-            '0xb1bb8b6502edc17fdd0cc83505289a6d429a6381ffe5dbf4fe31a88dd236d643', // secretlint-disable-line
-          blockHash: '0x0fc3588f727dde10ccd937b04f5666fb04e39553b4c73719555acd7a6a430764', // secretlint-disable-line
-          networkId,
-          transactionHash: txHash,
-          proposedTransactionTimestamp: null,
-          proposedTransactionHash: null,
-          witnessedTimestamp: '2023-05-18T07:35:54.575Z',
-          finalTransactionHash: null,
-          finalTransactionTimestamp: null,
-          forwardDestinationNetworkId: '0xb9286154',
-          forwardNetworkFeeAssetAmount: '2000',
-          networkFeeAssetAmount: '1000',
-          userDataProtocolFeeAssetAmount: '0',
-          isForProtocol: false,
-        },
-      ])
+      expect(ret).toMatchSnapshot()
     })
   })
 })

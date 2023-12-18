@@ -1,5 +1,6 @@
 const {
   KEY_ID,
+  KEY_OPERATION_ID,
   KEY_ERROR,
   KEY_STATUS,
   KEY_EVENT_NAME,
@@ -45,6 +46,7 @@ module.exports = {
   type: 'object',
   required: [
     KEY_ID,
+    KEY_OPERATION_ID,
     KEY_STATUS,
     KEY_EVENT_NAME,
     KEY_EVENT_ARGS,
@@ -83,6 +85,9 @@ module.exports = {
 
   properties: {
     [KEY_ID]: {
+      type: 'string',
+    },
+    [KEY_OPERATION_ID]: {
       type: 'string',
     },
     [KEY_STATUS]: {

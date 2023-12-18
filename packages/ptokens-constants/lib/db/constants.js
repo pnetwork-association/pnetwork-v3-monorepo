@@ -19,6 +19,7 @@ module.exports = {
   KEY_IS_FOR_PROTOCOL: 'isForProtocol',
   KEY_OPTIONS_MASK: 'optionsMask',
   KEY_EVENT_NAME: 'eventName',
+  KEY_OPERATION_ID: 'operationId',
   KEY_EVENT_ARGS: 'eventArgs',
   KEY_STATUS: 'status',
   KEY_PROPOSAL_TX_HASH: 'proposedTransactionHash',
