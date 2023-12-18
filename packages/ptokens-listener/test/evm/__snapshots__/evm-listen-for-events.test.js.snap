@@ -32,7 +32,7 @@ exports[`EVM listen for events listenForEvmEvents Should call callback with the 
 [
   [
     {
-      "_id": "transfer_0x2c9b5dd93f4204e408e28ef9a6f70e8b2c6651e4c2746b84aa1ba0e2f6c9d1aa",
+      "_id": "transfer_0xf9b459a1_0x60bfe1f4ea905ede2694367e0b521bfe15b2f499d04e6102d15ef07ae714466e",
       "assetAmount": "200",
       "assetTokenAddress": null,
       "blockHash": "0xb46ed31722cfb317fdd8c29a1cc36cc8a168c297965dac4fb109c2f2b3286d75",
@@ -52,6 +52,7 @@ exports[`EVM listen for events listenForEvmEvents Should call callback with the 
       "networkFeeAssetAmount": null,
       "networkId": "0xf9b459a1",
       "nonce": 146,
+      "operationId": "0x2c9b5dd93f4204e408e28ef9a6f70e8b2c6651e4c2746b84aa1ba0e2f6c9d1aa",
       "optionsMask": null,
       "originatingAddress": "0xADA2de876567a06eD79b0B29ae6aB2e142129E51",
       "originatingBlockHash": null,
@@ -73,7 +74,7 @@ exports[`EVM listen for events listenForEvmEvents Should call callback with the 
   ],
   [
     {
-      "_id": "useroperation_0xf3e0420c2a7bbe278c2da10dec02b6485079240dd5bda9228943418ec460a371",
+      "_id": "useroperation_0xf9b459a1_0x130911b73c05185d409d47740b03f27a2c39cd77b21067c392dd35aec2dd656e",
       "assetAmount": "1000000000",
       "assetTokenAddress": "0x71D7EaDb3d9017c2Fd310006c33b2033C8a7686D",
       "blockHash": "0xe4f1c7808bcf481794d727e7010b5b1f779e49bfe7d5738b60b0b4c14f8c7805",
@@ -109,6 +110,7 @@ exports[`EVM listen for events listenForEvmEvents Should call callback with the 
       "networkFeeAssetAmount": "100",
       "networkId": "0xf9b459a1",
       "nonce": "82954",
+      "operationId": "0xf3e0420c2a7bbe278c2da10dec02b6485079240dd5bda9228943418ec460a371",
       "optionsMask": "0x0000000000000000000000000000000000000000000000000000000000000000",
       "originatingAddress": "0xa41657bf225f8ec7e2010c89c3f084172948264d",
       "originatingBlockHash": null,

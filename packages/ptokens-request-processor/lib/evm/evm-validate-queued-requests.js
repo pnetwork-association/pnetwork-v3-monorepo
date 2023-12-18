@@ -12,8 +12,7 @@ const isRequestInvalid = R.curry(
     !_detectedTxs.some(
       _detectedReport =>
         // check event ID is the same
-        _detectedReport[constants.db.KEY_ID].split('_')[1] ===
-        _request[constants.db.KEY_ID].split('_')[1]
+        _detectedReport[constants.db.KEY_OPERATION_ID] === _request[constants.db.KEY_OPERATION_ID]
     )
 )
 

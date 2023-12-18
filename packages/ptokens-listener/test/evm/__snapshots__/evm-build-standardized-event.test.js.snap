@@ -2,7 +2,7 @@
 
 exports[`Event building for EVM buildStandardizedEventFromEvmEvent Should build a standardized event object for a OperationExecuted event 1 1`] = `
 {
-  "_id": "operationexecuted_0x73d96bb1831f73f4f47269f312b2131ca7a3becc4ccf8f53d5352575013c9378",
+  "_id": "operationexecuted_0xe15503e4_0x79a1d514db0a65e136df72c0d40b553068ac455d0965a0486dcb6d1e71682435",
   "assetAmount": "99799999900",
   "assetTokenAddress": null,
   "blockHash": "0xfc7e05dc36287510a70fa64cd8c12ed2ae94aff985fd42bf164f19f97c28e38f",
@@ -41,6 +41,7 @@ exports[`Event building for EVM buildStandardizedEventFromEvmEvent Should build 
   "networkFeeAssetAmount": "100",
   "networkId": "0xe15503e4",
   "nonce": "24517",
+  "operationId": "0x73d96bb1831f73f4f47269f312b2131ca7a3becc4ccf8f53d5352575013c9378",
   "optionsMask": "0x0000000000000000000000000000000000000000000000000000000000000000",
   "originatingAddress": "0xa41657bf225f8ec7e2010c89c3f084172948264d",
   "originatingBlockHash": "0x6442fbb149dbc033aaac0b5b31322051d56c5de1db2c6d82b516eeb2929d2704",
@@ -63,7 +64,7 @@ exports[`Event building for EVM buildStandardizedEventFromEvmEvent Should build 
 
 exports[`Event building for EVM buildStandardizedEventFromEvmEvent Should build a standardized event object for a OperationQueued event 1 1`] = `
 {
-  "_id": "operationqueued_0x63abee74a702faf67a0f60b1fb775714f7c2b19703bc5e39fac437023d9b56c4",
+  "_id": "operationqueued_0xe15503e4_0x811297c76ff823b36c5e60952c68db3da8de1f57f1fc42dd4f0c9a323eb3ba8f",
   "assetAmount": "9979999900",
   "assetTokenAddress": null,
   "blockHash": "0x8726fbbfb4e1df49ea5fd83a552188233f7b90ea85b9d76ee5ddaf4ede5d16fb",
@@ -102,6 +103,7 @@ exports[`Event building for EVM buildStandardizedEventFromEvmEvent Should build 
   "networkFeeAssetAmount": "100",
   "networkId": "0xe15503e4",
   "nonce": "24517",
+  "operationId": "0x63abee74a702faf67a0f60b1fb775714f7c2b19703bc5e39fac437023d9b56c4",
   "optionsMask": "0x0000000000000000000000000000000000000000000000000000000000000000",
   "originatingAddress": "0xa41657bf225f8ec7e2010c89c3f084172948264d",
   "originatingBlockHash": "0xb9fe9822a3b786e95276cc41b2dab16c2d2e777b6193ed4d85382d39d392daba",
@@ -124,7 +126,7 @@ exports[`Event building for EVM buildStandardizedEventFromEvmEvent Should build 
 
 exports[`Event building for EVM buildStandardizedEventFromEvmEvent Should build a standardized event object for a UserOperation event 1 1`] = `
 {
-  "_id": "useroperation_0xc63cad3a15cd83a264c227dabb25107343e0e82fa0b9083bbbbed93aa3ad94f1",
+  "_id": "useroperation_0x5aca268b_0xa79079c344c44721e5040643d6aaa375d2a97d5a28b0a57e4cb4dc0f84e7409d",
   "assetAmount": "1230000000000000",
   "assetTokenAddress": "0xdaacB0Ab6Fb34d24E8a67BfA14BF4D95D4C7aF92",
   "blockHash": "0x20df4aec83af7e41dd37b13effaeda642e180b02da38e81c662a0a2b362f467b",
@@ -160,6 +162,7 @@ exports[`Event building for EVM buildStandardizedEventFromEvmEvent Should build 
   "networkFeeAssetAmount": "100",
   "networkId": "0x5aca268b",
   "nonce": "103237",
+  "operationId": "0xc63cad3a15cd83a264c227dabb25107343e0e82fa0b9083bbbbed93aa3ad94f1",
   "optionsMask": "0x0000000000000000000000000000000000000000000000000000000000000000",
   "originatingAddress": "0xada2de876567a06ed79b0b29ae6ab2e142129e51",
   "originatingBlockHash": null,

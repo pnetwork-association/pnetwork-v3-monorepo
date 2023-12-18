@@ -4,6 +4,7 @@ const { logger } = require('../get-logger')
 const constants = require('ptokens-constants')
 
 const getEventWithAllRequiredSetToNull = _ => ({
+  [constants.db.KEY_OPERATION_ID]: null,
   [constants.db.KEY_STATUS]: null,
   [constants.db.KEY_EVENT_NAME]: null,
   [constants.db.KEY_NONCE]: null,
@@ -267,7 +268,15 @@ const addWitnessedTimestamp = _obj =>
 const setId = _obj =>
   utils
     .getEventId(_obj)
-    .then(_id => R.assoc('_id', `${_obj[constants.db.KEY_EVENT_NAME]}_${_id}`.toLowerCase(), _obj))
+    .then(_operationId => R.assoc(constants.db.KEY_OPERATION_ID, _operationId, _obj))
+    .then(
+      R.assoc(
+        constants.db.KEY_ID,
+        `${_obj[constants.db.KEY_EVENT_NAME]}_${_obj[constants.db.KEY_NETWORK_ID]}_${
+          _obj[constants.db.KEY_TX_HASH]
+        }`.toLowerCase()
+      )
+    )
 
 const parseLog = (_interface, _log) =>
   Promise.resolve(_interface.parseLog(_log)).then(

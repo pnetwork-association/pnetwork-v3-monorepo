@@ -9,7 +9,7 @@ const {
 } = require('./evm-utils')
 const { buildStandardizedEvmEventObjectFromLog } = require('./evm-build-standardized-event')
 
-const filterById = _id => R.filter(_report => _report[constants.db.KEY_ID].includes(_id))
+const filterById = _id => R.filter(_report => R.equals(_report[constants.db.KEY_OPERATION_ID], _id))
 
 const buildOperationObjectFromReport = _r => ({
   eventName: R.prop(constants.db.KEY_EVENT_NAME, _r),
