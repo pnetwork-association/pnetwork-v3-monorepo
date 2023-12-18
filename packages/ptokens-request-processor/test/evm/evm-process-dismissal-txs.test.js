@@ -37,14 +37,10 @@ describe('Tests for queued requests detection and dismissal', () => {
 
   describe('maybeProcessNewRequestsAndDismiss', () => {
     beforeEach(async () => {
+      await collection.deleteMany()
       jest.restoreAllMocks()
-
       const reports = [...queuedReports, ...requestsReports, ...actorsPropagatedReports]
       await collection.insertMany(reports)
-    })
-
-    afterEach(async () => {
-      await collection.drop()
     })
 
     it('Should put invalid transactions to be dismissed into state', async () => {
@@ -131,13 +127,10 @@ describe('Tests for queued requests detection and dismissal', () => {
 
   describe('Solve pending challenges', () => {
     beforeEach(async () => {
+      await collection.deleteMany()
       jest.restoreAllMocks()
       const reports = [...pendingChallenges, ...actorsPropagatedReports]
       await collection.insertMany(reports)
-    })
-
-    afterEach(async () => {
-      await collection.drop()
     })
 
     it('Should detect pending challenges and solve the pertinent ones', async () => {
@@ -208,12 +201,9 @@ describe('Tests for queued requests detection and dismissal', () => {
 
   describe('Edge case 1', () => {
     beforeEach(async () => {
+      await collection.deleteMany()
       jest.restoreAllMocks()
       await collection.insertMany(reportsSet1)
-    })
-
-    afterEach(async () => {
-      await collection.drop()
     })
 
     it('Should not process any dismissal', async () => {
