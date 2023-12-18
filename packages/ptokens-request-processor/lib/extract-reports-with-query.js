@@ -37,8 +37,11 @@ const createQueryFromIds = R.curry(
   (_eventName, _possibleIds) =>
     logger.info(`Extract '${_eventName}' reports for ${_possibleIds.join(' ')}`) ||
     Promise.resolve({
-      _id: {
-        $in: _possibleIds.map(_id => R.toLower(`${_eventName}_${_id}`)),
+      [constants.db.KEY_OPERATION_ID]: {
+        $in: _possibleIds,
+      },
+      [constants.db.KEY_EVENT_NAME]: {
+        $eq: _eventName,
       },
     })
 )

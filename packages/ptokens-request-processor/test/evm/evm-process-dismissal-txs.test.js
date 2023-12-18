@@ -13,6 +13,7 @@ const {
   STATE_PENDING_CHALLENGES,
 } = require('../../lib/state/constants')
 const requestsReports = require('../samples/detected-report-set.json')
+const reportsSet1 = require('../samples/reports-set-1.json')
 const actorsPropagatedReports = require('../samples/actors-propagated-report-set')
 const queuedReports = require('../samples/queued-report-set.json')
 const pendingChallenges = require('../samples/pending-challenges-report-set')
@@ -36,11 +37,9 @@ describe('Tests for queued requests detection and dismissal', () => {
 
   describe('maybeProcessNewRequestsAndDismiss', () => {
     beforeEach(async () => {
-      const reports = [...queuedReports, ...requestsReports, ...actorsPropagatedReports]
+      await collection.deleteMany()
       jest.restoreAllMocks()
-      await Promise.all(reports.map(R.prop('_id'))).then(_ids =>
-        Promise.all(_ids.map(db.deleteReport(collection)))
-      )
+      const reports = [...queuedReports, ...requestsReports, ...actorsPropagatedReports]
       await collection.insertMany(reports)
     })
 
@@ -78,7 +77,6 @@ describe('Tests for queued requests detection and dismissal', () => {
         operationStatusOf: mockOperationStatusOf,
       }))
 
-      jest.spyOn(utils, 'readIdentityFileSync').mockReturnValue(privKey)
       jest.spyOn(utils, 'readIdentityFileSync').mockReturnValue(privKey)
 
       const {
@@ -128,11 +126,9 @@ describe('Tests for queued requests detection and dismissal', () => {
 
   describe('Solve pending challenges', () => {
     beforeEach(async () => {
-      const reports = [...pendingChallenges, ...actorsPropagatedReports]
+      await collection.deleteMany()
       jest.restoreAllMocks()
-      await Promise.all(reports.map(R.prop('_id'))).then(_ids =>
-        Promise.all(_ids.map(db.deleteReport(collection)))
-      )
+      const reports = [...pendingChallenges, ...actorsPropagatedReports]
       await collection.insertMany(reports)
     })
 
@@ -199,6 +195,72 @@ describe('Tests for queued requests detection and dismissal', () => {
       await maybeProcessNewRequestsAndDismiss(state)
 
       expect(mockSolveChallenge.mock.calls).toHaveLength(1)
+    })
+  })
+
+  describe('Edge case 1', () => {
+    beforeEach(async () => {
+      await collection.deleteMany()
+      jest.restoreAllMocks()
+      await collection.insertMany(reportsSet1)
+    })
+
+    it('Should not process any dismissal', async () => {
+      const expectedCallResult = {
+        // secretlint-disable-next-line
+        hash: '0xd656ffac17b71e2ea2e24f72cd4c15c909a0ebe1696f8ead388eb268268f1cbf',
+      }
+
+      jest.spyOn(logic, 'sleepForXMilliseconds').mockImplementation(_ => Promise.resolve())
+      jest
+        .spyOn(logic, 'sleepThenReturnArg')
+        .mockImplementation(R.curry((_, _r) => Promise.resolve(_r)))
+      const mockOperationStatusOf = jest.fn().mockResolvedValue('0x01')
+      const mockCancelOperation = jest.fn().mockResolvedValue({
+        wait: jest.fn().mockResolvedValueOnce(expectedCallResult),
+      })
+
+      jest.spyOn(ethers, 'Contract').mockImplementation(() => ({
+        protocolCancelOperation: mockCancelOperation,
+        operationStatusOf: mockOperationStatusOf,
+      }))
+
+      jest.spyOn(utils, 'readIdentityFileSync').mockReturnValue(privKey)
+
+      const {
+        maybeProcessNewRequestsAndDismiss,
+      } = require('../../lib/evm/evm-process-dismissal-txs')
+      const state = {
+        [constants.state.KEY_LOOP_SLEEP_TIME]: 1,
+        [constants.state.KEY_NETWORK_ID]: '0xd41b1c5b',
+        [constants.state.KEY_DB]: collection,
+        [constants.state.KEY_IDENTITY_FILE]: 'identity-file',
+      }
+
+      expect(
+        await db.findReports(collection, {
+          [constants.db.KEY_STATUS]: constants.db.txStatus.CANCELLED,
+        })
+      ).toStrictEqual([])
+
+      const result = await maybeProcessNewRequestsAndDismiss(state)
+
+      expect(mockOperationStatusOf).toHaveBeenCalledTimes(1)
+      expect(mockCancelOperation).toHaveBeenCalledTimes(0)
+      expect(result).toHaveProperty(constants.state.KEY_DB)
+      expect(result).not.toHaveProperty(STATE_ONCHAIN_REQUESTS)
+      expect(result).not.toHaveProperty(STATE_DETECTED_DB_REPORTS)
+      expect(result).not.toHaveProperty(STATE_PROPOSED_DB_REPORTS)
+      expect(result).not.toHaveProperty(STATE_FINALIZED_DB_REPORTS)
+      expect(result).not.toHaveProperty(STATE_TO_BE_DISMISSED_REQUESTS)
+      expect(result).not.toHaveProperty(STATE_DISMISSED_DB_REPORTS)
+      expect(result).toHaveProperty(constants.state.KEY_IDENTITY_FILE)
+
+      const cancelledEvents = await db.findReports(collection, {
+        [constants.db.KEY_STATUS]: constants.db.txStatus.CANCELLED,
+      })
+
+      expect(cancelledEvents).toHaveLength(0)
     })
   })
 })
