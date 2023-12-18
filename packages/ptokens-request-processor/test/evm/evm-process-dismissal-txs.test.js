@@ -22,6 +22,7 @@ describe('Tests for queued requests detection and dismissal', () => {
   const uri = global.__MONGO_URI__
   const dbName = global.__MONGO_DB_NAME__
   const table = 'test'
+  // secretlint-disable-next-line
   const privKey = '0xdf57089febbacf7ba0bc227dafbffa9fc08a93fdc68e1e42411a14efcf23656e'
   const gpgEncryptedFile = './identity.gpg'
 
@@ -46,12 +47,15 @@ describe('Tests for queued requests detection and dismissal', () => {
     it('Should put invalid transactions to be dismissed into state', async () => {
       const expectedCallResult = [
         {
+          // secretlint-disable-next-line
           hash: '0xd656ffac17b71e2ea2e24f72cd4c15c909a0ebe1696f8ead388eb268268f1cbf',
         },
         {
+          // secretlint-disable-next-line
           hash: '0x2c7e8870be7643d97699bbcf3396dfb13217ee54a6784abfcacdb1e077fe201f',
         },
         {
+          // secretlint-disable-next-line
           hash: '0xbaa9e89896c03366c3578a4568a6defd4b127e4b09bb06b67a12cb1a4c332376',
         },
       ]
@@ -99,10 +103,11 @@ describe('Tests for queued requests detection and dismissal', () => {
         [constants.db.KEY_STATUS]: constants.db.txStatus.CANCELLED,
       })
 
-      expect(mockOperationStatusOf).toHaveBeenCalledTimes(2)
-      expect(mockCancelOperation).toHaveBeenCalledTimes(1)
+      expect(mockOperationStatusOf).toHaveBeenCalledTimes(3)
+      expect(mockCancelOperation).toHaveBeenCalledTimes(2)
       expect(cancelledReports.map(R.prop(constants.db.KEY_ID))).toStrictEqual([
         queuedReports[1][constants.db.KEY_ID],
+        queuedReports[2][constants.db.KEY_ID],
       ])
       expect(result).toHaveProperty(constants.state.KEY_DB)
       expect(result).not.toHaveProperty(STATE_ONCHAIN_REQUESTS)
@@ -117,7 +122,7 @@ describe('Tests for queued requests detection and dismissal', () => {
         [constants.db.KEY_STATUS]: constants.db.txStatus.CANCELLED,
       })
 
-      expect(cancelledEvents).toHaveLength(1)
+      expect(cancelledEvents).toHaveLength(2)
     })
   })
 
@@ -133,7 +138,9 @@ describe('Tests for queued requests detection and dismissal', () => {
 
     it('Should detect pending challenges and solve the pertinent ones', async () => {
       const finalizedTxHashes = [
+        // secretlint-disable-next-line
         '0x3319a74fd2e369da02c230818d5196682daaf86d213ce5257766858558ee5462',
+        // secretlint-disable-next-line
         '0x5639789165d988f45f55bc8fcfc5bb24a6000b2669d0d2f1524f693ce3e4588f',
       ]
       const expectedCallResults = [
