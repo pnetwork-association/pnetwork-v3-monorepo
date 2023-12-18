@@ -78,7 +78,6 @@ describe('Tests for queued requests detection and dismissal', () => {
       }))
 
       jest.spyOn(utils, 'readIdentityFileSync').mockReturnValue(privKey)
-      jest.spyOn(utils, 'readIdentityFileSync').mockReturnValue(privKey)
 
       const {
         maybeProcessNewRequestsAndDismiss,
@@ -226,7 +225,6 @@ describe('Tests for queued requests detection and dismissal', () => {
         operationStatusOf: mockOperationStatusOf,
       }))
 
-      jest.spyOn(utils, 'readIdentityFileSync').mockReturnValue(privKey)
       jest.spyOn(utils, 'readIdentityFileSync').mockReturnValue(privKey)
 
       const {
