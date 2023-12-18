@@ -1,5 +1,14 @@
 # ptokens-listener
 
+## 1.9.0-beta.4
+
+### Patch Changes
+
+- 16b635b: fix #206
+- Updated dependencies [16b635b]
+  - ptokens-constants@1.7.0-beta.3
+  - ptokens-utils@4.7.0-beta.4
+
 ## 1.9.0-beta.3
 
 ### Patch Changes

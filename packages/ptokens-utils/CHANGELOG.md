@@ -1,5 +1,12 @@
 # ptokens-utils
 
+## 4.7.0-beta.4
+
+### Patch Changes
+
+- Updated dependencies [16b635b]
+  - ptokens-constants@1.7.0-beta.3
+
 ## 4.7.0-beta.3
 
 ### Minor Changes

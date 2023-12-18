@@ -1,5 +1,13 @@
 # ptokens-state-reader
 
+## 1.1.0-beta.3
+
+### Patch Changes
+
+- Updated dependencies [16b635b]
+  - ptokens-constants@1.7.0-beta.3
+  - ptokens-utils@4.7.0-beta.4
+
 ## 1.1.0-beta.2
 
 ### Minor Changes

@@ -1,5 +1,11 @@
 # ptokens-constants
 
+## 1.7.0-beta.3
+
+### Patch Changes
+
+- 16b635b: fix #206
+
 ## 1.7.0-beta.2
 
 ### Minor Changes
