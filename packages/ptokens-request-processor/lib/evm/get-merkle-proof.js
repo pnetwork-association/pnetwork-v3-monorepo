@@ -7,7 +7,7 @@ const constants = require('ptokens-constants')
 module.exports.getMerkleProof = (_collection, _myAddress) =>
   logger.info('Getting proof...') ||
   _collection
-    .find({ _id: new RegExp(constants.db.eventNames.ACTORS_PROPAGATED.toLowerCase()) })
+    .find({ [constants.db.KEY_EVENT_NAME]: constants.db.eventNames.ACTORS_PROPAGATED })
     .sort({ [constants.db.KEY_WITNESSED_TS]: -1 })
     .toArray()
     .then(R.propOr({}, 0))
