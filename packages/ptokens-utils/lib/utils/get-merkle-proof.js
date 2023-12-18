@@ -16,7 +16,7 @@ const getMerkleProofSync = R.curry((_epoch, _actors, _actorsTypes, _myAddress) =
   const tree = new MerkleTree(leaves, ethers.keccak256, { sortPairs: true })
   const myIndex = lowerCasedActors.indexOf(_myAddress.toLowerCase())
   if (myIndex === -1) {
-    throw new Error(`${errors.ERROR_ADDRESS_NOT_FOUND} in ${_actors}`)
+    throw new Error(`${errors.ERROR_ADDRESS_NOT_FOUND} in ${_actors} (${_myAddress})`)
   }
 
   const myType = _actorsTypes[myIndex]
