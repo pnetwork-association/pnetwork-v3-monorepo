@@ -1,5 +1,16 @@
 # ptokens-request-processor
 
+## 1.10.0-beta.4
+
+### Patch Changes
+
+- 804722b: fix #204
+- 16b635b: fix #206
+- 6991e45: fix report id extraction
+- Updated dependencies [16b635b]
+  - ptokens-constants@1.7.0-beta.3
+  - ptokens-utils@4.7.0-beta.4
+
 ## 1.10.0-beta.3
 
 ### Patch Changes

@@ -1,6 +1,6 @@
 {
   "name": "ptokens-state-reader",
-  "version": "1.1.0-beta.2",
+  "version": "1.1.0-beta.3",
   "description": "Component used to read the Guardians and Sentinels state on decentralized file systems",
   "engines": {
     "node": ">=16.0.0"
@@ -30,8 +30,8 @@
     "lokijs": "^1.5.12",
     "merkletreejs": "^0.3.11",
     "npm": "^10.2.1",
-    "ptokens-constants": "1.7.0-beta.2",
-    "ptokens-utils": "4.7.0-beta.3",
+    "ptokens-constants": "1.7.0-beta.3",
+    "ptokens-utils": "4.7.0-beta.4",
     "ramda": "^0.29.1",
     "redis": "^4.6.10"
   },
