@@ -1,5 +1,12 @@
 # ptokens-evm-contracts
 
+## 0.6.0-beta.6
+
+### Patch Changes
+
+- Updated dependencies [4ad0fe6]
+  - ptokens-request-processor@1.10.0-beta.5
+
 ## 0.6.0-beta.5
 
 ### Patch Changes
