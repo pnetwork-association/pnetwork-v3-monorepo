@@ -11,8 +11,11 @@ const isRequestInvalid = R.curry(
   (_detectedTxs, _request) =>
     !_detectedTxs.some(
       _detectedReport =>
-        // check event ID is the same
-        _detectedReport[constants.db.KEY_OPERATION_ID] === _request[constants.db.KEY_OPERATION_ID]
+        // check event ID is the same and the specified destination network ID is the current network
+        _detectedReport[constants.db.KEY_OPERATION_ID] ===
+          _request[constants.db.KEY_OPERATION_ID] &&
+        _detectedReport[constants.db.KEY_DESTINATION_NETWORK_ID] ===
+          _request[constants.db.KEY_NETWORK_ID]
     )
 )
 
