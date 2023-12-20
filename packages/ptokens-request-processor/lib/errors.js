@@ -10,6 +10,7 @@ module.exports = {
   ERROR_UNABLE_TO_GET_GUARDIANS: 'Unable to get the guardians',
   ERROR_CHALLENGE_PERIOD_NOT_TERMINATED: 'ChallengePeriodNotTerminated',
   ERROR_REPLACEMENT_UNDERPRICED: 'replacement transaction underpriced',
+  ERROR_TRANSACTION_EXECUTION_REVERTED: 'transaction execution reverted',
   ERROR_INVALID_PROPOSED_TIMESTAMP: 'Invalid proposed timestamp',
   ERROR_INSUFFICIENT_FUNDS: 'insufficient funds',
   ERROR_NETWORK_FEE_NOT_ACCEPTED: 'Insufficient network fee',

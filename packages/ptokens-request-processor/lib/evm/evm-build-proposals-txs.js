@@ -65,7 +65,10 @@ const errorHandler = (_resolve, _reject, _contract, _report, _err) => {
   } else if (_err.message.includes(errors.ERROR_INSUFFICIENT_FUNDS)) {
     logger.error(`'${_err.info.error.message}' detected, retrying shortly...`)
     return _resolve(null)
-  } else if (_err.message.includes(errors.ERROR_NETWORK_FEE_NOT_ACCEPTED)) {
+  } else if (
+    _err.message.includes(errors.ERROR_NETWORK_FEE_NOT_ACCEPTED) ||
+    _err.message.includes(errors.ERROR_TRANSACTION_EXECUTION_REVERTED)
+  ) {
     logger.warn(_err.message)
     return _resolve(skipEvent(_report, _err))
   } else {

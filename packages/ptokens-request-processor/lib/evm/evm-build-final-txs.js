@@ -50,7 +50,10 @@ const errorHandler = (_resolve, _reject, _contract, _report, _err) => {
   if (_err.message.includes(constants.evm.ethers.ERROR_ESTIMATE_GAS)) {
     const hubError = new HubError(_contract, _err)
     return estimateGasErrorHandler(_resolve, _reject, _report, hubError)
-  } else if (_err.message.includes(errors.ERROR_INSUFFICIENT_FUNDS)) {
+  } else if (
+    _err.message.includes(errors.ERROR_INSUFFICIENT_FUNDS) ||
+    _err.message.includes(errors.ERROR_TRANSACTION_EXECUTION_REVERTED)
+  ) {
     logger.error(`'${_err.info.error.message}' detected, retrying shortly...`)
     return _resolve(null)
   } else {
