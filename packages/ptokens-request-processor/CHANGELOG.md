@@ -1,5 +1,11 @@
 # ptokens-request-processor
 
+## 1.10.0-beta.6
+
+### Patch Changes
+
+- 14b818b: fix #216
+
 ## 1.10.0-beta.5
 
 ### Patch Changes

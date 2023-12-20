@@ -1,6 +1,6 @@
 {
   "name": "ptokens-evm-contracts",
-  "version": "0.6.0-beta.6",
+  "version": "0.6.0-beta.7",
   "description": "",
   "main": "index.js",
   "license": "MIT",
@@ -42,7 +42,7 @@
     "hardhat-tracer": "^2.3.2",
     "merkletreejs": "^0.3.11",
     "ptokens-constants": "1.7.0-beta.3",
-    "ptokens-request-processor": "1.10.0-beta.5",
+    "ptokens-request-processor": "1.10.0-beta.6",
     "ptokens-utils": "4.7.0-beta.4",
     "ramda": "^0.29.0",
     "safe-buffer": "^5.2.1",

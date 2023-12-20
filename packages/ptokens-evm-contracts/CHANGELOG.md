@@ -1,5 +1,16 @@
 # ptokens-evm-contracts
 
+## 0.6.0-beta.7
+
+### Minor Changes
+
+- 7ff1146: use gpg-encrypted keys
+
+### Patch Changes
+
+- Updated dependencies [14b818b]
+  - ptokens-request-processor@1.10.0-beta.6
+
 ## 0.6.0-beta.6
 
 ### Patch Changes
