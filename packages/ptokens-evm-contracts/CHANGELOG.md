@@ -1,5 +1,22 @@
 # ptokens-evm-contracts
 
+## 0.6.0-beta.8
+
+### Minor Changes
+
+- bf4dec1: add task for testing message passing
+- 082b106: add task to deploy a PReceiver contract
+
+### Patch Changes
+
+- 82f4621: upgrade hardhat
+- bc43a75: align EpochsManager with Gnosis deployment
+- f209c8a: fix overflow in PNetworkHub deployment task
+- caf4789: fix hardhat dependency in lockfile
+- 6aa4d23: update interim chain in handle-telepathy task
+- 1b70213: fix DAI network ID
+- 151a94b: add decimals positional argument in ERC20 approve task
+
 ## 0.6.0-beta.7
 
 ### Minor Changes
