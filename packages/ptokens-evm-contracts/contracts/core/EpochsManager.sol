@@ -12,11 +12,11 @@ contract EpochsManager is IEpochsManager {
 
     /// @inheritdoc IEpochsManager
     function epochDuration() public pure returns (uint256) {
-        return 2592000; // NOTE: value taken from EpochsManager on Polygon (0xbA1067FB99Ad837F0e2895B57D1635Bdbefa789E)
+        return 2592000; // NOTE: value taken from EpochsManager on Gnosis (0xFDD7d2f23F771F05C6CEbFc9f9bC2A771FAE302e)
     }
 
     /// @inheritdoc IEpochsManager
     function startFirstEpochTimestamp() public pure returns (uint256) {
-        return 1680595199; // NOTE: value taken from EpochsManager on Polygon (0xbA1067FB99Ad837F0e2895B57D1635Bdbefa789E)
+        return 1701331199; // NOTE: value taken from EpochsManager on Gnosis (0xFDD7d2f23F771F05C6CEbFc9f9bC2A771FAE302e)
     }
 }
