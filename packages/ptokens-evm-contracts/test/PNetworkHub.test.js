@@ -671,6 +671,23 @@ describe('PNetworkHub', () => {
       )
   })
 
+  it('should not be able to enqueue an operation that has been executed', async () => {
+    const operation = await generateOperation()
+    await hub
+      .connect(relayer)
+      .protocolQueueOperation(operation, { value: LOCKED_AMOUNT_CHALLENGE_PERIOD })
+    await time.increase(await hub.getCurrentChallengePeriodDuration())
+    await expect(hub.connect(relayer).protocolExecuteOperation(operation))
+      .to.emit(hub, 'OperationExecuted')
+      .withArgs(operation.serialize())
+
+    await expect(
+      hub
+        .connect(relayer)
+        .protocolQueueOperation(operation, { value: LOCKED_AMOUNT_CHALLENGE_PERIOD })
+    ).to.be.revertedWithCustomError(hubInterim, 'InvalidOperationStatus')
+  })
+
   it('should not be able to cancel an operation on the interim chain if it msg.sender is not dandelion voting', async () => {
     const operation = await generateOperation()
     await hubInterim
