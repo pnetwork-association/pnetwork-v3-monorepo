@@ -65,7 +65,7 @@ contract PNetworkHub is IPNetworkHub, GovernanceMessageHandler, ReentrancyGuard 
 
     address public constant UNDERLYING_ASSET_TOKEN_ADDRESS_USER_DATA_PROTOCOL_FEE =
         0x6B175474E89094C44Da98b954EedeAC495271d0F;
-    bytes4 public constant UNDERLYING_ASSET_NETWORK_ID_USER_DATA_PROTOCOL_FEE = 0x005fe7f9;
+    bytes4 public constant UNDERLYING_ASSET_NETWORK_ID_USER_DATA_PROTOCOL_FEE = 0x60ef5904;
     uint256 public constant UNDERLYING_ASSET_DECIMALS_USER_DATA_PROTOCOL_FEE = 18;
     string public constant UNDERLYING_ASSET_NAME_USER_DATA_PROTOCOL_FEE = "Dai Stablecoin";
     string public constant UNDERLYING_ASSET_SYMBOL_USER_DATA_PROTOCOL_FEE = "DAI";
