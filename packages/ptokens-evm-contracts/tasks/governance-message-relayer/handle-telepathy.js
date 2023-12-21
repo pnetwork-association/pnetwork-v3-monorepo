@@ -19,7 +19,7 @@ const TASK_NAME_HANDLE_TELEPATHY = 'gm-relayer:handle-telepathy'
 const TASK_DESC_HANDLE_TELEPATHY = 'Call handleTelepathy (tests only)'
 
 const GOVERNANCE_MESSAGE_TOPIC =
-  '0x85aab78efe4e39fd3b313a465f645990e6a1b923f5f5b979957c176e632c5a07'
+  '0x85aab78efe4e39fd3b313a465f645990e6a1b923f5f5b979957c176e632c5a07' // secretlint-disable-line
 
 const callHandleTelepathy = async (_signer, _hubAddress, _data, _opts) => {
   const hubFactory = await ethers.getContractFactory(CONTRACT_NAME_PNETWORKHUB, _signer)
@@ -77,7 +77,7 @@ const main = async (_args, _hre) => {
   const networksFilter = _args[PARAM_NAME_NETWORKS] ? _args[PARAM_NAME_NETWORKS].split(',') : null
   const networks = await getNetworksWithIds(_hre, networksFilter)
   // switch to interim chain polygon
-  await _hre.changeNetwork('polygon')
+  await _hre.changeNetwork('gnosis')
   const governanceMessageEmitterAddress =
     _args[PARAM_NAME_GOVERNANCE_MESSAGE_EMITTER] ||
     (await getContractAddress(_hre, KEY_GOVERNANCE_MESSAGE_EMITTER))
