@@ -50,12 +50,5 @@
     "solhint-plugin-code-organizer": "https://github.com/allemanfredi/solhint-plugin-code-organizer.git",
     "solidity-coverage": "^0.8.4",
     "solidity-rlp": "^2.0.8"
-  },
-  "overrides": {
-    "hardhat-gas-reporter@1.0.9": {
-      "eth-gas-reporter@0.2.27": {
-        "axios": "1.6.0"
-      }
-    }
   }
 }
