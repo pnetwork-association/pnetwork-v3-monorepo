@@ -27,4 +27,5 @@ module.exports = {
   KEY_IGNORE_ACTORS: 'ignore-actors',
   KEY_EPOCHS_MANAGER_ADDRESS: 'epochs-manager',
   KEY_GOVERNANCE_MESSAGE_EMITTER_ADDRESS: 'governance-message-emitter',
+  KEY_BALANCE_THRESHOLD: 'balance-threshold',
 }

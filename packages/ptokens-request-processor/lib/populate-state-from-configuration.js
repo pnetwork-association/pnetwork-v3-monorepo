@@ -18,6 +18,7 @@ const getConfigPropertyAndPutInState = R.curry((_config, _configKey, _stateKey, 
 
 const DEFAULT_TX_TIMEOUT = 10000 // 10s
 const DEFAULT_LOOP_SLEEP_TIME = 3000 // 1s
+const DEFAULT_BALANCE_THRESHOLD = '0'
 
 const getInitialStateFromConfiguration = _config =>
   getDbAndPutInState(_config, {})
@@ -77,9 +78,18 @@ const getInitialStateFromConfiguration = _config =>
         DEFAULT_LOOP_SLEEP_TIME
       )
     )
+    .then(
+      getConfigPropertyAndPutInState(
+        _config,
+        constants.config.KEY_BALANCE_THRESHOLD,
+        constants.state.KEY_BALANCE_THRESHOLD,
+        DEFAULT_BALANCE_THRESHOLD
+      )
+    )
 
 module.exports = {
   DEFAULT_TX_TIMEOUT,
   DEFAULT_LOOP_SLEEP_TIME,
+  DEFAULT_BALANCE_THRESHOLD,
   getInitialStateFromConfiguration,
 }

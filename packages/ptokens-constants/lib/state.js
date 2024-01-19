@@ -8,4 +8,5 @@ module.exports = {
   KEY_CHALLENGE_PERIOD: 'challengePeriod',
   KEY_TX_TIMEOUT: 'txTimeout',
   KEY_LOOP_SLEEP_TIME: 'loopSleepTime',
+  KEY_BALANCE_THRESHOLD: 'balanceThreshold',
 }
