@@ -8,6 +8,7 @@ const {
 } = require('../../lib/state/constants')
 const { db, logic } = require('ptokens-utils')
 const constants = require('ptokens-constants')
+const evmCheckBalance = require('../../lib/evm/evm-check-balance')
 
 const proposedEvents = require('../samples/proposed-report-set').slice(0, 2)
 
@@ -18,6 +19,8 @@ describe('Main EVM flow for transaction proposal tests', () => {
     const dbName = global.__MONGO_DB_NAME__
     const table = 'test'
 
+    // Hardhat address
+    // secretlint-disable-next-line
     const privKey = '0xdf57089febbacf7ba0bc227dafbffa9fc08a93fdc68e1e42411a14efcf23656e'
     const gpgEncryptedFile = './identity.gpg'
 
@@ -41,7 +44,9 @@ describe('Main EVM flow for transaction proposal tests', () => {
       const { utils } = require('ptokens-utils')
 
       const finalizedTxHashes = [
+        // secretlint-disable-next-line
         '0x3319a74fd2e369da02c230818d5196682daaf86d213ce5257766858558ee5462',
+        // secretlint-disable-next-line
         '0x5639789165d988f45f55bc8fcfc5bb24a6000b2669d0d2f1524f693ce3e4588f',
       ]
       const expectedCallResults = [
@@ -80,6 +85,9 @@ describe('Main EVM flow for transaction proposal tests', () => {
 
       jest.spyOn(utils, 'readIdentityFileSync').mockReturnValue(privKey)
 
+      const mockCheckBalance = jest.fn(state => new Promise((resolve, _) => resolve(state)))
+      jest.spyOn(evmCheckBalance, 'checkBalance').mockImplementation(mockCheckBalance)
+
       const state = {
         [constants.state.KEY_DB]: collection,
         [constants.state.KEY_LOOP_SLEEP_TIME]: 1,
@@ -105,6 +113,8 @@ describe('Main EVM flow for transaction proposal tests', () => {
       })
 
       expect(finalizedEvents).toHaveLength(2)
+
+      expect(mockCheckBalance).toHaveBeenCalledTimes(1)
     })
   })
 })
