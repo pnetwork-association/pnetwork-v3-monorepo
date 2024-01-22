@@ -12,12 +12,15 @@ const {
   removeProposalsEventsFromState,
 } = require('../state/state-operations')
 const constants = require('ptokens-constants')
+const evmCheckBalance = require('./evm-check-balance')
 
 const pollForRequestsErrorHandler = R.curry((_pollForRequestsLoop, _err) => Promise.reject(_err))
 
 const maybeProcessNewRequestsAndPropose = _state =>
   logger.info('Polling for new requests EVM...') ||
-  getDetectedEventsFromDbAndPutInState(_state)
+  evmCheckBalance
+    .checkBalance(_state)
+    .then(getDetectedEventsFromDbAndPutInState)
     .then(filterOutDetectedEventsWithWrongStatusAndPutInState)
     .then(maybeBuildProposalsTxsAndPutInState)
     .then(removeDetectedEventsFromState)
