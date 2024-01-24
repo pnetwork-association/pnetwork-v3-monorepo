@@ -17,12 +17,14 @@ const reportsSet1 = require('../samples/reports-set-1.json')
 const actorsPropagatedReports = require('../samples/actors-propagated-report-set')
 const queuedReports = require('../samples/queued-report-set.json')
 const pendingChallenges = require('../samples/pending-challenges-report-set')
+const evmCheckBalance = require('../../lib/evm/evm-check-balance')
 
 describe('Tests for queued requests detection and dismissal', () => {
   let collection = null
   const uri = global.__MONGO_URI__
   const dbName = global.__MONGO_DB_NAME__
   const table = 'test'
+  // Hardhat address
   // secretlint-disable-next-line
   const privKey = '0xdf57089febbacf7ba0bc227dafbffa9fc08a93fdc68e1e42411a14efcf23656e'
   const gpgEncryptedFile = './identity.gpg'
@@ -79,9 +81,13 @@ describe('Tests for queued requests detection and dismissal', () => {
 
       jest.spyOn(utils, 'readIdentityFileSync').mockReturnValue(privKey)
 
+      const mockCheckBalance = jest.fn(state => new Promise((resolve, _) => resolve(state)))
+      jest.spyOn(evmCheckBalance, 'checkBalance').mockImplementation(mockCheckBalance)
+
       const {
         maybeProcessNewRequestsAndDismiss,
       } = require('../../lib/evm/evm-process-dismissal-txs')
+
       const state = {
         [constants.state.KEY_LOOP_SLEEP_TIME]: 1,
         [constants.state.KEY_NETWORK_ID]: '0xf9b459a1',
@@ -121,6 +127,8 @@ describe('Tests for queued requests detection and dismissal', () => {
       })
 
       expect(cancelledEvents).toHaveLength(2)
+
+      expect(mockCheckBalance).toHaveBeenCalledTimes(1)
     })
   })
 
@@ -167,6 +175,9 @@ describe('Tests for queued requests detection and dismissal', () => {
 
       jest.spyOn(utils, 'readIdentityFileSync').mockReturnValue(privKey)
 
+      const mockCheckBalance = jest.fn(state => new Promise((resolve, _) => resolve(state)))
+      jest.spyOn(evmCheckBalance, 'checkBalance').mockImplementation(mockCheckBalance)
+
       const state = {
         [constants.state.KEY_DB]: collection,
         [constants.state.KEY_LOOP_SLEEP_TIME]: 1,
@@ -192,9 +203,13 @@ describe('Tests for queued requests detection and dismissal', () => {
 
       expect(solvedChallenges).toHaveLength(1)
 
+      expect(mockCheckBalance).toHaveBeenCalledTimes(1)
+
       await maybeProcessNewRequestsAndDismiss(state)
 
       expect(mockSolveChallenge.mock.calls).toHaveLength(1)
+
+      expect(mockCheckBalance).toHaveBeenCalledTimes(2)
     })
   })
 
@@ -226,6 +241,9 @@ describe('Tests for queued requests detection and dismissal', () => {
       }))
 
       jest.spyOn(utils, 'readIdentityFileSync').mockReturnValue(privKey)
+
+      const mockCheckBalance = jest.fn(state => new Promise((resolve, _) => resolve(state)))
+      jest.spyOn(evmCheckBalance, 'checkBalance').mockImplementation(mockCheckBalance)
 
       const {
         maybeProcessNewRequestsAndDismiss,
@@ -261,6 +279,8 @@ describe('Tests for queued requests detection and dismissal', () => {
       })
 
       expect(cancelledEvents).toHaveLength(0)
+
+      expect(mockCheckBalance).toHaveBeenCalledTimes(1)
     })
 
     it('Should dismiss ops queued when destinationNetworkId != networkId)', async () => {
@@ -284,6 +304,9 @@ describe('Tests for queued requests detection and dismissal', () => {
       }))
 
       jest.spyOn(utils, 'readIdentityFileSync').mockReturnValue(privKey)
+
+      const mockCheckBalance = jest.fn(state => new Promise((resolve, _) => resolve(state)))
+      jest.spyOn(evmCheckBalance, 'checkBalance').mockImplementation(mockCheckBalance)
 
       const {
         maybeProcessNewRequestsAndDismiss,
@@ -325,6 +348,8 @@ describe('Tests for queued requests detection and dismissal', () => {
         // secretlint-disable-next-line
         '0xcefbf3617e8e21eb317da2fbe7c52c07a925d071bd111a26c0e233c8ab774687',
       ])
+
+      expect(mockCheckBalance).toHaveBeenCalledTimes(1)
     })
   })
 })

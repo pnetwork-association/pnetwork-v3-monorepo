@@ -15,4 +15,5 @@ module.exports = {
   ERROR_INSUFFICIENT_FUNDS: 'insufficient funds',
   ERROR_NETWORK_FEE_NOT_ACCEPTED: 'Insufficient network fee',
   ERROR_NO_ACTORS_PROPAGATED_EVENT_FOUND: 'No actors propagated event found!',
+  ERROR_INVALID_PRIVATE_KEY: 'Private key missing from file',
 }

@@ -5,8 +5,8 @@ ignore:
   SNYK-JS-INFLIGHT-6095116:
     - '*':
         reason: None Given
-        expires: 2024-01-20T17:55:23.351Z
-        created: 2023-12-21T17:55:23.354Z
+        expires: 2024-02-21T13:47:05.173Z
+        created: 2024-01-22T13:47:05.182Z
   SNYK-JS-ADMZIP-1065796:
     - hardhat@2.19.3 > adm-zip@0.4.16:
         reason: None Given

@@ -21,12 +21,15 @@ const constants = require('ptokens-constants')
 const {
   filterOutQueuedOperationsWithWrongStatusAndPutInState,
 } = require('./evm-filter-out-onchain-requests')
+const evmCheckBalance = require('./evm-check-balance')
 
 const pollForRequestsErrorHandler = R.curry((_pollForRequestsLoop, _err) => Promise.reject(_err))
 
 const maybeProcessNewRequestsAndDismiss = _state =>
   logger.info('Checking for any EVM operations to cancel...') ||
-  getQueuedEventsFromDbAndPutInState(_state)
+  evmCheckBalance
+    .checkBalance(_state)
+    .then(getQueuedEventsFromDbAndPutInState)
     .then(filterOutQueuedOperationsWithWrongStatusAndPutInState)
     .then(getValidMatchingEventsAndPutInState)
     .then(filterOutInvalidQueuedRequestsAndPutInState)

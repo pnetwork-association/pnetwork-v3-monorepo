@@ -8,6 +8,7 @@ const {
   KEY_IDENTITY_GPG,
   KEY_HUB_ADDRESS,
   KEY_CHALLENGE_PERIOD,
+  KEY_BALANCE_THRESHOLD,
 } = require('../constants')
 const dbSchema = require('./db')
 
@@ -45,6 +46,10 @@ module.exports = {
       type: 'string',
     },
     [KEY_IDENTITY_GPG]: {
+      type: 'string',
+    },
+    // TODO: suggesting strict validation mode to avoid missing configs with a typo and default value
+    [KEY_BALANCE_THRESHOLD]: {
       type: 'string',
     },
   },

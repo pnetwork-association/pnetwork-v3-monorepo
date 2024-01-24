@@ -12,10 +12,13 @@ const {
 } = require('../state/state-operations')
 const constants = require('ptokens-constants')
 const { maybeUpdateFinalizedEventsInDb } = require('../update-events-in-db')
+const evmCheckBalance = require('./evm-check-balance')
 
 const maybeProcessFinalTransactions = _state =>
   logger.info('Maybe processing final transactions on EVM chain...') ||
-  getProposedEventsFromDbAndPutInState(_state)
+  evmCheckBalance
+    .checkBalance(_state)
+    .then(getProposedEventsFromDbAndPutInState)
     .then(maybefilterForExpiredProposalsAndPutThemInState)
     .then(maybeBuildFinalTxsAndPutInState)
     .then(removeProposalsEventsFromState)
