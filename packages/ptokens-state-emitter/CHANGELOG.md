@@ -1,5 +1,13 @@
 # ptokens-state-emitter
 
+## 1.1.0-beta.5
+
+### Patch Changes
+
+- Updated dependencies [7e8eac8]
+  - ptokens-constants@1.7.0-beta.4
+  - ptokens-utils@4.7.0-beta.5
+
 ## 1.1.0-beta.4
 
 ### Patch Changes

@@ -1,5 +1,14 @@
 # ptokens-request-processor
 
+## 1.10.0-beta.7
+
+### Patch Changes
+
+- 7e8eac8: add balance checks for request processor functions
+- Updated dependencies [7e8eac8]
+  - ptokens-constants@1.7.0-beta.4
+  - ptokens-utils@4.7.0-beta.5
+
 ## 1.10.0-beta.6
 
 ### Patch Changes
