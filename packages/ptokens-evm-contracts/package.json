@@ -27,7 +27,7 @@
     "@nomicfoundation/hardhat-network-helpers": "^1.0.6",
     "@nomicfoundation/hardhat-toolbox": "^2.0.2",
     "@nomiclabs/hardhat-ethers": "^2.2.3",
-    "@openzeppelin/contracts": "^5.0.0",
+    "@openzeppelin/contracts": "^5.0.2",
     "@pnetwork-association/dao-v2-contracts": "https://github.com/pnetwork-association/dao-v2-contracts.git#feat/guardians-registration",
     "chai": "^4.3.0",
     "data-store": "https://github.com/Brittany-Reid/data-store#05b5b234e157b35e6d69053056348ca0febef163",
