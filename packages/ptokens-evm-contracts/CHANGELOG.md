@@ -1,5 +1,15 @@
 # ptokens-evm-contracts
 
+## 0.6.0-beta.9
+
+### Patch Changes
+
+- ebbb14d: update axios package
+- Updated dependencies [7e8eac8]
+  - ptokens-request-processor@1.10.0-beta.7
+  - ptokens-constants@1.7.0-beta.4
+  - ptokens-utils@4.7.0-beta.5
+
 ## 0.6.0-beta.8
 
 ### Minor Changes
