@@ -1,8 +1,12 @@
 const { logger } = require('../logger')
 const { isNotNil } = require('../utils')
-const { LoopError } = require('../errors')
+const { LoopError, LoopAllError } = require('../errors')
 const { validateJson, checkType } = require('../validation')
-const { ERROR_UNKNOWN_RETURN, ERROR_WRONG_NUMBER_OF_ARGS } = require('../errors')
+const {
+  ERROR_UNKNOWN_RETURN,
+  ERROR_WRONG_NUMBER_OF_ARGS,
+  ERROR_INNER_LOOP_FAILED,
+} = require('../errors')
 
 const LOOP_MODE = {
   INFINITE: -1,
@@ -48,7 +52,12 @@ const loopSchema = {
  * logic.loop(LOOP_MODE.INFINITE, fn, [initialState])
  *
  */
-const loop = async (_loopParams, _promiseFn, _promiseFnArgs = []) => {
+const loop = async (
+  _loopParams,
+  _promiseFn,
+  _promiseFnArgs = [],
+  _isLoopCancelled = () => false
+) => {
   await validateJson(loopSchema, _loopParams)
   await checkType('Function', _promiseFn)
   await checkType('Array', _promiseFnArgs)
@@ -79,7 +88,7 @@ const loop = async (_loopParams, _promiseFn, _promiseFnArgs = []) => {
   }
 
   let newArgs = _promiseFnArgs
-  while (shouldContinue()) {
+  while (!_isLoopCancelled() && shouldContinue()) {
     try {
       newArgs = [await _promiseFn(...newArgs)]
     } catch (e) {
@@ -99,7 +108,28 @@ const loop = async (_loopParams, _promiseFn, _promiseFnArgs = []) => {
   return Promise.reject(new LoopError(ERROR_UNKNOWN_RETURN, newArgs))
 }
 
+const loopAll = async (_loopParams, _promiseFn, _promiseFnArgs) => {
+  let cancelled = false
+  const isloopCancelled = () => cancelled
+
+  return Promise.allSettled(
+    _promiseFnArgs.map(_arg =>
+      loop(_loopParams, _promiseFn, _arg, isloopCancelled).catch(e => {
+        cancelled = true
+        return Promise.reject(e)
+      })
+    )
+  ).then(_results => {
+    const results = _results.map(r => (r.status === 'rejected' ? r.reason : r.value))
+    return _results.some(r => r.status === 'rejected')
+      ? // TODO: consider rejecting with new error
+        Promise.reject(new LoopAllError(ERROR_INNER_LOOP_FAILED, results))
+      : Promise.resolve(results)
+  })
+}
+
 module.exports = {
   loop,
+  loopAll,
   LOOP_MODE,
 }

@@ -25,4 +25,5 @@ module.exports = {
   ERROR_FAILED_TO_PARSE_JSON: 'Failed to parse JSON!',
   ERROR_INVALID_ARG: 'Invalid argument',
   ERROR_ADDRESS_NOT_FOUND: 'Address not found',
+  ERROR_INNER_LOOP_FAILED: 'One or more inner loops failed',
 }

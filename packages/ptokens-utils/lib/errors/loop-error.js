@@ -20,6 +20,21 @@ class LoopError extends Error {
   }
 }
 
+class LoopAllError extends Error {
+  constructor(_msg, _lastLoopState) {
+    super(_msg)
+    this.lastLoopState = _lastLoopState
+  }
+  toString() {
+    const nErrors = this.lastLoopState.reduce(
+      (_acc, _cur) => _acc + (_cur instanceof Error ? 1 : 0),
+      0
+    )
+    return `LoopAllError [ERRORS ${nErrors}/${this.lastLoopState.length} TOTAL]: ${this.message}`
+  }
+}
+
 module.exports = {
   LoopError,
+  LoopAllError,
 }
